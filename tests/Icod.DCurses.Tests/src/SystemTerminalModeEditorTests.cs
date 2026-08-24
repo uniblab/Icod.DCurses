@@ -8,22 +8,24 @@ public sealed class SystemTerminalModeEditorTests {
 
 	[Fact]
 	public void LinuxCanonicalEnablesCanonicalModeAndHonorsEchoPolicy() {
-		TerminalModeSnapshot baseline =
-			CreateLinuxMode(
-				localFlags: 0 );
+		TerminalModeSnapshot baseline = CreateLinuxMode(
+			localFlags: 0
+		);
 
-		TerminalModeSnapshot configured =
-			DCursesTerminal.SystemTerminalModeEditor.Configure(
-				baseline,
-				CursesInputMode.Canonical,
-				echoInput: true );
+		TerminalModeSnapshot configured = DCursesTerminal.SystemTerminalModeEditor.Configure(
+			baseline,
+			CursesInputMode.Canonical,
+			echoInput: true
+		);
 
 		Assert.NotEqual(
 			0UL,
-			configured.LocalFlags & 0x0002UL );
+			configured.LocalFlags & 0x0002UL
+		);
 		Assert.NotEqual(
 			0UL,
-			configured.LocalFlags & 0x0008UL );
+			configured.LocalFlags & 0x0008UL
+		);
 	}
 
 	[Fact]
