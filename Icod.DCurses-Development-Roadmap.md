@@ -1,16 +1,17 @@
 # Icod.DCurses Development Roadmap
 
-**Project:** `Icod.DCurses`  
-**Package:** `Icod.DCurses`  
-**Repository:** `https://github.com/uniblab/Icod.DCurses`  
-**Initial development branch:** `initial_add`  
-**Language:** C# 13  
-**Initial target framework:** `net10.0`  
-**Configurations:** `Debug`; `Staging`; `Release`  
-**License:** LGPL-3.0-or-later  
-**Current development target:** `0.1.0`  
-**Stable contract target:** `1.0.0`  
-**Status:** Planned / initial implementation
+**Project:** `Icod.DCurses`
+**Package:** `Icod.DCurses`
+**Repository:** `https://github.com/uniblab/Icod.DCurses`
+**Initial development branch:** `initial_add`
+**Language:** C# 13
+**Initial target framework:** `net10.0`
+**Configurations:** `Debug`; `Staging`; `Release`
+**License:** LGPL-3.0-or-later
+**Current development target:** `0.1.0`
+**Current tranche:** T01 — Repository and package foundation
+**Stable contract target:** `1.0.0`
+**Status:** T01 implementation prepared; completion awaits repository build/test/pack validation
 
 ---
 

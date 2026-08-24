@@ -1,7 +1,7 @@
 # Package Validation Scripts
 
 `verify-release-package.sh` and `verify-release-package.cmd` are equivalent host
-wrappers for the same repository package-validation contract.
+wrappers for the T01 package-validation contract.
 
 Both wrappers require:
 
@@ -23,12 +23,11 @@ For final main-branch release validation:
 bash .github/scripts/verify-release-package.sh artifacts Release
 ```
 
-The scripts reject any configuration other than `Staging` or `Release`, and the
-selected configuration controls maintenance tools, API-snapshot build-output
-paths, the package verifier, both fresh-package consumers, and the
-non-interactive repository sample.
+During T01 the scripts intentionally perform only foundation checks:
 
-- Use `verify-release-package.sh` on Bash-capable hosts and in Ubuntu GitHub
-  Actions package-validation jobs.
-- Use `verify-release-package.cmd` from Windows Command Prompt; Bash and Python
-  are not required.
+- read `PackageVersion` from `Icod.DCurses.csproj`;
+- require the matching `.nupkg` and `.snupkg`;
+- run the already-built repository sample non-interactively.
+
+Public-API snapshots, isolated package-consumer tests, and deeper package-content
+validation belong to the later release-gate tranches in the development roadmap.

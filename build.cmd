@@ -51,32 +51,33 @@ exit /b %errorlevel%
 :clean
 echo.
 echo === Clean ===
-dotnet clean Icod.TermInfo.sln -c Debug
+dotnet clean Icod.DCurses.sln -c Debug
 exit /b %errorlevel%
 
 
 :restore
 echo.
 echo === Restore ===
-dotnet restore Icod.TermInfo.sln
+dotnet restore Icod.DCurses.sln
 exit /b %errorlevel%
 
 
 :build
 echo.
 echo === Build ===
-dotnet build Icod.TermInfo.sln -c Debug --no-restore
+dotnet build Icod.DCurses.sln -c Debug --no-restore
 exit /b %errorlevel%
 
 
 :test
 echo.
 echo === Test ===
-dotnet test Icod.TermInfo.sln -c Debug --no-build
+dotnet test Icod.DCurses.sln -c Debug --no-build
 exit /b %errorlevel%
+
 
 :pack
 echo.
 echo === Pack ===
-dotnet pack Icod.TermInfo.sln -c Debug --include-source --include-symbols --no-build
+dotnet pack Icod.DCurses.sln -c Debug --include-source --include-symbols --no-build
 exit /b %errorlevel%
