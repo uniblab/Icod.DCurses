@@ -108,13 +108,13 @@ public sealed partial class CursesSession {
 				break;
 
 			case TerminalLifecycleSignalKind.Interrupt:
-				PublishLifecycleEvent( CursesLifecycleEventKind.Interrupt );
 				TryCancelTermination();
+				PublishLifecycleEvent( CursesLifecycleEventKind.Interrupt );
 				break;
 
 			case TerminalLifecycleSignalKind.Termination:
-				PublishLifecycleEvent( CursesLifecycleEventKind.Termination );
 				TryCancelTermination();
+				PublishLifecycleEvent( CursesLifecycleEventKind.Termination );
 				break;
 
 			case TerminalLifecycleSignalKind.Suspend:
