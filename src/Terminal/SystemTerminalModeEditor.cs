@@ -2,6 +2,7 @@ namespace Icod.DCurses.Terminal;
 
 using FrameworkTerminal = Icod.CommandFramework.Terminal;
 
+/// <summary>Applies curses input-discipline policy to captured platform terminal modes.</summary>
 internal static class SystemTerminalModeEditor
 {
 	private const ulong InputIgnoreBreak = 0x0001UL;
@@ -22,6 +23,11 @@ internal static class SystemTerminalModeEditor
 	private const uint WindowsEnableEchoInput = 0x0004U;
 	private const uint WindowsEnableVirtualTerminalInput = 0x0200U;
 
+	/// <summary>Creates a terminal-mode snapshot configured for the requested curses input policy.</summary>
+	/// <param name="baseline">The captured host terminal mode.</param>
+	/// <param name="inputMode">The requested curses input discipline.</param>
+	/// <param name="echoInput">Whether host input echo remains enabled.</param>
+	/// <returns>The configured terminal-mode snapshot.</returns>
 	internal static FrameworkTerminal.TerminalModeSnapshot Configure(
 		FrameworkTerminal.TerminalModeSnapshot baseline,
 		CursesInputMode inputMode,

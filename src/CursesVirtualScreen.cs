@@ -49,6 +49,9 @@ public sealed class CursesVirtualScreen {
 	public int CellCount => cells.Length;
 
 	/// <summary>Gets or sets one logical cell using zero-based row and column coordinates.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <value>The logical cell at the requested coordinate.</value>
 	public CursesCell this[
 		int row,
 		int column ] {
@@ -64,6 +67,9 @@ public sealed class CursesVirtualScreen {
 	}
 
 	/// <summary>Gets one logical cell.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <returns>The logical cell at the requested coordinate.</returns>
 	public CursesCell GetCell(
 		int row,
 		int column ) {
@@ -71,6 +77,9 @@ public sealed class CursesVirtualScreen {
 	}
 
 	/// <summary>Sets one logical cell.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <param name="cell">The replacement logical cell.</param>
 	public void SetCell(
 		int row,
 		int column,
@@ -94,11 +103,13 @@ public sealed class CursesVirtualScreen {
 	}
 
 	/// <summary>Clears the logical screen to blank cells carrying the supplied style.</summary>
+	/// <param name="style">The style assigned to each blank cell.</param>
 	public void Clear( CursesStyle style ) {
 		Fill( CursesCell.Blank( style ) );
 	}
 
 	/// <summary>Fills every logical coordinate with the same cell value.</summary>
+	/// <param name="cell">The cell value copied to every coordinate.</param>
 	public void Fill( CursesCell cell ) {
 		for ( int offset = 0; offset < cells.Length; offset++ ) {
 			if ( cells[ offset ] == cell ) {
@@ -110,27 +121,38 @@ public sealed class CursesVirtualScreen {
 		}
 	}
 
+	/// <summary>Gets the number of logical cells currently marked dirty.</summary>
 	internal int DirtyCellCount => dirtyCellCount;
 
+	/// <summary>Gets whether one logical coordinate is marked dirty.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <returns><see langword="true"/> when the cell requires refresh processing.</returns>
 	internal bool IsDirty(
 		int row,
 		int column ) {
 		return dirtyCells[ GetOffset( row, column ) ];
 	}
 
+	/// <summary>Marks one logical coordinate dirty without changing its value.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
 	internal void TouchCell(
 		int row,
 		int column ) {
 		MarkDirty( GetOffset( row, column ) );
 	}
 
+	/// <summary>Gets a read-only view of the logical cell storage.</summary>
 	internal ReadOnlySpan<CursesCell> Cells => cells;
 
+	/// <summary>Marks all logical cells clean after a successful physical refresh.</summary>
 	internal void MarkClean() {
 		Array.Clear( dirtyCells );
 		dirtyCellCount = 0;
 	}
 
+	/// <summary>Marks every logical cell dirty.</summary>
 	internal void Invalidate() {
 		Array.Fill(
 			dirtyCells,

@@ -49,6 +49,9 @@ public sealed class CursesEvent {
 		null != Lifecycle
 		&& Lifecycle.RequiresRepaint;
 
+	/// <summary>Creates a unified event carrying decoded terminal input.</summary>
+	/// <param name="input">The decoded input event.</param>
+	/// <returns>The unified input event.</returns>
 	internal static CursesEvent FromInput( CursesInputEvent input ) {
 		ArgumentNullException.ThrowIfNull( input );
 		return new CursesEvent(
@@ -58,6 +61,9 @@ public sealed class CursesEvent {
 		);
 	}
 
+	/// <summary>Creates a unified event carrying a lifecycle notification.</summary>
+	/// <param name="lifecycle">The lifecycle notification.</param>
+	/// <returns>The unified lifecycle event.</returns>
 	internal static CursesEvent FromLifecycle( CursesLifecycleEvent lifecycle ) {
 		ArgumentNullException.ThrowIfNull( lifecycle );
 		return new CursesEvent(
@@ -67,6 +73,8 @@ public sealed class CursesEvent {
 		);
 	}
 
+	/// <summary>Creates a unified timeout event.</summary>
+	/// <returns>The timeout event.</returns>
 	internal static CursesEvent TimedOut() {
 		return new CursesEvent(
 			CursesEventKind.Timeout,

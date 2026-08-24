@@ -74,6 +74,7 @@ public sealed class CursesSessionOptions
 		init;
 	} = true;
 
+	/// <summary>Validates the configured session options.</summary>
 	internal void Validate()
 	{
 		if (!Enum.IsDefined(InputMode))

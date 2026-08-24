@@ -4,8 +4,11 @@ using Icod.TermInfo;
 using FrameworkTerminal = Icod.CommandFramework.Terminal;
 using TermInfoTerminalSize = Icod.TermInfo.TerminalSize;
 
+/// <summary>Creates the platform-backed terminal services used by a standard curses session.</summary>
 internal static class SystemTerminalBackendFactory
 {
+	/// <summary>Creates a backend bound to process standard input and output.</summary>
+	/// <returns>The system terminal backend.</returns>
 	internal static TerminalBackend Create()
 	{
 		FrameworkTerminal.SystemTerminalControlProvider controlProvider =
@@ -85,6 +88,8 @@ internal static class SystemTerminalBackendFactory
 	{
 		private readonly Stream stream;
 
+		/// <summary>Initializes a stream-backed terminal input service.</summary>
+		/// <param name="stream">The readable standard-input stream.</param>
 		internal StreamTerminalInput(
 			Stream stream)
 		{
@@ -92,6 +97,7 @@ internal static class SystemTerminalBackendFactory
 			this.stream = stream;
 		}
 
+		/// <inheritdoc />
 		public ValueTask<int> ReadAsync(
 			Memory<byte> buffer,
 			CancellationToken cancellationToken = default)
@@ -107,6 +113,8 @@ internal static class SystemTerminalBackendFactory
 	{
 		private readonly Stream stream;
 
+		/// <summary>Initializes a stream-backed terminal output service.</summary>
+		/// <param name="stream">The writable standard-output stream.</param>
 		internal StreamTerminalOutput(
 			Stream stream)
 		{
@@ -114,6 +122,7 @@ internal static class SystemTerminalBackendFactory
 			this.stream = stream;
 		}
 
+		/// <inheritdoc />
 		public ValueTask WriteAsync(
 			ReadOnlyMemory<byte> buffer,
 			CancellationToken cancellationToken = default)
@@ -123,6 +132,7 @@ internal static class SystemTerminalBackendFactory
 				cancellationToken);
 		}
 
+		/// <inheritdoc />
 		public ValueTask FlushAsync(
 			CancellationToken cancellationToken = default)
 		{
@@ -135,6 +145,7 @@ internal static class SystemTerminalBackendFactory
 	private sealed class SystemTerminalDimensionProvider
 		: ITerminalDimensionProvider
 	{
+		/// <inheritdoc />
 		public TerminalBackendResult<TerminalSize> GetDimensions()
 		{
 			if (TerminalEnvironment.TryGetLiveSize(
@@ -152,11 +163,14 @@ internal static class SystemTerminalBackendFactory
 	}
 }
 
+/// <summary>Adapts the command-framework terminal-control provider to curses session-mode semantics.</summary>
 internal sealed class SystemTerminalModeController
 	: ITerminalSessionModeController
 {
 	private readonly FrameworkTerminal.ITerminalControlProvider controlProvider;
 
+	/// <summary>Initializes a system terminal-mode controller.</summary>
+	/// <param name="controlProvider">The underlying terminal-control provider.</param>
 	internal SystemTerminalModeController(
 		FrameworkTerminal.ITerminalControlProvider controlProvider)
 	{
@@ -164,6 +178,7 @@ internal sealed class SystemTerminalModeController
 		this.controlProvider = controlProvider;
 	}
 
+	/// <inheritdoc />
 	public TerminalBackendResult<ITerminalModeState> CaptureMode()
 	{
 		FrameworkTerminal.TerminalControlResult<FrameworkTerminal.TerminalModeSnapshot> result =
@@ -182,6 +197,7 @@ internal sealed class SystemTerminalModeController
 				result.GetRequiredValue()));
 	}
 
+	/// <inheritdoc />
 	public TerminalBackendMutationResult ApplySessionMode(
 		ITerminalModeState baseline,
 		CursesInputMode inputMode,
@@ -243,6 +259,7 @@ internal sealed class SystemTerminalModeController
 				timing));
 	}
 
+	/// <inheritdoc />
 	public TerminalBackendMutationResult RestoreMode(
 		ITerminalModeState state,
 		TerminalModeApplyTiming timing)
@@ -342,6 +359,8 @@ internal sealed class SystemTerminalModeController
 	private sealed class SystemTerminalModeState
 		: ITerminalModeState
 	{
+		/// <summary>Initializes captured system terminal-mode state.</summary>
+		/// <param name="baseline">The captured command-framework mode snapshot.</param>
 		internal SystemTerminalModeState(
 			FrameworkTerminal.TerminalModeSnapshot baseline)
 		{
@@ -349,11 +368,13 @@ internal sealed class SystemTerminalModeController
 			Baseline = baseline;
 		}
 
+		/// <summary>Gets the captured baseline terminal-mode snapshot.</summary>
 		internal FrameworkTerminal.TerminalModeSnapshot Baseline
 		{
 			get;
 		}
 
+		/// <summary>Gets or sets the active Windows virtual-terminal output lease.</summary>
 		internal IDisposable? VirtualTerminalLease
 		{
 			get;

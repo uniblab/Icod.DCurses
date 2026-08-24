@@ -9,6 +9,7 @@ public sealed class CursesScreen {
 	/// <summary>Initializes a logical screen with a standard window covering the complete frame.</summary>
 	/// <param name="columns">The positive number of terminal columns.</param>
 	/// <param name="rows">The positive number of terminal rows.</param>
+	/// <param name="textWidthProvider">Optional terminal display-width policy.</param>
 	public CursesScreen(
 		int columns,
 		int rows,
@@ -129,6 +130,13 @@ public sealed class CursesScreen {
 		}
 	}
 
+	/// <summary>Validates that a window rectangle fits inside its containing surface.</summary>
+	/// <param name="row">The zero-based origin row.</param>
+	/// <param name="column">The zero-based origin column.</param>
+	/// <param name="rows">The positive window height.</param>
+	/// <param name="columns">The positive window width.</param>
+	/// <param name="containingRows">The containing surface height.</param>
+	/// <param name="containingColumns">The containing surface width.</param>
 	internal static void ValidateWindowRectangle(
 		int row,
 		int column,
@@ -168,6 +176,11 @@ public sealed class CursesScreen {
 /// <summary>Reports one logical-screen resize.</summary>
 public sealed class CursesScreenResizedEventArgs
 	: EventArgs {
+	/// <summary>Initializes logical-screen resize event data.</summary>
+	/// <param name="oldColumns">The previous column count.</param>
+	/// <param name="oldRows">The previous row count.</param>
+	/// <param name="columns">The new column count.</param>
+	/// <param name="rows">The new row count.</param>
 	internal CursesScreenResizedEventArgs(
 		int oldColumns,
 		int oldRows,

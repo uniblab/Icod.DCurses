@@ -131,6 +131,11 @@ public sealed class CursesWindow {
 	}
 
 	/// <summary>Creates a subwindow whose coordinates are relative to this window.</summary>
+	/// <param name="row">The zero-based row relative to this window.</param>
+	/// <param name="column">The zero-based column relative to this window.</param>
+	/// <param name="rows">The positive subwindow height.</param>
+	/// <param name="columns">The positive subwindow width.</param>
+	/// <returns>The shared logical-screen subwindow.</returns>
 	public CursesWindow CreateSubwindow(
 		int row,
 		int column,
@@ -157,6 +162,8 @@ public sealed class CursesWindow {
 	}
 
 	/// <summary>Moves the logical cursor to one local coordinate.</summary>
+	/// <param name="row">The zero-based local row.</param>
+	/// <param name="column">The zero-based local column.</param>
 	public void Move(
 		int row,
 		int column ) {
@@ -169,6 +176,8 @@ public sealed class CursesWindow {
 	}
 
 	/// <summary>Changes the dimensions of a non-standard window without changing its origin.</summary>
+	/// <param name="rows">The positive new height.</param>
+	/// <param name="columns">The positive new width.</param>
 	public void Resize(
 		int rows,
 		int columns ) {
@@ -202,6 +211,7 @@ public sealed class CursesWindow {
 	}
 
 	/// <summary>Writes terminal-independent text using <see cref="CurrentStyle"/>.</summary>
+	/// <param name="text">The text to write.</param>
 	public void Write( string text ) {
 		Write(
 			text,
@@ -210,6 +220,8 @@ public sealed class CursesWindow {
 	}
 
 	/// <summary>Writes terminal-independent text using an explicit style.</summary>
+	/// <param name="text">The text to write.</param>
+	/// <param name="style">The style applied to the written text.</param>
 	public void Write(
 		string text,
 		CursesStyle style ) {
@@ -229,6 +241,7 @@ public sealed class CursesWindow {
 	}
 
 	/// <summary>Writes one Unicode scalar value using <see cref="CurrentStyle"/>.</summary>
+	/// <param name="rune">The Unicode scalar value to write.</param>
 	public void Write( Rune rune ) {
 		_ = WriteRuneCore(
 			rune,
@@ -237,6 +250,8 @@ public sealed class CursesWindow {
 	}
 
 	/// <summary>Writes one Unicode scalar value using an explicit style.</summary>
+	/// <param name="rune">The Unicode scalar value to write.</param>
+	/// <param name="style">The style applied to the scalar value.</param>
 	public void Write(
 		Rune rune,
 		CursesStyle style ) {
@@ -247,6 +262,7 @@ public sealed class CursesWindow {
 	}
 
 	/// <summary>Writes one exact logical cell at the current cursor position.</summary>
+	/// <param name="cell">The logical cell to write.</param>
 	public void WriteCell( CursesCell cell ) {
 		_ = WriteCellCore( cell );
 	}
@@ -394,6 +410,7 @@ public sealed class CursesWindow {
 	}
 
 	/// <summary>Marks one logical row as changed.</summary>
+	/// <param name="row">The zero-based local row to mark dirty.</param>
 	public void TouchLine( int row ) {
 		if ( 0 > row || row >= Rows ) {
 			throw new ArgumentOutOfRangeException( nameof( row ) );
@@ -418,6 +435,7 @@ public sealed class CursesWindow {
 		Touch();
 	}
 
+	/// <summary>Clamps standard-window cursor state after the owning screen is resized.</summary>
 	internal void HandleScreenResize() {
 		if ( !isStandardWindow ) {
 			return;
@@ -433,6 +451,9 @@ public sealed class CursesWindow {
 		);
 	}
 
+	/// <summary>Creates the standard window projected over an owning screen.</summary>
+	/// <param name="screen">The owning logical screen.</param>
+	/// <returns>The standard screen window.</returns>
 	internal static CursesWindow CreateStandard( CursesScreen screen ) {
 		ArgumentNullException.ThrowIfNull( screen );
 		return new CursesWindow(
@@ -446,6 +467,13 @@ public sealed class CursesWindow {
 		);
 	}
 
+	/// <summary>Creates a root window projected directly onto an owning screen.</summary>
+	/// <param name="screen">The owning logical screen.</param>
+	/// <param name="row">The zero-based screen row.</param>
+	/// <param name="column">The zero-based screen column.</param>
+	/// <param name="rows">The positive window height.</param>
+	/// <param name="columns">The positive window width.</param>
+	/// <returns>The root logical-screen view.</returns>
 	internal static CursesWindow CreateRootView(
 		CursesScreen screen,
 		int row,

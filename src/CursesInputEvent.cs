@@ -141,6 +141,9 @@ public sealed class CursesInputEvent {
 		get;
 	}
 
+	/// <summary>Creates an ordinary Unicode text-input event.</summary>
+	/// <param name="character">The decoded Unicode scalar value.</param>
+	/// <returns>The text-input event.</returns>
 	internal static CursesInputEvent FromText( Rune character ) {
 		return new CursesInputEvent(
 			CursesInputEventKind.Text,
@@ -151,6 +154,12 @@ public sealed class CursesInputEvent {
 		);
 	}
 
+	/// <summary>Creates a named or modified key-input event.</summary>
+	/// <param name="key">The terminal-independent key.</param>
+	/// <param name="modifiers">The active key modifiers.</param>
+	/// <param name="character">The optional character carried by the key event.</param>
+	/// <param name="functionKeyNumber">The function-key number when <paramref name="key"/> is Function.</param>
+	/// <returns>The key-input event.</returns>
 	internal static CursesInputEvent FromKey(
 		CursesKey key,
 		CursesKeyModifiers modifiers = CursesKeyModifiers.None,
@@ -183,6 +192,8 @@ public sealed class CursesInputEvent {
 		);
 	}
 
+	/// <summary>Creates an end-of-input event.</summary>
+	/// <returns>The end-of-input event.</returns>
 	internal static CursesInputEvent EndOfInput() {
 		return new CursesInputEvent(
 			CursesInputEventKind.EndOfInput,
