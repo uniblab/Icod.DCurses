@@ -69,7 +69,7 @@
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<Deterministic>true</Deterministic>
-		<PackageTags>curses;ncurses;pcurses;dcurses;terminal;tui;console;terminfo;full-screen;screen;windows;linux;macos;cross-platform;dotnet;csharp;icod</PackageTags>
+		<PackageTags>curses;ncurses;pcurses;dcurses;terminal;tui;console;terminfo;termcap;terminal-info;full-screen;screen;windows;linux;macos;cross-platform;dotnet;csharp;icod</PackageTags>
 		<RepositoryUrl>https://github.com/uniblab/Icod.DCurses</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
