@@ -9,9 +9,8 @@ using TerminalCellSize = Icod.DCurses.Terminal.TerminalSize;
 /// <summary>
 /// Owns the live terminal state associated with one curses presentation.
 /// </summary>
-public sealed class CursesSession
-	: IAsyncDisposable
-{
+public sealed partial class CursesSession
+	: IAsyncDisposable {
 	private readonly object restoreSync = new();
 	private readonly ITerminalSessionModeController sessionModes;
 
@@ -25,10 +24,11 @@ public sealed class CursesSession
 	private CursesSession(
 		TerminalBackend backend,
 		ITerminalSessionModeController sessionModes,
-		CursesSessionOptions options)
-	{
+		ITerminalLifecycleSource? lifecycleSource,
+		CursesSessionOptions options) {
 		Backend = backend;
 		this.sessionModes = sessionModes;
+		this.lifecycleSource = lifecycleSource;
 		Options = options;
 	}
 
@@ -55,13 +55,11 @@ public sealed class CursesSession
 	/// <summary>
 	/// Gets the immutable options with which this session was opened.
 	/// </summary>
-	public CursesSessionOptions Options
-	{
+	public CursesSessionOptions Options {
 		get;
 	}
 
-	internal TerminalBackend Backend
-	{
+	internal TerminalBackend Backend {
 		get;
 	}
 
@@ -73,8 +71,7 @@ public sealed class CursesSession
 	/// <returns>The initialized curses session.</returns>
 	public static ValueTask<CursesSession> OpenAsync(
 		CursesSessionOptions? options = null,
-		CancellationToken cancellationToken = default)
-	{
+		CancellationToken cancellationToken = default) {
 		cancellationToken.ThrowIfCancellationRequested();
 
 		CursesSessionOptions resolvedOptions =
@@ -83,9 +80,15 @@ public sealed class CursesSession
 
 		resolvedOptions.Validate();
 
+		TerminalBackend backend =
+			SystemTerminalBackendFactory.Create();
+		ITerminalLifecycleSource lifecycleSource =
+			new SystemTerminalLifecycleSource();
+
 		return OpenAsync(
-			SystemTerminalBackendFactory.Create(),
+			backend,
 			resolvedOptions,
+			lifecycleSource,
 			cancellationToken);
 	}
 
@@ -96,11 +99,22 @@ public sealed class CursesSession
 	/// <param name="options">Optional session presentation policy.</param>
 	/// <param name="cancellationToken">Cancellation for session initialization.</param>
 	/// <returns>The initialized curses session.</returns>
-	public static async ValueTask<CursesSession> OpenAsync(
+	public static ValueTask<CursesSession> OpenAsync(
 		TerminalBackend backend,
 		CursesSessionOptions? options = null,
-		CancellationToken cancellationToken = default)
-	{
+		CancellationToken cancellationToken = default) {
+		return OpenAsync(
+			backend,
+			options,
+			lifecycleSource: null,
+			cancellationToken);
+	}
+
+	internal static async ValueTask<CursesSession> OpenAsync(
+		TerminalBackend backend,
+		CursesSessionOptions? options,
+		ITerminalLifecycleSource? lifecycleSource,
+		CancellationToken cancellationToken) {
 		ArgumentNullException.ThrowIfNull(backend);
 		cancellationToken.ThrowIfCancellationRequested();
 
@@ -110,8 +124,8 @@ public sealed class CursesSession
 
 		resolvedOptions.Validate();
 
-		if (!backend.IsInteractive)
-		{
+		if (!backend.IsInteractive) {
+			lifecycleSource?.Dispose();
 			throw new InvalidOperationException(
 				$"Curses requires interactive terminal input and output. "
 				+ $"Input '{backend.InputEndpoint.DisplayName}' interactive: "
@@ -120,8 +134,8 @@ public sealed class CursesSession
 				+ $"{backend.OutputEndpoint.IsInteractive}.");
 		}
 
-		if (backend.Modes is not ITerminalSessionModeController sessionModes)
-		{
+		if (backend.Modes is not ITerminalSessionModeController sessionModes) {
+			lifecycleSource?.Dispose();
 			throw new NotSupportedException(
 				"The terminal backend does not support curses session-mode transitions.");
 		}
@@ -130,22 +144,21 @@ public sealed class CursesSession
 			new(
 				backend,
 				sessionModes,
+				lifecycleSource,
 				resolvedOptions);
 
-		try
-		{
+		try {
 			await session.InitializeAsync(
 				cancellationToken).ConfigureAwait(false);
 
+			session.StartLifecyclePump();
 			return session;
-		}
-		catch (Exception exception)
-		{
+		} catch (Exception exception) {
+			await session.StopLifecycleAsync().ConfigureAwait(false);
 			Exception? restorationException =
 				await session.RestoreCoreAsync().ConfigureAwait(false);
 
-			if (restorationException is not null)
-			{
+			if (restorationException is not null) {
 				throw new AggregateException(
 					"Curses session initialization failed and terminal restoration also reported an error.",
 					exception,
@@ -160,35 +173,32 @@ public sealed class CursesSession
 	/// Queries the current live terminal dimensions.
 	/// </summary>
 	/// <returns>A controlled terminal-dimension result.</returns>
-	public TerminalBackendResult<TerminalCellSize> GetDimensions()
-	{
+	public TerminalBackendResult<TerminalCellSize> GetDimensions() {
 		return Backend.Dimensions.GetDimensions();
 	}
 
 	/// <summary>
 	/// Restores terminal state. Repeated disposal is safe and does not replay restoration.
 	/// </summary>
-	public async ValueTask DisposeAsync()
-	{
+	public async ValueTask DisposeAsync() {
+		await StopLifecycleAsync().ConfigureAwait(false);
+
 		Exception? exception =
 			await RestoreCoreAsync().ConfigureAwait(false);
 
-		if (exception is not null)
-		{
+		if (exception is not null) {
 			ExceptionDispatchInfo.Capture(exception).Throw();
 		}
 	}
 
 	private async ValueTask InitializeAsync(
-		CancellationToken cancellationToken)
-	{
+		CancellationToken cancellationToken) {
 		cancellationToken.ThrowIfCancellationRequested();
 
 		TerminalBackendResult<ITerminalModeState> captureResult =
 			sessionModes.CaptureMode();
 
-		if (!captureResult.IsAvailable)
-		{
+		if (!captureResult.IsAvailable) {
 			throw new InvalidOperationException(
 				captureResult.Message
 				?? "The host terminal mode could not be captured.");
@@ -205,8 +215,7 @@ public sealed class CursesSession
 				Options.InputMode,
 				Options.EchoInput);
 
-		if (!modeResult.Succeeded)
-		{
+		if (!modeResult.Succeeded) {
 			throw new InvalidOperationException(
 				modeResult.Message
 				?? "The requested curses terminal mode could not be applied.");
@@ -219,18 +228,15 @@ public sealed class CursesSession
 		await HideCursorAsync(
 			cancellationToken).ConfigureAwait(false);
 
-		if (HasPresentationState)
-		{
+		if (HasPresentationState) {
 			await Backend.Output.FlushAsync(
 				cancellationToken).ConfigureAwait(false);
 		}
 	}
 
 	private async ValueTask EnterAlternateScreenAsync(
-		CancellationToken cancellationToken)
-	{
-		if (!Options.UseAlternateScreen)
-		{
+		CancellationToken cancellationToken) {
+		if (!Options.UseAlternateScreen) {
 			return;
 		}
 
@@ -241,8 +247,7 @@ public sealed class CursesSession
 			Terminal.GetString(
 				StringCapability.ExitCursorAddressingMode);
 
-		if ((enter is null) || (exit is null))
-		{
+		if ((enter is null) || (exit is null)) {
 			return;
 		}
 
@@ -255,10 +260,8 @@ public sealed class CursesSession
 	}
 
 	private async ValueTask EnterKeypadAsync(
-		CancellationToken cancellationToken)
-	{
-		if (!Options.EnableKeypad)
-		{
+		CancellationToken cancellationToken) {
+		if (!Options.EnableKeypad) {
 			return;
 		}
 
@@ -269,8 +272,7 @@ public sealed class CursesSession
 			Terminal.GetString(
 				StringCapability.ExitKeypadMode);
 
-		if ((enter is null) || (exit is null))
-		{
+		if ((enter is null) || (exit is null)) {
 			return;
 		}
 
@@ -283,10 +285,8 @@ public sealed class CursesSession
 	}
 
 	private async ValueTask HideCursorAsync(
-		CancellationToken cancellationToken)
-	{
-		if (!Options.HideCursor)
-		{
+		CancellationToken cancellationToken) {
+		if (!Options.HideCursor) {
 			return;
 		}
 
@@ -299,8 +299,7 @@ public sealed class CursesSession
 			?? Terminal.GetString(
 				StringCapability.CursorVeryVisible);
 
-		if ((hide is null) || (show is null))
-		{
+		if ((hide is null) || (show is null)) {
 			return;
 		}
 
@@ -317,10 +316,8 @@ public sealed class CursesSession
 		|| (keypadRestore is not null)
 		|| (alternateScreenRestore is not null);
 
-	private ValueTask<Exception?> RestoreCoreAsync()
-	{
-		lock (restoreSync)
-		{
+	private ValueTask<Exception?> RestoreCoreAsync() {
+		lock (restoreSync) {
 			restoreTask ??=
 				RestoreOnceAsync();
 
@@ -329,8 +326,7 @@ public sealed class CursesSession
 		}
 	}
 
-	private async Task<Exception?> RestoreOnceAsync()
-	{
+	private async Task<Exception?> RestoreOnceAsync() {
 		await Task.Yield();
 
 		List<Exception> exceptions = [];
@@ -345,39 +341,30 @@ public sealed class CursesSession
 			alternateScreenRestore,
 			exceptions).ConfigureAwait(false);
 
-		if (HasPresentationState)
-		{
-			try
-			{
+		if (HasPresentationState) {
+			try {
 				await Backend.Output.FlushAsync(
 					CancellationToken.None).ConfigureAwait(false);
-			}
-			catch (Exception exception)
-			{
+			} catch (Exception exception) {
 				exceptions.Add(exception);
 			}
 		}
 
 		if (modeRestoreRequired
-			&& (capturedMode is not null))
-		{
-			try
-			{
+			&& (capturedMode is not null)) {
+			try {
 				TerminalBackendMutationResult result =
 					sessionModes.RestoreMode(
 						capturedMode,
 						TerminalModeApplyTiming.AfterOutputDrained);
 
-				if (!result.Succeeded)
-				{
+				if (!result.Succeeded) {
 					exceptions.Add(
 						new InvalidOperationException(
 							result.Message
 								?? "The original host terminal mode could not be restored."));
 				}
-			}
-			catch (Exception exception)
-			{
+			} catch (Exception exception) {
 				exceptions.Add(exception);
 			}
 		}
@@ -388,35 +375,28 @@ public sealed class CursesSession
 
 	private async ValueTask TryRestoreCapabilityAsync(
 		string? capability,
-		ICollection<Exception> exceptions)
-	{
+		ICollection<Exception> exceptions) {
 		ArgumentNullException.ThrowIfNull(exceptions);
 
-		if (capability is null)
-		{
+		if (capability is null) {
 			return;
 		}
 
-		try
-		{
+		try {
 			await TerminalCapabilityWriter.WriteAsync(
 				Backend.Output,
 				capability,
 				CancellationToken.None).ConfigureAwait(false);
-		}
-		catch (Exception exception)
-		{
+		} catch (Exception exception) {
 			exceptions.Add(exception);
 		}
 	}
 
 	private static Exception? BuildRestorationException(
-		IReadOnlyCollection<Exception> exceptions)
-	{
+		IReadOnlyCollection<Exception> exceptions) {
 		ArgumentNullException.ThrowIfNull(exceptions);
 
-		return exceptions.Count switch
-		{
+		return exceptions.Count switch {
 			0 => null,
 			1 => exceptions.First(),
 			_ => new AggregateException(
