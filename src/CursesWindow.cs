@@ -1,5 +1,7 @@
 namespace Icod.DCurses;
 
+using System.Buffers;
+using System.Globalization;
 using System.Text;
 
 /// <summary>Controls horizontal boundary behavior when writing through a <see cref="CursesWindow"/>.</summary>
@@ -214,8 +216,13 @@ public sealed class CursesWindow {
 		ArgumentNullException.ThrowIfNull( text );
 		ValidateText( text );
 
-		foreach ( Rune rune in text.EnumerateRunes() ) {
-			if ( !WriteRuneCore( rune, style ) ) {
+		TextElementEnumerator elements = StringInfo.GetTextElementEnumerator( text );
+		while ( elements.MoveNext() ) {
+			string textElement = (string)elements.Current;
+			if ( !WriteTextElementCore(
+				textElement,
+				style
+			) ) {
 				break;
 			}
 		}
@@ -460,31 +467,51 @@ public sealed class CursesWindow {
 	private bool WriteRuneCore(
 		Rune rune,
 		CursesStyle style ) {
-		switch ( rune.Value ) {
-			case '\r':
-				cursorColumn = 0;
-				return true;
+		return WriteTextElementCore(
+			rune.ToString(),
+			style
+		);
+	}
 
-			case '\n':
-				cursorColumn = 0;
-				return AdvanceRow();
+	private bool WriteTextElementCore(
+		string textElement,
+		CursesStyle style ) {
+		ArgumentException.ThrowIfNullOrEmpty( textElement );
 
-			case '\t':
-				return WriteTab( style );
+		if ( 1 == textElement.Length ) {
+			switch ( textElement[ 0 ] ) {
+				case '\r':
+					cursorColumn = 0;
+					return true;
+
+				case '\n':
+					cursorColumn = 0;
+					return AdvanceRow();
+
+				case '\t':
+					return WriteTab( style );
+			}
 		}
 
-		if ( IsControl( rune ) ) {
-			throw new ArgumentException(
-				"Window text cannot contain terminal control characters other than tab, carriage return, or line feed.",
-				nameof( rune )
+		string normalized = NormalizeMalformedUtf16( textElement );
+		int width = screen.TextWidthProvider.GetWidth( normalized );
+		if ( width < 0 || width > 2 ) {
+			throw new InvalidOperationException(
+				"The configured curses text-width provider returned a width outside the supported range."
 			);
 		}
 
-		return WriteCellCore(
+		if ( 0 == width ) {
+			return AppendZeroWidthText( normalized );
+		}
+
+		return WriteDisplayCellCore(
 			new CursesCell(
-				rune.ToString(),
-				style
-			)
+				normalized,
+				style,
+				width
+			),
+			width
 		);
 	}
 
@@ -499,18 +526,87 @@ public sealed class CursesWindow {
 	}
 
 	private bool WriteCellCore( CursesCell cell ) {
+		if ( cell.IsContinuation ) {
+			RepairCellFootprint(
+				cursorRow,
+				cursorColumn
+			);
+			SetCellIfVisible(
+				cursorRow,
+				cursorColumn,
+				cell
+			);
+			return AdvanceColumns( 1 );
+		}
+
+		return WriteDisplayCellCore(
+			cell,
+			cell.DisplayWidth
+		);
+	}
+
+	private bool WriteDisplayCellCore(
+		CursesCell cell,
+		int width ) {
+		if ( width < 1 || width > 2 ) {
+			throw new ArgumentOutOfRangeException( nameof( width ) );
+		}
+
+		if ( 2 == width
+			&& cursorColumn + 1 >= Columns ) {
+			if ( CursesWrapMode.Clip == WrapMode ) {
+				return false;
+			}
+
+			cursorColumn = 0;
+			if ( !AdvanceRow() ) {
+				cursorColumn = Columns - 1;
+				return false;
+			}
+		}
+
+		RepairCellFootprint(
+			cursorRow,
+			cursorColumn
+		);
+		if ( 2 == width ) {
+			RepairCellFootprint(
+				cursorRow,
+				cursorColumn + 1
+			);
+		}
+
 		SetCellIfVisible(
 			cursorRow,
 			cursorColumn,
 			cell
 		);
+		if ( 2 == width ) {
+			SetCellIfVisible(
+				cursorRow,
+				cursorColumn + 1,
+				CursesCell.Continuation( cell.Style )
+			);
+		}
 
-		if ( cursorColumn + 1 < Columns ) {
-			cursorColumn++;
+		return AdvanceColumns( width );
+	}
+
+	private bool AdvanceColumns( int width ) {
+		int next = cursorColumn + width;
+		if ( next < Columns ) {
+			cursorColumn = next;
 			return true;
 		}
 
+		if ( next == Columns
+			&& CursesWrapMode.Clip == WrapMode ) {
+			cursorColumn = Columns - 1;
+			return false;
+		}
+
 		if ( CursesWrapMode.Clip == WrapMode ) {
+			cursorColumn = Columns - 1;
 			return false;
 		}
 
@@ -521,6 +617,108 @@ public sealed class CursesWindow {
 
 		cursorColumn = Columns - 1;
 		return false;
+	}
+
+	private bool AppendZeroWidthText( string text ) {
+		if ( 0 == cursorColumn ) {
+			return true;
+		}
+
+		int targetColumn = cursorColumn - 1;
+		CursesCell target = GetCellOrBackground(
+			cursorRow,
+			targetColumn
+		);
+		while ( target.IsContinuation && 0 < targetColumn ) {
+			targetColumn--;
+			target = GetCellOrBackground(
+				cursorRow,
+				targetColumn
+			);
+		}
+
+		if ( target.IsBlank || target.IsContinuation ) {
+			return true;
+		}
+
+		SetCellIfVisible(
+			cursorRow,
+			targetColumn,
+			new CursesCell(
+				target.Content + text,
+				target.Style,
+				target.DisplayWidth
+			)
+		);
+		return true;
+	}
+
+	private void RepairCellFootprint(
+		int row,
+		int column ) {
+		CursesCell existing = GetCellOrBackground(
+			row,
+			column
+		);
+
+		if ( existing.IsContinuation ) {
+			int leader = column - 1;
+			while ( 0 <= leader ) {
+				CursesCell candidate = GetCellOrBackground(
+					row,
+					leader
+				);
+				if ( !candidate.IsContinuation ) {
+					SetCellIfVisible(
+						row,
+						leader,
+						backgroundCell
+					);
+					break;
+				}
+				leader--;
+			}
+		}
+
+		if ( existing.DisplayWidth > 1 ) {
+			for ( int offset = 1; offset < existing.DisplayWidth; offset++ ) {
+				SetCellIfVisible(
+					row,
+					column + offset,
+					backgroundCell
+				);
+			}
+		}
+
+		SetCellIfVisible(
+			row,
+			column,
+			backgroundCell
+		);
+	}
+
+	private static string NormalizeMalformedUtf16( string text ) {
+		ArgumentNullException.ThrowIfNull( text );
+
+		StringBuilder normalized = new();
+		ReadOnlySpan<char> remaining = text.AsSpan();
+		while ( !remaining.IsEmpty ) {
+			OperationStatus status = Rune.DecodeFromUtf16(
+				remaining,
+				out Rune rune,
+				out int consumed
+			);
+			if ( OperationStatus.Done == status ) {
+				normalized.Append( rune.ToString() );
+				remaining = remaining[ consumed.. ];
+				continue;
+			}
+
+			normalized.Append( Rune.ReplacementChar.ToString() );
+			remaining = remaining[ 1.. ];
+		}
+
+		return normalized.ToString();
 	}
 
 	private bool AdvanceRow() {
