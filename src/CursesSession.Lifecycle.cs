@@ -100,6 +100,7 @@ public sealed partial class CursesSession {
 	) {
 		switch ( signal.Kind ) {
 			case TerminalLifecycleSignalKind.Resize:
+				InvalidatePhysicalScreen();
 				PublishLifecycleEvent(
 					CursesLifecycleEventKind.Resize,
 					TryGetCurrentDimensions()
@@ -160,6 +161,7 @@ public sealed partial class CursesSession {
 
 	private async ValueTask HandleResumeAsync() {
 		await ResumePresentationAsync().ConfigureAwait( false );
+		InvalidatePhysicalScreen();
 		PublishLifecycleEvent(
 			CursesLifecycleEventKind.Resumed,
 			TryGetCurrentDimensions()
@@ -176,6 +178,12 @@ public sealed partial class CursesSession {
 		}
 
 		List<Exception> exceptions = [];
+
+		try {
+			await ResetRefreshRenditionAsync().ConfigureAwait( false );
+		} catch ( Exception exception ) {
+			exceptions.Add( exception );
+		}
 
 		await TryRestoreCapabilityAsync(
 			cursorRestore,

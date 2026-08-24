@@ -331,6 +331,12 @@ public sealed partial class CursesSession
 
 		List<Exception> exceptions = [];
 
+		try {
+			await ResetRefreshRenditionAsync().ConfigureAwait( false );
+		} catch ( Exception exception ) {
+			exceptions.Add( exception );
+		}
+
 		await TryRestoreCapabilityAsync(
 			cursorRestore,
 			exceptions).ConfigureAwait(false);
