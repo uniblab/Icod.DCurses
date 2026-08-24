@@ -1,5 +1,6 @@
 namespace Icod.DCurses;
 
+using System.Buffers;
 using System.Globalization;
 using System.Text;
 
