@@ -17,6 +17,7 @@ public sealed partial class CursesSession {
 		CancellationToken cancellationToken = default ) {
 		cancellationToken.ThrowIfCancellationRequested();
 
+		_ = SynchronizeDimensions();
 		CursesScreen currentScreen = Screen;
 		CursesRefreshEngine engine = GetRefreshEngine();
 		return engine.RefreshAsync(

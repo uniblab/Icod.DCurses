@@ -22,6 +22,7 @@ public sealed partial class CursesSession {
 	private readonly ITerminalLifecycleSource? lifecycleSource;
 	private Task? lifecyclePumpTask;
 	private Task? lifecycleStopTask;
+	private TerminalSize? lastResizeNotificationDimensions;
 	private int presentationSuspended;
 
 	/// <summary>
@@ -100,11 +101,7 @@ public sealed partial class CursesSession {
 	) {
 		switch ( signal.Kind ) {
 			case TerminalLifecycleSignalKind.Resize:
-				InvalidatePhysicalScreen();
-				PublishLifecycleEvent(
-					CursesLifecycleEventKind.Resize,
-					TryGetCurrentDimensions()
-				);
+				HandleResizeSignal();
 				break;
 
 			case TerminalLifecycleSignalKind.Interrupt:
@@ -161,10 +158,12 @@ public sealed partial class CursesSession {
 
 	private async ValueTask HandleResumeAsync() {
 		await ResumePresentationAsync().ConfigureAwait( false );
+		TerminalSize? dimensions = SynchronizeLifecycleDimensions();
+		lastResizeNotificationDimensions = dimensions;
 		InvalidatePhysicalScreen();
 		PublishLifecycleEvent(
 			CursesLifecycleEventKind.Resumed,
-			TryGetCurrentDimensions()
+			dimensions
 		);
 	}
 
@@ -291,10 +290,24 @@ public sealed partial class CursesSession {
 		}
 	}
 
-	private TerminalSize? TryGetCurrentDimensions() {
-		TerminalBackendResult<TerminalSize> result =
-			Backend.Dimensions.GetDimensions();
+	private void HandleResizeSignal() {
+		TerminalSize? dimensions = SynchronizeLifecycleDimensions();
+		if ( dimensions.HasValue
+			&& lastResizeNotificationDimensions.HasValue
+			&& dimensions.Value == lastResizeNotificationDimensions.Value ) {
+			return;
+		}
 
+		lastResizeNotificationDimensions = dimensions;
+		InvalidatePhysicalScreen();
+		PublishLifecycleEvent(
+			CursesLifecycleEventKind.Resize,
+			dimensions
+		);
+	}
+
+	private TerminalSize? SynchronizeLifecycleDimensions() {
+		TerminalBackendResult<TerminalSize> result = SynchronizeDimensions();
 		return result.IsAvailable
 			? result.GetRequiredValue()
 			: null

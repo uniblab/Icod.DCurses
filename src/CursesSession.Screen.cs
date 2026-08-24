@@ -8,7 +8,7 @@ public sealed partial class CursesSession {
 	private CursesScreen? screen;
 
 	/// <summary>
-	/// Gets the lazily created logical screen sized from the current terminal dimensions.
+	/// Gets the logical screen sized from the most recently observed terminal dimensions.
 	/// </summary>
 	public CursesScreen Screen {
 		get {
@@ -37,14 +37,51 @@ public sealed partial class CursesSession {
 	/// <summary>Gets the standard window covering <see cref="Screen"/>.</summary>
 	public CursesWindow StandardScreen => Screen.StandardWindow;
 
-	internal void ResizeLogicalScreen(
+	/// <summary>
+	/// Reobserves live terminal dimensions and synchronizes the logical screen when they changed.
+	/// </summary>
+	/// <returns>
+	/// The controlled dimension result. An unavailable result is returned unchanged; no fallback size is invented.
+	/// </returns>
+	public TerminalBackendResult<TerminalSize> SynchronizeDimensions() {
+		TerminalBackendResult<TerminalSize> dimensions = GetDimensions();
+		if ( !dimensions.IsAvailable ) {
+			return dimensions;
+		}
+
+		TerminalSize size = dimensions.GetRequiredValue();
+		if ( ResizeLogicalScreen(
+			size.Columns,
+			size.Rows
+		) ) {
+			InvalidatePhysicalScreen();
+		}
+
+		return dimensions;
+	}
+
+	internal bool ResizeLogicalScreen(
 		int columns,
 		int rows ) {
 		lock ( screenSync ) {
-			screen?.Resize(
+			if ( null == screen ) {
+				screen = new CursesScreen(
+					columns,
+					rows
+				);
+				return true;
+			}
+
+			if ( columns == screen.Columns
+				&& rows == screen.Rows ) {
+				return false;
+			}
+
+			screen.Resize(
 				columns,
 				rows
 			);
+			return true;
 		}
 	}
 }
