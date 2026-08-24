@@ -118,6 +118,12 @@ public sealed class CursesVirtualScreen {
 		return dirtyCells[ GetOffset( row, column ) ];
 	}
 
+	internal void TouchCell(
+		int row,
+		int column ) {
+		MarkDirty( GetOffset( row, column ) );
+	}
+
 	internal ReadOnlySpan<CursesCell> Cells => cells;
 
 	internal void MarkClean() {
