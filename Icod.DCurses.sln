@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{4A1B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Icod.DCurses.Sample", "samples\Icod.DCurses.Sample\Icod.DCurses.Sample.csproj", "{CC1A35F4-7338-438B-9AF5-11377FB640DF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Icod.DCurses.Showcase", "samples\Icod.DCurses.Showcase\Icod.DCurses.Showcase.csproj", "{E4A0FC7B-9726-4F40-A7C8-8CF2F83691A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,12 @@ Global
 		{CC1A35F4-7338-438B-9AF5-11377FB640DF}.Staging|Any CPU.Build.0 = Staging|Any CPU
 		{CC1A35F4-7338-438B-9AF5-11377FB640DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC1A35F4-7338-438B-9AF5-11377FB640DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4A0FC7B-9726-4F40-A7C8-8CF2F83691A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4A0FC7B-9726-4F40-A7C8-8CF2F83691A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4A0FC7B-9726-4F40-A7C8-8CF2F83691A1}.Staging|Any CPU.ActiveCfg = Staging|Any CPU
+		{E4A0FC7B-9726-4F40-A7C8-8CF2F83691A1}.Staging|Any CPU.Build.0 = Staging|Any CPU
+		{E4A0FC7B-9726-4F40-A7C8-8CF2F83691A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4A0FC7B-9726-4F40-A7C8-8CF2F83691A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -44,5 +52,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{B65DE7CA-7DD7-42FA-86B6-1A791B8A53E3} = {56678D7A-8BA1-4AB4-8A06-3E5C41F9E3F0}
 		{CC1A35F4-7338-438B-9AF5-11377FB640DF} = {4A1B4462-96F7-4E95-95A4-059D416B73E7}
+		{E4A0FC7B-9726-4F40-A7C8-8CF2F83691A1} = {4A1B4462-96F7-4E95-95A4-059D416B73E7}
 	EndGlobalSection
 EndGlobal
