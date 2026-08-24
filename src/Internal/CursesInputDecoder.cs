@@ -21,6 +21,10 @@ internal sealed class CursesInputDecoder {
 	private Task<int>? pendingRead;
 	private bool endOfInput;
 
+	/// <summary>Initializes an input decoder for one terminal byte stream.</summary>
+	/// <param name="input">The terminal input byte source.</param>
+	/// <param name="terminal">The active terminal capability description.</param>
+	/// <param name="escapeSequenceTimeout">The Escape-sequence ambiguity timeout.</param>
 	internal CursesInputDecoder(
 		ITerminalInput input,
 		TerminalDescription terminal,
@@ -128,6 +132,9 @@ internal sealed class CursesInputDecoder {
 		);
 	}
 
+	/// <summary>Reads and decodes the next terminal-independent input event.</summary>
+	/// <param name="cancellationToken">Cancellation for this read.</param>
+	/// <returns>The next decoded input event.</returns>
 	internal async ValueTask<CursesInputEvent> ReadAsync(
 		CancellationToken cancellationToken = default) {
 		while ( true ) {
@@ -452,6 +459,9 @@ internal sealed class CursesInputDecoder {
 	}
 
 	private sealed class KeySequence {
+		/// <summary>Initializes one encoded terminal key sequence.</summary>
+		/// <param name="bytes">The encoded terminal byte sequence.</param>
+		/// <param name="inputEvent">The decoded event represented by the sequence.</param>
 		internal KeySequence(
 			byte[] bytes,
 			CursesInputEvent inputEvent) {
@@ -462,10 +472,12 @@ internal sealed class CursesInputDecoder {
 			InputEvent = inputEvent;
 		}
 
+		/// <summary>Gets the encoded terminal byte sequence.</summary>
 		internal byte[] Bytes {
 			get;
 		}
 
+		/// <summary>Gets the decoded event represented by the sequence.</summary>
 		internal CursesInputEvent InputEvent {
 			get;
 		}
