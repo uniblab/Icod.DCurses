@@ -275,7 +275,7 @@ public sealed partial class CursesSession {
 			await EnterKeypadAsync(
 				CancellationToken.None
 			).ConfigureAwait( false );
-			await HideCursorAsync(
+			await ApplyRequestedCursorVisibilityAsync(
 				CancellationToken.None
 			).ConfigureAwait( false );
 

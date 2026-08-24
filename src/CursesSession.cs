@@ -30,6 +30,11 @@ public sealed partial class CursesSession
 		this.sessionModes = sessionModes;
 		this.lifecycleSource = lifecycleSource;
 		Options = options;
+		alternateScreenRequested = options.UseAlternateScreen;
+		keypadRequested = options.EnableKeypad;
+		if ( options.HideCursor ) {
+			cursorVisibilityRequested = CursesCursorVisibility.Hidden;
+		}
 	}
 
 	/// <summary>
@@ -225,7 +230,7 @@ public sealed partial class CursesSession
 			cancellationToken).ConfigureAwait(false);
 		await EnterKeypadAsync(
 			cancellationToken).ConfigureAwait(false);
-		await HideCursorAsync(
+		await ApplyRequestedCursorVisibilityAsync(
 			cancellationToken).ConfigureAwait(false);
 
 		if (HasPresentationState) {
@@ -236,7 +241,7 @@ public sealed partial class CursesSession
 
 	private async ValueTask EnterAlternateScreenAsync(
 		CancellationToken cancellationToken) {
-		if (!Options.UseAlternateScreen) {
+		if ( !alternateScreenRequested ) {
 			return;
 		}
 
@@ -261,7 +266,7 @@ public sealed partial class CursesSession
 
 	private async ValueTask EnterKeypadAsync(
 		CancellationToken cancellationToken) {
-		if (!Options.EnableKeypad) {
+		if ( !keypadRequested ) {
 			return;
 		}
 
@@ -284,30 +289,25 @@ public sealed partial class CursesSession
 			cancellationToken).ConfigureAwait(false);
 	}
 
-	private async ValueTask HideCursorAsync(
-		CancellationToken cancellationToken) {
-		if (!Options.HideCursor) {
+	private async ValueTask ApplyRequestedCursorVisibilityAsync(
+		CancellationToken cancellationToken ) {
+		if ( !cursorVisibilityRequested.HasValue ) {
 			return;
 		}
 
-		string? hide =
-			Terminal.GetString(
-				StringCapability.CursorInvisible);
-		string? show =
-			Terminal.GetString(
-				StringCapability.CursorNormal)
-			?? Terminal.GetString(
-				StringCapability.CursorVeryVisible);
-
-		if ((hide is null) || (show is null)) {
+		if ( !TryGetCursorVisibilityCapabilities(
+			cursorVisibilityRequested.Value,
+			out string capability,
+			out string restoreCapability
+		) ) {
 			return;
 		}
 
-		cursorRestore = show;
+		cursorRestore = restoreCapability;
 
 		await TerminalCapabilityWriter.WriteAsync(
 			Backend.Output,
-			hide,
+			capability,
 			cancellationToken).ConfigureAwait(false);
 	}
 

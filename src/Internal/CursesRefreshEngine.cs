@@ -34,6 +34,65 @@ internal sealed class CursesRefreshEngine {
 		Interlocked.Exchange( ref invalidationRequested, 1 );
 	}
 
+	internal async ValueTask WriteControlAsync(
+		string capability,
+		bool invalidatePhysicalScreen,
+		CancellationToken cancellationToken = default ) {
+		ArgumentNullException.ThrowIfNull( capability );
+		cancellationToken.ThrowIfCancellationRequested();
+
+		await refreshGate.WaitAsync( cancellationToken ).ConfigureAwait( false );
+		try {
+			await TerminalCapabilityWriter.WriteAsync(
+				output,
+				capability,
+				cancellationToken
+			).ConfigureAwait( false );
+			await output.FlushAsync(
+				cancellationToken
+			).ConfigureAwait( false );
+
+			if ( invalidatePhysicalScreen ) {
+				InvalidateKnownState();
+			}
+		} catch {
+			InvalidateKnownState();
+			throw;
+		} finally {
+			refreshGate.Release();
+		}
+	}
+
+	internal async ValueTask SetCursorPositionAsync(
+		int row,
+		int column,
+		CancellationToken cancellationToken = default ) {
+		if ( 0 > row ) {
+			throw new ArgumentOutOfRangeException( nameof( row ) );
+		}
+		if ( 0 > column ) {
+			throw new ArgumentOutOfRangeException( nameof( column ) );
+		}
+		cancellationToken.ThrowIfCancellationRequested();
+
+		await refreshGate.WaitAsync( cancellationToken ).ConfigureAwait( false );
+		try {
+			await MoveCursorAsync(
+				row,
+				column,
+				cancellationToken
+			).ConfigureAwait( false );
+			await output.FlushAsync(
+				cancellationToken
+			).ConfigureAwait( false );
+		} catch {
+			InvalidateKnownState();
+			throw;
+		} finally {
+			refreshGate.Release();
+		}
+	}
+
 	internal async ValueTask ResetRenditionAsync(
 		CancellationToken cancellationToken = default ) {
 		cancellationToken.ThrowIfCancellationRequested();
