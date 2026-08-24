@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Copyright>Copyright (c) 2026 Timothy J. Bruce</Copyright>
+		<LangVersion>13.0</LangVersion>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+		<AssemblyName>Icod.DCurses</AssemblyName>
+		<RootNamespace>Icod.DCurses</RootNamespace>
+		<Configurations>Debug;Staging;Release</Configurations>
+		<Version>0.1.0-Alpha-10</Version>
+		<AssemblyVersion>0.1.0.0</AssemblyVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(PlatformTarget)' == '' ">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+		<ErrorReport>prompt</ErrorReport>
+		<WarningLevel>2</WarningLevel>
+		<DebugSymbols>true</DebugSymbols>
+		<DebugType>full</DebugType>
+		<Optimize>false</Optimize>
+		<DefineConstants>DEBUG;TRACE</DefineConstants>
+		<SignAssembly>false</SignAssembly>
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Staging' ">
+		<ErrorReport>prompt</ErrorReport>
+		<WarningLevel>3</WarningLevel>
+		<DebugSymbols>true</DebugSymbols>
+		<DebugType>portable</DebugType>
+		<Optimize>false</Optimize>
+		<DefineConstants>TRACE</DefineConstants>
+		<SignAssembly>false</SignAssembly>
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+		<ErrorReport>prompt</ErrorReport>
+		<WarningLevel>4</WarningLevel>
+		<DebugType>portable</DebugType>
+		<Optimize>true</Optimize>
+		<SignAssembly>false</SignAssembly>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsNotAsErrors>CS1591</WarningsNotAsErrors>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<PackageVersion>0.1.0-Alpha-10</PackageVersion>
+		<PackageId>Icod.DCurses</PackageId>
+		<Title>Icod.DCurses</Title>
+		<Authors>Timothy J. Bruce</Authors>
+		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and the Icod terminal-control substrate.</Description>
+		<PackageReleaseNotes>0.1.0 establishes the Icod.DCurses repository, solution, package, test, and sample foundations for the first managed curses implementation targeting top, slabtop, and watch.</PackageReleaseNotes>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageIcon>icon.png</PackageIcon>
+		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
+		<PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<Deterministic>true</Deterministic>
+		<PackageTags>curses;ncurses;pcurses;dcurses;terminal;tui;console;terminfo;termcap;terminal-info;full-screen;screen;windows;linux;macos;cross-platform;dotnet;csharp;icod</PackageTags>
+		<RepositoryUrl>https://github.com/uniblab/Icod.DCurses</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Include="src\**\*.cs" />
+		<None Include="icon.png" Pack="true" PackagePath="" />
+		<EmbeddedResource Remove="samples\**" />
+		<None Remove="samples\**" />
+		<EmbeddedResource Remove="tests\**" />
+		<None Remove="tests\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+		<Content Include="LICENSE">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>$(AssemblyName).LICENSE.txt</TargetPath>
+			<Pack>true</Pack>
+			<PackagePath>\</PackagePath>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Icod.CommandFramework" Version="1.1.0" />
+		<PackageReference Include="Icod.TermInfo" Version="1.0.0" />
+	</ItemGroup>
+</Project>
