@@ -11,7 +11,10 @@ public sealed class CursesScreen {
 	/// <param name="rows">The positive number of terminal rows.</param>
 	public CursesScreen(
 		int columns,
-		int rows ) {
+		int rows,
+		ICursesTextWidthProvider? textWidthProvider = null ) {
+		TextWidthProvider = textWidthProvider
+			?? UnicodeCursesTextWidthProvider.Instance;
 		virtualScreen = new CursesVirtualScreen(
 			columns,
 			rows
@@ -21,6 +24,11 @@ public sealed class CursesScreen {
 
 	/// <summary>Occurs after the logical screen dimensions change.</summary>
 	public event EventHandler<CursesScreenResizedEventArgs>? Resized;
+
+	/// <summary>Gets the display-width policy used by windows owned by this screen.</summary>
+	public ICursesTextWidthProvider TextWidthProvider {
+		get;
+	}
 
 	/// <summary>Gets the current number of columns.</summary>
 	public int Columns => virtualScreen.Columns;

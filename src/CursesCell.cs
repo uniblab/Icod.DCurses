@@ -7,22 +7,40 @@ using System.Text;
 /// </summary>
 /// <remarks>
 /// A continuation cell reserves a following column for content whose display width spans multiple
-/// terminal columns. Width calculation and continuation placement policy are owned by later text/window layers.
+/// terminal columns. Width calculation is owned by the screen's <see cref="ICursesTextWidthProvider"/>.
 /// </remarks>
 public readonly struct CursesCell
 	: IEquatable<CursesCell> {
 	private readonly string? content;
+	private readonly byte displayWidth;
 
 	/// <summary>Initializes a visible or blank logical cell.</summary>
 	/// <param name="content">Visible text content, or an empty string for a blank cell.</param>
 	/// <param name="style">The semantic cell style.</param>
 	public CursesCell(
 		string content,
-		CursesStyle style = default ) {
+		CursesStyle style = default )
+		: this(
+			content,
+			style,
+			0 == content.Length
+				? 1
+				: 1
+		) {
+	}
+
+	internal CursesCell(
+		string content,
+		CursesStyle style,
+		int displayWidth ) {
 		ArgumentNullException.ThrowIfNull( content );
+		if ( displayWidth < 1 || displayWidth > 2 ) {
+			throw new ArgumentOutOfRangeException( nameof( displayWidth ) );
+		}
 		ValidateVisibleContent( content );
 
 		this.content = content;
+		this.displayWidth = (byte)displayWidth;
 		Style = style;
 		IsContinuation = false;
 	}
@@ -31,12 +49,21 @@ public readonly struct CursesCell
 		CursesStyle style,
 		bool isContinuation ) {
 		content = string.Empty;
+		displayWidth = 1;
 		Style = style;
 		IsContinuation = isContinuation;
 	}
 
 	/// <summary>Gets the visible text content. Blank and continuation cells return an empty string.</summary>
 	public string Content => content ?? string.Empty;
+
+	/// <summary>Gets the number of terminal columns occupied by this leading cell.</summary>
+	public int DisplayWidth => IsContinuation
+		? 0
+		: 0 == displayWidth
+			? 1
+			: displayWidth
+	;
 
 	/// <summary>Gets the semantic cell style.</summary>
 	public CursesStyle Style {
@@ -70,6 +97,7 @@ public readonly struct CursesCell
 	/// <inheritdoc />
 	public bool Equals( CursesCell other ) {
 		return IsContinuation == other.IsContinuation
+			&& DisplayWidth == other.DisplayWidth
 			&& Style == other.Style
 			&& string.Equals(
 				Content,
@@ -89,6 +117,7 @@ public readonly struct CursesCell
 	public override int GetHashCode() {
 		return HashCode.Combine(
 			Content,
+			DisplayWidth,
 			Style,
 			IsContinuation
 		);
