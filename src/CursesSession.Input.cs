@@ -35,6 +35,8 @@ public sealed partial class CursesSession {
 	/// Caller cancellation ends only the wait; a terminal read already in progress is retained for
 	/// the next call so fragmented input is not discarded and concurrent terminal reads are avoided.
 	/// </remarks>
+	/// <param name="cancellationToken">Cancellation for this wait only.</param>
+	/// <returns>The next input or lifecycle event.</returns>
 	public ValueTask<CursesEvent> ReadEventAsync(
 		CancellationToken cancellationToken = default) {
 		return ReadEventCoreAsync(

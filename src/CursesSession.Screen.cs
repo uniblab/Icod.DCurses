@@ -60,6 +60,10 @@ public sealed partial class CursesSession {
 		return dimensions;
 	}
 
+	/// <summary>Resizes the materialized logical screen when its dimensions changed.</summary>
+	/// <param name="columns">The positive terminal column count.</param>
+	/// <param name="rows">The positive terminal row count.</param>
+	/// <returns><see langword="true"/> when a screen was created or resized.</returns>
 	internal bool ResizeLogicalScreen(
 		int columns,
 		int rows ) {

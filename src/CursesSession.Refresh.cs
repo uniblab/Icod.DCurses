@@ -37,6 +37,7 @@ public sealed partial class CursesSession {
 		}
 	}
 
+	/// <summary>Invalidates retained physical-screen knowledge for the session refresh engine.</summary>
 	internal void InvalidatePhysicalScreen() {
 		lock ( refreshSync ) {
 			refreshEngine?.Invalidate();

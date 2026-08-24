@@ -26,6 +26,9 @@ public enum CursesLifecycleEventKind {
 /// Represents one managed lifecycle notification delivered by a <see cref="CursesSession"/>.
 /// </summary>
 public sealed class CursesLifecycleEvent {
+	/// <summary>Initializes a managed lifecycle event.</summary>
+	/// <param name="kind">The lifecycle event kind.</param>
+	/// <param name="dimensions">Fresh terminal dimensions when the event carries them.</param>
 	internal CursesLifecycleEvent(
 		CursesLifecycleEventKind kind,
 		TerminalSize? dimensions = null ) {

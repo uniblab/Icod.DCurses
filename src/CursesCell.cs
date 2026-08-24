@@ -29,6 +29,10 @@ public readonly struct CursesCell
 		) {
 	}
 
+	/// <summary>Initializes a leading logical cell with an explicit terminal display width.</summary>
+	/// <param name="content">The visible text content.</param>
+	/// <param name="style">The semantic cell style.</param>
+	/// <param name="displayWidth">The terminal column width, either one or two.</param>
 	internal CursesCell(
 		string content,
 		CursesStyle style,
@@ -79,6 +83,8 @@ public readonly struct CursesCell
 	public bool IsBlank => !IsContinuation && 0 == Content.Length;
 
 	/// <summary>Creates a blank cell with the supplied style.</summary>
+	/// <param name="style">The semantic style assigned to the blank cell.</param>
+	/// <returns>A blank logical cell.</returns>
 	public static CursesCell Blank( CursesStyle style = default ) {
 		return new CursesCell(
 			style,
@@ -87,6 +93,8 @@ public readonly struct CursesCell
 	}
 
 	/// <summary>Creates a continuation cell for preceding multi-column content.</summary>
+	/// <param name="style">The semantic style associated with the multi-column content.</param>
+	/// <returns>A continuation logical cell.</returns>
 	public static CursesCell Continuation( CursesStyle style = default ) {
 		return new CursesCell(
 			style,
@@ -124,6 +132,9 @@ public readonly struct CursesCell
 	}
 
 	/// <summary>Tests two cells for semantic equality.</summary>
+	/// <param name="left">The left cell.</param>
+	/// <param name="right">The right cell.</param>
+	/// <returns><see langword="true"/> when the cells are semantically equal.</returns>
 	public static bool operator ==(
 		CursesCell left,
 		CursesCell right ) {
@@ -131,6 +142,9 @@ public readonly struct CursesCell
 	}
 
 	/// <summary>Tests two cells for semantic inequality.</summary>
+	/// <param name="left">The left cell.</param>
+	/// <param name="right">The right cell.</param>
+	/// <returns><see langword="true"/> when the cells are not semantically equal.</returns>
 	public static bool operator !=(
 		CursesCell left,
 		CursesCell right ) {

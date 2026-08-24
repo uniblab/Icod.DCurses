@@ -79,6 +79,8 @@ public readonly record struct CursesStyle {
 	public bool IsDefault => default == this;
 
 	/// <summary>Creates a copy with a different foreground color.</summary>
+	/// <param name="foreground">The replacement foreground color.</param>
+	/// <returns>A style with the requested foreground color.</returns>
 	public CursesStyle WithForeground( CursesColor foreground ) {
 		return new CursesStyle(
 			foreground,
@@ -88,6 +90,8 @@ public readonly record struct CursesStyle {
 	}
 
 	/// <summary>Creates a copy with a different background color.</summary>
+	/// <param name="background">The replacement background color.</param>
+	/// <returns>A style with the requested background color.</returns>
 	public CursesStyle WithBackground( CursesColor background ) {
 		return new CursesStyle(
 			Foreground,
@@ -97,6 +101,8 @@ public readonly record struct CursesStyle {
 	}
 
 	/// <summary>Creates a copy with different rendition attributes.</summary>
+	/// <param name="attributes">The replacement rendition attributes.</param>
+	/// <returns>A style with the requested rendition attributes.</returns>
 	public CursesStyle WithAttributes( CursesTextAttributes attributes ) {
 		return new CursesStyle(
 			Foreground,

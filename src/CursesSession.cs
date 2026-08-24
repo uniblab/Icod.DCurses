@@ -64,6 +64,7 @@ public sealed partial class CursesSession
 		get;
 	}
 
+	/// <summary>Gets the terminal backend owned by this session.</summary>
 	internal TerminalBackend Backend {
 		get;
 	}
@@ -115,6 +116,12 @@ public sealed partial class CursesSession
 			cancellationToken);
 	}
 
+	/// <summary>Opens a session with an explicitly supplied backend and lifecycle source.</summary>
+	/// <param name="backend">The terminal backend to own.</param>
+	/// <param name="options">Optional session presentation policy.</param>
+	/// <param name="lifecycleSource">Optional lifecycle notification source.</param>
+	/// <param name="cancellationToken">Cancellation for session initialization.</param>
+	/// <returns>The initialized curses session.</returns>
 	internal static async ValueTask<CursesSession> OpenAsync(
 		TerminalBackend backend,
 		CursesSessionOptions? options,
@@ -185,6 +192,7 @@ public sealed partial class CursesSession
 	/// <summary>
 	/// Restores terminal state. Repeated disposal is safe and does not replay restoration.
 	/// </summary>
+	/// <returns>A value task representing asynchronous terminal restoration.</returns>
 	public async ValueTask DisposeAsync() {
 		await StopLifecycleAsync().ConfigureAwait(false);
 

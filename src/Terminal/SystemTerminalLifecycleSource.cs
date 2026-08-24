@@ -19,6 +19,7 @@ internal sealed partial class SystemTerminalLifecycleSource
 	private int allowSuspendDelivery;
 	private int disposed;
 
+	/// <summary>Initializes lifecycle observation for the current supported host.</summary>
 	internal SystemTerminalLifecycleSource() {
 		signals = Channel.CreateUnbounded<TerminalLifecycleSignal>(
 			new UnboundedChannelOptions {
@@ -81,12 +82,14 @@ internal sealed partial class SystemTerminalLifecycleSource
 		);
 	}
 
+	/// <inheritdoc />
 	public ValueTask<TerminalLifecycleSignal> ReadAsync(
 		CancellationToken cancellationToken = default
 	) {
 		return signals.Reader.ReadAsync( cancellationToken );
 	}
 
+	/// <inheritdoc />
 	public TerminalBackendMutationResult SuspendCurrentProcess() {
 		if ( 0 != Volatile.Read( ref disposed ) ) {
 			return TerminalBackendMutationResult.Unavailable(
@@ -126,6 +129,7 @@ internal sealed partial class SystemTerminalLifecycleSource
 		}
 	}
 
+	/// <inheritdoc />
 	public void Dispose() {
 		if ( 0 != Interlocked.Exchange( ref disposed, 1 ) ) {
 			return;

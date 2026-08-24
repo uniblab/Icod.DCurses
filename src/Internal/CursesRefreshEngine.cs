@@ -20,6 +20,9 @@ internal sealed class CursesRefreshEngine {
 	private int? cursorColumn;
 	private int invalidationRequested = 1;
 
+	/// <summary>Initializes a physical refresh engine for one terminal and output service.</summary>
+	/// <param name="terminal">The active terminal capability description.</param>
+	/// <param name="output">The terminal output service.</param>
 	internal CursesRefreshEngine(
 		TerminalDescription terminal,
 		ITerminalOutput output ) {
@@ -30,10 +33,16 @@ internal sealed class CursesRefreshEngine {
 		this.output = output;
 	}
 
+	/// <summary>Requests complete physical-screen invalidation at the next refresh boundary.</summary>
 	internal void Invalidate() {
 		Interlocked.Exchange( ref invalidationRequested, 1 );
 	}
 
+	/// <summary>Serializes one direct terminal-control capability with refresh output.</summary>
+	/// <param name="capability">The expanded terminal capability.</param>
+	/// <param name="invalidatePhysicalScreen">Whether the capability invalidates retained screen knowledge.</param>
+	/// <param name="cancellationToken">Cancellation for the control operation.</param>
+	/// <returns>A value task representing the serialized control write.</returns>
 	internal async ValueTask WriteControlAsync(
 		string capability,
 		bool invalidatePhysicalScreen,
@@ -63,6 +72,11 @@ internal sealed class CursesRefreshEngine {
 		}
 	}
 
+	/// <summary>Positions the physical cursor through the refresh serialization gate.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <param name="cancellationToken">Cancellation for the cursor operation.</param>
+	/// <returns>A value task representing the cursor-positioning operation.</returns>
 	internal async ValueTask SetCursorPositionAsync(
 		int row,
 		int column,
@@ -93,6 +107,9 @@ internal sealed class CursesRefreshEngine {
 		}
 	}
 
+	/// <summary>Restores terminal rendition to the available default capabilities.</summary>
+	/// <param name="cancellationToken">Cancellation for the reset operation.</param>
+	/// <returns>A value task representing rendition restoration.</returns>
 	internal async ValueTask ResetRenditionAsync(
 		CancellationToken cancellationToken = default ) {
 		cancellationToken.ThrowIfCancellationRequested();
@@ -116,6 +133,12 @@ internal sealed class CursesRefreshEngine {
 		}
 	}
 
+	/// <summary>Synchronizes one desired logical screen with the physical terminal.</summary>
+	/// <param name="screen">The desired logical screen.</param>
+	/// <param name="requestedCursorRow">The requested final cursor row.</param>
+	/// <param name="requestedCursorColumn">The requested final cursor column.</param>
+	/// <param name="cancellationToken">Cancellation for the refresh operation.</param>
+	/// <returns>A value task representing the refresh boundary.</returns>
 	internal async ValueTask RefreshAsync(
 		CursesScreen screen,
 		int requestedCursorRow,

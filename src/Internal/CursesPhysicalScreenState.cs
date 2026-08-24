@@ -11,6 +11,9 @@ internal sealed class CursesPhysicalScreenState {
 	private readonly CursesCell[] cells;
 	private readonly bool[] knownCells;
 
+	/// <summary>Initializes physical-screen state with every cell initially unknown.</summary>
+	/// <param name="columns">The positive terminal column count.</param>
+	/// <param name="rows">The positive terminal row count.</param>
 	internal CursesPhysicalScreenState(
 		int columns,
 		int rows ) {
@@ -32,14 +35,21 @@ internal sealed class CursesPhysicalScreenState {
 		knownCells = new bool[ (int)cellCount ];
 	}
 
+	/// <summary>Gets the physical-screen column count.</summary>
 	internal int Columns {
 		get;
 	}
 
+	/// <summary>Gets the physical-screen row count.</summary>
 	internal int Rows {
 		get;
 	}
 
+	/// <summary>Gets a known physical cell when one has been recorded.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <param name="cell">Receives the known physical cell when available.</param>
+	/// <returns><see langword="true"/> when the physical cell is known.</returns>
 	internal bool TryGetCell(
 		int row,
 		int column,
@@ -58,6 +68,10 @@ internal sealed class CursesPhysicalScreenState {
 		return true;
 	}
 
+	/// <summary>Records one physical cell as known.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <param name="cell">The physical cell value.</param>
 	internal void SetCell(
 		int row,
 		int column,
@@ -71,6 +85,7 @@ internal sealed class CursesPhysicalScreenState {
 		knownCells[ offset ] = true;
 	}
 
+	/// <summary>Marks every retained physical cell unknown.</summary>
 	internal void Invalidate() {
 		Array.Clear( knownCells );
 	}
