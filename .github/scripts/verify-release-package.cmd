@@ -24,36 +24,36 @@ for %%I in ("%ARTIFACT_DIR%") do set "ARTIFACT_DIR=%%~fI"
 
 echo.
 echo === Verify generated capability metadata (%CONFIGURATION%) ===
-dotnet run --project tools\terminfo-metadata\Icod.TermInfo.MetadataGenerator.csproj -c %CONFIGURATION% -f net10.0 -- --check
+dotnet run --project tools\terminfo-metadata\%REPO_NAME%.MetadataGenerator.csproj -c %CONFIGURATION% -f net10.0 -- --check
 if errorlevel 1 goto fail
 
 echo.
 echo === Verify approved public API baseline (%CONFIGURATION%) ===
-dotnet run --project tools\public-api-snapshot\Icod.TermInfo.PublicApiSnapshot.csproj -c %CONFIGURATION% --no-build -- --check
+dotnet run --project tools\public-api-snapshot\%REPO_NAME%.PublicApiSnapshot.csproj -c %CONFIGURATION% --no-build -- --check
 if errorlevel 1 goto fail
 
 echo.
 echo === Verify net8.0/net10.0 API equivalence (%CONFIGURATION%) ===
-dotnet run --project tools\public-api-snapshot\Icod.TermInfo.PublicApiSnapshot.csproj -c %CONFIGURATION% --no-build -- --compare bin\%CONFIGURATION%\net8.0\Icod.TermInfo.dll bin\%CONFIGURATION%\net10.0\Icod.TermInfo.dll
+dotnet run --project tools\public-api-snapshot\%REPO_NAME%.PublicApiSnapshot.csproj -c %CONFIGURATION% --no-build -- --compare bin\%CONFIGURATION%\net8.0\%REPO_NAME%.dll bin\%CONFIGURATION%\net10.0\%REPO_NAME%.dll
 if errorlevel 1 goto fail
 
 echo.
 echo === Verify package structure and symbols (%CONFIGURATION%) ===
-dotnet run --project tools\package-verifier\Icod.TermInfo.PackageVerifier.csproj -c %CONFIGURATION% -f net10.0 -- "%ARTIFACT_DIR%"
+dotnet run --project tools\package-verifier\%REPO_NAME%.PackageVerifier.csproj -c %CONFIGURATION% -f net10.0 -- "%ARTIFACT_DIR%"
 if errorlevel 1 goto fail
 
 set "PACKAGE_VERSION="
-for /f "delims=" %%V in ('dotnet msbuild Icod.TermInfo.csproj -nologo -getProperty:PackageVersion') do set "PACKAGE_VERSION=%%V"
+for /f "delims=" %%V in ('dotnet msbuild %REPO_NAME%.csproj -nologo -getProperty:PackageVersion') do set "PACKAGE_VERSION=%%V"
 if not defined PACKAGE_VERSION (
     echo Unable to determine PackageVersion. 1>&2
     goto fail
 )
 
-set "SMOKE_ROOT=%TEMP%\Icod.TermInfo-package-smoke-%RANDOM%-%RANDOM%"
+set "SMOKE_ROOT=%TEMP%\%REPO_NAME%-package-smoke-%RANDOM%-%RANDOM%"
 if exist "%SMOKE_ROOT%" rmdir /s /q "%SMOKE_ROOT%"
 mkdir "%SMOKE_ROOT%" || goto fail
 
-copy /y tools\package-smoke\Icod.TermInfo.PackageSmoke.csproj "%SMOKE_ROOT%\Icod.TermInfo.PackageSmoke.csproj" >nul || goto fail
+copy /y tools\package-smoke\%REPO_NAME%.PackageSmoke.csproj "%SMOKE_ROOT%\%REPO_NAME%.PackageSmoke.csproj" >nul || goto fail
 copy /y tools\package-smoke\Program.cs "%SMOKE_ROOT%\Program.cs" >nul || goto fail
 
 set "OLD_NUGET_PACKAGES=%NUGET_PACKAGES%"
@@ -61,20 +61,20 @@ set "NUGET_PACKAGES=%SMOKE_ROOT%\packages"
 
 echo.
 echo === Fresh package consumer: net8.0 ===
-dotnet restore "%SMOKE_ROOT%\Icod.TermInfo.PackageSmoke.csproj" --source "%ARTIFACT_DIR%" -p:IcodTermInfoPackageVersion=%PACKAGE_VERSION%
+dotnet restore "%SMOKE_ROOT%\%REPO_NAME%.PackageSmoke.csproj" --source "%ARTIFACT_DIR%" -p:IcodTermInfoPackageVersion=%PACKAGE_VERSION%
 if errorlevel 1 goto fail
 
-dotnet run --project "%SMOKE_ROOT%\Icod.TermInfo.PackageSmoke.csproj" -c %CONFIGURATION% -f net8.0 --no-restore -p:IcodTermInfoPackageVersion=%PACKAGE_VERSION%
+dotnet run --project "%SMOKE_ROOT%\%REPO_NAME%.PackageSmoke.csproj" -c %CONFIGURATION% -f net8.0 --no-restore -p:IcodTermInfoPackageVersion=%PACKAGE_VERSION%
 if errorlevel 1 goto fail
 
 echo.
 echo === Fresh package consumer: net10.0 ===
-dotnet run --project "%SMOKE_ROOT%\Icod.TermInfo.PackageSmoke.csproj" -c %CONFIGURATION% -f net10.0 --no-restore -p:IcodTermInfoPackageVersion=%PACKAGE_VERSION%
+dotnet run --project "%SMOKE_ROOT%\%REPO_NAME%.PackageSmoke.csproj" -c %CONFIGURATION% -f net10.0 --no-restore -p:IcodTermInfoPackageVersion=%PACKAGE_VERSION%
 if errorlevel 1 goto fail
 
 echo.
 echo === Non-interactive repository sample ===
-dotnet run --project samples\Icod.TermInfo.Sample\Icod.TermInfo.Sample.csproj -c %CONFIGURATION% -f net10.0 -- --describe-only --profile ms-terminal-direct
+dotnet run --project samples\%REPO_NAME%.Sample\%REPO_NAME%.Sample.csproj -c %CONFIGURATION% -f net10.0 -- --describe-only --profile ms-terminal-direct
 if errorlevel 1 goto fail
 
 goto cleanup

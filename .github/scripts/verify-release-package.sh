@@ -30,26 +30,26 @@ artifact_dir="$(cd "${artifact_dir}" && pwd)"
 
 # Repository-only maintenance tools are executed on one explicit framework.
 dotnet run \
-  --project tools/terminfo-metadata/Icod.TermInfo.MetadataGenerator.csproj \
+  --project tools/terminfo-metadata/$REPO_NAME.MetadataGenerator.csproj \
   -c "${configuration}" \
   -f net10.0 \
   -- --check
 
 # The reviewed 1.0 API baseline must remain exact.
-dotnet run   --project tools/public-api-snapshot/Icod.TermInfo.PublicApiSnapshot.csproj   -c "${configuration}"   --no-build   -- --check
+dotnet run   --project tools/public-api-snapshot/$REPO_NAME.PublicApiSnapshot.csproj   -c "${configuration}"   --no-build   -- --check
 
 # The two shipped target frameworks must expose the exact same API.
-dotnet run   --project tools/public-api-snapshot/Icod.TermInfo.PublicApiSnapshot.csproj   -c "${configuration}"   --no-build   -- --compare   bin/${configuration}/net8.0/Icod.TermInfo.dll   bin/${configuration}/net10.0/Icod.TermInfo.dll
+dotnet run   --project tools/public-api-snapshot/$REPO_NAME.PublicApiSnapshot.csproj   -c "${configuration}"   --no-build   -- --compare   bin/${configuration}/net8.0/$REPO_NAME.dll   bin/${configuration}/net10.0/$REPO_NAME.dll
 
 # Structural package, Source Link, dependency, and architecture verification.
 dotnet run \
-  --project tools/package-verifier/Icod.TermInfo.PackageVerifier.csproj \
+  --project tools/package-verifier/$REPO_NAME.PackageVerifier.csproj \
   -c "${configuration}" \
   -f net10.0 \
   -- "${artifact_dir}"
 
 package_version="$(
-  dotnet msbuild Icod.TermInfo.csproj \
+  dotnet msbuild $REPO_NAME.csproj \
     -nologo \
     -getProperty:PackageVersion
 )"
@@ -65,8 +65,8 @@ smoke_root="$(mktemp -d)"
 trap 'rm -rf "${smoke_root}"' EXIT
 
 cp \
-  tools/package-smoke/Icod.TermInfo.PackageSmoke.csproj \
-  "${smoke_root}/Icod.TermInfo.PackageSmoke.csproj"
+  tools/package-smoke/$REPO_NAME.PackageSmoke.csproj \
+  "${smoke_root}/$REPO_NAME.PackageSmoke.csproj"
 cp \
   tools/package-smoke/Program.cs \
   "${smoke_root}/Program.cs"
@@ -74,20 +74,20 @@ cp \
 export NUGET_PACKAGES="${smoke_root}/packages"
 
 dotnet restore \
-  "${smoke_root}/Icod.TermInfo.PackageSmoke.csproj" \
+  "${smoke_root}/$REPO_NAME.PackageSmoke.csproj" \
   --source "${artifact_dir}" \
   -p:IcodTermInfoPackageVersion="${package_version}"
 
 # The isolated consumer must execute against every supported target framework.
 dotnet run \
-  --project "${smoke_root}/Icod.TermInfo.PackageSmoke.csproj" \
+  --project "${smoke_root}/$REPO_NAME.PackageSmoke.csproj" \
   -c "${configuration}" \
   -f net8.0 \
   --no-restore \
   -p:IcodTermInfoPackageVersion="${package_version}"
 
 dotnet run \
-  --project "${smoke_root}/Icod.TermInfo.PackageSmoke.csproj" \
+  --project "${smoke_root}/$REPO_NAME.PackageSmoke.csproj" \
   -c "${configuration}" \
   -f net10.0 \
   --no-restore \
@@ -95,7 +95,7 @@ dotnet run \
 
 # The repository sample must retain a non-interactive path suitable for CI.
 dotnet run \
-  --project samples/Icod.TermInfo.Sample/Icod.TermInfo.Sample.csproj \
+  --project samples/$REPO_NAME.Sample/$REPO_NAME.Sample.csproj \
   -c "${configuration}" \
   -f net10.0 \
   -- --describe-only --profile ms-terminal-direct
