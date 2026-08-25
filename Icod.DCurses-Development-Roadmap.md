@@ -11,7 +11,7 @@
 **Current development target:** `0.1.0`
 **Current tranche:** Integration checkpoint — `Icod.Terminal` T10 terminal-substrate reset
 **Stable contract target:** `1.0.0`
-**Status:** T01-T11 implemented; Alpha-12 performs Terminal T10 integration before T12 ProcPs acceptance
+**Status:** T01-T11 implemented; Alpha-13 consumes the Terminal/Icod.Timing timing rebase before T12 ProcPs acceptance
 
 ---
 
@@ -183,6 +183,11 @@ color policy.
 The former DCurses backend, native-mode, lifecycle-source, and decoder implementation
 remains in the repository for the Alpha-12 validation cycle but is excluded from the
 active build before physical deletion in the subsequent cleanup checkpoint.
+
+Beginning with Alpha-13, relative event timeouts and Escape-sequence ambiguity waits
+are supplied by `Icod.Terminal` through its `Icod.Timing 1.0.0` dependency. DCurses
+does not acquire a direct `Icod.Timing` dependency while it owns no independent clock,
+timer, or scheduler in the active build.
 
 ---
 

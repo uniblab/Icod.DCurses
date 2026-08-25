@@ -14,11 +14,13 @@ refresh/damage synchronization.
 
 The project is under active development toward version `0.1.0`.
 
-`0.1.0-Alpha-12` is the Icod.Terminal T10 integration checkpoint. The active
-DCurses build now consumes `Icod.Terminal 0.1.0-alpha.10` for live-terminal
-ownership and no longer depends on `Icod.CommandFramework`. The former DCurses
-backend, native mode, lifecycle-source, and input-decoder files remain in the
-repository for one validation cycle but are excluded from compilation.
+`0.1.0-Alpha-13` follows the Icod.Terminal T10 integration checkpoint. The active
+DCurses build consumes `Icod.Terminal 0.1.0-alpha.11` for live-terminal ownership
+and delegates relative event-timeout and Escape-sequence timing to the
+`Icod.Timing 1.0.0` substrate owned by Terminal. DCurses does not add a direct
+`Icod.Timing` dependency because the active curses layer owns no independent timer
+or scheduler. The former DCurses backend, native mode, lifecycle-source, and
+input-decoder files remain excluded from compilation pending physical cleanup.
 
 The first release continues to be driven by the requirements of `top`,
 `slabtop`, and `watch`.
@@ -63,7 +65,7 @@ The initial implementation targets:
 The active runtime dependencies are:
 
 - `Icod.TermInfo` 1.0.0
-- `Icod.Terminal` 0.1.0-alpha.10
+- `Icod.Terminal` 0.1.0-alpha.11
 
 ## Build
 
