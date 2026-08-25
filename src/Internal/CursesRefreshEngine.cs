@@ -663,9 +663,8 @@ internal sealed class CursesRefreshEngine {
 		string text,
 		CancellationToken cancellationToken ) {
 		ArgumentNullException.ThrowIfNull( text );
-		byte[] bytes = Encoding.UTF8.GetBytes( text );
-		await output.WriteAsync(
-			bytes,
+		await output.WriteTextAsync(
+			text,
 			cancellationToken
 		).ConfigureAwait( false );
 	}

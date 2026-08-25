@@ -9,9 +9,9 @@
 **Configurations:** `Debug`; `Staging`; `Release`
 **License:** LGPL-3.0-or-later
 **Current development target:** `0.1.0`
-**Current tranche:** T01 — Repository and package foundation
+**Current tranche:** Integration checkpoint — `Icod.Terminal` T10 terminal-substrate reset
 **Stable contract target:** `1.0.0`
-**Status:** T01 implementation prepared; completion awaits repository build/test/pack validation
+**Status:** T01-T11 implemented; Alpha-13 consumes the Terminal/Icod.Timing timing rebase before T12 ProcPs acceptance
 
 ---
 
@@ -157,6 +157,37 @@ The dependency graph SHALL remain acyclic.
 `Icod.CommandFramework` SHALL NOT acquire a dependency on `Icod.DCurses`.
 
 ProcPs applications MAY depend on `Icod.DCurses`.
+
+### 3.4 `Icod.Terminal` T10 integration checkpoint
+
+The initial terminal-control arrangement above was intentionally provisional.
+Beginning with `Icod.DCurses 0.1.0-Alpha-12`, the active dependency graph is:
+
+```text
+Icod.TermInfo
+      ^
+      |
+Icod.Terminal
+      ^
+      |
+Icod.DCurses
+```
+
+`Icod.Terminal` owns live endpoint observation, host input modes, terminal identity,
+dimensions, lifecycle observation, input decoding, and reversible alternate-screen,
+keypad, and cursor presentation state. `Icod.DCurses` retains curses-shaped events,
+cells, styles, windows, logical/physical screen state, damage/refresh, rendition, and
+color policy.
+
+`Icod.CommandFramework` is no longer an active runtime dependency of `Icod.DCurses`.
+The former DCurses backend, native-mode, lifecycle-source, and decoder implementation
+remains in the repository for the Alpha-12 validation cycle but is excluded from the
+active build before physical deletion in the subsequent cleanup checkpoint.
+
+Beginning with Alpha-13, relative event timeouts and Escape-sequence ambiguity waits
+are supplied by `Icod.Terminal` through its `Icod.Timing 1.0.0` dependency. DCurses
+does not acquire a direct `Icod.Timing` dependency while it owns no independent clock,
+timer, or scheduler in the active build.
 
 ---
 
@@ -906,6 +937,7 @@ T01  repository / solution / package scaffold
   -> T09  dimensions / resize repaint contract
   -> T10  essential presentation operations
   -> T11  Unicode baseline
+  -> Icod.Terminal T10 integration checkpoint / terminal-substrate reset (Alpha-12)
   -> T12  top / slabtop / watch acceptance harnesses
   -> T13  docs / samples / package / release gate
   -> 0.1.0

@@ -3,21 +3,31 @@
 `Icod.DCurses` is a managed, cross-platform curses-like terminal UI library for
 .NET.
 
-The library is intended to sit above `Icod.TermInfo` and the neutral terminal
-control substrate used by the Icod libraries. It will own live terminal-session
-lifecycle, input events, virtual screens and windows, terminal-cell styling,
-refresh/damage synchronization, resize handling, and safe restoration.
+The library sits above `Icod.TermInfo` and `Icod.Terminal`. `Icod.TermInfo`
+remains the immutable terminal-capability authority; `Icod.Terminal` owns the
+live terminal session, host mode, dimensions, lifecycle, input decoding, and
+reversible presentation leases. `Icod.DCurses` owns curses-shaped events,
+virtual screens and windows, terminal cells and styles, rendition policy, and
+refresh/damage synchronization.
 
 ## Status
 
 The project is under active development toward version `0.1.0`.
 
-The first release is being driven by the requirements of `top`, `slabtop`, and
-`watch`. T01 establishes the repository, solution, package, test, sample, and CI
-foundation. The public curses/session API begins in subsequent 0.1.0 tranches.
+`0.1.0-Alpha-13` follows the Icod.Terminal T10 integration checkpoint. The active
+DCurses build consumes `Icod.Terminal 0.1.0-alpha.11` for live-terminal ownership
+and delegates relative event-timeout and Escape-sequence timing to the
+`Icod.Timing 1.0.0` substrate owned by Terminal. DCurses does not add a direct
+`Icod.Timing` dependency because the active curses layer owns no independent timer
+or scheduler. The former DCurses backend, native mode, lifecycle-source, and
+input-decoder files remain excluded from compilation pending physical cleanup.
 
-See `Icod.DCurses-Development-Roadmap.md` for the development contract through
-`1.0.0`.
+The first release continues to be driven by the requirements of `top`,
+`slabtop`, and `watch`.
+
+See `Icod.DCurses-Development-Roadmap.md` for the broader development contract
+through `1.0.0`, and `docs/Icod-Terminal-T10-Integration.md` for the substrate
+reset implemented by Alpha-12.
 
 ## Architecture
 
@@ -25,15 +35,22 @@ See `Icod.DCurses-Development-Roadmap.md` for the development contract through
 top / slabtop / watch / other TUIs
                  |
             Icod.DCurses
-           /            \
-  Icod.TermInfo    terminal control
-           \            /
+     windows / cells / refresh
+       rendition / curses events
+                 |
+            Icod.Terminal
+ session / input / lifecycle / dimensions
+       presentation-state leases
+                 |
+            Icod.TermInfo
+      terminal capability model
+                 |
             terminal / tty
 ```
 
-`Icod.TermInfo` remains the terminal-capability authority. `Icod.DCurses` will
-use those capabilities to operate live interactive terminal sessions rather than
-hard-coding one terminal family.
+`Icod.DCurses` does not hard-code one terminal family. Terminal-specific output
+continues to be selected through `Icod.TermInfo`, while live session ownership
+and reversible terminal state are centralized in `Icod.Terminal`.
 
 ## Target
 
@@ -45,13 +62,10 @@ The initial implementation targets:
 - Linux
 - macOS
 
-The initial runtime dependencies are:
+The active runtime dependencies are:
 
-- `Icod.TermInfo`
-- `Icod.CommandFramework`
-
-The dependency on `Icod.CommandFramework` is limited architecturally to the
-neutral terminal-control substrate and may be revisited before `1.0.0`.
+- `Icod.TermInfo` 1.0.0
+- `Icod.Terminal` 0.1.0-alpha.11
 
 ## Build
 
