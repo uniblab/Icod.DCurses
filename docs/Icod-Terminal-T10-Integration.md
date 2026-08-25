@@ -4,6 +4,8 @@
 **DCurses development package:** `0.1.0-Alpha-12`
 **Terminal dependency:** `Icod.Terminal 0.1.0-alpha.10`
 **TermInfo dependency:** `Icod.TermInfo 1.0.0`
+**Cleanup completion:** `Icod.DCurses 0.1.0-Alpha-14` on the post-Alpha-13 main line
+**Current Terminal dependency after timing rebase:** `Icod.Terminal 0.1.0-alpha.11`
 
 ## Purpose
 
@@ -11,11 +13,12 @@ Alpha-12 is the active substrate cutover required by Icod.Terminal T10. It makes
 `Icod.Terminal.TerminalSession` the single owner of live terminal state beneath
 `Icod.DCurses`.
 
-This checkpoint is intentionally staged. The former DCurses live-terminal
-backend, native mode editor, lifecycle source, input decoder, and session
-ownership partials remain physically present for one validation cycle, but they
-are excluded from compilation. The Terminal-backed implementation under
-`src/Integration/` is the only active live-terminal path.
+This checkpoint was intentionally staged. Alpha-12 excluded the former DCurses
+live-terminal backend, native mode editor, lifecycle source, input decoder, and
+session-ownership partials from compilation while the Terminal-backed
+implementation under `src/Integration/` completed a full validation cycle.
+Alpha-14 physically removes that retired substrate after Alpha-12 and Alpha-13
+passed the supported build/test matrix.
 
 ## Responsibility boundary
 
@@ -57,9 +60,9 @@ the returned `CursesSession` only after successful curses initialization. On
 successful transfer, disposing `CursesSession` also disposes that Terminal
 session.
 
-The old public `TerminalBackend` injection surface is not part of the active
-Alpha-12 build. It remains in the repository only as migration reference during
-this validation cycle.
+The old public `TerminalBackend` injection surface left the active build in
+Alpha-12. Its retained migration-reference source was physically removed in
+Alpha-14 after the Terminal-backed replacement passed validation.
 
 ## Input and lifecycle
 
@@ -109,23 +112,24 @@ unit tests. The live implementation delegates:
 
 This means DCurses no longer owns a second terminfo protocol-byte/padding path.
 
-## Validation-cycle exclusions
+## Alpha-14 cleanup completion
 
-Alpha-12 excludes the following legacy implementation families from active
-compilation while retaining their source files temporarily:
+Alpha-14 physically removes the legacy implementation families which Alpha-12
+had excluded from compilation:
 
 - old `CursesSession` live-terminal ownership/input/lifecycle/presentation partials;
 - `src/Terminal/**` backend, native mode and lifecycle machinery;
-- the old DCurses incremental input decoder.
+- the old DCurses incremental input decoder;
+- tests tied specifically to those retired implementation contracts.
 
-Tests tied specifically to those retired implementation contracts are also
-excluded for this checkpoint. New integration tests exercise the Terminal-backed
-session, presentation leases, input facade, dimensions, and lifecycle-participant
-boundary. Refresh/damage behavior remains covered independently.
+The temporary `<Compile Remove=...>` migration lists are therefore removed from
+both project files. The active Terminal-backed integration tests, refresh/damage
+tests, screen/window tests, and Unicode tests remain in place.
 
 ## Follow-up
 
-After Alpha-12 passes local and GitHub CI on Windows, Linux, and macOS, the next
-cleanup patch should physically delete the compile-excluded legacy substrate and
-its obsolete tests. After that cleanup, development can proceed to the existing
-ProcPs acceptance tranche for `top`, `slabtop`, and `watch`.
+The Icod.Terminal T10 responsibility reset is now closed. Development proceeds
+to the existing T12 ProcPs acceptance tranche for `top`, `slabtop`, and `watch`.
+Reusable gaps discovered by those acceptance consumers should be fixed in
+Icod.Terminal or Icod.DCurses rather than reintroduced as application-private
+terminal infrastructure.

@@ -9,9 +9,9 @@
 **Configurations:** `Debug`; `Staging`; `Release`
 **License:** LGPL-3.0-or-later
 **Current development target:** `0.1.0`
-**Current tranche:** Integration checkpoint — `Icod.Terminal` T10 terminal-substrate reset
+**Current tranche:** T12 — ProcPs acceptance harnesses
 **Stable contract target:** `1.0.0`
-**Status:** T01-T11 implemented; Alpha-13 consumes the Terminal/Icod.Timing timing rebase before T12 ProcPs acceptance
+**Status:** T01-T11 complete; Icod.Terminal T10 integration and Alpha-14 legacy-substrate cleanup complete; T12 ProcPs acceptance is next
 
 ---
 
@@ -180,14 +180,18 @@ cells, styles, windows, logical/physical screen state, damage/refresh, rendition
 color policy.
 
 `Icod.CommandFramework` is no longer an active runtime dependency of `Icod.DCurses`.
-The former DCurses backend, native-mode, lifecycle-source, and decoder implementation
-remains in the repository for the Alpha-12 validation cycle but is excluded from the
-active build before physical deletion in the subsequent cleanup checkpoint.
+Alpha-12 removed the former DCurses backend, native-mode, lifecycle-source, decoder,
+and pre-Terminal session implementation from the active build. Alpha-14 physically
+removes that retained migration-reference source and its obsolete implementation tests
+after successful Alpha-12/13 validation.
 
 Beginning with Alpha-13, relative event timeouts and Escape-sequence ambiguity waits
 are supplied by `Icod.Terminal` through its `Icod.Timing 1.0.0` dependency. DCurses
 does not acquire a direct `Icod.Timing` dependency while it owns no independent clock,
 timer, or scheduler in the active build.
+
+**Integration checkpoint status:** complete. Development proceeds to T12 ProcPs
+acceptance.
 
 ---
 
@@ -937,10 +941,10 @@ T01  repository / solution / package scaffold
   -> T09  dimensions / resize repaint contract
   -> T10  essential presentation operations
   -> T11  Unicode baseline
-  -> Icod.Terminal T10 integration checkpoint / terminal-substrate reset (Alpha-12)
+  -> Icod.Terminal T10 integration / terminal-substrate reset (Alpha-12 through Alpha-14; complete)
   -> T12  top / slabtop / watch acceptance harnesses
   -> T13  docs / samples / package / release gate
   -> 0.1.0
 ```
 
-The first coding tranche SHOULD therefore be **T01**, establishing the repository and package skeleton before public curses contracts begin to accumulate.
+The current implementation tranche is therefore **T12**, exercising the shared stack against the `top`, `slabtop`, and `watch` acceptance requirements.
