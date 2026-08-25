@@ -13,7 +13,7 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.1.0-Alpha-11</Version>
+		<Version>0.1.0-Alpha-12</Version>
 		<AssemblyVersion>0.1.0.0</AssemblyVersion>
 	</PropertyGroup>
 
@@ -53,12 +53,12 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<PackageVersion>0.1.0-Alpha-11</PackageVersion>
+		<PackageVersion>0.1.0-Alpha-12</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
-		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and the Icod terminal-control substrate.</Description>
-		<PackageReleaseNotes>0.1.0 establishes the Icod.DCurses repository, solution, package, test, and sample foundations for the first managed curses implementation targeting top, slabtop, and watch.</PackageReleaseNotes>
+		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
+		<PackageReleaseNotes>0.1.0-Alpha-12 rebases live terminal ownership, lifecycle, input decoding, dimensions, and reversible presentation state onto Icod.Terminal 0.1.0-alpha.10.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -76,6 +76,15 @@
 
 	<ItemGroup>
 		<Compile Include="src\**\*.cs" />
+		<Compile Remove="src\CursesLifecycleEvent.cs" />
+		<Compile Remove="src\CursesSession.cs" />
+		<Compile Remove="src\CursesSession.Input.cs" />
+		<Compile Remove="src\CursesSession.Lifecycle.cs" />
+		<Compile Remove="src\CursesSession.Presentation.cs" />
+		<Compile Remove="src\CursesSession.Refresh.cs" />
+		<Compile Remove="src\CursesSession.Screen.cs" />
+		<Compile Remove="src\Internal\CursesInputDecoder.cs" />
+		<Compile Remove="src\Terminal\**\*.cs" />
 		<None Include="icon.png" Pack="true" PackagePath="" />
 		<EmbeddedResource Remove="samples\**" />
 		<None Remove="samples\**" />
@@ -94,7 +103,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Icod.CommandFramework" Version="1.1.0" />
+		<PackageReference Include="Icod.Terminal" Version="0.1.0-alpha.10" />
 		<PackageReference Include="Icod.TermInfo" Version="1.0.0" />
 	</ItemGroup>
 </Project>
