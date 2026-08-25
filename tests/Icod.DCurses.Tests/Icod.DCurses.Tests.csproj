@@ -28,17 +28,6 @@
     <ProjectReference Include="..\..\Icod.DCurses.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="src\CursesInputDecoderTests.cs" />
-    <Compile Remove="src\CursesPresentationTests.cs" />
-    <Compile Remove="src\CursesRefreshEngineTests.cs" />
-    <Compile Remove="src\CursesSessionInputTests.cs" />
-    <Compile Remove="src\CursesSessionLifecycleTests.cs" />
-    <Compile Remove="src\CursesSessionTests.cs" />
-    <Compile Remove="src\SystemTerminalModeEditorTests.cs" />
-    <Compile Remove="src\TerminalBackendTests.cs" />
-  </ItemGroup>
-
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>2</WarningLevel>
