@@ -17,12 +17,11 @@ The project is under active development toward version `0.1.0`.
 `0.1.0-Alpha-15` established the automated Icod.Terminal T19 rich-input
 acceptance boundary and builds and tests successfully against
 `Icod.Terminal 0.2.0-alpha.6`. `0.1.0-Alpha-16` provides the live rich-input
-acceptance showcase. `0.1.0-Alpha-17` adds the T12 `watch`-shaped harness and
-`0.1.0-Alpha-18` adds the `slabtop`-shaped harness. `0.1.0-Alpha-19` completes
-the focused T12 harness set with a dedicated `top`-shaped consumer exercising
-multiple logical regions, rapid retained refresh, vertical and horizontal
-navigation, Tab and Shift+Tab, help and in-screen prompt views, rich styling,
-resize relayout, lifecycle repaint, and cursor visibility/position policy.
+acceptance showcase. Alpha-17 through Alpha-19 complete the focused T12
+`watch`, `slabtop`, and `top` application-shaped acceptance set.
+`0.1.0-Alpha-20` begins T13 release-gate hardening with structural package
+inspection, an isolated package-only consumer, three-host package validation,
+and tag-controlled publication.
 
 The retired DCurses backend, native mode, lifecycle-source, input-decoder, and
 pre-Terminal session implementations remain removed. DCurses does not add a
@@ -73,6 +72,47 @@ The active runtime dependencies are:
 
 - `Icod.TermInfo` 1.0.0
 - `Icod.Terminal` 0.2.0-alpha.6
+
+## Installation
+
+During the Alpha-20 validation tranche:
+
+```text
+dotnet add package Icod.DCurses --version 0.1.0-Alpha-20
+```
+
+The stable installation command will use version `0.1.0` after the T13B release
+gate closes.
+
+## Quick start
+
+```csharp
+using Icod.DCurses;
+
+await using CursesSession session = await CursesSession.OpenAsync();
+CursesWindow screen = session.StandardScreen;
+
+screen.Clear();
+screen.Move(
+    0,
+    0
+);
+screen.Write(
+    "Hello from Icod.DCurses",
+    new CursesStyle(
+        CursesColor.Default,
+        CursesColor.Default,
+        CursesTextAttributes.Bold
+    )
+);
+await session.RefreshAsync();
+
+CursesEvent terminalEvent = await session.ReadEventAsync();
+```
+
+The session owns the presentation state it enters and restores that state when
+disposed. Applications should consume terminal input and lifecycle activity
+through `CursesSession` rather than adding a parallel terminal reader.
 
 ## Build
 

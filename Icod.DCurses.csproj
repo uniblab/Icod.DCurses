@@ -13,7 +13,7 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.1.0-Alpha-19</Version>
+		<Version>0.1.0-Alpha-20</Version>
 		<AssemblyVersion>0.1.0.0</AssemblyVersion>
 	</PropertyGroup>
 
@@ -53,12 +53,12 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<PackageVersion>0.1.0-Alpha-19</PackageVersion>
+		<PackageVersion>0.1.0-Alpha-20</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.1.0-Alpha-19 completes the focused T12 application-shaped harness set with a top acceptance consumer covering multiple logical regions, rapid retained refresh, navigation and modified keys, help and prompt views, rich styling, resize relayout, lifecycle repaint, and cursor presentation policy.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.1.0-Alpha-20 begins T13 release-gate hardening with structural package verification, isolated package-only consumer validation, three-host package checks, and tag-controlled publication.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -67,6 +67,7 @@
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<Deterministic>true</Deterministic>
 		<PackageTags>curses;ncurses;pcurses;dcurses;terminal;tui;console;terminfo;termcap;terminal-info;full-screen;screen;windows;linux;macos;cross-platform;dotnet;csharp;icod</PackageTags>
 		<RepositoryUrl>https://github.com/uniblab/Icod.DCurses</RepositoryUrl>

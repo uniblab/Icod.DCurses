@@ -9,9 +9,9 @@
 **Configurations:** `Debug`; `Staging`; `Release`
 **License:** LGPL-3.0-or-later
 **Current development target:** `0.1.0`
-**Current tranche:** T12C — `top` application-shaped acceptance
+**Current tranche:** T13A — package and release foundation
 **Stable contract target:** `1.0.0`
-**Status:** T01-T11 complete; Alpha-15 automated rich-input acceptance validated; Alpha-16 live rich-input acceptance harness available; Alpha-17 `watch` harness available; Alpha-18 `slabtop` harness available; Alpha-19 `top` acceptance current
+**Status:** T01-T12 complete; Alpha-20 T13 package-only consumer and tag-controlled release hardening current
 
 ---
 
@@ -655,6 +655,17 @@ Before releasing `0.1.0`:
 - symbols SHALL be generated;
 - package version SHALL be `0.1.0`;
 - `<Version>` and `<PackageVersion>` SHALL remain synchronized.
+
+**Alpha-20 / T13A checkpoint:** release validation is hardened before the stable
+version is assigned. The repository gains a structural package verifier, an
+isolated package-only consumer, package verification on Windows/Linux/macOS,
+validation-only `main` pushes, and a tag-controlled release workflow. The
+checkpoint is recorded in
+[`docs/T13A-Package-and-Release-Foundation.md`](docs/T13A-Package-and-Release-Foundation.md).
+
+T13B SHALL perform the final public-API/documentation regret pass, close any
+remaining package metadata issues, set both package version properties to
+`0.1.0`, and execute the stable release gate.
 
 **0.1.0 completion gate:** a fresh consumer can install the package and build a small interactive application without repository-local project references.
 
