@@ -13,7 +13,7 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.1.0-Alpha-18</Version>
+		<Version>0.1.0-Alpha-19</Version>
 		<AssemblyVersion>0.1.0.0</AssemblyVersion>
 	</PropertyGroup>
 
@@ -53,12 +53,12 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<PackageVersion>0.1.0-Alpha-18</PackageVersion>
+		<PackageVersion>0.1.0-Alpha-19</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.1.0-Alpha-18 continues T12 ProcPs application-shaped acceptance with a slabtop harness covering timed refresh, resize repaint without resampling, immediate refresh, all documented sort-key inputs, retained physical-screen diffing, and lifecycle restoration.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.1.0-Alpha-19 completes the focused T12 application-shaped harness set with a top acceptance consumer covering multiple logical regions, rapid retained refresh, navigation and modified keys, help and prompt views, rich styling, resize relayout, lifecycle repaint, and cursor presentation policy.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>

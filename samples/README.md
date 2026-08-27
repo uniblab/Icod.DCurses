@@ -1,6 +1,6 @@
 # Icod.DCurses Samples
 
-The repository contains five executable samples. They are intentionally separate
+The repository contains six executable samples. They are intentionally separate
 so the minimal session lifecycle stays easy to copy without mixing it with the
 interactive and acceptance-focused showcases.
 
@@ -142,7 +142,30 @@ The harness demonstrates:
 dotnet run --project samples/Icod.DCurses.Slabtop.Acceptance/Icod.DCurses.Slabtop.Acceptance.csproj
 ```
 
+## Icod.DCurses.Top.Acceptance
+
+`Icod.DCurses.Top.Acceptance` is the third and largest T12 application-shaped
+acceptance harness. Synthetic task snapshots keep process observation and command
+policy outside DCurses while exercising the full interactive screen contract.
+
+The harness demonstrates:
+
+- separate summary, task, task-header/body, and status windows;
+- rapid retained refresh without application-owned terminal clearing;
+- Enter/Space immediate refresh;
+- Up/Down, Page Up/Page Down, Home/End, Left/Right navigation;
+- Tab and Shift+Tab focus traversal plus Ctrl+L invalidation;
+- ordinary command keys and semantic sort changes;
+- a logical help view and an in-screen editable delay prompt;
+- bold, reverse, underline, standout, foreground, and background styles;
+- resize-driven complete relayout and lifecycle repaint;
+- physical cursor show/position during the prompt and hide afterward.
+
+```text
+dotnet run --project samples/Icod.DCurses.Top.Acceptance/Icod.DCurses.Top.Acceptance.csproj
+```
+
 These samples complement, but do not replace, final validation in the actual
-ProcPs applications. Alpha-17 supplies the focused `watch`-shaped checkpoint and
-Alpha-18 supplies the focused `slabtop`-shaped checkpoint before those migrated
-commands are used as final acceptance vehicles.
+ProcPs applications. Alpha-17, Alpha-18, and Alpha-19 provide the focused
+`watch`, `slabtop`, and `top` checkpoints before the migrated commands are used
+as final acceptance vehicles.

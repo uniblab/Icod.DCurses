@@ -9,9 +9,9 @@
 **Configurations:** `Debug`; `Staging`; `Release`
 **License:** LGPL-3.0-or-later
 **Current development target:** `0.1.0`
-**Current tranche:** T12B — `slabtop` application-shaped acceptance
+**Current tranche:** T12C — `top` application-shaped acceptance
 **Stable contract target:** `1.0.0`
-**Status:** T01-T11 complete; Alpha-15 automated rich-input acceptance validated; Alpha-16 live rich-input acceptance harness available; Alpha-17 `watch` harness available; Alpha-18 `slabtop` acceptance current
+**Status:** T01-T11 complete; Alpha-15 automated rich-input acceptance validated; Alpha-16 live rich-input acceptance harness available; Alpha-17 `watch` harness available; Alpha-18 `slabtop` harness available; Alpha-19 `top` acceptance current
 
 ---
 
@@ -612,6 +612,14 @@ DCurses SHALL support an implementation that can:
 - resize and completely re-layout;
 - suspend, restore, resume, and repaint;
 - hide/show the physical cursor according to application state.
+
+**Alpha-19 checkpoint:** `samples/Icod.DCurses.Top.Acceptance` exercises the
+largest 0.1 application shape with multiple root/subwindows, a rapid timed event
+loop, vertical and horizontal navigation, Tab/Shift+Tab focus traversal, a
+logical help view, an in-screen delay prompt, rich semantic styling, resize
+relayout, lifecycle repaint, and prompt-driven physical cursor policy. The
+checkpoint is recorded in
+[`docs/T12C-Top-Acceptance.md`](docs/T12C-Top-Acceptance.md).
 
 The `Icod.DCurses` repository does not need to contain the complete ProcPs applications. Tests, focused harnesses, and/or temporary migration branches MAY be used to prove the contract.
 
