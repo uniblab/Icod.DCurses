@@ -9,9 +9,9 @@
 **Configurations:** `Debug`; `Staging`; `Release`
 **License:** LGPL-3.0-or-later
 **Current development target:** `0.1.0`
-**Current tranche:** T12 / Icod.Terminal T19 — rich-input and ProcPs acceptance
+**Current tranche:** T12A — `watch` application-shaped acceptance
 **Stable contract target:** `1.0.0`
-**Status:** T01-T11 complete; Alpha-15 automated rich-input acceptance validated; Alpha-16 interactive Icod.Terminal T19 acceptance current
+**Status:** T01-T11 complete; Alpha-15 automated rich-input acceptance validated; Alpha-16 live rich-input acceptance harness available; Alpha-17 `watch` acceptance current
 
 ---
 
@@ -582,6 +582,12 @@ DCurses SHALL support an implementation that can:
 - wait on timer and terminal input/lifecycle events without busy polling.
 
 Parsing arbitrary ANSI produced by the watched child is application policy and is not required to become a general terminal-emulation subsystem inside DCurses.
+
+**Alpha-17 checkpoint:** `samples/Icod.DCurses.Watch.Acceptance` exercises this
+shape directly with semantic synthetic child-output snapshots. It proves the
+DCurses mechanisms without moving process execution or ANSI interpretation into
+the library. The checkpoint is recorded in
+[`docs/T12A-Watch-Acceptance.md`](docs/T12A-Watch-Acceptance.md).
 
 ### `top` acceptance
 

@@ -1,8 +1,8 @@
 # Icod.DCurses Samples
 
-The repository contains three executable samples. They are intentionally separate
+The repository contains four executable samples. They are intentionally separate
 so the minimal session lifecycle stays easy to copy without mixing it with the
-interactive and input-focused showcases.
+interactive and acceptance-focused showcases.
 
 All sample projects target `net10.0`.
 
@@ -85,5 +85,43 @@ private parser or hard-coded fallback sequence for an unavailable protocol.
 dotnet run --project samples/Icod.DCurses.Input.Showcase/Icod.DCurses.Input.Showcase.csproj
 ```
 
-These samples complement, but do not replace, the T12 ProcPs acceptance work.
-`top`, `slabtop`, and `watch` remain the real application acceptance vehicles.
+## Icod.DCurses.Watch.Acceptance
+
+`Icod.DCurses.Watch.Acceptance` is the first T12 application-shaped acceptance
+harness. It deliberately uses synthetic, already-interpreted child-output
+snapshots so the sample exercises DCurses mechanisms rather than becoming a
+process runner or ANSI parser.
+
+The harness demonstrates:
+
+- periodic refresh through timed `ReadEventAsync` waits without busy polling;
+- Space-triggered immediate refresh;
+- resize/resume invalidation and repaint;
+- title/no-title layouts;
+- application-selected wrap or clip behavior;
+- reverse-video highlighting for changed output lines;
+- semantic child colors represented through `CursesStyle`;
+- optional alert-on-command-failure behavior;
+- a paused/preserved presentation that remains unchanged across timer ticks.
+
+Controls:
+
+```text
+Space        Immediate refresh
+T            Toggle title/no-title
+W            Toggle wrap/clip
+C            Toggle interpreted child colors
+B            Toggle alert on failure
+P            Pause/resume while preserving the current presentation
+F            Jump directly to a simulated failed command result
+Q            Exit
+```
+
+```text
+dotnet run --project samples/Icod.DCurses.Watch.Acceptance/Icod.DCurses.Watch.Acceptance.csproj
+```
+
+These samples complement, but do not replace, final validation in the actual
+ProcPs applications. Alpha-17 supplies the focused `watch`-shaped DCurses
+checkpoint before the migrated `watch` command is used as the final acceptance
+vehicle.

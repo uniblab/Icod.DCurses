@@ -15,11 +15,13 @@ refresh/damage synchronization.
 The project is under active development toward version `0.1.0`.
 
 `0.1.0-Alpha-15` established the automated Icod.Terminal T19 rich-input
-acceptance boundary and now builds and tests successfully against
-`Icod.Terminal 0.2.0-alpha.6`. `0.1.0-Alpha-16` advances that checkpoint with
-an interactive input showcase that requests bracketed paste, focus, and mouse
-reporting through Terminal-owned leases and displays the resulting semantic
-events through the ordinary DCurses event stream.
+acceptance boundary and builds and tests successfully against
+`Icod.Terminal 0.2.0-alpha.6`. `0.1.0-Alpha-16` provides the live rich-input
+acceptance showcase. `0.1.0-Alpha-17` begins the T12 ProcPs application-shaped
+acceptance pass with a dedicated `watch` harness that exercises periodic and
+immediate refresh, resize repaint, title/no-title layout, wrap/clip policy,
+difference highlighting, semantic child colors, failure alerts, and preserved
+presentation state without introducing ProcPs policy into the library.
 
 The retired DCurses backend, native mode, lifecycle-source, input-decoder, and
 pre-Terminal session implementations remain removed. DCurses does not add a
