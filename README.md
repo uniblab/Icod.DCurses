@@ -6,7 +6,7 @@
 The library sits above `Icod.TermInfo` and `Icod.Terminal`. `Icod.TermInfo`
 remains the immutable terminal-capability authority; `Icod.Terminal` owns the
 live terminal session, host mode, dimensions, lifecycle, input decoding, and
-reversible presentation leases. `Icod.DCurses` owns curses-shaped events,
+reversible presentation and input-protocol leases. `Icod.DCurses` owns curses-shaped events,
 virtual screens and windows, terminal cells and styles, rendition policy, and
 refresh/damage synchronization.
 
@@ -14,19 +14,22 @@ refresh/damage synchronization.
 
 The project is under active development toward version `0.1.0`.
 
-`0.1.0-Alpha-14` closes the Icod.Terminal T10 integration checkpoint. DCurses
-consumes `Icod.Terminal 0.1.0-alpha.11` for live-terminal ownership and delegates
-relative event-timeout and Escape-sequence timing to the `Icod.Timing 1.0.0`
-substrate owned by Terminal. The retired DCurses backend, native mode,
-lifecycle-source, input-decoder, and pre-Terminal session implementations have
-been physically removed after the successful Alpha-12/13 validation cycle.
+`0.1.0-Alpha-15` begins the Icod.Terminal T19 rich-input acceptance checkpoint.
+DCurses consumes `Icod.Terminal 0.2.0-alpha.6`, maps Terminal mouse, focus,
+bracketed-paste, and richer modified-key input into the curses-shaped event
+facade, and delegates reversible rich-input protocol ownership to Terminal.
+
+The retired DCurses backend, native mode, lifecycle-source, input-decoder, and
+pre-Terminal session implementations remain removed. DCurses does not add a
+mouse parser, paste reader, protocol escape emitter, or second input loop.
 
 The first release continues to be driven by the requirements of `top`,
 `slabtop`, and `watch`.
 
 See `Icod.DCurses-Development-Roadmap.md` for the broader development contract
-through `1.0.0`, and `docs/Icod-Terminal-T10-Integration.md` for the substrate
-reset implemented by Alpha-12 and closed by the Alpha-14 cleanup.
+through `1.0.0`, `docs/Icod-Terminal-T10-Integration.md` for the substrate reset,
+and `docs/Icod-Terminal-T19-Rich-Input-Acceptance.md` for the active rich-input
+acceptance checkpoint.
 
 ## Architecture
 
@@ -64,7 +67,7 @@ The initial implementation targets:
 The active runtime dependencies are:
 
 - `Icod.TermInfo` 1.0.0
-- `Icod.Terminal` 0.1.0-alpha.11
+- `Icod.Terminal` 0.2.0-alpha.6
 
 ## Build
 

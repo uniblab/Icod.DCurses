@@ -13,7 +13,7 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.1.0-Alpha-14</Version>
+		<Version>0.1.0-Alpha-15</Version>
 		<AssemblyVersion>0.1.0.0</AssemblyVersion>
 	</PropertyGroup>
 
@@ -53,12 +53,12 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<PackageVersion>0.1.0-Alpha-14</PackageVersion>
+		<PackageVersion>0.1.0-Alpha-15</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.1.0-Alpha-14 physically removes the retired pre-Icod.Terminal backend, mode, lifecycle, input-decoder, and session sources/tests after the successful Alpha-12/13 validation cycle.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.1.0-Alpha-15 begins Icod.Terminal 0.2 rich-input acceptance by mapping mouse, focus, paste, and richer modified-key events through the curses event facade and delegating reversible rich-input protocol leases to Icod.Terminal.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -94,7 +94,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Icod.Terminal" Version="0.1.0-alpha.11" />
+		<PackageReference Include="Icod.Terminal" Version="0.2.0-alpha.6" />
 		<PackageReference Include="Icod.TermInfo" Version="1.0.0" />
 	</ItemGroup>
 </Project>

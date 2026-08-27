@@ -9,9 +9,9 @@
 **Configurations:** `Debug`; `Staging`; `Release`
 **License:** LGPL-3.0-or-later
 **Current development target:** `0.1.0`
-**Current tranche:** T12 — ProcPs acceptance harnesses
+**Current tranche:** T12 / Icod.Terminal T19 — rich-input and ProcPs acceptance
 **Stable contract target:** `1.0.0`
-**Status:** T01-T11 complete; Icod.Terminal T10 integration and Alpha-14 legacy-substrate cleanup complete; T12 ProcPs acceptance is next
+**Status:** T01-T11 complete; Icod.Terminal T10 integration and Alpha-14 cleanup complete; Alpha-15 rich-input acceptance against Icod.Terminal 0.2.0-alpha.6 current
 
 ---
 
@@ -601,6 +601,18 @@ DCurses SHALL support an implementation that can:
 - hide/show the physical cursor according to application state.
 
 The `Icod.DCurses` repository does not need to contain the complete ProcPs applications. Tests, focused harnesses, and/or temporary migration branches MAY be used to prove the contract.
+
+### Icod.Terminal 0.2 rich-input acceptance checkpoint
+
+Before T12 closes, DCurses SHALL also prove the Icod.Terminal T19 integration gate:
+
+- rich mouse, focus, paste, and modified-key events flow through the existing curses event stream;
+- mouse/focus/paste reporting is requested through reversible Icod.Terminal protocol leases;
+- lifecycle suspend/resume leaves no rich-input protocol state active while suspended;
+- disposal restores protocol state even when an application has not released every individual lease;
+- DCurses contains no private rich-input escape parser, protocol emitter, or second terminal read loop.
+
+The Alpha-15 checkpoint is recorded in [`docs/Icod-Terminal-T19-Rich-Input-Acceptance.md`](docs/Icod-Terminal-T19-Rich-Input-Acceptance.md).
 
 **Gate T12:** no generic full-screen terminal infrastructure remains necessary inside `Icod.ProcPs.Shared` for these three applications.
 
