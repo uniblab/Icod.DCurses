@@ -1,6 +1,6 @@
 # Icod.DCurses Samples
 
-The repository contains four executable samples. They are intentionally separate
+The repository contains five executable samples. They are intentionally separate
 so the minimal session lifecycle stays easy to copy without mixing it with the
 interactive and acceptance-focused showcases.
 
@@ -121,7 +121,28 @@ Q            Exit
 dotnet run --project samples/Icod.DCurses.Watch.Acceptance/Icod.DCurses.Watch.Acceptance.csproj
 ```
 
+## Icod.DCurses.Slabtop.Acceptance
+
+`Icod.DCurses.Slabtop.Acceptance` is the second T12 application-shaped acceptance
+harness. Synthetic slab-cache snapshots keep Linux `/proc/slabinfo` observation
+and slab policy outside DCurses while exercising the live screen/input contract.
+
+The harness demonstrates:
+
+- periodic resampling through timed `ReadEventAsync` waits;
+- Space-triggered immediate resampling;
+- resize/resume repaint of the current snapshot without another sample;
+- all ten documented sort keys: `a`, `b`, `c`, `l`, `v`, `n`, `o`, `p`, `s`,
+  and `u`;
+- semantic summary/table styling through `CursesStyle`;
+- retained refresh so unchanged cells need not be rewritten physically;
+- `q`/`Q` exit and session-owned terminal restoration.
+
+```text
+dotnet run --project samples/Icod.DCurses.Slabtop.Acceptance/Icod.DCurses.Slabtop.Acceptance.csproj
+```
+
 These samples complement, but do not replace, final validation in the actual
-ProcPs applications. Alpha-17 supplies the focused `watch`-shaped DCurses
-checkpoint before the migrated `watch` command is used as the final acceptance
-vehicle.
+ProcPs applications. Alpha-17 supplies the focused `watch`-shaped checkpoint and
+Alpha-18 supplies the focused `slabtop`-shaped checkpoint before those migrated
+commands are used as final acceptance vehicles.

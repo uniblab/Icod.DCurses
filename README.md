@@ -17,11 +17,12 @@ The project is under active development toward version `0.1.0`.
 `0.1.0-Alpha-15` established the automated Icod.Terminal T19 rich-input
 acceptance boundary and builds and tests successfully against
 `Icod.Terminal 0.2.0-alpha.6`. `0.1.0-Alpha-16` provides the live rich-input
-acceptance showcase. `0.1.0-Alpha-17` begins the T12 ProcPs application-shaped
-acceptance pass with a dedicated `watch` harness that exercises periodic and
-immediate refresh, resize repaint, title/no-title layout, wrap/clip policy,
-difference highlighting, semantic child colors, failure alerts, and preserved
-presentation state without introducing ProcPs policy into the library.
+acceptance showcase. `0.1.0-Alpha-17` adds the T12 `watch`-shaped harness.
+`0.1.0-Alpha-18` continues T12 with a dedicated `slabtop`-shaped harness that
+exercises timed sampling, immediate refresh, resize repaint without resampling,
+the full documented sort-key set, retained physical-screen diffing, and clean
+lifecycle restoration without moving slab observation or sorting policy into
+DCurses.
 
 The retired DCurses backend, native mode, lifecycle-source, input-decoder, and
 pre-Terminal session implementations remain removed. DCurses does not add a

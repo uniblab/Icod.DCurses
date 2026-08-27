@@ -9,9 +9,9 @@
 **Configurations:** `Debug`; `Staging`; `Release`
 **License:** LGPL-3.0-or-later
 **Current development target:** `0.1.0`
-**Current tranche:** T12A — `watch` application-shaped acceptance
+**Current tranche:** T12B — `slabtop` application-shaped acceptance
 **Stable contract target:** `1.0.0`
-**Status:** T01-T11 complete; Alpha-15 automated rich-input acceptance validated; Alpha-16 live rich-input acceptance harness available; Alpha-17 `watch` acceptance current
+**Status:** T01-T11 complete; Alpha-15 automated rich-input acceptance validated; Alpha-16 live rich-input acceptance harness available; Alpha-17 `watch` harness available; Alpha-18 `slabtop` acceptance current
 
 ---
 
@@ -566,6 +566,13 @@ DCurses SHALL support an implementation that can:
 - accept the interactive sort keys;
 - update only changed display content where practical;
 - suspend/resume correctly on supported POSIX hosts.
+
+**Alpha-18 checkpoint:** `samples/Icod.DCurses.Slabtop.Acceptance` exercises the
+interactive shape directly with synthetic slab-cache snapshots. It covers timer
+refresh, immediate Space refresh, resize repaint without an extra sample, all ten
+documented slabtop sort-key letters, retained-screen refresh behavior, and
+lifecycle restoration. The checkpoint is recorded in
+[`docs/T12B-Slabtop-Acceptance.md`](docs/T12B-Slabtop-Acceptance.md).
 
 ### `watch` acceptance
 
