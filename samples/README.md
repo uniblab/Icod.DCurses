@@ -45,33 +45,41 @@ The Unicode row includes ASCII, precomposed and combining text, a
 supplementary-plane scalar value, and a known two-column character. It is a visual
 demonstration rather than a Unicode-conformance test.
 
-
 ## Icod.DCurses.Input.Showcase
 
-`Icod.DCurses.Input.Showcase` is an interactive keyboard and event inspector. It
-shows exactly what the current DCurses decoder produced for each input event,
-including the semantic key, Unicode scalar value, modifier flags, and function-key
-number. Lifecycle notifications are reported alongside keyboard input.
+`Icod.DCurses.Input.Showcase` is the live Icod.Terminal 0.2 rich-input acceptance
+consumer. It independently requests bracketed paste, focus reporting, and mouse
+button reporting through `CursesSession.AcquireInputProtocolsAsync`, then shows
+whether each protocol is available for the selected terminal profile.
 
-This is deliberately an observation tool rather than a modifier emulator. For
-example, a terminal may currently expose `Alt+R` as an Escape event followed by
-ordinary `R`, or a modified function-key sequence as a numbered function key
-without a separate Shift modifier. The sample records those events as DCurses
-actually decoded them.
+All input still arrives through the ordinary `CursesSession.ReadEventAsync`
+stream. The showcase reports:
 
-Useful keys to try:
+- ordinary text and named keys;
+- Shift, Control, and Alt modifier combinations;
+- numbered function keys;
+- normalized mouse action/button/modifier data and zero-based cell coordinates;
+- focus gained/lost events;
+- bracketed-paste begin/data/end framing;
+- lifecycle notifications such as resize.
+
+Useful interactions to try:
 
 ```text
-Shift+Tab
-Ctrl+R
-F1 through F12
-Shift+F7
-Alt+R
+Shift+Tab / Ctrl+R / Shift+F7
+Paste several lines of text
+Click and use the mouse wheel
+Move focus away from the terminal and back
+Resize the terminal
 Escape
 ```
 
 `Q` exits the inspector. Escape deliberately does not exit because Escape itself,
-and Escape-prefixed input, are useful decoder observations.
+and Escape-prefixed input, remain useful decoder observations.
+
+A protocol reported as unavailable is not automatically a failure. DCurses uses
+the controlled result from `Icod.Terminal`; the showcase does not install a
+private parser or hard-coded fallback sequence for an unavailable protocol.
 
 ```text
 dotnet run --project samples/Icod.DCurses.Input.Showcase/Icod.DCurses.Input.Showcase.csproj

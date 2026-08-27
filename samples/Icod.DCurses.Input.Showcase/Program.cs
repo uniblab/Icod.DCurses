@@ -10,10 +10,41 @@ CursesStyle titleStyle = new(
 	CursesTextAttributes.Bold
 );
 
+List<CursesInputProtocolLease> protocolLeases = [];
+List<string> protocolStatus = [];
 List<string> recentEvents = [];
-long eventNumber = 0;
 
+await TryAcquireInputProtocolAsync(
+	session,
+	"Bracketed paste",
+	new CursesInputProtocolOptions {
+		BracketedPaste = true
+	},
+	protocolLeases,
+	protocolStatus
+);
+await TryAcquireInputProtocolAsync(
+	session,
+	"Focus reporting",
+	new CursesInputProtocolOptions {
+		FocusReporting = true
+	},
+	protocolLeases,
+	protocolStatus
+);
+await TryAcquireInputProtocolAsync(
+	session,
+	"Mouse buttons",
+	new CursesInputProtocolOptions {
+		MouseTrackingMode = CursesMouseTrackingMode.ButtonEvents
+	},
+	protocolLeases,
+	protocolStatus
+);
+
+long eventNumber = 0;
 string lastKind = "None";
+string lastDetail = "-";
 string lastKey = "-";
 string lastCharacter = "-";
 string lastModifiers = "-";
@@ -23,7 +54,9 @@ string lastLifecycle = "-";
 DrawInspector(
 	screen,
 	titleStyle,
+	protocolStatus,
 	lastKind,
+	lastDetail,
 	lastKey,
 	lastCharacter,
 	lastModifiers,
@@ -33,124 +66,169 @@ DrawInspector(
 );
 await session.RefreshAsync();
 
-bool running = true;
-while ( running ) {
-	CursesEvent current = await session.ReadEventAsync();
+try {
+	bool running = true;
+	while ( running ) {
+		CursesEvent current = await session.ReadEventAsync();
 
-	if ( current.RequiresRepaint ) {
-		session.Invalidate();
-	}
+		if ( current.RequiresRepaint ) {
+			session.Invalidate();
+		}
 
-	eventNumber++;
+		eventNumber++;
 
-	switch ( current.Kind ) {
-		case CursesEventKind.Input:
-			if ( null == current.Input ) {
+		switch ( current.Kind ) {
+			case CursesEventKind.Input:
+				if ( null == current.Input ) {
+					break;
+				}
+
+				CursesInputEvent input = current.Input;
+				lastKind = $"Input / {input.Kind}";
+				lastDetail = DescribeInput( input );
+				lastKey = input.Kind is CursesInputEventKind.Text or CursesInputEventKind.Key
+					? input.Key.ToString()
+					: "-"
+				;
+				lastCharacter = input.Character.HasValue
+					? FormatRune( input.Character.Value )
+					: "-"
+				;
+				lastModifiers = CursesKeyModifiers.None == input.Modifiers
+					? "-"
+					: input.Modifiers.ToString()
+				;
+				lastFunctionKey = input.FunctionKeyNumber.HasValue
+					? $"F{input.FunctionKeyNumber.Value}"
+					: "-"
+				;
+				lastLifecycle = "-";
+
+				AddRecentEvent(
+					recentEvents,
+					$"{eventNumber:D4}  {lastDetail}"
+				);
+
+				if ( CursesInputEventKind.EndOfInput == input.Kind ) {
+					running = false;
+					break;
+				}
+
+				if ( CursesInputEventKind.Text == input.Kind
+					&& input.Character.HasValue
+					&& input.Character.Value.Value is 'q' or 'Q' ) {
+					running = false;
+				}
 				break;
-			}
 
-			CursesInputEvent input = current.Input;
-			lastKind = $"Input / {input.Kind}";
-			lastKey = input.Key.ToString();
-			lastCharacter = input.Character.HasValue
-				? FormatRune( input.Character.Value )
-				: "-"
-			;
-			lastModifiers = input.Modifiers.ToString();
-			lastFunctionKey = input.FunctionKeyNumber.HasValue
-				? $"F{input.FunctionKeyNumber.Value}"
-				: "-"
-			;
-			lastLifecycle = "-";
+			case CursesEventKind.Lifecycle:
+				if ( null == current.Lifecycle ) {
+					break;
+				}
 
-			AddRecentEvent(
-				recentEvents,
-				$"{eventNumber:D4}  {DescribeInput( input )}"
-			);
+				CursesLifecycleEvent lifecycle = current.Lifecycle;
+				lastKind = "Lifecycle";
+				lastDetail = $"Lifecycle {lifecycle.Kind}";
+				lastKey = "-";
+				lastCharacter = "-";
+				lastModifiers = "-";
+				lastFunctionKey = "-";
+				lastLifecycle = lifecycle.Kind.ToString();
 
-			if ( CursesInputEventKind.EndOfInput == input.Kind ) {
-				running = false;
+				AddRecentEvent(
+					recentEvents,
+					$"{eventNumber:D4}  {lastDetail}"
+				);
+
+				if ( lifecycle.Kind is CursesLifecycleEventKind.Interrupt
+					or CursesLifecycleEventKind.Termination ) {
+					running = false;
+				}
 				break;
-			}
 
-			if ( CursesInputEventKind.Text == input.Kind
-				&& input.Character.HasValue
-				&& input.Character.Value.Value is 'q' or 'Q' ) {
-				running = false;
-			}
-			break;
+			case CursesEventKind.Timeout:
+				lastKind = "Timeout";
+				lastDetail = "Timeout";
+				lastKey = "-";
+				lastCharacter = "-";
+				lastModifiers = "-";
+				lastFunctionKey = "-";
+				lastLifecycle = "-";
 
-		case CursesEventKind.Lifecycle:
-			if ( null == current.Lifecycle ) {
+				AddRecentEvent(
+					recentEvents,
+					$"{eventNumber:D4}  Timeout"
+				);
 				break;
-			}
+		}
 
-			CursesLifecycleEvent lifecycle = current.Lifecycle;
-			lastKind = "Lifecycle";
-			lastKey = "-";
-			lastCharacter = "-";
-			lastModifiers = "-";
-			lastFunctionKey = "-";
-			lastLifecycle = lifecycle.Kind.ToString();
-
-			AddRecentEvent(
-				recentEvents,
-				$"{eventNumber:D4}  Lifecycle {lifecycle.Kind}"
-			);
-
-			if ( lifecycle.Kind is CursesLifecycleEventKind.Interrupt
-				or CursesLifecycleEventKind.Termination ) {
-				running = false;
-			}
+		if ( !running ) {
 			break;
+		}
 
-		case CursesEventKind.Timeout:
-			lastKind = "Timeout";
-			lastKey = "-";
-			lastCharacter = "-";
-			lastModifiers = "-";
-			lastFunctionKey = "-";
-			lastLifecycle = "-";
-
-			AddRecentEvent(
-				recentEvents,
-				$"{eventNumber:D4}  Timeout"
-			);
-			break;
+		DrawInspector(
+			screen,
+			titleStyle,
+			protocolStatus,
+			lastKind,
+			lastDetail,
+			lastKey,
+			lastCharacter,
+			lastModifiers,
+			lastFunctionKey,
+			lastLifecycle,
+			recentEvents
+		);
+		await session.RefreshAsync();
 	}
-
-	if ( !running ) {
-		break;
+} finally {
+	for ( int index = protocolLeases.Count - 1; 0 <= index; index-- ) {
+		await protocolLeases[ index ].DisposeAsync();
 	}
-
-	DrawInspector(
-		screen,
-		titleStyle,
-		lastKind,
-		lastKey,
-		lastCharacter,
-		lastModifiers,
-		lastFunctionKey,
-		lastLifecycle,
-		recentEvents
-	);
-	await session.RefreshAsync();
 }
 
 return 0;
 
+static async ValueTask TryAcquireInputProtocolAsync(
+	CursesSession session,
+	string name,
+	CursesInputProtocolOptions options,
+	ICollection<CursesInputProtocolLease> leases,
+	ICollection<string> status
+) {
+	ArgumentNullException.ThrowIfNull( session );
+	ArgumentException.ThrowIfNullOrWhiteSpace( name );
+	ArgumentNullException.ThrowIfNull( options );
+	ArgumentNullException.ThrowIfNull( leases );
+	ArgumentNullException.ThrowIfNull( status );
+
+	var result = await session.AcquireInputProtocolsAsync( options );
+	if ( result.IsAvailable ) {
+		leases.Add( result.GetRequiredValue() );
+		status.Add( $"{name}: enabled" );
+		return;
+	}
+
+	status.Add( $"{name}: {result.Status}" );
+}
+
 static void DrawInspector(
 	CursesWindow screen,
 	CursesStyle titleStyle,
+	IReadOnlyList<string> protocolStatus,
 	string lastKind,
+	string lastDetail,
 	string lastKey,
 	string lastCharacter,
 	string lastModifiers,
 	string lastFunctionKey,
 	string lastLifecycle,
-	IReadOnlyList<string> recentEvents ) {
+	IReadOnlyList<string> recentEvents
+) {
 	ArgumentNullException.ThrowIfNull( screen );
+	ArgumentNullException.ThrowIfNull( protocolStatus );
 	ArgumentNullException.ThrowIfNull( lastKind );
+	ArgumentNullException.ThrowIfNull( lastDetail );
 	ArgumentNullException.ThrowIfNull( lastKey );
 	ArgumentNullException.ThrowIfNull( lastCharacter );
 	ArgumentNullException.ThrowIfNull( lastModifiers );
@@ -164,7 +242,7 @@ static void DrawInspector(
 	WriteLine(
 		screen,
 		0,
-		"Icod.DCurses input showcase",
+		"Icod.DCurses rich-input showcase",
 		titleStyle
 	);
 	WriteLine(
@@ -172,62 +250,76 @@ static void DrawInspector(
 		1,
 		$"Terminal: {screen.Columns} x {screen.Rows}"
 	);
-	WriteLine(
-		screen,
-		3,
-		"Try Shift+Tab, Ctrl+R, F7, Shift+F7, Alt+R, and Escape."
-	);
-	WriteLine(
-		screen,
-		4,
-		"Events are shown exactly as DCurses decoded them. Q exits."
-	);
+
+	for ( int index = 0; index < protocolStatus.Count; index++ ) {
+		WriteLine(
+			screen,
+			2 + index,
+			protocolStatus[ index ]
+		);
+	}
+
 	WriteLine(
 		screen,
 		6,
+		"Try modified keys, paste, mouse clicks/wheel, focus changes, and resize."
+	);
+	WriteLine(
+		screen,
+		7,
+		"Events come through CursesSession.ReadEventAsync. Q exits."
+	);
+	WriteLine(
+		screen,
+		9,
 		"Last decoded event",
 		titleStyle
 	);
 	WriteLine(
 		screen,
-		7,
+		10,
 		$"Kind:         {lastKind}"
 	);
 	WriteLine(
 		screen,
-		8,
-		$"Key:          {lastKey}"
-	);
-	WriteLine(
-		screen,
-		9,
-		$"Character:    {lastCharacter}"
-	);
-	WriteLine(
-		screen,
-		10,
-		$"Modifiers:    {lastModifiers}"
-	);
-	WriteLine(
-		screen,
 		11,
-		$"Function key: {lastFunctionKey}"
+		$"Detail:       {lastDetail}"
 	);
 	WriteLine(
 		screen,
 		12,
-		$"Lifecycle:    {lastLifecycle}"
+		$"Key:          {lastKey}"
+	);
+	WriteLine(
+		screen,
+		13,
+		$"Character:    {lastCharacter}"
 	);
 	WriteLine(
 		screen,
 		14,
+		$"Modifiers:    {lastModifiers}"
+	);
+	WriteLine(
+		screen,
+		15,
+		$"Function key: {lastFunctionKey}"
+	);
+	WriteLine(
+		screen,
+		16,
+		$"Lifecycle:    {lastLifecycle}"
+	);
+	WriteLine(
+		screen,
+		18,
 		"Recent events",
 		titleStyle
 	);
 
 	int availableRows = Math.Max(
 		0,
-		screen.Rows - 16
+		screen.Rows - 20
 	);
 	int count = Math.Min(
 		availableRows,
@@ -238,28 +330,69 @@ static void DrawInspector(
 		int sourceIndex = recentEvents.Count - count + offset;
 		WriteLine(
 			screen,
-			15 + offset,
+			19 + offset,
 			recentEvents[ sourceIndex ]
 		);
 	}
 }
 
-static string DescribeInput( CursesInputEvent input ) {
+static string DescribeInput(
+	CursesInputEvent input
+) {
 	ArgumentNullException.ThrowIfNull( input );
 
-	if ( CursesInputEventKind.EndOfInput == input.Kind ) {
-		return "Input EndOfInput";
-	}
+	switch ( input.Kind ) {
+		case CursesInputEventKind.Text:
+			return input.Character.HasValue
+				? $"Text {FormatRune( input.Character.Value )}"
+				: "Text"
+			;
 
-	if ( CursesInputEventKind.Text == input.Kind ) {
-		return input.Character.HasValue
-			? $"Text {FormatRune( input.Character.Value )}"
-			: "Text"
-		;
+		case CursesInputEventKind.Key:
+			return DescribeKey( input );
+
+		case CursesInputEventKind.Mouse:
+			return DescribeMouse(
+				input.Mouse
+					?? throw new InvalidOperationException(
+						"A curses mouse event is missing its payload."
+					)
+			);
+
+		case CursesInputEventKind.Focus:
+			return DescribeFocus(
+				input.Focus
+					?? throw new InvalidOperationException(
+						"A curses focus event is missing its payload."
+					)
+			);
+
+		case CursesInputEventKind.Paste:
+			return DescribePaste(
+				input.Paste
+					?? throw new InvalidOperationException(
+						"A curses paste event is missing its payload."
+					)
+			);
+
+		case CursesInputEventKind.EndOfInput:
+			return "Input EndOfInput";
+
+		default:
+			throw new ArgumentOutOfRangeException(
+				nameof( input ),
+				input.Kind,
+				"The curses input-event kind is not recognized."
+			);
 	}
+}
+
+static string DescribeKey(
+	CursesInputEvent input
+) {
+	ArgumentNullException.ThrowIfNull( input );
 
 	string modifiers = FormatModifiers( input.Modifiers );
-
 	if ( CursesKey.Function == input.Key
 		&& input.FunctionKeyNumber.HasValue ) {
 		return $"{modifiers}F{input.FunctionKeyNumber.Value}";
@@ -273,7 +406,46 @@ static string DescribeInput( CursesInputEvent input ) {
 	return $"{modifiers}{input.Key}";
 }
 
-static string FormatModifiers( CursesKeyModifiers modifiers ) {
+static string DescribeMouse(
+	CursesMouseEvent mouse
+) {
+	ArgumentNullException.ThrowIfNull( mouse );
+
+	string modifiers = FormatModifiers( mouse.Modifiers );
+	string button = CursesMouseButton.None == mouse.Button
+		? string.Empty
+		: $" {mouse.Button}"
+	;
+	return $"{modifiers}Mouse {mouse.Action}{button} @ ({mouse.Column},{mouse.Row})";
+}
+
+static string DescribeFocus(
+	CursesFocusEvent focus
+) {
+	ArgumentNullException.ThrowIfNull( focus );
+	return $"Focus {focus.State}";
+}
+
+static string DescribePaste(
+	CursesPasteEvent paste
+) {
+	ArgumentNullException.ThrowIfNull( paste );
+
+	return paste.Phase switch {
+		CursesPastePhase.Begin => "Paste Begin",
+		CursesPastePhase.Data => $"Paste Data ({paste.Text!.Length} UTF-16 code units)",
+		CursesPastePhase.End => "Paste End",
+		_ => throw new ArgumentOutOfRangeException(
+			nameof( paste ),
+			paste.Phase,
+			"The curses paste phase is not recognized."
+		)
+	};
+}
+
+static string FormatModifiers(
+	CursesKeyModifiers modifiers
+) {
 	if ( CursesKeyModifiers.None == modifiers ) {
 		return string.Empty;
 	}
@@ -288,13 +460,16 @@ static string FormatModifiers( CursesKeyModifiers modifiers ) {
 		+ "+";
 }
 
-static string FormatRune( Rune rune ) {
+static string FormatRune(
+	Rune rune
+) {
 	return $"U+{rune.Value:X4} '{rune}'";
 }
 
 static void AddRecentEvent(
 	List<string> recentEvents,
-	string description ) {
+	string description
+) {
 	ArgumentNullException.ThrowIfNull( recentEvents );
 	ArgumentNullException.ThrowIfNull( description );
 
@@ -309,7 +484,8 @@ static void WriteLine(
 	CursesWindow screen,
 	int row,
 	string text,
-	CursesStyle style = default ) {
+	CursesStyle style = default
+) {
 	ArgumentNullException.ThrowIfNull( screen );
 	ArgumentNullException.ThrowIfNull( text );
 

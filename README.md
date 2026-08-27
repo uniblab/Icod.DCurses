@@ -6,18 +6,20 @@
 The library sits above `Icod.TermInfo` and `Icod.Terminal`. `Icod.TermInfo`
 remains the immutable terminal-capability authority; `Icod.Terminal` owns the
 live terminal session, host mode, dimensions, lifecycle, input decoding, and
-reversible presentation and input-protocol leases. `Icod.DCurses` owns curses-shaped events,
-virtual screens and windows, terminal cells and styles, rendition policy, and
+reversible presentation and input-protocol leases. `Icod.DCurses` owns
+curses-shaped events, virtual screens and windows, terminal cells and styles, rendition policy, and
 refresh/damage synchronization.
 
 ## Status
 
 The project is under active development toward version `0.1.0`.
 
-`0.1.0-Alpha-15` begins the Icod.Terminal T19 rich-input acceptance checkpoint.
-DCurses consumes `Icod.Terminal 0.2.0-alpha.6`, maps Terminal mouse, focus,
-bracketed-paste, and richer modified-key input into the curses-shaped event
-facade, and delegates reversible rich-input protocol ownership to Terminal.
+`0.1.0-Alpha-15` established the automated Icod.Terminal T19 rich-input
+acceptance boundary and now builds and tests successfully against
+`Icod.Terminal 0.2.0-alpha.6`. `0.1.0-Alpha-16` advances that checkpoint with
+an interactive input showcase that requests bracketed paste, focus, and mouse
+reporting through Terminal-owned leases and displays the resulting semantic
+events through the ordinary DCurses event stream.
 
 The retired DCurses backend, native mode, lifecycle-source, input-decoder, and
 pre-Terminal session implementations remain removed. DCurses does not add a
@@ -42,7 +44,7 @@ top / slabtop / watch / other TUIs
                  |
             Icod.Terminal
  session / input / lifecycle / dimensions
-       presentation-state leases
+ presentation / input-protocol leases
                  |
             Icod.TermInfo
       terminal capability model

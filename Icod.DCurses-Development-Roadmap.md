@@ -11,7 +11,7 @@
 **Current development target:** `0.1.0`
 **Current tranche:** T12 / Icod.Terminal T19 — rich-input and ProcPs acceptance
 **Stable contract target:** `1.0.0`
-**Status:** T01-T11 complete; Icod.Terminal T10 integration and Alpha-14 cleanup complete; Alpha-15 rich-input acceptance against Icod.Terminal 0.2.0-alpha.6 current
+**Status:** T01-T11 complete; Alpha-15 automated rich-input acceptance validated; Alpha-16 interactive Icod.Terminal T19 acceptance current
 
 ---
 
@@ -612,7 +612,9 @@ Before T12 closes, DCurses SHALL also prove the Icod.Terminal T19 integration ga
 - disposal restores protocol state even when an application has not released every individual lease;
 - DCurses contains no private rich-input escape parser, protocol emitter, or second terminal read loop.
 
-The Alpha-15 checkpoint is recorded in [`docs/Icod-Terminal-T19-Rich-Input-Acceptance.md`](docs/Icod-Terminal-T19-Rich-Input-Acceptance.md).
+Alpha-15 automated acceptance is complete. Alpha-16 extends the existing input showcase into a live rich-input acceptance consumer before ProcPs application acceptance continues.
+
+The checkpoint is recorded in [`docs/Icod-Terminal-T19-Rich-Input-Acceptance.md`](docs/Icod-Terminal-T19-Rich-Input-Acceptance.md).
 
 **Gate T12:** no generic full-screen terminal infrastructure remains necessary inside `Icod.ProcPs.Shared` for these three applications.
 
