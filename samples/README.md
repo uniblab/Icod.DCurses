@@ -9,9 +9,9 @@ All sample projects target `net10.0`.
 ## Icod.DCurses.Sample
 
 `Icod.DCurses.Sample` is the minimal quick-start demonstration. It opens a
-`CursesSession`, writes through the standard screen, refreshes the terminal, waits
-for input, repaints after resize, and restores terminal state through asynchronous
-disposal.
+`CursesSession`, writes styled content through the standard screen, updates a
+small moving marker through timed event waits, repaints after resize, accepts
+input, and restores terminal state through asynchronous disposal.
 
 ```text
 dotnet run --project samples/Icod.DCurses.Sample/Icod.DCurses.Sample.csproj

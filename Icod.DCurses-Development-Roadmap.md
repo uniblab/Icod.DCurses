@@ -9,9 +9,9 @@
 **Configurations:** `Debug`; `Staging`; `Release`
 **License:** LGPL-3.0-or-later
 **Current development target:** `0.1.0`
-**Current tranche:** T13A — package and release foundation
+**Current tranche:** T13B — public API and consumer-contract regret review
 **Stable contract target:** `1.0.0`
-**Status:** T01-T12 complete; Alpha-20 T13 package-only consumer and tag-controlled release hardening current
+**Status:** T01-T12 complete; T13A validated; Alpha-21 T13B API/documentation/sample closure current
 
 ---
 
@@ -19,7 +19,7 @@
 
 `Icod.DCurses` is a managed, cross-platform curses-like library for .NET.
 
-It occupies the layer above `Icod.TermInfo` and the low-level terminal-control facilities presently supplied by `Icod.CommandFramework.Terminal`.
+It occupies the layer above `Icod.TermInfo` and `Icod.Terminal`.
 
 The architectural responsibilities are intentionally distinct:
 
@@ -30,12 +30,13 @@ Applications
                     Icod.DCurses
           session / input / windows / screen
              refresh / lifecycle / events
-                  /                 \
-                 /                   \
-        Icod.TermInfo       terminal-control substrate
-      capability model      initially Icod.CommandFramework
-                 \                   /
-                  \                 /
+                         |
+                    Icod.Terminal
+        endpoint / mode / input / lifecycle
+                         |
+                    Icod.TermInfo
+               capability model
+                         |
               terminal / console / tty
 ```
 
@@ -126,35 +127,33 @@ Windows Console and Windows Terminal behavior SHALL not be treated as an afterth
 
 ## 3. Dependency and Framework Policy
 
-### 3.1 Initial dependencies
+### 3.1 Active 0.1 dependencies
 
-The `0.1.0` implementation SHOULD begin with:
+The active `0.1.0` dependency graph is:
 
 ```text
 Icod.DCurses
+    -> Icod.Terminal 0.2.x
     -> Icod.TermInfo 1.x
-    -> Icod.CommandFramework 1.x
 ```
 
-`Icod.TermInfo` is the terminal-capability authority.
-
-`Icod.CommandFramework.Terminal` may initially provide the neutral terminal endpoint/control substrate needed for terminal observation and host mode capture/restoration.
+`Icod.TermInfo` is the terminal-capability authority. `Icod.Terminal` is the
+neutral live-terminal endpoint/control substrate. `Icod.CommandFramework` is no
+longer a runtime dependency of DCurses.
 
 ### 3.2 Initial target framework
 
-Because the current `Icod.CommandFramework` package targets `net10.0`, the first `Icod.DCurses` release SHALL target `net10.0`.
-
-A later roadmap tranche MAY extract the genuinely generic terminal-control substrate into a smaller package such as `Icod.Terminal` or `Icod.TerminalControl`. If that happens, `Icod.DCurses` MAY subsequently broaden its target frameworks where its dependencies permit.
-
-Framework expansion SHALL NOT block `0.1.0`.
+The first `Icod.DCurses` release targets `net10.0`. Framework expansion is a
+later compatibility decision and SHALL NOT block `0.1.0`.
 
 ### 3.3 Dependency direction
 
 The dependency graph SHALL remain acyclic.
 
-`Icod.TermInfo` SHALL NOT acquire a dependency on `Icod.DCurses`.
+`Icod.TermInfo` and `Icod.Terminal` SHALL NOT acquire dependencies on
+`Icod.DCurses`.
 
-`Icod.CommandFramework` SHALL NOT acquire a dependency on `Icod.DCurses`.
+`Icod.CommandFramework` remains outside the active DCurses runtime graph.
 
 ProcPs applications MAY depend on `Icod.DCurses`.
 
@@ -663,9 +662,22 @@ validation-only `main` pushes, and a tag-controlled release workflow. The
 checkpoint is recorded in
 [`docs/T13A-Package-and-Release-Foundation.md`](docs/T13A-Package-and-Release-Foundation.md).
 
-T13B SHALL perform the final public-API/documentation regret pass, close any
-remaining package metadata issues, set both package version properties to
-`0.1.0`, and execute the stable release gate.
+**Alpha-21 / T13B checkpoint:** perform the final 0.1 public-API/documentation
+regret pass, publish the API baseline, close sample/documentation gaps, and make
+only contract-preserving corrections discovered by that audit. The checkpoint
+is recorded in
+[`docs/T13B-Public-API-and-Consumer-Contract.md`](docs/T13B-Public-API-and-Consumer-Contract.md).
+
+The T13B dependency audit found one release-order constraint: DCurses currently
+requires the published prerelease `Icod.Terminal 0.2.0-alpha.6`. A stable
+`Icod.DCurses 0.1.0` package SHALL NOT be tagged while its required Terminal
+dependency remains prerelease.
+
+**T13C** SHALL begin after stable `Icod.Terminal 0.2.0` is published. It SHALL
+update the DCurses Terminal package reference and package-verification metadata,
+set both `<Version>` and `<PackageVersion>` to `0.1.0`, run the complete
+three-host Release/package-only gate, merge the release commit to `main`, and
+publish only through the matching `v0.1.0` tag.
 
 **0.1.0 completion gate:** a fresh consumer can install the package and build a small interactive application without repository-local project references.
 
@@ -846,9 +858,12 @@ Candidate scope:
 - thread-safety and concurrency contract;
 - deterministic flush semantics.
 
-This version SHALL also decide whether low-level terminal control should remain consumed from `Icod.CommandFramework` or be extracted to a smaller neutral package.
+This version SHALL also audit the established `Icod.Terminal` integration for
+platform parity, lifecycle ownership, failure recovery, and unnecessary leakage
+of lower-level host mechanics into the curses facade.
 
-Any such extraction SHALL preserve the higher-level `Icod.DCurses` API wherever reasonable.
+Any future substrate refactoring SHALL preserve the higher-level
+`Icod.DCurses` API wherever reasonable.
 
 ---
 
@@ -989,8 +1004,12 @@ T01  repository / solution / package scaffold
   -> T11  Unicode baseline
   -> Icod.Terminal T10 integration / terminal-substrate reset (Alpha-12 through Alpha-14; complete)
   -> T12  top / slabtop / watch acceptance harnesses
-  -> T13  docs / samples / package / release gate
+  -> T13A package / fresh-consumer / release-workflow foundation
+  -> T13B public API / documentation / sample regret review
+  -> T13C stable dependency closure / 0.1.0 release
   -> 0.1.0
 ```
 
-The current implementation tranche is therefore **T12**, exercising the shared stack against the `top`, `slabtop`, and `watch` acceptance requirements.
+The current implementation tranche is therefore **T13B**, freezing the 0.1
+consumer contract while stable `Icod.Terminal 0.2.0` completes its own release
+gate.

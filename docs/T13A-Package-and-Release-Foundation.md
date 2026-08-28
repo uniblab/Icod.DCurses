@@ -6,7 +6,7 @@
 **Tranche:** T13A — package and release foundation
 **Reference branch:** `0.1.0`
 **Reference commit before tranche:** `17a7bad9b7e8dc84b9bf5c5b2a2f1f45448447a0`
-**Status:** Implementation prepared; validation gate pending
+**Status:** Complete — PR three-host package and fresh-consumer validation passed
 
 ---
 
@@ -94,18 +94,16 @@ matching `v*` tag. The release workflow requires:
 
 Prerelease tags are marked as prereleases. Stable `v0.1.0` uses the same path.
 
-## 6. Deliberately deferred to T13B
+## 6. Deliberately deferred beyond T13A
 
-Alpha-20 does not yet declare the stable release.
+Alpha-20 does not declare the stable release.
 
-T13B remains responsible for:
+T13B performs the public-API/documentation/sample regret review and publishes
+the 0.1 consumer-contract baseline.
 
-- the final public-API regret/documentation review;
-- any remaining README or package-metadata correction discovered by that audit;
-- final dependency-version confirmation;
-- setting `Version` and `PackageVersion` to `0.1.0`;
-- final Release validation and package-only consumer validation;
-- creating the stable `v0.1.0` release tag only after all gates are green.
+The T13B dependency audit also separates final stable release closure into T13C.
+Stable DCurses publication waits for stable `Icod.Terminal 0.2.0`; Alpha-20 was
+validated against the published `0.2.0-alpha.6` package.
 
 ## 7. Validation gate
 
@@ -123,5 +121,7 @@ T13A is accepted when:
 9. a matching prerelease tag can use the new release workflow when publication
    is desired.
 
-After this checkpoint is validated, continue with T13B and the stable `0.1.0`
-release gate.
+The Alpha-20 branch passed the PR package gate on Windows, Ubuntu, and macOS in
+GitHub Actions run `33120133005`.
+
+After this checkpoint, continue with T13B.

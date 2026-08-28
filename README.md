@@ -18,10 +18,14 @@ The project is under active development toward version `0.1.0`.
 acceptance boundary and builds and tests successfully against
 `Icod.Terminal 0.2.0-alpha.6`. `0.1.0-Alpha-16` provides the live rich-input
 acceptance showcase. Alpha-17 through Alpha-19 complete the focused T12
-`watch`, `slabtop`, and `top` application-shaped acceptance set.
-`0.1.0-Alpha-20` begins T13 release-gate hardening with structural package
-inspection, an isolated package-only consumer, three-host package validation,
-and tag-controlled publication.
+`watch`, `slabtop`, and `top` application-shaped acceptance set. Alpha-20
+established the three-host package-only and tag-controlled release gate.
+`0.1.0-Alpha-21` completes the 0.1 public-API/documentation regret pass and the
+required styled/updating quick-start sample.
+
+The stable `0.1.0` tag is deliberately held until `Icod.Terminal 0.2.0` is
+available as a stable package; DCurses will not publish a stable package whose
+required Terminal dependency is still a prerelease.
 
 The retired DCurses backend, native mode, lifecycle-source, input-decoder, and
 pre-Terminal session implementations remain removed. DCurses does not add a
@@ -32,8 +36,9 @@ The first release continues to be driven by the requirements of `top`,
 
 See `Icod.DCurses-Development-Roadmap.md` for the broader development contract
 through `1.0.0`, `docs/Icod-Terminal-T10-Integration.md` for the substrate reset,
-and `docs/Icod-Terminal-T19-Rich-Input-Acceptance.md` for the active rich-input
-acceptance checkpoint.
+`docs/Icod-Terminal-T19-Rich-Input-Acceptance.md` for rich-input acceptance,
+`docs/T13B-Public-API-and-Consumer-Contract.md` for the 0.1 regret review, and
+`docs/Public-API-Baseline-0.1.md` for the release-line API baseline.
 
 ## Architecture
 
@@ -75,14 +80,14 @@ The active runtime dependencies are:
 
 ## Installation
 
-During the Alpha-20 validation tranche:
+During the Alpha-21 validation tranche:
 
 ```text
-dotnet add package Icod.DCurses --version 0.1.0-Alpha-20
+dotnet add package Icod.DCurses --version 0.1.0-Alpha-21
 ```
 
-The stable installation command will use version `0.1.0` after the T13B release
-gate closes.
+The stable installation command will use version `0.1.0` after the final
+Terminal dependency and T13C release-closure gates pass.
 
 ## Quick start
 

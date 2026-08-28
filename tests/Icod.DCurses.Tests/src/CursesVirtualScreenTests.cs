@@ -6,6 +6,13 @@ namespace Icod.DCurses.Tests;
 
 public sealed class CursesVirtualScreenTests {
 	[Fact]
+	public void DirectCellConstructionRejectsNullContentDeterministically() {
+		Assert.Throws<ArgumentNullException>(
+			() => _ = new CursesCell( null! )
+		);
+	}
+
+	[Fact]
 	public void StyledVirtualFrameCanBeConstructedWithoutTerminalBackend() {
 		CursesVirtualScreen screen = new( 5, 2 );
 		CursesStyle heading = new(
