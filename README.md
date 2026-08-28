@@ -1,5 +1,7 @@
 # Icod.DCurses
 
+![Icod TUI Toolchain](icod_tui_toolchain.jpg)
+
 `Icod.DCurses` is a managed, cross-platform curses-like terminal UI library for
 .NET.
 
@@ -21,11 +23,13 @@ acceptance showcase. Alpha-17 through Alpha-19 complete the focused T12
 `watch`, `slabtop`, and `top` application-shaped acceptance set. Alpha-20
 established the three-host package-only and tag-controlled release gate.
 `0.1.0-Alpha-21` completes the 0.1 public-API/documentation regret pass and the
-required styled/updating quick-start sample.
+required styled/updating quick-start sample. `0.1.0-Alpha-22` is the explicit
+downstream compatibility build for published `Icod.Terminal 0.3.0-alpha.8` and
+`Icod.TermInfo 1.3.0`.
 
-The stable `0.1.0` tag is deliberately held until `Icod.Terminal 0.2.0` is
-available as a stable package; DCurses will not publish a stable package whose
-required Terminal dependency is still a prerelease.
+Alpha-22 is an acceptance build, not a stable dependency decision. Its purpose
+is to prove that Terminal 0.3 does not require DCurses to regain private
+terminal mechanics.
 
 The retired DCurses backend, native mode, lifecycle-source, input-decoder, and
 pre-Terminal session implementations remain removed. DCurses does not add a
@@ -73,21 +77,22 @@ The initial implementation targets:
 - Linux
 - macOS
 
-The active runtime dependencies are:
+The Alpha-22 acceptance dependency set is:
 
-- `Icod.TermInfo` 1.0.0
-- `Icod.Terminal` 0.2.0-alpha.6
+- `Icod.TermInfo` 1.3.0
+- `Icod.Terminal` 0.3.0-alpha.8
 
 ## Installation
 
-During the Alpha-21 validation tranche:
+Alpha-22 is intended for downstream compatibility validation. If published as a
+prerelease package, install it with:
 
 ```text
-dotnet add package Icod.DCurses --version 0.1.0-Alpha-21
+dotnet add package Icod.DCurses --version 0.1.0-Alpha-22
 ```
 
-The stable installation command will use version `0.1.0` after the final
-Terminal dependency and T13C release-closure gates pass.
+The stable `0.1.0` dependency/version decision remains a separate
+release-closure step after the Terminal 0.3 downstream result is known.
 
 ## Quick start
 
