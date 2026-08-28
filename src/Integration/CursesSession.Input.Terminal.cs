@@ -92,6 +92,30 @@ public sealed partial class CursesSession {
 				input.Character,
 				input.FunctionKeyNumber
 			),
+			TerminalInputEventKind.Mouse => CursesInputEvent.FromMouse(
+				ConvertMouseEvent(
+					input.Mouse
+						?? throw new InvalidOperationException(
+							"Terminal mouse event payload is missing."
+						)
+				)
+			),
+			TerminalInputEventKind.Focus => CursesInputEvent.FromFocus(
+				ConvertFocusEvent(
+					input.Focus
+						?? throw new InvalidOperationException(
+							"Terminal focus event payload is missing."
+						)
+				)
+			),
+			TerminalInputEventKind.Paste => CursesInputEvent.FromPaste(
+				ConvertPasteEvent(
+					input.Paste
+						?? throw new InvalidOperationException(
+							"Terminal paste event payload is missing."
+						)
+				)
+			),
 			TerminalInputEventKind.EndOfInput => CursesInputEvent.EndOfInput(),
 			_ => throw new ArgumentOutOfRangeException(
 				nameof( input ),
@@ -125,6 +149,66 @@ public sealed partial class CursesSession {
 			TerminalKey.Function => CursesKey.Function,
 			_ => throw new ArgumentOutOfRangeException( nameof( key ) )
 		};
+	}
+
+	private static CursesMouseEvent ConvertMouseEvent(
+		TerminalMouseEvent mouse
+	) {
+		ArgumentNullException.ThrowIfNull( mouse );
+		return new CursesMouseEvent(
+			mouse.Action switch {
+				TerminalMouseAction.Press => CursesMouseAction.Press,
+				TerminalMouseAction.Release => CursesMouseAction.Release,
+				TerminalMouseAction.Move => CursesMouseAction.Move,
+				TerminalMouseAction.WheelUp => CursesMouseAction.WheelUp,
+				TerminalMouseAction.WheelDown => CursesMouseAction.WheelDown,
+				TerminalMouseAction.WheelLeft => CursesMouseAction.WheelLeft,
+				TerminalMouseAction.WheelRight => CursesMouseAction.WheelRight,
+				_ => throw new ArgumentOutOfRangeException( nameof( mouse ) )
+			},
+			mouse.Button switch {
+				TerminalMouseButton.None => CursesMouseButton.None,
+				TerminalMouseButton.Primary => CursesMouseButton.Primary,
+				TerminalMouseButton.Middle => CursesMouseButton.Middle,
+				TerminalMouseButton.Secondary => CursesMouseButton.Secondary,
+				TerminalMouseButton.Button4 => CursesMouseButton.Button4,
+				TerminalMouseButton.Button5 => CursesMouseButton.Button5,
+				TerminalMouseButton.Button6 => CursesMouseButton.Button6,
+				TerminalMouseButton.Button7 => CursesMouseButton.Button7,
+				_ => throw new ArgumentOutOfRangeException( nameof( mouse ) )
+			},
+			mouse.Column,
+			mouse.Row,
+			ConvertModifiers( mouse.Modifiers )
+		);
+	}
+
+	private static CursesFocusEvent ConvertFocusEvent(
+		TerminalFocusEvent focus
+	) {
+		ArgumentNullException.ThrowIfNull( focus );
+		return new CursesFocusEvent(
+			focus.State switch {
+				TerminalFocusState.Focused => CursesFocusState.Focused,
+				TerminalFocusState.Unfocused => CursesFocusState.Unfocused,
+				_ => throw new ArgumentOutOfRangeException( nameof( focus ) )
+			}
+		);
+	}
+
+	private static CursesPasteEvent ConvertPasteEvent(
+		TerminalPasteEvent paste
+	) {
+		ArgumentNullException.ThrowIfNull( paste );
+		return new CursesPasteEvent(
+			paste.Phase switch {
+				TerminalPastePhase.Begin => CursesPastePhase.Begin,
+				TerminalPastePhase.Data => CursesPastePhase.Data,
+				TerminalPastePhase.End => CursesPastePhase.End,
+				_ => throw new ArgumentOutOfRangeException( nameof( paste ) )
+			},
+			paste.Text
+		);
 	}
 
 	private static CursesKeyModifiers ConvertModifiers(

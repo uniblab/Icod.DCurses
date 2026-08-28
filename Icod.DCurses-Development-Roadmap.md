@@ -9,9 +9,9 @@
 **Configurations:** `Debug`; `Staging`; `Release`
 **License:** LGPL-3.0-or-later
 **Current development target:** `0.1.0`
-**Current tranche:** T12 — ProcPs acceptance harnesses
+**Current tranche:** T13B — public API and consumer-contract regret review
 **Stable contract target:** `1.0.0`
-**Status:** T01-T11 complete; Icod.Terminal T10 integration and Alpha-14 legacy-substrate cleanup complete; T12 ProcPs acceptance is next
+**Status:** T01-T12 complete; T13A validated; Alpha-21 T13B API/documentation/sample closure current
 
 ---
 
@@ -19,7 +19,7 @@
 
 `Icod.DCurses` is a managed, cross-platform curses-like library for .NET.
 
-It occupies the layer above `Icod.TermInfo` and the low-level terminal-control facilities presently supplied by `Icod.CommandFramework.Terminal`.
+It occupies the layer above `Icod.TermInfo` and `Icod.Terminal`.
 
 The architectural responsibilities are intentionally distinct:
 
@@ -30,12 +30,13 @@ Applications
                     Icod.DCurses
           session / input / windows / screen
              refresh / lifecycle / events
-                  /                 \
-                 /                   \
-        Icod.TermInfo       terminal-control substrate
-      capability model      initially Icod.CommandFramework
-                 \                   /
-                  \                 /
+                         |
+                    Icod.Terminal
+        endpoint / mode / input / lifecycle
+                         |
+                    Icod.TermInfo
+               capability model
+                         |
               terminal / console / tty
 ```
 
@@ -126,35 +127,33 @@ Windows Console and Windows Terminal behavior SHALL not be treated as an afterth
 
 ## 3. Dependency and Framework Policy
 
-### 3.1 Initial dependencies
+### 3.1 Active 0.1 dependencies
 
-The `0.1.0` implementation SHOULD begin with:
+The active `0.1.0` dependency graph is:
 
 ```text
 Icod.DCurses
+    -> Icod.Terminal 0.2.x
     -> Icod.TermInfo 1.x
-    -> Icod.CommandFramework 1.x
 ```
 
-`Icod.TermInfo` is the terminal-capability authority.
-
-`Icod.CommandFramework.Terminal` may initially provide the neutral terminal endpoint/control substrate needed for terminal observation and host mode capture/restoration.
+`Icod.TermInfo` is the terminal-capability authority. `Icod.Terminal` is the
+neutral live-terminal endpoint/control substrate. `Icod.CommandFramework` is no
+longer a runtime dependency of DCurses.
 
 ### 3.2 Initial target framework
 
-Because the current `Icod.CommandFramework` package targets `net10.0`, the first `Icod.DCurses` release SHALL target `net10.0`.
-
-A later roadmap tranche MAY extract the genuinely generic terminal-control substrate into a smaller package such as `Icod.Terminal` or `Icod.TerminalControl`. If that happens, `Icod.DCurses` MAY subsequently broaden its target frameworks where its dependencies permit.
-
-Framework expansion SHALL NOT block `0.1.0`.
+The first `Icod.DCurses` release targets `net10.0`. Framework expansion is a
+later compatibility decision and SHALL NOT block `0.1.0`.
 
 ### 3.3 Dependency direction
 
 The dependency graph SHALL remain acyclic.
 
-`Icod.TermInfo` SHALL NOT acquire a dependency on `Icod.DCurses`.
+`Icod.TermInfo` and `Icod.Terminal` SHALL NOT acquire dependencies on
+`Icod.DCurses`.
 
-`Icod.CommandFramework` SHALL NOT acquire a dependency on `Icod.DCurses`.
+`Icod.CommandFramework` remains outside the active DCurses runtime graph.
 
 ProcPs applications MAY depend on `Icod.DCurses`.
 
@@ -567,6 +566,13 @@ DCurses SHALL support an implementation that can:
 - update only changed display content where practical;
 - suspend/resume correctly on supported POSIX hosts.
 
+**Alpha-18 checkpoint:** `samples/Icod.DCurses.Slabtop.Acceptance` exercises the
+interactive shape directly with synthetic slab-cache snapshots. It covers timer
+refresh, immediate Space refresh, resize repaint without an extra sample, all ten
+documented slabtop sort-key letters, retained-screen refresh behavior, and
+lifecycle restoration. The checkpoint is recorded in
+[`docs/T12B-Slabtop-Acceptance.md`](docs/T12B-Slabtop-Acceptance.md).
+
 ### `watch` acceptance
 
 DCurses SHALL support an implementation that can:
@@ -582,6 +588,12 @@ DCurses SHALL support an implementation that can:
 - wait on timer and terminal input/lifecycle events without busy polling.
 
 Parsing arbitrary ANSI produced by the watched child is application policy and is not required to become a general terminal-emulation subsystem inside DCurses.
+
+**Alpha-17 checkpoint:** `samples/Icod.DCurses.Watch.Acceptance` exercises this
+shape directly with semantic synthetic child-output snapshots. It proves the
+DCurses mechanisms without moving process execution or ANSI interpretation into
+the library. The checkpoint is recorded in
+[`docs/T12A-Watch-Acceptance.md`](docs/T12A-Watch-Acceptance.md).
 
 ### `top` acceptance
 
@@ -600,7 +612,29 @@ DCurses SHALL support an implementation that can:
 - suspend, restore, resume, and repaint;
 - hide/show the physical cursor according to application state.
 
+**Alpha-19 checkpoint:** `samples/Icod.DCurses.Top.Acceptance` exercises the
+largest 0.1 application shape with multiple root/subwindows, a rapid timed event
+loop, vertical and horizontal navigation, Tab/Shift+Tab focus traversal, a
+logical help view, an in-screen delay prompt, rich semantic styling, resize
+relayout, lifecycle repaint, and prompt-driven physical cursor policy. The
+checkpoint is recorded in
+[`docs/T12C-Top-Acceptance.md`](docs/T12C-Top-Acceptance.md).
+
 The `Icod.DCurses` repository does not need to contain the complete ProcPs applications. Tests, focused harnesses, and/or temporary migration branches MAY be used to prove the contract.
+
+### Icod.Terminal 0.2 rich-input acceptance checkpoint
+
+Before T12 closes, DCurses SHALL also prove the Icod.Terminal T19 integration gate:
+
+- rich mouse, focus, paste, and modified-key events flow through the existing curses event stream;
+- mouse/focus/paste reporting is requested through reversible Icod.Terminal protocol leases;
+- lifecycle suspend/resume leaves no rich-input protocol state active while suspended;
+- disposal restores protocol state even when an application has not released every individual lease;
+- DCurses contains no private rich-input escape parser, protocol emitter, or second terminal read loop.
+
+Alpha-15 automated acceptance is complete. Alpha-16 extends the existing input showcase into a live rich-input acceptance consumer before ProcPs application acceptance continues.
+
+The checkpoint is recorded in [`docs/Icod-Terminal-T19-Rich-Input-Acceptance.md`](docs/Icod-Terminal-T19-Rich-Input-Acceptance.md).
 
 **Gate T12:** no generic full-screen terminal infrastructure remains necessary inside `Icod.ProcPs.Shared` for these three applications.
 
@@ -620,6 +654,30 @@ Before releasing `0.1.0`:
 - symbols SHALL be generated;
 - package version SHALL be `0.1.0`;
 - `<Version>` and `<PackageVersion>` SHALL remain synchronized.
+
+**Alpha-20 / T13A checkpoint:** release validation is hardened before the stable
+version is assigned. The repository gains a structural package verifier, an
+isolated package-only consumer, package verification on Windows/Linux/macOS,
+validation-only `main` pushes, and a tag-controlled release workflow. The
+checkpoint is recorded in
+[`docs/T13A-Package-and-Release-Foundation.md`](docs/T13A-Package-and-Release-Foundation.md).
+
+**Alpha-21 / T13B checkpoint:** perform the final 0.1 public-API/documentation
+regret pass, publish the API baseline, close sample/documentation gaps, and make
+only contract-preserving corrections discovered by that audit. The checkpoint
+is recorded in
+[`docs/T13B-Public-API-and-Consumer-Contract.md`](docs/T13B-Public-API-and-Consumer-Contract.md).
+
+The T13B dependency audit found one release-order constraint: DCurses currently
+requires the published prerelease `Icod.Terminal 0.2.0-alpha.6`. A stable
+`Icod.DCurses 0.1.0` package SHALL NOT be tagged while its required Terminal
+dependency remains prerelease.
+
+**T13C** SHALL begin after stable `Icod.Terminal 0.2.0` is published. It SHALL
+update the DCurses Terminal package reference and package-verification metadata,
+set both `<Version>` and `<PackageVersion>` to `0.1.0`, run the complete
+three-host Release/package-only gate, merge the release commit to `main`, and
+publish only through the matching `v0.1.0` tag.
 
 **0.1.0 completion gate:** a fresh consumer can install the package and build a small interactive application without repository-local project references.
 
@@ -800,9 +858,12 @@ Candidate scope:
 - thread-safety and concurrency contract;
 - deterministic flush semantics.
 
-This version SHALL also decide whether low-level terminal control should remain consumed from `Icod.CommandFramework` or be extracted to a smaller neutral package.
+This version SHALL also audit the established `Icod.Terminal` integration for
+platform parity, lifecycle ownership, failure recovery, and unnecessary leakage
+of lower-level host mechanics into the curses facade.
 
-Any such extraction SHALL preserve the higher-level `Icod.DCurses` API wherever reasonable.
+Any future substrate refactoring SHALL preserve the higher-level
+`Icod.DCurses` API wherever reasonable.
 
 ---
 
@@ -943,8 +1004,12 @@ T01  repository / solution / package scaffold
   -> T11  Unicode baseline
   -> Icod.Terminal T10 integration / terminal-substrate reset (Alpha-12 through Alpha-14; complete)
   -> T12  top / slabtop / watch acceptance harnesses
-  -> T13  docs / samples / package / release gate
+  -> T13A package / fresh-consumer / release-workflow foundation
+  -> T13B public API / documentation / sample regret review
+  -> T13C stable dependency closure / 0.1.0 release
   -> 0.1.0
 ```
 
-The current implementation tranche is therefore **T12**, exercising the shared stack against the `top`, `slabtop`, and `watch` acceptance requirements.
+The current implementation tranche is therefore **T13B**, freezing the 0.1
+consumer contract while stable `Icod.Terminal 0.2.0` completes its own release
+gate.

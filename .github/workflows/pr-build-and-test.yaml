@@ -9,6 +9,7 @@ permissions:
 jobs:
   build-and-test:
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
@@ -19,19 +20,23 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - run: dotnet clean ${{ github.event.repository.name }}.sln -c Staging
-      - run: dotnet restore ${{ github.event.repository.name }}.sln
-      - run: dotnet build ${{ github.event.repository.name }}.sln -c Staging --no-restore -p:ContinuousIntegrationBuild=true
-      - run: dotnet test ${{ github.event.repository.name }}.sln -c Staging --no-build --logger trx
+      - run: dotnet clean Icod.DCurses.sln -c Staging
+      - run: dotnet restore Icod.DCurses.sln
+      - run: dotnet build Icod.DCurses.sln -c Staging --no-restore -p:ContinuousIntegrationBuild=true
+      - run: dotnet test Icod.DCurses.sln -c Staging --no-build --logger trx
 
       - name: Pack Staging package
-        if: matrix.os == 'windows-latest'
-        run: dotnet pack ${{ github.event.repository.name }}.csproj -c Staging --no-build --output artifacts
+        run: dotnet pack Icod.DCurses.csproj -c Staging --no-build --output artifacts
 
-      - name: Verify Staging package
+      - name: Verify Staging package on Windows
         if: matrix.os == 'windows-latest'
         shell: cmd
         run: .github\scripts\verify-release-package.cmd artifacts Staging
+
+      - name: Verify Staging package on POSIX
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: bash .github/scripts/verify-release-package.sh artifacts Staging
 
       - name: Upload validated Staging package
         if: matrix.os == 'windows-latest'

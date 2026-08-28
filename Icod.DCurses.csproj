@@ -13,7 +13,7 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.1.0-Alpha-14</Version>
+		<Version>0.1.0-Alpha-21</Version>
 		<AssemblyVersion>0.1.0.0</AssemblyVersion>
 	</PropertyGroup>
 
@@ -53,12 +53,12 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<PackageVersion>0.1.0-Alpha-14</PackageVersion>
+		<PackageVersion>0.1.0-Alpha-21</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.1.0-Alpha-14 physically removes the retired pre-Icod.Terminal backend, mode, lifecycle, input-decoder, and session sources/tests after the successful Alpha-12/13 validation cycle.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.1.0-Alpha-21 completes the 0.1 public-API and consumer-contract regret review, publishes the 0.1 API baseline, completes the required styled/updating quick-start sample, and fixes deterministic null validation for direct CursesCell construction.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -67,6 +67,7 @@
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<Deterministic>true</Deterministic>
 		<PackageTags>curses;ncurses;pcurses;dcurses;terminal;tui;console;terminfo;termcap;terminal-info;full-screen;screen;windows;linux;macos;cross-platform;dotnet;csharp;icod</PackageTags>
 		<RepositoryUrl>https://github.com/uniblab/Icod.DCurses</RepositoryUrl>
@@ -94,7 +95,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Icod.Terminal" Version="0.1.0-alpha.11" />
+		<PackageReference Include="Icod.Terminal" Version="0.2.0-alpha.6" />
 		<PackageReference Include="Icod.TermInfo" Version="1.0.0" />
 	</ItemGroup>
 </Project>

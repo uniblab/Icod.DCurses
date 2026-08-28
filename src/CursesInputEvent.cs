@@ -12,6 +12,15 @@ public enum CursesInputEventKind {
 	/// <summary>A named key or modified character key.</summary>
 	Key,
 
+	/// <summary>A normalized terminal mouse event.</summary>
+	Mouse,
+
+	/// <summary>A terminal focus-in or focus-out event.</summary>
+	Focus,
+
+	/// <summary>One framed bracketed-paste event.</summary>
+	Paste,
+
 	/// <summary>The terminal input endpoint reached end-of-file or disconnected.</summary>
 	EndOfInput
 }
@@ -76,7 +85,7 @@ public enum CursesKey {
 }
 
 /// <summary>
-/// Identifies modifiers carried by a decoded key event.
+/// Identifies modifiers carried by a decoded key or mouse event.
 /// </summary>
 [Flags]
 public enum CursesKeyModifiers {
@@ -94,7 +103,7 @@ public enum CursesKeyModifiers {
 }
 
 /// <summary>
-/// Represents one terminal-independent keyboard or end-of-input event.
+/// Represents one terminal-independent input event.
 /// </summary>
 public sealed class CursesInputEvent {
 	private CursesInputEvent(
@@ -102,12 +111,19 @@ public sealed class CursesInputEvent {
 		CursesKey key,
 		Rune? character,
 		CursesKeyModifiers modifiers,
-		int? functionKeyNumber) {
-		Kind = kind;
-		Key = key;
-		Character = character;
-		Modifiers = modifiers;
-		FunctionKeyNumber = functionKeyNumber;
+		int? functionKeyNumber,
+		CursesMouseEvent? mouse,
+		CursesFocusEvent? focus,
+		CursesPasteEvent? paste
+	) {
+		this.Kind = kind;
+		this.Key = key;
+		this.Character = character;
+		this.Modifiers = modifiers;
+		this.FunctionKeyNumber = functionKeyNumber;
+		this.Mouse = mouse;
+		this.Focus = focus;
+		this.Paste = paste;
 	}
 
 	/// <summary>Gets the semantic event kind.</summary>
@@ -141,15 +157,44 @@ public sealed class CursesInputEvent {
 		get;
 	}
 
+	/// <summary>
+	/// Gets the normalized mouse payload when <see cref="Kind"/> is
+	/// <see cref="CursesInputEventKind.Mouse"/>.
+	/// </summary>
+	public CursesMouseEvent? Mouse {
+		get;
+	}
+
+	/// <summary>
+	/// Gets the focus payload when <see cref="Kind"/> is
+	/// <see cref="CursesInputEventKind.Focus"/>.
+	/// </summary>
+	public CursesFocusEvent? Focus {
+		get;
+	}
+
+	/// <summary>
+	/// Gets the bracketed-paste payload when <see cref="Kind"/> is
+	/// <see cref="CursesInputEventKind.Paste"/>.
+	/// </summary>
+	public CursesPasteEvent? Paste {
+		get;
+	}
+
 	/// <summary>Creates an ordinary Unicode text-input event.</summary>
 	/// <param name="character">The decoded Unicode scalar value.</param>
 	/// <returns>The text-input event.</returns>
-	internal static CursesInputEvent FromText( Rune character ) {
+	internal static CursesInputEvent FromText(
+		Rune character
+	) {
 		return new CursesInputEvent(
 			CursesInputEventKind.Text,
 			CursesKey.Character,
 			character,
 			CursesKeyModifiers.None,
+			null,
+			null,
+			null,
 			null
 		);
 	}
@@ -164,7 +209,8 @@ public sealed class CursesInputEvent {
 		CursesKey key,
 		CursesKeyModifiers modifiers = CursesKeyModifiers.None,
 		Rune? character = null,
-		int? functionKeyNumber = null) {
+		int? functionKeyNumber = null
+	) {
 		if ( !Enum.IsDefined( key ) ) {
 			throw new ArgumentOutOfRangeException( nameof( key ) );
 		}
@@ -188,7 +234,67 @@ public sealed class CursesInputEvent {
 			key,
 			character,
 			modifiers,
-			functionKeyNumber
+			functionKeyNumber,
+			null,
+			null,
+			null
+		);
+	}
+
+	/// <summary>Creates a normalized mouse-input event.</summary>
+	/// <param name="mouse">The normalized mouse payload.</param>
+	/// <returns>The mouse-input event.</returns>
+	internal static CursesInputEvent FromMouse(
+		CursesMouseEvent mouse
+	) {
+		ArgumentNullException.ThrowIfNull( mouse );
+		return new CursesInputEvent(
+			CursesInputEventKind.Mouse,
+			CursesKey.None,
+			null,
+			mouse.Modifiers,
+			null,
+			mouse,
+			null,
+			null
+		);
+	}
+
+	/// <summary>Creates a terminal-focus event.</summary>
+	/// <param name="focus">The focus payload.</param>
+	/// <returns>The focus-input event.</returns>
+	internal static CursesInputEvent FromFocus(
+		CursesFocusEvent focus
+	) {
+		ArgumentNullException.ThrowIfNull( focus );
+		return new CursesInputEvent(
+			CursesInputEventKind.Focus,
+			CursesKey.None,
+			null,
+			CursesKeyModifiers.None,
+			null,
+			null,
+			focus,
+			null
+		);
+	}
+
+	/// <summary>Creates one bracketed-paste framing event.</summary>
+	/// <param name="paste">The paste payload.</param>
+	/// <returns>The paste-input event.</returns>
+	internal static CursesInputEvent FromPaste(
+		CursesPasteEvent paste
+	) {
+		ArgumentNullException.ThrowIfNull( paste );
+		return new CursesInputEvent(
+			CursesInputEventKind.Paste,
+			CursesKey.None,
+			null,
+			CursesKeyModifiers.None,
+			null,
+			null,
+			null,
+			paste
 		);
 	}
 
@@ -200,6 +306,9 @@ public sealed class CursesInputEvent {
 			CursesKey.None,
 			null,
 			CursesKeyModifiers.None,
+			null,
+			null,
+			null,
 			null
 		);
 	}

@@ -19,6 +19,7 @@ if /I "%CONFIGURATION%"=="Staging" (
 pushd "%~dp0\..\.." >nul || exit /b 1
 
 set "RESULT=0"
+set "SMOKE_ROOT="
 
 if not exist "%ARTIFACT_DIR%" (
     echo Artifact directory does not exist: %ARTIFACT_DIR% 1>&2
@@ -48,7 +49,42 @@ if not exist "%SYMBOLS_PATH%" (
     goto fail
 )
 
-dotnet run --project samples\Icod.DCurses.Sample\Icod.DCurses.Sample.csproj -c %CONFIGURATION% --no-build
+echo.
+echo === Verify package structure, metadata, dependencies, and symbols (%CONFIGURATION%) ===
+dotnet run --project tools\package-verifier\Icod.DCurses.PackageVerifier.csproj -c %CONFIGURATION% -- "%ARTIFACT_DIR%"
+if errorlevel 1 goto fail
+
+set "SMOKE_ROOT=%TEMP%\Icod.DCurses-package-smoke-%RANDOM%-%RANDOM%"
+if exist "%SMOKE_ROOT%" rmdir /s /q "%SMOKE_ROOT%"
+mkdir "%SMOKE_ROOT%" || goto fail
+
+copy /y tools\package-smoke\Icod.DCurses.PackageSmoke.csproj "%SMOKE_ROOT%\Icod.DCurses.PackageSmoke.csproj" >nul || goto fail
+copy /y tools\package-smoke\Program.cs "%SMOKE_ROOT%\Program.cs" >nul || goto fail
+
+set "OLD_NUGET_PACKAGES=%NUGET_PACKAGES%"
+set "NUGET_PACKAGES=%SMOKE_ROOT%\packages"
+set "NUGET_CONFIG=%SMOKE_ROOT%\NuGet.Config"
+
+> "%NUGET_CONFIG%" (
+    echo ^<?xml version="1.0" encoding="utf-8"?^>
+    echo ^<configuration^>
+    echo   ^<packageSources^>
+    echo     ^<clear /^>
+    echo     ^<add key="T13 artifacts" value="%ARTIFACT_DIR%" /^>
+    echo     ^<add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" /^>
+    echo   ^</packageSources^>
+    echo ^</configuration^>
+)
+if errorlevel 1 goto fail
+
+echo.
+echo === Fresh package consumer restore ===
+dotnet restore "%SMOKE_ROOT%\Icod.DCurses.PackageSmoke.csproj" --no-cache --configfile "%NUGET_CONFIG%" -p:IcodDCursesPackageVersion=%PACKAGE_VERSION%
+if errorlevel 1 goto fail
+
+echo.
+echo === Fresh package consumer: net10.0 ===
+dotnet run --project "%SMOKE_ROOT%\Icod.DCurses.PackageSmoke.csproj" -c %CONFIGURATION% --no-restore -p:IcodDCursesPackageVersion=%PACKAGE_VERSION%
 if errorlevel 1 goto fail
 
 goto cleanup
@@ -62,5 +98,11 @@ set "RESULT=%ERRORLEVEL%"
 if "%RESULT%"=="0" set "RESULT=1"
 
 :cleanup
+if defined SMOKE_ROOT if exist "%SMOKE_ROOT%" rmdir /s /q "%SMOKE_ROOT%"
+if defined OLD_NUGET_PACKAGES (
+    set "NUGET_PACKAGES=%OLD_NUGET_PACKAGES%"
+) else (
+    set "NUGET_PACKAGES="
+)
 popd >nul
 exit /b %RESULT%

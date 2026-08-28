@@ -1,38 +1,69 @@
 using Icod.DCurses;
 
+TimeSpan updateInterval = TimeSpan.FromMilliseconds( 250 );
+
 await using CursesSession session = await CursesSession.OpenAsync();
 CursesWindow screen = session.StandardScreen;
+int tick = 0;
+bool running = true;
+bool dirty = true;
 
-DrawQuickStart( screen );
-await session.RefreshAsync();
-
-while ( true ) {
-	CursesEvent input = await session.ReadEventAsync();
-
-	if ( input.RequiresRepaint ) {
-		session.Invalidate();
-		DrawQuickStart( screen );
+while ( running ) {
+	if ( dirty ) {
+		DrawQuickStart(
+			screen,
+			tick
+		);
 		await session.RefreshAsync();
+		dirty = false;
+	}
+
+	CursesEvent current = await session.ReadEventAsync( updateInterval );
+
+	if ( CursesEventKind.Timeout == current.Kind ) {
+		tick++;
+		dirty = true;
 		continue;
 	}
 
-	if ( CursesEventKind.Lifecycle == input.Kind
-		&& null != input.Lifecycle
-		&& ( CursesLifecycleEventKind.Interrupt == input.Lifecycle.Kind
-			|| CursesLifecycleEventKind.Termination == input.Lifecycle.Kind ) ) {
-		break;
+	if ( current.RequiresRepaint ) {
+		session.Invalidate();
+		dirty = true;
+		continue;
 	}
 
-	if ( CursesEventKind.Input == input.Kind
-		&& null != input.Input ) {
-		break;
+	if ( CursesEventKind.Lifecycle == current.Kind
+		&& null != current.Lifecycle
+		&& current.Lifecycle.Kind is CursesLifecycleEventKind.Interrupt
+			or CursesLifecycleEventKind.Termination ) {
+		running = false;
+		continue;
+	}
+
+	if ( CursesEventKind.Input == current.Kind
+		&& null != current.Input ) {
+		running = false;
 	}
 }
 
 return 0;
 
-static void DrawQuickStart( CursesWindow screen ) {
+static void DrawQuickStart(
+	CursesWindow screen,
+	int tick
+) {
 	ArgumentNullException.ThrowIfNull( screen );
+
+	CursesStyle titleStyle = new(
+		CursesColor.Default,
+		CursesColor.Default,
+		CursesTextAttributes.Bold
+	);
+	CursesStyle markerStyle = new(
+		CursesColor.Indexed( 2 ),
+		CursesColor.Default,
+		CursesTextAttributes.Reverse
+	);
 
 	screen.WrapMode = CursesWrapMode.Clip;
 	screen.Clear();
@@ -40,7 +71,8 @@ static void DrawQuickStart( CursesWindow screen ) {
 	WriteLine(
 		screen,
 		0,
-		"Icod.DCurses quick start"
+		"Icod.DCurses quick start",
+		titleStyle
 	);
 	WriteLine(
 		screen,
@@ -57,12 +89,32 @@ static void DrawQuickStart( CursesWindow screen ) {
 		5,
 		"Press any key to exit."
 	);
+
+	if ( 7 >= screen.Rows || 0 >= screen.Columns ) {
+		return;
+	}
+
+	int availableColumns = Math.Max(
+		1,
+		screen.Columns - 2
+	);
+	int markerColumn = tick % availableColumns;
+	screen.Move(
+		7,
+		markerColumn
+	);
+	screen.Write(
+		"@",
+		markerStyle
+	);
 }
 
 static void WriteLine(
 	CursesWindow screen,
 	int row,
-	string text ) {
+	string text,
+	CursesStyle style = default
+) {
 	ArgumentNullException.ThrowIfNull( screen );
 	ArgumentNullException.ThrowIfNull( text );
 
@@ -74,5 +126,8 @@ static void WriteLine(
 		row,
 		0
 	);
-	screen.Write( text );
+	screen.Write(
+		text,
+		style
+	);
 }

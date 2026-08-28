@@ -14,19 +14,24 @@ public readonly struct CursesCell
 	private readonly string? content;
 	private readonly byte displayWidth;
 
-	/// <summary>Initializes a visible or blank logical cell.</summary>
+	/// <summary>Initializes a one-column visible or blank logical cell.</summary>
+	/// <remarks>
+	/// Application text should normally be written through <see cref="CursesWindow"/> so the
+	/// screen's configured text-width provider can determine multi-column and combining behavior.
+	/// </remarks>
 	/// <param name="content">Visible text content, or an empty string for a blank cell.</param>
 	/// <param name="style">The semantic cell style.</param>
 	public CursesCell(
 		string content,
-		CursesStyle style = default )
-		: this(
-			content,
-			style,
-			0 == content.Length
-				? 1
-				: 1
-		) {
+		CursesStyle style = default
+	) {
+		ArgumentNullException.ThrowIfNull( content );
+		ValidateVisibleContent( content );
+
+		this.content = content;
+		this.displayWidth = 1;
+		this.Style = style;
+		this.IsContinuation = false;
 	}
 
 	/// <summary>Initializes a leading logical cell with an explicit terminal display width.</summary>
