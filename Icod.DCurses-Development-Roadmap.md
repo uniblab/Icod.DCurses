@@ -9,9 +9,9 @@
 **Configurations:** `Debug`; `Staging`; `Release`
 **License:** LGPL-3.0-or-later
 **Current development target:** `0.1.0`
-**Current tranche:** T13B — public API and consumer-contract regret review
+**Current tranche:** Alpha-22 — Icod.Terminal 0.3 downstream acceptance
 **Stable contract target:** `1.0.0`
-**Status:** T01-T12 complete; T13A validated; Alpha-21 T13B API/documentation/sample closure current
+**Status:** T01-T13B implementation complete; Alpha-22 validates published Icod.Terminal 0.3.0-alpha.8 downstream compatibility
 
 ---
 
@@ -129,17 +129,22 @@ Windows Console and Windows Terminal behavior SHALL not be treated as an afterth
 
 ### 3.1 Active 0.1 dependencies
 
-The active `0.1.0` dependency graph is:
+The Alpha-22 downstream-acceptance graph is:
 
 ```text
-Icod.DCurses
-    -> Icod.Terminal 0.2.x
-    -> Icod.TermInfo 1.x
+Icod.DCurses 0.1.0-Alpha-22
+    -> Icod.Terminal 0.3.0-alpha.8
+    -> Icod.TermInfo 1.3.0
 ```
 
 `Icod.TermInfo` is the terminal-capability authority. `Icod.Terminal` is the
 neutral live-terminal endpoint/control substrate. `Icod.CommandFramework` is no
 longer a runtime dependency of DCurses.
+
+Alpha-22 is a compatibility checkpoint rather than the stable 0.1 dependency
+freeze. It validates Terminal 0.3 against a real downstream consumer without
+adding a project reference, second raw input reader, or private CSI/DCS response
+parser to DCurses.
 
 ### 3.2 Initial target framework
 

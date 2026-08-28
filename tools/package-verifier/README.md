@@ -12,7 +12,7 @@ It verifies:
 - package metadata identifies the expected id, title, author, project, readme,
   icon, LGPL license expression, and repository;
 - the `net10.0` dependency group contains exactly
-  `Icod.Terminal 0.2.0-alpha.6` and `Icod.TermInfo 1.0.0`;
+  `Icod.Terminal 0.3.0-alpha.8` and `Icod.TermInfo 1.3.0` for Alpha-22;
 - dependency assemblies are not accidentally bundled into the primary package;
 - native/runtime and repository-only payloads are absent;
 - the symbol package contains exactly one non-empty portable PDB.
