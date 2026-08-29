@@ -71,6 +71,8 @@ and reversible terminal state are centralized in `Icod.Terminal`.
 
 The initial implementation targets:
 
+- .NET 8
+- .NET 9
 - .NET 10
 - C# 13
 - Windows
@@ -122,13 +124,13 @@ through `CursesSession` rather than adding a parallel terminal reader.
 
 From the repository root:
 
-```text
+```sh
 build.cmd
 ```
 
 or:
 
-```text
+```sh
 ./build.sh
 ```
 
