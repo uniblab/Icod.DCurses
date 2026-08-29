@@ -13,7 +13,7 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.1.0-Alpha-22</Version>
+		<Version>0.1.0</Version>
 		<AssemblyVersion>0.1.0.0</AssemblyVersion>
 	</PropertyGroup>
 
@@ -53,12 +53,12 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<PackageVersion>0.1.0-Alpha-22</PackageVersion>
+		<PackageVersion>0.1.0</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.1.0-Alpha-22 validates Icod.DCurses as a downstream consumer of published Icod.Terminal 0.3.0-alpha.8 and Icod.TermInfo 1.3.0 without adding a second terminal reader or private response parser.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.1.0 establishes the first stable managed DCurses contract for .NET 10 using Icod.Terminal 0.3.0 and Icod.TermInfo 1.4.1, with virtual screens and windows, retained refresh, styled output, rich input, lifecycle restoration, and ProcPs-shaped watch/slabtop/top acceptance.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -96,7 +96,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Icod.Terminal" Version="0.3.0-alpha.8" />
-		<PackageReference Include="Icod.TermInfo" Version="1.3.0" />
+		<PackageReference Include="Icod.Terminal" Version="0.3.0" />
+		<PackageReference Include="Icod.TermInfo" Version="1.4.1" />
 	</ItemGroup>
 </Project>

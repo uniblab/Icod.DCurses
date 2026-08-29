@@ -8,7 +8,9 @@ if not "%~3"=="" goto usage
 set "ARTIFACT_DIR=%~1"
 set "CONFIGURATION=%~2"
 
-if /I "%CONFIGURATION%"=="Staging" (
+if /I "%CONFIGURATION%"=="Debug" (
+    set "CONFIGURATION=Debug"
+) else if /I "%CONFIGURATION%"=="Staging" (
     set "CONFIGURATION=Staging"
 ) else if /I "%CONFIGURATION%"=="Release" (
     set "CONFIGURATION=Release"
@@ -19,7 +21,6 @@ if /I "%CONFIGURATION%"=="Staging" (
 pushd "%~dp0\..\.." >nul || exit /b 1
 
 set "RESULT=0"
-set "SMOKE_ROOT="
 
 if not exist "%ARTIFACT_DIR%" (
     echo Artifact directory does not exist: %ARTIFACT_DIR% 1>&2
@@ -50,8 +51,8 @@ if not exist "%SYMBOLS_PATH%" (
 )
 
 echo.
-echo === Verify package structure, metadata, dependencies, and symbols (%CONFIGURATION%) ===
-dotnet run --project tools\package-verifier\Icod.DCurses.PackageVerifier.csproj -c %CONFIGURATION% -- "%ARTIFACT_DIR%"
+echo === Verify package structure, dependency closure, symbols, and Source Link (%CONFIGURATION%) ===
+dotnet run --project tools\package-verifier\Icod.DCurses.PackageVerifier.csproj -c %CONFIGURATION% -f net10.0 -- "%ARTIFACT_DIR%"
 if errorlevel 1 goto fail
 
 set "SMOKE_ROOT=%TEMP%\Icod.DCurses-package-smoke-%RANDOM%-%RANDOM%"
@@ -70,7 +71,7 @@ set "NUGET_CONFIG=%SMOKE_ROOT%\NuGet.Config"
     echo ^<configuration^>
     echo   ^<packageSources^>
     echo     ^<clear /^>
-    echo     ^<add key="T13 artifacts" value="%ARTIFACT_DIR%" /^>
+    echo     ^<add key="T12C artifacts" value="%ARTIFACT_DIR%" /^>
     echo     ^<add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" /^>
     echo   ^</packageSources^>
     echo ^</configuration^>
@@ -83,14 +84,24 @@ dotnet restore "%SMOKE_ROOT%\Icod.DCurses.PackageSmoke.csproj" --no-cache --conf
 if errorlevel 1 goto fail
 
 echo.
+echo === Fresh package consumer: net8.0 ===
+dotnet run --project "%SMOKE_ROOT%\Icod.DCurses.PackageSmoke.csproj" -c %CONFIGURATION% -f net8.0 --no-restore -p:IcodDCursesPackageVersion=%PACKAGE_VERSION%
+if errorlevel 1 goto fail
+
+echo.
+echo === Fresh package consumer: net9.0 ===
+dotnet run --project "%SMOKE_ROOT%\Icod.DCurses.PackageSmoke.csproj" -c %CONFIGURATION% -f net9.0 --no-restore -p:IcodDCursesPackageVersion=%PACKAGE_VERSION%
+if errorlevel 1 goto fail
+
+echo.
 echo === Fresh package consumer: net10.0 ===
-dotnet run --project "%SMOKE_ROOT%\Icod.DCurses.PackageSmoke.csproj" -c %CONFIGURATION% --no-restore -p:IcodDCursesPackageVersion=%PACKAGE_VERSION%
+dotnet run --project "%SMOKE_ROOT%\Icod.DCurses.PackageSmoke.csproj" -c %CONFIGURATION% -f net10.0 --no-restore -p:IcodDCursesPackageVersion=%PACKAGE_VERSION%
 if errorlevel 1 goto fail
 
 goto cleanup
 
 :usage
-echo Usage: verify-release-package.cmd ^<artifact-directory^> ^<Staging^|Release^> 1>&2
+echo Usage: verify-release-package.cmd ^<artifact-directory^> ^<Debug^|Staging^|Release^> 1>&2
 exit /b 2
 
 :fail

@@ -10,8 +10,8 @@ internal static class Program {
 	private const string PackageId = "Icod.DCurses";
 	private const string RepositoryUrl = "https://github.com/uniblab/Icod.DCurses";
 	private const string TargetFramework = "net10.0";
-	private const string TerminalDependencyVersion = "0.3.0-alpha.8";
-	private const string TermInfoDependencyVersion = "1.3.0";
+	private const string TerminalDependencyVersion = "0.3.0";
+	private const string TermInfoDependencyVersion = "1.4.1";
 
 	public static int Main(
 		string[] args
@@ -212,6 +212,7 @@ internal static class Program {
 		string[] required = [
 			"README.md",
 			"icon.png",
+			"icod_tui_toolchain.jpg",
 			assemblyPath,
 			documentationPath
 		];

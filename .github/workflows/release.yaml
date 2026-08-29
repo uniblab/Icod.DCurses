@@ -238,7 +238,7 @@ jobs:
           ```
 
           `Icod.DCurses` targets `net10.0`. Its runtime package dependencies are
-          `Icod.Terminal 0.2.0-alpha.6` and `Icod.TermInfo 1.0.0`.
+          `Icod.Terminal 0.3.0` and `Icod.TermInfo 1.4.1`.
 
           The NuGet package, symbol package, and SHA-256 checksums are attached
           to this release.

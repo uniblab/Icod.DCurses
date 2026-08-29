@@ -6,7 +6,7 @@ using Xunit;
 namespace Icod.DCurses.Tests;
 
 /// <summary>
-/// Acceptance coverage for Icod.Terminal 0.2 rich input through the DCurses facade.
+/// Acceptance coverage for rich terminal input through the DCurses facade.
 /// </summary>
 public sealed class CursesRichInputAcceptanceTests {
 	[Fact]

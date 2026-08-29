@@ -47,10 +47,12 @@ demonstration rather than a Unicode-conformance test.
 
 ## Icod.DCurses.Input.Showcase
 
-`Icod.DCurses.Input.Showcase` is the live Icod.Terminal 0.2 rich-input acceptance
-consumer. It independently requests bracketed paste, focus reporting, and mouse
-button reporting through `CursesSession.AcquireInputProtocolsAsync`, then shows
-whether each protocol is available for the selected terminal profile.
+`Icod.DCurses.Input.Showcase` originated as the live Icod.Terminal 0.2 rich-input
+acceptance consumer and remains the 0.1 rich-input showcase on
+`Icod.Terminal 0.3.0`. It independently requests bracketed paste, focus
+reporting, and mouse button reporting through
+`CursesSession.AcquireInputProtocolsAsync`, then shows whether each protocol is
+available for the selected terminal profile.
 
 All input still arrives through the ordinary `CursesSession.ReadEventAsync`
 stream. The showcase reports:
