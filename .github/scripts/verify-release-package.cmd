@@ -71,7 +71,7 @@ set "NUGET_CONFIG=%SMOKE_ROOT%\NuGet.Config"
     echo ^<configuration^>
     echo   ^<packageSources^>
     echo     ^<clear /^>
-    echo     ^<add key="T13C artifacts" value="%ARTIFACT_DIR%" /^>
+    echo     ^<add key="T12C artifacts" value="%ARTIFACT_DIR%" /^>
     echo     ^<add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" /^>
     echo   ^</packageSources^>
     echo ^</configuration^>
@@ -81,6 +81,16 @@ if errorlevel 1 goto fail
 echo.
 echo === Fresh package consumer restore ===
 dotnet restore "%SMOKE_ROOT%\Icod.DCurses.PackageSmoke.csproj" --no-cache --configfile "%NUGET_CONFIG%" -p:IcodDCursesPackageVersion=%PACKAGE_VERSION%
+if errorlevel 1 goto fail
+
+echo.
+echo === Fresh package consumer: net8.0 ===
+dotnet run --project "%SMOKE_ROOT%\Icod.DCurses.PackageSmoke.csproj" -c %CONFIGURATION% -f net8.0 --no-restore -p:IcodDCursesPackageVersion=%PACKAGE_VERSION%
+if errorlevel 1 goto fail
+
+echo.
+echo === Fresh package consumer: net9.0 ===
+dotnet run --project "%SMOKE_ROOT%\Icod.DCurses.PackageSmoke.csproj" -c %CONFIGURATION% -f net9.0 --no-restore -p:IcodDCursesPackageVersion=%PACKAGE_VERSION%
 if errorlevel 1 goto fail
 
 echo.

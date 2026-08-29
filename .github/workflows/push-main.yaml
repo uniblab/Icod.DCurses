@@ -20,7 +20,10 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
 
       - run: dotnet clean Icod.DCurses.sln -c Release
       - run: dotnet restore Icod.DCurses.sln

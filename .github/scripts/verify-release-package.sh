@@ -88,6 +88,24 @@ cp \
     -p:IcodDCursesPackageVersion="${package_version}"
 
   echo
+  echo "=== Fresh package consumer: net8.0 ==="
+  dotnet run \
+    --project "${smoke_root}/Icod.DCurses.PackageSmoke.csproj" \
+    -c "${configuration}" \
+    -f net8.0 \
+    --no-restore \
+    -p:IcodDCursesPackageVersion="${package_version}"
+
+  echo
+  echo "=== Fresh package consumer: net9.0 ==="
+  dotnet run \
+    --project "${smoke_root}/Icod.DCurses.PackageSmoke.csproj" \
+    -c "${configuration}" \
+    -f net9.0 \
+    --no-restore \
+    -p:IcodDCursesPackageVersion="${package_version}"
+
+  echo
   echo "=== Fresh package consumer: net10.0 ==="
   dotnet run \
     --project "${smoke_root}/Icod.DCurses.PackageSmoke.csproj" \
