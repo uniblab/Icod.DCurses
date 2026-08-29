@@ -51,7 +51,7 @@ if not exist "%SYMBOLS_PATH%" (
 )
 
 echo.
-echo === Verify package structure, dependency closure, symbols, and Source Link (%CONFIGURATION%) ===
+echo === Verify package structure, dependency closure, and portable symbols (%CONFIGURATION%) ===
 dotnet run --project tools\package-verifier\Icod.DCurses.PackageVerifier.csproj -c %CONFIGURATION% -f net10.0 -- "%ARTIFACT_DIR%"
 if errorlevel 1 goto fail
 
@@ -71,7 +71,7 @@ set "NUGET_CONFIG=%SMOKE_ROOT%\NuGet.Config"
     echo ^<configuration^>
     echo   ^<packageSources^>
     echo     ^<clear /^>
-    echo     ^<add key="T12C artifacts" value="%ARTIFACT_DIR%" /^>
+    echo     ^<add key="T13C artifacts" value="%ARTIFACT_DIR%" /^>
     echo     ^<add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" /^>
     echo   ^</packageSources^>
     echo ^</configuration^>

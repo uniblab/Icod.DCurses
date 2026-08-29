@@ -58,7 +58,7 @@ if [[ ! -f "${symbols_path}" ]]; then
 fi
 
 echo
-echo "=== Verify package structure, dependency closure, symbols, and Source Link (${configuration}) ==="
+echo "=== Verify package structure, dependency closure, and portable symbols (${configuration}) ==="
 dotnet run \
   --project tools/package-verifier/Icod.DCurses.PackageVerifier.csproj \
   -c "${configuration}" \

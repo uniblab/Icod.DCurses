@@ -5,7 +5,7 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`
 **Initial development branch:** `initial_add`
 **Language:** C# 13
-**Initial target framework:** `net10.0`
+**Initial target frameworks:** `net8.0`; `net9.0`; `net10.0`
 **Configurations:** `Debug`; `Staging`; `Release`
 **License:** LGPL-3.0-or-later
 **Current development target:** `0.1.0`
@@ -146,10 +146,11 @@ freezes the stable dependency decision after that acceptance without adding a
 project reference, second raw input reader, or private CSI/DCS response parser
 to DCurses.
 
-### 3.2 Initial target framework
+### 3.2 Initial target frameworks
 
-The first `Icod.DCurses` release targets `net10.0`. Framework expansion is a
-later compatibility decision and SHALL NOT block `0.1.0`.
+The first `Icod.DCurses` release targets `net8.0`, `net9.0`, and `net10.0`.
+All three target frameworks SHALL build, test, pack, and pass package-only
+consumer validation on Windows, Linux, and macOS before `0.1.0` is tagged.
 
 ### 3.3 Dependency direction
 

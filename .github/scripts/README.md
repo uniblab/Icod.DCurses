@@ -40,8 +40,8 @@ The wrappers:
 - use an isolated NuGet cache and a temporary NuGet configuration;
 - restore the exact packed DCurses version from the artifact directory;
 - resolve runtime dependencies from NuGet;
-- build and execute the package-only `net10.0` smoke consumer without any
-  repository-local project reference.
+- build and execute the package-only smoke consumer under `net8.0`, `net9.0`,
+  and `net10.0` without any repository-local project reference.
 
 The package verifier and smoke consumer intentionally remain outside
 `Icod.DCurses.sln`; they validate the packed artifact after the repository

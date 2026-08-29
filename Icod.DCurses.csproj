@@ -58,7 +58,7 @@
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.1.0 establishes the first stable managed DCurses contract for .NET 10 using Icod.Terminal 0.3.0 and Icod.TermInfo 1.4.1, with virtual screens and windows, retained refresh, styled output, rich input, lifecycle restoration, and ProcPs-shaped watch/slabtop/top acceptance.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.1.0 establishes the first stable managed DCurses contract for .NET 8, .NET 9, and .NET 10 using Icod.Terminal 0.3.0 and Icod.TermInfo 1.4.1, with virtual screens and windows, retained refresh, styled output, rich input, lifecycle restoration, and ProcPs-shaped watch/slabtop/top acceptance.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>

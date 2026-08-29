@@ -246,7 +246,7 @@ jobs:
           dotnet add package Icod.DCurses --version {0}
           ```
 
-          `Icod.DCurses` targets `net10.0`. Its runtime package dependencies are
+          `Icod.DCurses` targets `net8.0`, `net9.0`, and `net10.0`. Its runtime package dependencies are
           `Icod.Terminal 0.3.0` and `Icod.TermInfo 1.4.1`.
 
           The NuGet package, symbol package, and SHA-256 checksums are attached

@@ -16,5 +16,7 @@ contains a real `CursesSession.OpenAsync` interactive path, selected only when:
 ICOD_DCURSES_SMOKE_INTERACTIVE=1
 ```
 
-This ensures a fresh package-only consumer compiles the public interactive
-session surface while keeping automated validation non-interactive.
+The package-only consumer targets `net8.0`, `net9.0`, and `net10.0`; each
+framework is executed independently by the validation wrappers. This ensures a
+fresh consumer compiles the public interactive session surface across the full
+supported framework set while keeping automated validation non-interactive.
