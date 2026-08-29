@@ -134,8 +134,8 @@ or:
 ./build.sh
 ```
 
-Both scripts perform clean, restore, build, test, and pack operations by default
-and also accept one of those phase names individually.
+Both scripts perform clean, restore, build, test, pack, and validate operations
+by default and also accept one of those phase names individually.
 
 ## License
 
