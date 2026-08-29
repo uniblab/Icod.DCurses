@@ -5,13 +5,13 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`
 **Initial development branch:** `initial_add`
 **Language:** C# 13
-**Initial target framework:** `net10.0`
+**Initial target frameworks:** `net8.0`; `net9.0`; `net10.0`
 **Configurations:** `Debug`; `Staging`; `Release`
 **License:** LGPL-3.0-or-later
 **Current development target:** `0.1.0`
-**Current tranche:** Alpha-22 — Icod.Terminal 0.3 downstream acceptance
+**Current tranche:** T13C — 0.1.0 stable release closure
 **Stable contract target:** `1.0.0`
-**Status:** T01-T13B implementation complete; Alpha-22 validates published Icod.Terminal 0.3.0-alpha.8 downstream compatibility
+**Status:** T01-T13B and Alpha-22 acceptance complete; T13C freezes Icod.Terminal 0.3.0 / Icod.TermInfo 1.4.1 and prepares the stable 0.1.0 release gate
 
 ---
 
@@ -129,27 +129,28 @@ Windows Console and Windows Terminal behavior SHALL not be treated as an afterth
 
 ### 3.1 Active 0.1 dependencies
 
-The Alpha-22 downstream-acceptance graph is:
+The stable 0.1 dependency graph is:
 
 ```text
-Icod.DCurses 0.1.0-Alpha-22
-    -> Icod.Terminal 0.3.0-alpha.8
-    -> Icod.TermInfo 1.3.0
+Icod.DCurses 0.1.0
+    -> Icod.Terminal 0.3.0
+    -> Icod.TermInfo 1.4.1
 ```
 
 `Icod.TermInfo` is the terminal-capability authority. `Icod.Terminal` is the
 neutral live-terminal endpoint/control substrate. `Icod.CommandFramework` is no
 longer a runtime dependency of DCurses.
 
-Alpha-22 is a compatibility checkpoint rather than the stable 0.1 dependency
-freeze. It validates Terminal 0.3 against a real downstream consumer without
-adding a project reference, second raw input reader, or private CSI/DCS response
-parser to DCurses.
+Alpha-22 served as the Terminal 0.3 downstream compatibility checkpoint. T13C
+freezes the stable dependency decision after that acceptance without adding a
+project reference, second raw input reader, or private CSI/DCS response parser
+to DCurses.
 
-### 3.2 Initial target framework
+### 3.2 Initial target frameworks
 
-The first `Icod.DCurses` release targets `net10.0`. Framework expansion is a
-later compatibility decision and SHALL NOT block `0.1.0`.
+The first `Icod.DCurses` release targets `net8.0`, `net9.0`, and `net10.0`.
+All three target frameworks SHALL build, test, pack, and pass package-only
+consumer validation on Windows, Linux, and macOS before `0.1.0` is tagged.
 
 ### 3.3 Dependency direction
 
@@ -673,16 +674,20 @@ only contract-preserving corrections discovered by that audit. The checkpoint
 is recorded in
 [`docs/T13B-Public-API-and-Consumer-Contract.md`](docs/T13B-Public-API-and-Consumer-Contract.md).
 
-The T13B dependency audit found one release-order constraint: DCurses currently
-requires the published prerelease `Icod.Terminal 0.2.0-alpha.6`. A stable
-`Icod.DCurses 0.1.0` package SHALL NOT be tagged while its required Terminal
-dependency remains prerelease.
+The T13B dependency audit originally found a prerelease Terminal dependency.
+Alpha-22 subsequently validated the Terminal 0.3 downstream boundary. Stable
+`Icod.Terminal 0.3.0` and `Icod.TermInfo 1.4.1` are now the 0.1 release
+dependencies.
 
-**T13C** SHALL begin after stable `Icod.Terminal 0.2.0` is published. It SHALL
-update the DCurses Terminal package reference and package-verification metadata,
-set both `<Version>` and `<PackageVersion>` to `0.1.0`, run the complete
-three-host Release/package-only gate, merge the release commit to `main`, and
-publish only through the matching `v0.1.0` tag.
+**T13C** freezes that stable dependency set, assigns both `<Version>` and
+`<PackageVersion>` to `0.1.0`, removes obsolete scaffold-only source/tests,
+requires the packaged README banner, and runs the complete three-host
+Release/package-only gate. The release commit SHALL merge to `main`, the
+matching `main` validation SHALL pass, and publication SHALL occur only through
+the matching `v0.1.0` tag.
+
+The checkpoint is recorded in
+[`docs/T13C-0.1.0-Stable-Release-Closure.md`](docs/T13C-0.1.0-Stable-Release-Closure.md).
 
 **0.1.0 completion gate:** a fresh consumer can install the package and build a small interactive application without repository-local project references.
 

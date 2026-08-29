@@ -8,10 +8,16 @@ using System.Xml.Linq;
 
 internal static class Program {
 	private const string PackageId = "Icod.DCurses";
+	private const string PackageAuthor = "Timothy J. Bruce";
+	private const string PackageCopyright = "Copyright (c) 2026 Timothy J. Bruce";
 	private const string RepositoryUrl = "https://github.com/uniblab/Icod.DCurses";
-	private const string TargetFramework = "net10.0";
-	private const string TerminalDependencyVersion = "0.3.0-alpha.8";
-	private const string TermInfoDependencyVersion = "1.3.0";
+	private static readonly string[] TargetFrameworks = [
+		"net8.0",
+		"net9.0",
+		"net10.0"
+	];
+	private const string TerminalDependencyVersion = "0.3.0";
+	private const string TermInfoDependencyVersion = "1.4.1";
 
 	public static int Main(
 		string[] args
@@ -151,6 +157,18 @@ internal static class Program {
 			project,
 			"AssemblyVersion"
 		);
+		string? authors = ReadProjectProperty(
+			project,
+			"Authors"
+		);
+		string? copyright = ReadProjectProperty(
+			project,
+			"Copyright"
+		);
+		string? targetFrameworks = ReadProjectProperty(
+			project,
+			"TargetFrameworks"
+		);
 
 		Require(
 			!string.IsNullOrWhiteSpace( version )
@@ -169,6 +187,22 @@ internal static class Program {
 					out _
 				),
 			"AssemblyVersion must be present and valid."
+		);
+		Require(
+			PackageAuthor == authors,
+			$"Authors must be exactly '{PackageAuthor}'."
+		);
+		Require(
+			PackageCopyright == copyright,
+			$"Copyright must be exactly '{PackageCopyright}'."
+		);
+		Require(
+			string.Equals(
+				string.Join( ";", TargetFrameworks ),
+				targetFrameworks,
+				StringComparison.Ordinal
+			),
+			"TargetFrameworks must be exactly net8.0;net9.0;net10.0."
 		);
 
 		return (
@@ -207,13 +241,23 @@ internal static class Program {
 			.Select( entry => entry.FullName )
 			.ToHashSet( StringComparer.Ordinal );
 
-		string assemblyPath = $"lib/{TargetFramework}/{PackageId}.dll";
-		string documentationPath = $"lib/{TargetFramework}/{PackageId}.xml";
+		string[] assemblyPaths = TargetFrameworks
+			.Select(
+				framework => $"lib/{framework}/{PackageId}.dll"
+			)
+			.ToArray();
+		string[] documentationPaths = TargetFrameworks
+			.Select(
+				framework => $"lib/{framework}/{PackageId}.xml"
+			)
+			.ToArray();
 		string[] required = [
 			"README.md",
+			"LICENSE",
 			"icon.png",
-			assemblyPath,
-			documentationPath
+			"icod_tui_toolchain.jpg",
+			.. assemblyPaths,
+			.. documentationPaths
 		];
 
 		string[] missing = required
@@ -280,8 +324,13 @@ internal static class Program {
 			)
 			.ToArray();
 		Require(
-			1 == dlls.Length
-				&& assemblyPath == dlls[ 0 ],
+			assemblyPaths.Length == dlls.Length
+				&& dlls.All(
+					name => assemblyPaths.Contains(
+						name,
+						StringComparer.Ordinal
+					)
+				),
 			"Primary package contains unexpected DLL payloads: "
 				+ string.Join(
 					", ",
@@ -289,15 +338,17 @@ internal static class Program {
 				)
 		);
 
-		VerifyAssemblyIdentity(
-			package,
-			assemblyPath,
-			expectedAssemblyVersion
-		);
-		VerifyDocumentation(
-			package,
-			documentationPath
-		);
+		foreach ( string targetFramework in TargetFrameworks ) {
+			VerifyAssemblyIdentity(
+				package,
+				$"lib/{targetFramework}/{PackageId}.dll",
+				expectedAssemblyVersion
+			);
+			VerifyDocumentation(
+				package,
+				$"lib/{targetFramework}/{PackageId}.xml"
+			);
+		}
 		VerifyNuspec(
 			package,
 			expectedVersion
@@ -458,11 +509,18 @@ internal static class Program {
 			"Unexpected package title."
 		);
 		Require(
-			"Timothy J. Bruce" == GetMetadataText(
+			PackageAuthor == GetMetadataText(
 				metadata!,
 				"authors"
 			),
 			"Unexpected package authors."
+		);
+		Require(
+			PackageCopyright == GetMetadataText(
+				metadata!,
+				"copyright"
+			),
+			"Unexpected package copyright."
 		);
 		Require(
 			RepositoryUrl == GetMetadataText(
@@ -593,41 +651,50 @@ internal static class Program {
 			)
 			.ToArray();
 		Require(
-			1 == groups.Length,
-			$"Expected one dependency group, found {groups.Length}."
+			TargetFrameworks.Length == groups.Length,
+			$"Expected {TargetFrameworks.Length} dependency groups, found {groups.Length}."
 		);
 
-		string framework = groups[ 0 ].Attribute( "targetFramework" )?.Value
-			?? string.Empty;
-		Require(
-			framework.Contains(
-				"10.0",
-				StringComparison.OrdinalIgnoreCase
-			),
-			$"Unexpected dependency target framework '{framework}'."
-		);
+		foreach ( string targetFramework in TargetFrameworks ) {
+			string frameworkVersion = targetFramework[ "net".Length.. ];
+			XElement[] matchingGroups = groups
+				.Where(
+					group => ( group.Attribute( "targetFramework" )?.Value
+						?? string.Empty ).Contains(
+						frameworkVersion,
+						StringComparison.OrdinalIgnoreCase
+					)
+				)
+				.ToArray();
+			Require(
+				1 == matchingGroups.Length,
+				$"Expected one dependency group for {targetFramework}, "
+					+ $"found {matchingGroups.Length}."
+			);
 
-		XElement[] packageDependencies = groups[ 0 ]
-			.Elements()
-			.Where(
-				element => "dependency" == element.Name.LocalName
-			)
-			.ToArray();
-		Require(
-			2 == packageDependencies.Length,
-			"DCurses net10.0 package group must contain exactly two runtime dependencies."
-		);
+			XElement[] packageDependencies = matchingGroups[ 0 ]
+				.Elements()
+				.Where(
+					element => "dependency" == element.Name.LocalName
+				)
+				.ToArray();
+			Require(
+				2 == packageDependencies.Length,
+				$"DCurses {targetFramework} package group must contain exactly "
+					+ "two runtime dependencies."
+			);
 
-		VerifyDependency(
-			packageDependencies,
-			"Icod.Terminal",
-			TerminalDependencyVersion
-		);
-		VerifyDependency(
-			packageDependencies,
-			"Icod.TermInfo",
-			TermInfoDependencyVersion
-		);
+			VerifyDependency(
+				packageDependencies,
+				"Icod.Terminal",
+				TerminalDependencyVersion
+			);
+			VerifyDependency(
+				packageDependencies,
+				"Icod.TermInfo",
+				TermInfoDependencyVersion
+			);
+		}
 	}
 
 	private static void VerifyDependency(
@@ -664,17 +731,11 @@ internal static class Program {
 		ArgumentException.ThrowIfNullOrWhiteSpace( symbolsPath );
 
 		using ZipArchive package = ZipFile.OpenRead( symbolsPath );
-		string pdbPath = $"lib/{TargetFramework}/{PackageId}.pdb";
-		ZipArchiveEntry? pdb = package.GetEntry( pdbPath );
-		Require(
-			null != pdb,
-			$"Symbol package is missing {pdbPath}."
-		);
-		Require(
-			0 < pdb!.Length,
-			$"{pdbPath} is empty."
-		);
-
+		string[] pdbPaths = TargetFrameworks
+			.Select(
+				framework => $"lib/{framework}/{PackageId}.pdb"
+			)
+			.ToArray();
 		ZipArchiveEntry[] pdbs = package.Entries
 			.Where(
 				entry => entry.FullName.EndsWith(
@@ -684,21 +745,39 @@ internal static class Program {
 			)
 			.ToArray();
 		Require(
-			1 == pdbs.Length,
-			$"Expected one PDB in symbol package, found {pdbs.Length}."
+			pdbPaths.Length == pdbs.Length
+				&& pdbs.All(
+					entry => pdbPaths.Contains(
+						entry.FullName,
+						StringComparer.Ordinal
+					)
+				),
+			$"Expected one PDB per target framework, found {pdbs.Length}."
 		);
 
-		using Stream stream = pdb!.Open();
 		Span<byte> signature = stackalloc byte[ 4 ];
-		int read = stream.Read( signature );
-		Require(
-			4 == read
-				&& (byte)'B' == signature[ 0 ]
-				&& (byte)'S' == signature[ 1 ]
-				&& (byte)'J' == signature[ 2 ]
-				&& (byte)'B' == signature[ 3 ],
-			$"{pdbPath} is not a portable PDB."
-		);
+		foreach ( string pdbPath in pdbPaths ) {
+			ZipArchiveEntry? pdb = package.GetEntry( pdbPath );
+			Require(
+				null != pdb,
+				$"Symbol package is missing {pdbPath}."
+			);
+			Require(
+				0 < pdb!.Length,
+				$"{pdbPath} is empty."
+			);
+
+			using Stream stream = pdb!.Open();
+			int read = stream.Read( signature );
+			Require(
+				4 == read
+					&& (byte)'B' == signature[ 0 ]
+					&& (byte)'S' == signature[ 1 ]
+					&& (byte)'J' == signature[ 2 ]
+					&& (byte)'B' == signature[ 3 ],
+				$"{pdbPath} is not a portable PDB."
+			);
+		}
 	}
 
 	private static string GetMetadataText(

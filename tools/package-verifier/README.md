@@ -7,15 +7,21 @@ It verifies:
 
 - `<Version>` and `<PackageVersion>` are present and identical;
 - `<AssemblyVersion>` is present and valid;
-- the `net10.0` library and XML-documentation payloads are present;
-- the packaged assembly name/version matches the project and remains unsigned;
-- package metadata identifies the expected id, title, author, project, readme,
-  icon, LGPL license expression, and repository;
-- the `net10.0` dependency group contains exactly
-  `Icod.Terminal 0.3.0-alpha.8` and `Icod.TermInfo 1.3.0` for Alpha-22;
+- `<TargetFrameworks>` is exactly `net8.0;net9.0;net10.0`;
+- the `net8.0`, `net9.0`, and `net10.0` library and XML-documentation payloads
+  are present;
+- every packaged assembly name/version matches the project and remains unsigned;
+- project and package metadata identify Timothy J. Bruce as the sole author and
+  carry `Copyright (c) 2026 Timothy J. Bruce`;
+- package metadata identifies the expected id, title, project, readme, icon,
+  LGPL license expression, repository, and required license acceptance;
+- the package contains non-empty `LICENSE` and `icod_tui_toolchain.jpg` payloads;
+- each target-framework dependency group contains exactly
+  `Icod.Terminal 0.3.0` and `Icod.TermInfo 1.4.1`;
 - dependency assemblies are not accidentally bundled into the primary package;
 - native/runtime and repository-only payloads are absent;
-- the symbol package contains exactly one non-empty portable PDB.
+- the symbol package contains exactly one non-empty portable PDB for each target
+  framework.
 
 Run after packing:
 

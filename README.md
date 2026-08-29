@@ -1,6 +1,6 @@
 # Icod.DCurses
 
-![Icod TUI Toolchain](icod_tui_toolchain.jpg)
+![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.1.0/icod_tui_toolchain.jpg)
 
 `Icod.DCurses` is a managed, cross-platform curses-like terminal UI library for
 .NET.
@@ -9,39 +9,39 @@ The library sits above `Icod.TermInfo` and `Icod.Terminal`. `Icod.TermInfo`
 remains the immutable terminal-capability authority; `Icod.Terminal` owns the
 live terminal session, host mode, dimensions, lifecycle, input decoding, and
 reversible presentation and input-protocol leases. `Icod.DCurses` owns
-curses-shaped events, virtual screens and windows, terminal cells and styles, rendition policy, and
-refresh/damage synchronization.
+curses-shaped events, virtual screens and windows, terminal cells and styles,
+rendition policy, and refresh/damage synchronization.
 
 ## Status
 
-The project is under active development toward version `0.1.0`.
+`Icod.DCurses 0.1.0` is the first stable release of the managed DCurses
+contract.
 
 `0.1.0-Alpha-15` established the automated Icod.Terminal T19 rich-input
-acceptance boundary and builds and tests successfully against
-`Icod.Terminal 0.2.0-alpha.6`. `0.1.0-Alpha-16` provides the live rich-input
-acceptance showcase. Alpha-17 through Alpha-19 complete the focused T12
-`watch`, `slabtop`, and `top` application-shaped acceptance set. Alpha-20
-established the three-host package-only and tag-controlled release gate.
-`0.1.0-Alpha-21` completes the 0.1 public-API/documentation regret pass and the
-required styled/updating quick-start sample. `0.1.0-Alpha-22` is the explicit
-downstream compatibility build for published `Icod.Terminal 0.3.0-alpha.8` and
-`Icod.TermInfo 1.3.0`.
+acceptance boundary against `Icod.Terminal 0.2.0-alpha.6`, and
+`0.1.0-Alpha-16` added the live rich-input acceptance showcase. Alpha-17 through
+Alpha-19 completed the focused `watch`, `slabtop`, and `top` application-shaped
+acceptance set. Alpha-20 established the three-host package-only and
+tag-controlled release gate. Alpha-21 completed the 0.1 public-API/documentation
+regret pass and required styled/updating quick-start sample. Alpha-22 then
+validated published `Icod.Terminal 0.3.0-alpha.8` and `Icod.TermInfo 1.3.0`
+without requiring DCurses to regain private terminal mechanics.
 
-Alpha-22 is an acceptance build, not a stable dependency decision. Its purpose
-is to prove that Terminal 0.3 does not require DCurses to regain private
-terminal mechanics.
+The stable `0.1.0` dependency freeze advances that accepted contract to
+`Icod.Terminal 0.3.0` and `Icod.TermInfo 1.4.1`.
 
 The retired DCurses backend, native mode, lifecycle-source, input-decoder, and
 pre-Terminal session implementations remain removed. DCurses does not add a
 mouse parser, paste reader, protocol escape emitter, or second input loop.
 
-The first release continues to be driven by the requirements of `top`,
-`slabtop`, and `watch`.
+The first release is driven by the requirements of `top`, `slabtop`, and
+`watch`.
 
 See `Icod.DCurses-Development-Roadmap.md` for the broader development contract
 through `1.0.0`, `docs/Icod-Terminal-T10-Integration.md` for the substrate reset,
 `docs/Icod-Terminal-T19-Rich-Input-Acceptance.md` for rich-input acceptance,
-`docs/T13B-Public-API-and-Consumer-Contract.md` for the 0.1 regret review, and
+`docs/T13B-Public-API-and-Consumer-Contract.md` for the 0.1 regret review,
+`docs/T13C-0.1.0-Stable-Release-Closure.md` for the stable release closure, and
 `docs/Public-API-Baseline-0.1.md` for the release-line API baseline.
 
 ## Architecture
@@ -71,28 +71,24 @@ and reversible terminal state are centralized in `Icod.Terminal`.
 
 The initial implementation targets:
 
+- .NET 8
+- .NET 9
 - .NET 10
 - C# 13
 - Windows
 - Linux
 - macOS
 
-The Alpha-22 acceptance dependency set is:
+The stable `0.1.0` runtime dependency set is:
 
-- `Icod.TermInfo` 1.3.0
-- `Icod.Terminal` 0.3.0-alpha.8
+- `Icod.Terminal` 0.3.0
+- `Icod.TermInfo` 1.4.1
 
 ## Installation
 
-Alpha-22 is intended for downstream compatibility validation. If published as a
-prerelease package, install it with:
-
 ```text
-dotnet add package Icod.DCurses --version 0.1.0-Alpha-22
+dotnet add package Icod.DCurses --version 0.1.0
 ```
-
-The stable `0.1.0` dependency/version decision remains a separate
-release-closure step after the Terminal 0.3 downstream result is known.
 
 ## Quick start
 
@@ -128,20 +124,32 @@ through `CursesSession` rather than adding a parallel terminal reader.
 
 From the repository root:
 
-```text
+```sh
 build.cmd
 ```
 
 or:
 
-```text
+```sh
 ./build.sh
 ```
 
-Both scripts perform clean, restore, build, test, and pack operations by default
-and also accept one of those phase names individually.
+Both scripts perform clean, restore, build, test, pack, and validate operations
+by default and also accept one of those phase names individually.
+
+## Authors
+
+Timothy J. Bruce.
+
+## Copyright
+
+Copyright (c) 2026 Timothy J. Bruce
 
 ## License
 
-`Icod.DCurses` is licensed under the GNU Lesser General Public License,
-version 3 or later.
+Licensed under the GNU Lesser General Public License v3.0 or later. See
+`LICENSE`.
+
+The NuGet package declares license acceptance as required. Package clients which
+honor NuGet's `requireLicenseAcceptance` metadata must obtain acceptance of the
+license terms before installation.

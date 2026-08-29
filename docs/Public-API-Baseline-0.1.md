@@ -3,7 +3,8 @@
 **Project:** `Icod.DCurses`
 **Release line:** `0.1.x`
 **Baseline prepared in:** `0.1.0-Alpha-21`
-**Target framework:** `net10.0`
+**Baseline framework:** `net10.0`
+**Stable 0.1 target frameworks:** `net8.0`; `net9.0`; `net10.0`
 **Status:** Release-line source contract baseline
 
 ---
@@ -17,6 +18,11 @@ It is a regret-review baseline, not a promise that every future pre-1.0 release
 is binary compatible. The generated XML documentation remains authoritative for
 exact signatures, but additions/removals against this baseline should be
 deliberate rather than accidental.
+
+The Alpha-21 regret review was prepared while DCurses targeted `net10.0`.
+Stable `0.1.0` carries this same accepted public API across `net8.0`,
+`net9.0`, and `net10.0`; framework expansion does not create a separate
+public contract for each target.
 
 ## 2. Session and lifecycle surface
 
