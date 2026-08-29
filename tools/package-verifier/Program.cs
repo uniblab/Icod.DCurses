@@ -8,6 +8,8 @@ using System.Xml.Linq;
 
 internal static class Program {
 	private const string PackageId = "Icod.DCurses";
+	private const string PackageAuthor = "Timothy J. Bruce";
+	private const string PackageCopyright = "Copyright (c) 2026 Timothy J. Bruce";
 	private const string RepositoryUrl = "https://github.com/uniblab/Icod.DCurses";
 	private static readonly string[] TargetFrameworks = [
 		"net8.0",
@@ -155,6 +157,14 @@ internal static class Program {
 			project,
 			"AssemblyVersion"
 		);
+		string? authors = ReadProjectProperty(
+			project,
+			"Authors"
+		);
+		string? copyright = ReadProjectProperty(
+			project,
+			"Copyright"
+		);
 		string? targetFrameworks = ReadProjectProperty(
 			project,
 			"TargetFrameworks"
@@ -177,6 +187,14 @@ internal static class Program {
 					out _
 				),
 			"AssemblyVersion must be present and valid."
+		);
+		Require(
+			PackageAuthor == authors,
+			$"Authors must be exactly '{PackageAuthor}'."
+		);
+		Require(
+			PackageCopyright == copyright,
+			$"Copyright must be exactly '{PackageCopyright}'."
 		);
 		Require(
 			string.Equals(
@@ -235,6 +253,7 @@ internal static class Program {
 			.ToArray();
 		string[] required = [
 			"README.md",
+			"LICENSE",
 			"icon.png",
 			"icod_tui_toolchain.jpg",
 			.. assemblyPaths,
@@ -490,11 +509,18 @@ internal static class Program {
 			"Unexpected package title."
 		);
 		Require(
-			"Timothy J. Bruce" == GetMetadataText(
+			PackageAuthor == GetMetadataText(
 				metadata!,
 				"authors"
 			),
 			"Unexpected package authors."
+		);
+		Require(
+			PackageCopyright == GetMetadataText(
+				metadata!,
+				"copyright"
+			),
+			"Unexpected package copyright."
 		);
 		Require(
 			RepositoryUrl == GetMetadataText(
