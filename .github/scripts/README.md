@@ -6,10 +6,17 @@ wrappers for the T13 package-validation contract.
 Both wrappers require:
 
 ```text
-<artifact-directory> <Staging|Release>
+<artifact-directory> <Debug|Staging|Release>
 ```
 
-For pull-request/development validation:
+For local Debug validation:
+
+```text
+.github\scripts\verify-release-package.cmd artifacts Debug
+bash .github/scripts/verify-release-package.sh artifacts Debug
+```
+
+For pull-request/Staging validation:
 
 ```text
 .github\scripts\verify-release-package.cmd artifacts Staging
