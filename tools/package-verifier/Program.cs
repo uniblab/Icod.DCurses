@@ -729,6 +729,7 @@ internal static class Program {
 			$"Expected one PDB per target framework, found {pdbs.Length}."
 		);
 
+		Span<byte> signature = stackalloc byte[ 4 ];
 		foreach ( string pdbPath in pdbPaths ) {
 			ZipArchiveEntry? pdb = package.GetEntry( pdbPath );
 			Require(
@@ -741,7 +742,6 @@ internal static class Program {
 			);
 
 			using Stream stream = pdb!.Open();
-			Span<byte> signature = stackalloc byte[ 4 ];
 			int read = stream.Read( signature );
 			Require(
 				4 == read
