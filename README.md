@@ -137,7 +137,19 @@ or:
 Both scripts perform clean, restore, build, test, pack, and validate operations
 by default and also accept one of those phase names individually.
 
+## Authors
+
+Timothy J. Bruce.
+
+## Copyright
+
+Copyright (c) 2026 Timothy J. Bruce
+
 ## License
 
-`Icod.DCurses` is licensed under the GNU Lesser General Public License,
-version 3 or later.
+Licensed under the GNU Lesser General Public License v3.0 or later. See
+`LICENSE`.
+
+The NuGet package declares license acceptance as required. Package clients which
+honor NuGet's `requireLicenseAcceptance` metadata must obtain acceptance of the
+license terms before installation.

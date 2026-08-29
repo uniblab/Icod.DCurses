@@ -11,9 +11,11 @@ It verifies:
 - the `net8.0`, `net9.0`, and `net10.0` library and XML-documentation payloads
   are present;
 - every packaged assembly name/version matches the project and remains unsigned;
-- package metadata identifies the expected id, title, author, project, readme,
-  icon, LGPL license expression, and repository;
-- the package contains the non-empty `icod_tui_toolchain.jpg` README banner;
+- project and package metadata identify Timothy J. Bruce as the sole author and
+  carry `Copyright (c) 2026 Timothy J. Bruce`;
+- package metadata identifies the expected id, title, project, readme, icon,
+  LGPL license expression, repository, and required license acceptance;
+- the package contains non-empty `LICENSE` and `icod_tui_toolchain.jpg` payloads;
 - each target-framework dependency group contains exactly
   `Icod.Terminal 0.3.0` and `Icod.TermInfo 1.4.1`;
 - dependency assemblies are not accidentally bundled into the primary package;
