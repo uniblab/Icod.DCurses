@@ -152,7 +152,9 @@ static void VerifyUnicodeWidthSurface() {
 		|| CursesAmbiguousWidthPolicy.Wide != wide.AmbiguousWidthPolicy
 		|| 1 != narrow.GetWidth( "\u03A9" )
 		|| 2 != wide.GetWidth( "\u03A9" )
-		|| 2 != narrow.GetWidth( "\U00016FF2" ) ) {
+		|| 2 != narrow.GetWidth( "\U00016FF2" )
+		|| 2 != narrow.GetWidth( "\u00A9\uFE0F" )
+		|| 1 != narrow.GetWidth( "\u2605\uFE0F" ) ) {
 		throw new InvalidOperationException(
 			"DCurses package-only Unicode width policy surface failed validation."
 		);
