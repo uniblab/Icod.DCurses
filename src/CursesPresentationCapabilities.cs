@@ -138,38 +138,30 @@ public readonly record struct CursesPresentationCapabilities {
 		ArgumentNullException.ThrowIfNull( terminal );
 
 		TerminalColorSupport colors = TerminalColors.GetColorSupport( terminal );
-		bool hasSetAttributes = null != terminal.GetString( StringCapability.SetAttributes );
 		CursesTextAttributes supportedAttributes = CursesTextAttributes.None;
 
-		if ( hasSetAttributes
-			|| null != terminal.GetString( StringCapability.EnterBoldMode ) ) {
+		if ( null != terminal.GetString( StringCapability.EnterBoldMode ) ) {
 			supportedAttributes |= CursesTextAttributes.Bold;
 		}
-		if ( hasSetAttributes
-			|| null != terminal.GetString( StringCapability.EnterDimMode ) ) {
+		if ( null != terminal.GetString( StringCapability.EnterDimMode ) ) {
 			supportedAttributes |= CursesTextAttributes.Dim;
 		}
-		if ( hasSetAttributes
-			|| null != terminal.GetString( StringCapability.EnterUnderlineMode ) ) {
+		if ( null != terminal.GetString( StringCapability.EnterUnderlineMode ) ) {
 			supportedAttributes |= CursesTextAttributes.Underline;
 		}
-		if ( hasSetAttributes
-			|| null != terminal.GetString( StringCapability.EnterReverseMode ) ) {
+		if ( null != terminal.GetString( StringCapability.EnterReverseMode ) ) {
 			supportedAttributes |= CursesTextAttributes.Reverse;
 		}
-		if ( hasSetAttributes
-			|| null != terminal.GetString( StringCapability.EnterStandoutMode ) ) {
+		if ( null != terminal.GetString( StringCapability.EnterStandoutMode ) ) {
 			supportedAttributes |= CursesTextAttributes.Standout;
 		}
 		if ( null != terminal.GetString( StringCapability.EnterItalicMode ) ) {
 			supportedAttributes |= CursesTextAttributes.Italic;
 		}
-		if ( hasSetAttributes
-			|| null != terminal.GetString( StringCapability.EnterBlinkMode ) ) {
+		if ( null != terminal.GetString( StringCapability.EnterBlinkMode ) ) {
 			supportedAttributes |= CursesTextAttributes.Blink;
 		}
-		if ( hasSetAttributes
-			|| null != terminal.GetString( StringCapability.EnterInvisibleMode ) ) {
+		if ( null != terminal.GetString( StringCapability.EnterInvisibleMode ) ) {
 			supportedAttributes |= CursesTextAttributes.Conceal;
 		}
 		if ( terminal.TryGetExtendedString(
