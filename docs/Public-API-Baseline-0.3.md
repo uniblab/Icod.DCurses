@@ -3,11 +3,11 @@
 **Project:** `Icod.DCurses`  
 **Release line:** `0.3.x`  
 **Prepared during:** T307  
-**Release-candidate version:** `0.3.0-rc.1`  
+**Stable source version:** `0.3.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Dependency baseline:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
 **Unicode width-data baseline:** `17.0.0`  
-**Status:** Release-line source contract baseline
+**Status:** Stable release-line source contract baseline
 
 ---
 
