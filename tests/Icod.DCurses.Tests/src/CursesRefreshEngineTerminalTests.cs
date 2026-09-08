@@ -159,12 +159,16 @@ public sealed class CursesRefreshEngineTerminalTests {
 	}
 
 	[Fact]
-	public async Task RgbColorUsesExtendedTerminfoCapability() {
+	public async Task RgbColorUsesTermInfoSemanticDirectColorExpansion() {
 		RecordingOutput output = new();
 		TerminalDescription terminal = new TerminalDescriptionBuilder( "rgb-test" )
 			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
 			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
-			.SetExtendedString( "setrgbf", "<rgbf:%p1%d,%p2%d,%p3%d>" )
+			.SetString( StringCapability.OriginalColorPair, "<op>" )
+			.SetNumber( NumericCapability.Colors, 1 << 24 )
+			.SetString( StringCapability.SetForegroundColor, "<fg:%p1%d>" )
+			.SetString( StringCapability.SetBackgroundColor, "<bg:%p1%d>" )
+			.SetExtendedBoolean( "RGB" )
 			.Build();
 		CursesRefreshEngine engine = new( terminal, output );
 		CursesScreen screen = new( 2, 1 );
@@ -178,7 +182,91 @@ public sealed class CursesRefreshEngineTerminalTests {
 
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Contains( "<rgbf:12,34,56>", output.Text );
+		string expected = TerminalColors.ExpandForeground(
+			terminal,
+			new TerminalRgbColor( 12, 34, 56 )
+		);
+		Assert.Contains( expected, output.Text );
+	}
+
+	[Fact]
+	public async Task UnsupportedRgbAndOutOfRangeIndexDegradeWithoutThrowing() {
+		RecordingOutput output = new();
+		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		CursesScreen screen = new( 2, 1 );
+		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
+			"R",
+			new CursesStyle(
+				CursesColor.Rgb( 12, 34, 56 ),
+				CursesColor.Default
+			)
+		);
+		screen.VirtualScreen[ 0, 1 ] = new CursesCell(
+			"I",
+			new CursesStyle(
+				CursesColor.Indexed( 8 ),
+				CursesColor.Default
+			)
+		);
+
+		await engine.RefreshAsync( screen, 0, 0 );
+
+		Assert.Contains( "RI", output.Text );
+		Assert.DoesNotContain( "<fg:", output.Text );
+	}
+
+	[Fact]
+	public async Task ModernOptionalAttributesUseAdvertisedSemanticCapabilities() {
+		RecordingOutput output = new();
+		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		CursesScreen screen = new( 2, 1 );
+		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
+			"A",
+			new CursesStyle(
+				CursesColor.Default,
+				CursesColor.Default,
+				CursesTextAttributes.Italic
+					| CursesTextAttributes.Blink
+					| CursesTextAttributes.Conceal
+					| CursesTextAttributes.Strikeout
+			)
+		);
+
+		await engine.RefreshAsync( screen, 0, 0 );
+
+		Assert.Contains( "<italic>", output.Text );
+		Assert.Contains( "<blink>", output.Text );
+		Assert.Contains( "<conceal>", output.Text );
+		Assert.Contains( "<strike>", output.Text );
+	}
+
+	[Fact]
+	public async Task NoColorVideoRestrictionRemovesOnlyPhysicalAttribute() {
+		RecordingOutput output = new();
+		TerminalDescription terminal = new TerminalDescriptionBuilder( "ncv-test" )
+			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
+			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
+			.SetString( StringCapability.OriginalColorPair, "<op>" )
+			.SetNumber( NumericCapability.Colors, 8 )
+			.SetNumber( NumericCapability.NoColorVideo, 32 )
+			.SetString( StringCapability.EnterBoldMode, "<bold>" )
+			.SetString( StringCapability.SetForegroundColor, "<fg:%p1%d>" )
+			.SetString( StringCapability.SetBackgroundColor, "<bg:%p1%d>" )
+			.Build();
+		CursesRefreshEngine engine = new( terminal, output );
+		CursesScreen screen = new( 1, 1 );
+		CursesStyle requested = new(
+			CursesColor.Indexed( 1 ),
+			CursesColor.Default,
+			CursesTextAttributes.Bold
+		);
+		screen.VirtualScreen[ 0, 0 ] = new CursesCell( "B", requested );
+
+		await engine.RefreshAsync( screen, 0, 0 );
+
+		Assert.Contains( "<fg:1>", output.Text );
+		Assert.DoesNotContain( "<bold>", output.Text );
+		Assert.Equal( requested, screen.VirtualScreen[ 0, 0 ].Style );
 	}
 
 	private static TerminalDescription CreateTerminal() {
@@ -187,11 +275,18 @@ public sealed class CursesRefreshEngineTerminalTests {
 			.SetString( StringCapability.ClearToEndOfLine, "<el>" )
 			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
 			.SetString( StringCapability.OriginalColorPair, "<op>" )
+			.SetNumber( NumericCapability.Colors, 8 )
 			.SetString( StringCapability.EnterBoldMode, "<bold>" )
 			.SetString( StringCapability.EnterDimMode, "<dim>" )
 			.SetString( StringCapability.EnterUnderlineMode, "<underline>" )
 			.SetString( StringCapability.EnterReverseMode, "<reverse>" )
 			.SetString( StringCapability.EnterStandoutMode, "<standout>" )
+			.SetString( StringCapability.EnterItalicMode, "<italic>" )
+			.SetString( StringCapability.ExitItalicMode, "</italic>" )
+			.SetString( StringCapability.EnterBlinkMode, "<blink>" )
+			.SetString( StringCapability.EnterInvisibleMode, "<conceal>" )
+			.SetExtendedString( "smxx", "<strike>" )
+			.SetExtendedString( "rmxx", "</strike>" )
 			.SetString( StringCapability.SetForegroundColor, "<fg:%p1%d>" )
 			.SetString( StringCapability.SetBackgroundColor, "<bg:%p1%d>" )
 			.Build();
@@ -234,12 +329,12 @@ public sealed class CursesRefreshEngineTerminalTests {
 			private set;
 		}
 
-		internal string Text => this.text.ToString();
+		internal string Text => text.ToString();
 
 		internal void Clear() {
-			this.text.Clear();
-			this.writeCount = 0;
-			this.FlushCount = 0;
+			text.Clear();
+			writeCount = 0;
+			FlushCount = 0;
 		}
 
 		public ValueTask WriteTextAsync(
@@ -247,7 +342,7 @@ public sealed class CursesRefreshEngineTerminalTests {
 			CancellationToken cancellationToken = default
 		) {
 			ArgumentNullException.ThrowIfNull( value );
-			return this.WriteCoreAsync( value, cancellationToken );
+			return WriteCoreAsync( value, cancellationToken );
 		}
 
 		public ValueTask WriteTerminalStringAsync(
@@ -259,14 +354,14 @@ public sealed class CursesRefreshEngineTerminalTests {
 			if ( 0 >= affectedLines ) {
 				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
 			}
-			return this.WriteCoreAsync( value, cancellationToken );
+			return WriteCoreAsync( value, cancellationToken );
 		}
 
 		public ValueTask FlushAsync(
 			CancellationToken cancellationToken = default
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
-			this.FlushCount++;
+			FlushCount++;
 			return ValueTask.CompletedTask;
 		}
 
@@ -275,12 +370,12 @@ public sealed class CursesRefreshEngineTerminalTests {
 			CancellationToken cancellationToken
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
-			this.writeCount++;
-			if ( this.ThrowOnWrite == this.writeCount ) {
+			writeCount++;
+			if ( ThrowOnWrite == writeCount ) {
 				throw new IOException( "Synthetic refresh output failure." );
 			}
 
-			this.text.Append( value );
+			text.Append( value );
 			return ValueTask.CompletedTask;
 		}
 	}
