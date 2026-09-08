@@ -16,8 +16,10 @@ rendition policy, and refresh/damage synchronization.
 
 `Icod.DCurses 0.3.0` is the current published stable release.
 
-Development toward `1.0.0` continues on the `0.4.0` window editing and
-composition line. The current release candidate is `0.4.0-rc.1`.
+The `0.4.0` window editing and composition contract is feature-frozen and has
+passed its release-candidate gate. The source version and package version are now
+stable `0.4.0`; publication remains post-merge until the matching `main` commit
+passes the Release matrix and `v0.4.0` is created.
 
 T401-T403 established the 0.4 package foundation, explicit non-standard window
 repositioning, window-local cell inspection, rectangular fill, and
@@ -36,10 +38,10 @@ arbitrarily clearing logical dirty state could suppress refresh work still
 required by retained physical-screen knowledge.
 
 T408 is complete: the 0.4 public API, documentation, dependency boundary, and
-fresh package-consumer surface passed the regret gate on Windows, Linux, macOS,
-and canonical package validation. The public contract is feature-frozen.
-T409 is the active release-closure tranche; `0.4.0-rc.1` exists only to validate
-that frozen contract before stable-source promotion.
+fresh package-consumer surface passed the regret gate. `0.4.0-rc.1` then passed
+Windows, Linux, macOS, and canonical package/fresh-consumer validation without a
+public-contract correction. T409 has promoted that unchanged contract to stable
+`0.4.0` source for one final PR validation before merge.
 
 `0.3.0` established the Unicode terminal-cell contract: malformed UTF-16 is
 normalized before segmentation; width decisions operate on complete text
@@ -70,8 +72,8 @@ managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
 train through `1.0.0`, and `Icod.DCurses-0.4.0-Development-Roadmap.md` for the
-active window editing/composition tranche. The 0.4 checkpoints and release gates
-are recorded in:
+window editing/composition tranche. The 0.4 checkpoints and release gates are
+recorded in:
 
 - `docs/T402-T403-Window-Geometry-and-Region-Editing.md`
 - `docs/T405-Window-Composition.md`
