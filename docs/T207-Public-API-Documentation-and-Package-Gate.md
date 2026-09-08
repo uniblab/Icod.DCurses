@@ -3,9 +3,10 @@
 **Project:** `Icod.DCurses`  
 **Development line:** `0.2.0`  
 **Development version:** `0.2.0-alpha.3`  
+**Release-candidate checkpoint:** `0.2.0-rc.1`  
 **Tranche:** T207 — public API, documentation, and package regret gate  
 **Dependency baseline:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
-**Status:** Implementation complete; release-candidate validation pending
+**Status:** Complete — release-candidate Staging and package validation passed
 
 ---
 
@@ -164,18 +165,18 @@ The review explicitly accepts:
 
 No API change is required by this regret pass.
 
-## 9. Gate
+## 9. Validation result
 
-T207 is complete when:
+The `0.2.0-rc.1` gate passed:
 
-1. the public API baseline is present and accurate;
-2. XML and README documentation describe the new surface;
-3. the rich-input showcase documents and compiles the new contract;
-4. the public dependency-boundary allow-list remains unchanged;
-5. the fresh package consumer compiles and executes the new surface under all three TFMs;
-6. the structural package verifier accepts the package and dependency groups;
-7. Staging runtime tests pass on Windows, Linux, and macOS;
-8. the canonical package candidate and fresh-consumer job pass;
-9. a release-candidate version can be assigned without further API changes.
+- Staging runtime restore/build/test on Windows;
+- Staging runtime restore/build/test on Linux;
+- Staging runtime restore/build/test on macOS;
+- the canonical package candidate validation;
+- structural `.nupkg`/`.snupkg` verification;
+- isolated fresh-package consumer execution.
 
-After this gate, only T208 stable release closure remains for `0.2.0`.
+The gate passed without another API change, so T208 may assign the stable `0.2.0`
+source version.
+
+After T207, only T208 stable release closure remains for `0.2.0`.
