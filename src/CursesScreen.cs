@@ -1,5 +1,7 @@
 namespace Icod.DCurses;
 
+using Icod.DCurses.Internal;
+
 /// <summary>
 /// Owns the logical terminal frame and the standard screen window projected over that frame.
 /// </summary>
@@ -84,6 +86,12 @@ public sealed class CursesScreen {
 		int columns,
 		int rows,
 		bool preserveContents = true ) {
+		if ( columns == Columns
+			&& rows == Rows
+			&& preserveContents ) {
+			return;
+		}
+
 		CursesVirtualScreen replacement = new(
 			columns,
 			rows
@@ -104,12 +112,8 @@ public sealed class CursesScreen {
 					replacement[ row, column ] = virtualScreen[ row, column ];
 				}
 			}
-		}
 
-		if ( columns == Columns
-			&& rows == Rows
-			&& preserveContents ) {
-			return;
+			CursesCellFootprint.Repair( replacement );
 		}
 
 		int oldColumns = Columns;
