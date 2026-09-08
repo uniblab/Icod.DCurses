@@ -39,12 +39,15 @@ mouse parser, paste reader, protocol escape emitter, or second input loop.
 The first release line is driven by the requirements of `top`, `slabtop`, and
 `watch`.
 
-See `Icod.DCurses-Development-Roadmap.md` for the broader development contract
-through `1.0.0`, `docs/Icod-Terminal-T10-Integration.md` for the substrate reset,
-`docs/Icod-Terminal-T19-Rich-Input-Acceptance.md` for rich-input acceptance,
-`docs/T13B-Public-API-and-Consumer-Contract.md` for the 0.1 regret review,
-`docs/T13C-0.1.0-Stable-Release-Closure.md` for the stable release closure, and
-`docs/Public-API-Baseline-0.1.md` for the release-line API baseline.
+See `docs/Dependency-Baseline-0.1.1.md` for the authoritative current
+Terminal/TermInfo dependency and ownership baseline, `Icod.DCurses-Development-Roadmap.md`
+for the broader development contract through `1.0.0`,
+`docs/Icod-Terminal-T10-Integration.md` for the historical substrate reset,
+`docs/Icod-Terminal-T19-Rich-Input-Acceptance.md` for the historical rich-input
+acceptance checkpoint, `docs/T13B-Public-API-and-Consumer-Contract.md` for the
+0.1 regret review, `docs/T13C-0.1.0-Stable-Release-Closure.md` for the stable
+0.1.0 release closure, and `docs/Public-API-Baseline-0.1.md` for the release-line
+API baseline.
 
 ## Architecture
 
