@@ -7,7 +7,7 @@ namespace Icod.DCurses;
 /// <remarks>
 /// A pad does not own a terminal session or perform physical terminal output. Its content window reuses
 /// the standard DCurses Unicode, cell, editing, composition, drawing, and damage semantics. Selected pad
-/// rectangles can be projected into ordinary destination windows by later viewport APIs.
+/// rectangles can be projected into ordinary destination windows through <see cref="PresentTo"/>.
 /// </remarks>
 public sealed class CursesPad {
 	private readonly CursesScreen backingScreen;
@@ -48,5 +48,40 @@ public sealed class CursesPad {
 	/// </remarks>
 	public CursesWindow ContentWindow {
 		get;
+	}
+
+	/// <summary>Projects one rectangular pad viewport into an ordinary destination window.</summary>
+	/// <param name="destination">The destination logical window.</param>
+	/// <param name="padRow">The zero-based first pad row.</param>
+	/// <param name="padColumn">The zero-based first pad column.</param>
+	/// <param name="rows">The positive viewport height.</param>
+	/// <param name="columns">The positive viewport width.</param>
+	/// <param name="destinationRow">The zero-based first destination row.</param>
+	/// <param name="destinationColumn">The zero-based first destination column.</param>
+	/// <remarks>
+	/// Presentation is a logical destructive copy: ordinary pad blank cells replace destination cells.
+	/// The pad and destination cursors are preserved. Source and destination rectangles must fit their
+	/// respective logical surfaces. No physical terminal refresh is implied.
+	/// </remarks>
+	public void PresentTo(
+		CursesWindow destination,
+		int padRow,
+		int padColumn,
+		int rows,
+		int columns,
+		int destinationRow,
+		int destinationColumn
+	) {
+		ArgumentNullException.ThrowIfNull( destination );
+
+		ContentWindow.CopyRectangleTo(
+			destination,
+			padRow,
+			padColumn,
+			rows,
+			columns,
+			destinationRow,
+			destinationColumn
+		);
 	}
 }
