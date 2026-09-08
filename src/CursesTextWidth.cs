@@ -32,7 +32,7 @@ public enum CursesAmbiguousWidthPolicy {
 /// Provides the versioned Unicode display-width policy used by DCurses.
 /// </summary>
 /// <remarks>
-/// The provider uses Unicode 17.0.0 East Asian Width data for scalar width classification
+/// The provider uses Unicode 17.0.0 East Asian Width and Emoji data for scalar classification
 /// and complete Unicode text elements for emoji/keycap/flag/ZWJ presentation decisions.
 /// East Asian Ambiguous characters are narrow by default; applications which require wide
 /// Ambiguous semantics can explicitly select <see cref="WideAmbiguousInstance"/>.
@@ -174,8 +174,10 @@ public sealed class UnicodeCursesTextWidthProvider
 	}
 
 	private static bool IsEmojiCandidate( int value ) {
-		return value is >= 0x1F000 and <= 0x1FAFF
-			|| value is >= 0x2600 and <= 0x27BF;
+		return IsInRanges(
+			value,
+			UnicodeEmojiData.EmojiRanges
+		);
 	}
 
 	private static bool IsInRanges(
