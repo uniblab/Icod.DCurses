@@ -53,6 +53,7 @@ if ( 100 != logicalScreen.Columns
 }
 
 VerifyApprovedDependencySurface();
+VerifyInputSemanticSurface();
 
 if ( string.Equals(
 	Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_INTERACTIVE" ),
@@ -81,6 +82,58 @@ static void VerifyApprovedDependencySurface() {
 			"DCurses package-only dependency-surface smoke validation failed."
 		);
 	}
+}
+
+static void VerifyInputSemanticSurface() {
+	if ( 17 != (int)CursesKey.Function
+		|| 1 != (int)CursesKeyModifiers.Shift
+		|| 2 != (int)CursesKeyModifiers.Control
+		|| 4 != (int)CursesKeyModifiers.Alt ) {
+		throw new InvalidOperationException(
+			"DCurses 0.1 input enum compatibility values changed."
+		);
+	}
+
+	CursesInputProtocolOptions options = new() {
+		KeyboardReportingMode = CursesKeyboardReportingMode.EventTypes
+	};
+	if ( CursesKeyboardReportingMode.EventTypes != options.KeyboardReportingMode ) {
+		throw new InvalidOperationException(
+			"DCurses package-only keyboard-reporting surface is unavailable."
+		);
+	}
+
+	string[] requiredInputProperties = [
+		nameof( CursesInputEvent.KeyPhase ),
+		nameof( CursesInputEvent.ShiftedCharacter ),
+		nameof( CursesInputEvent.BaseLayoutCharacter ),
+		nameof( CursesInputEvent.AssociatedText )
+	];
+	foreach ( string propertyName in requiredInputProperties ) {
+		if ( null == typeof( CursesInputEvent ).GetProperty( propertyName ) ) {
+			throw new InvalidOperationException(
+				$"DCurses package-only input surface is missing {propertyName}."
+			);
+		}
+	}
+
+	if ( null == typeof( CursesInputProtocolLease ).GetProperty(
+		nameof( CursesInputProtocolLease.KeyboardReportingMode )
+	) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only protocol lease is missing KeyboardReportingMode."
+		);
+	}
+
+	_ = CursesKey.Unrecognized;
+	_ = CursesKey.MediaPlayPause;
+	_ = CursesKey.KeypadEnter;
+	_ = CursesKeyEventPhase.Release;
+	_ = CursesKeyModifiers.Super
+		| CursesKeyModifiers.Hyper
+		| CursesKeyModifiers.Meta
+		| CursesKeyModifiers.CapsLock
+		| CursesKeyModifiers.NumLock;
 }
 
 static async Task<int> RunInteractiveAsync() {
