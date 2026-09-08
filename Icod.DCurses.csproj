@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.5.0-alpha.1</Version>
+		<Version>0.5.0-alpha.2</Version>
 		<AssemblyVersion>0.5.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.5.0-alpha.1</PackageVersion>
+		<PackageVersion>0.5.0-alpha.2</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.5.0-alpha.1 begins the pads and large off-screen surfaces release line on the stable 0.4.0 window editing/composition contract. The initial foundation introduces a managed pad backing surface that reuses CursesWindow Unicode, cell, editing, composition, drawing, and damage semantics without owning terminal I/O. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.5.0-alpha.2 adds stateful independently pannable CursesPadViewport projections on top of the green alpha.1 pad storage and destructive viewport-presentation foundation. Multiple viewports can bind one pad to different destination windows without global pad scroll state. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
