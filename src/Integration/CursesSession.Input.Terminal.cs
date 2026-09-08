@@ -134,7 +134,7 @@ public sealed partial class CursesSession {
 		};
 	}
 
-	private static CursesKey ConvertKey(
+	internal static CursesKey ConvertKey(
 		TerminalKey key
 	) {
 		return key switch {
@@ -223,7 +223,7 @@ public sealed partial class CursesSession {
 		};
 	}
 
-	private static CursesKeyEventPhase ConvertKeyPhase(
+	internal static CursesKeyEventPhase ConvertKeyPhase(
 		TerminalKeyEventPhase phase
 	) {
 		return phase switch {
@@ -294,7 +294,7 @@ public sealed partial class CursesSession {
 		);
 	}
 
-	private static CursesKeyModifiers ConvertModifiers(
+	internal static CursesKeyModifiers ConvertModifiers(
 		TerminalKeyModifiers modifiers
 	) {
 		CursesKeyModifiers converted = CursesKeyModifiers.None;
