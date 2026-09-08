@@ -17,7 +17,7 @@ rendition policy, and refresh/damage synchronization.
 `Icod.DCurses 0.3.0` is the current published stable release.
 
 Development toward `1.0.0` continues on the `0.4.0` window editing and
-composition line. The current development package is `0.4.0-alpha.6`.
+composition line. The current release candidate is `0.4.0-rc.1`.
 
 T401-T403 established the 0.4 package foundation, explicit non-standard window
 repositioning, window-local cell inspection, rectangular fill, and
@@ -33,11 +33,13 @@ release.
 T407 completes the feature-side release with safe range-oriented damage marking
 and querying. A public untouch operation is deliberately omitted because
 arbitrarily clearing logical dirty state could suppress refresh work still
-required by retained physical-screen knowledge. The complete T401-T407 feature
-contract is green on Windows, Linux, macOS, and fresh package-only validation.
+required by retained physical-screen knowledge.
 
-T408 is now the active public API/documentation/package regret gate. No new
-feature family enters before the 0.4 release candidate.
+T408 is complete: the 0.4 public API, documentation, dependency boundary, and
+fresh package-consumer surface passed the regret gate on Windows, Linux, macOS,
+and canonical package validation. The public contract is feature-frozen.
+T409 is the active release-closure tranche; `0.4.0-rc.1` exists only to validate
+that frozen contract before stable-source promotion.
 
 `0.3.0` established the Unicode terminal-cell contract: malformed UTF-16 is
 normalized before segmentation; width decisions operate on complete text
@@ -68,14 +70,15 @@ managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
 train through `1.0.0`, and `Icod.DCurses-0.4.0-Development-Roadmap.md` for the
-active window editing/composition tranche. The current 0.4 checkpoints are
-recorded in:
+active window editing/composition tranche. The 0.4 checkpoints and release gates
+are recorded in:
 
 - `docs/T402-T403-Window-Geometry-and-Region-Editing.md`
 - `docs/T405-Window-Composition.md`
 - `docs/T406-Geometric-Line-and-Border-Drawing.md`
 - `docs/T407-Damage-Ranges-and-Editing-Acceptance.md`
 - `docs/T408-Public-API-Documentation-and-Package-Regret-Gate.md`
+- `docs/T409-0.4.0-Stable-Release-Closure.md`
 - `docs/Public-API-Baseline-0.4.md`
 
 The completed 0.3 Unicode release is recorded in
