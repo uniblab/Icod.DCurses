@@ -31,48 +31,34 @@ public sealed class CursesInputSemanticParityTests {
 	}
 
 	[Fact]
-	public void CursesKeyVocabularyCoversEveryStableTerminalKey() {
+	public void EveryStableTerminalKeyUsesTheProductionCursesMapping() {
 		foreach ( TerminalKey terminalKey in Enum.GetValues<TerminalKey>() ) {
-			Assert.True(
-				Enum.TryParse(
-					terminalKey.ToString(),
-					out CursesKey cursesKey
-				),
-				$"CursesKey is missing TerminalKey.{terminalKey}."
-			);
+			CursesKey cursesKey = CursesSession.ConvertKey( terminalKey );
+			Assert.Equal( terminalKey.ToString(), cursesKey.ToString() );
 			Assert.True( Enum.IsDefined( cursesKey ) );
 		}
 	}
 
 	[Fact]
-	public void ModifierVocabularyPreservesLegacyBitsAndCoversTerminalFlags() {
+	public void EveryTerminalModifierCombinationUsesTheProductionCursesMapping() {
 		Assert.Equal( 0, (int)CursesKeyModifiers.None );
 		Assert.Equal( 1, (int)CursesKeyModifiers.Shift );
 		Assert.Equal( 2, (int)CursesKeyModifiers.Control );
 		Assert.Equal( 4, (int)CursesKeyModifiers.Alt );
 
-		foreach ( TerminalKeyModifiers terminalModifier in Enum.GetValues<TerminalKeyModifiers>() ) {
-			Assert.True(
-				Enum.TryParse(
-					terminalModifier.ToString(),
-					out CursesKeyModifiers cursesModifier
-				),
-				$"CursesKeyModifiers is missing TerminalKeyModifiers.{terminalModifier}."
+		for ( int mask = 0; mask <= 0xff; mask++ ) {
+			CursesKeyModifiers converted = CursesSession.ConvertModifiers(
+				(TerminalKeyModifiers)mask
 			);
-			Assert.Equal( (int)terminalModifier, (int)cursesModifier );
+			Assert.Equal( mask, (int)converted );
 		}
 	}
 
 	[Fact]
-	public void KeyPhaseVocabularyCoversEveryStableTerminalPhase() {
+	public void EveryStableTerminalKeyPhaseUsesTheProductionCursesMapping() {
 		foreach ( TerminalKeyEventPhase terminalPhase in Enum.GetValues<TerminalKeyEventPhase>() ) {
-			Assert.True(
-				Enum.TryParse(
-					terminalPhase.ToString(),
-					out CursesKeyEventPhase cursesPhase
-				),
-				$"CursesKeyEventPhase is missing TerminalKeyEventPhase.{terminalPhase}."
-			);
+			CursesKeyEventPhase cursesPhase = CursesSession.ConvertKeyPhase( terminalPhase );
+			Assert.Equal( terminalPhase.ToString(), cursesPhase.ToString() );
 			Assert.Equal( (int)terminalPhase, (int)cursesPhase );
 		}
 	}
@@ -106,6 +92,21 @@ public sealed class CursesInputSemanticParityTests {
 		);
 		Assert.Equal( CursesKeyEventPhase.Repeat, input.KeyPhase );
 		Assert.Null( input.FunctionKeyNumber );
+	}
+
+	[Fact]
+	public void FunctionKeyNumberAcceptsCompleteTerminalRange() {
+		CursesInputEvent first = CursesInputEvent.FromKey(
+			CursesKey.Function,
+			functionKeyNumber: 0
+		);
+		CursesInputEvent last = CursesInputEvent.FromKey(
+			CursesKey.Function,
+			functionKeyNumber: 63
+		);
+
+		Assert.Equal( 0, first.FunctionKeyNumber );
+		Assert.Equal( 63, last.FunctionKeyNumber );
 	}
 
 	[Fact]
