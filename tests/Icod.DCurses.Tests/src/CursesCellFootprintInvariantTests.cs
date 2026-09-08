@@ -45,36 +45,103 @@ public sealed class CursesCellFootprintInvariantTests {
 	}
 
 	[Fact]
-	public void RepairBlanksOrphanedContinuation() {
+	public void VirtualScreenRejectsOrphanContinuation() {
 		CursesVirtualScreen screen = new( 3, 1 );
-		screen[ 0, 1 ] = CursesCell.Continuation();
 
-		Assert.Throws<InvalidOperationException>(
-			() => CursesCellFootprint.Validate( screen )
+		Assert.Throws<ArgumentException>(
+			() => screen[ 0, 1 ] = CursesCell.Continuation()
 		);
-
-		CursesCellFootprint.Repair( screen );
-
-		Assert.True( screen[ 0, 1 ].IsBlank );
 		CursesCellFootprint.Validate( screen );
 	}
 
 	[Fact]
-	public void RepairBlanksLeaderWithoutContinuation() {
+	public void VirtualScreenRejectsWideLeaderInFinalColumn() {
 		CursesScreen source = new( 4, 1 );
 		source.StandardWindow.Write( "\u754C" );
 		CursesCell leader = source.VirtualScreen[ 0, 0 ];
-		CursesVirtualScreen damaged = new( 2, 1 );
-		damaged[ 0, 1 ] = leader;
+		CursesVirtualScreen destination = new( 2, 1 );
 
-		Assert.Throws<InvalidOperationException>(
-			() => CursesCellFootprint.Validate( damaged )
+		Assert.Throws<ArgumentException>(
+			() => destination[ 0, 1 ] = leader
+		);
+		CursesCellFootprint.Validate( destination );
+	}
+
+	[Fact]
+	public void CopyingWideLeaderInstallsMatchingContinuation() {
+		CursesScreen source = new( 4, 1 );
+		source.StandardWindow.Write( "\u754C" );
+		CursesCell leader = source.VirtualScreen[ 0, 0 ];
+		CursesVirtualScreen destination = new( 4, 1 );
+
+		destination[ 0, 1 ] = leader;
+
+		Assert.Equal( leader, destination[ 0, 1 ] );
+		Assert.True( destination[ 0, 2 ].IsContinuation );
+		Assert.Equal( leader.Style, destination[ 0, 2 ].Style );
+		CursesCellFootprint.Validate( destination );
+	}
+
+	[Fact]
+	public void ReplacingContinuationRepairsLeader() {
+		CursesScreen screen = new( 4, 1 );
+		screen.StandardWindow.Write( "\u754C" );
+
+		screen.VirtualScreen[ 0, 1 ] = new CursesCell( "X" );
+
+		Assert.True( screen.VirtualScreen[ 0, 0 ].IsBlank );
+		Assert.Equal( "X", screen.VirtualScreen[ 0, 1 ].Content );
+		CursesCellFootprint.Validate( screen.VirtualScreen );
+	}
+
+	[Fact]
+	public void ReplacingLeaderRepairsContinuation() {
+		CursesScreen screen = new( 4, 1 );
+		screen.StandardWindow.Write( "\u754C" );
+
+		screen.VirtualScreen[ 0, 0 ] = new CursesCell( "X" );
+
+		Assert.Equal( "X", screen.VirtualScreen[ 0, 0 ].Content );
+		Assert.True( screen.VirtualScreen[ 0, 1 ].IsBlank );
+		CursesCellFootprint.Validate( screen.VirtualScreen );
+	}
+
+	[Fact]
+	public void ClearingWindowThatBeginsOnContinuationRepairsLeaderOutsideWindow() {
+		CursesScreen screen = new( 5, 1 );
+		screen.StandardWindow.Write( "\u754CAB" );
+		CursesWindow window = screen.CreateWindow(
+			0,
+			1,
+			1,
+			2
 		);
 
-		CursesCellFootprint.Repair( damaged );
+		window.Clear();
 
-		Assert.True( damaged[ 0, 1 ].IsBlank );
-		CursesCellFootprint.Validate( damaged );
+		Assert.True( screen.VirtualScreen[ 0, 0 ].IsBlank );
+		Assert.True( screen.VirtualScreen[ 0, 1 ].IsBlank );
+		CursesCellFootprint.Validate( screen.VirtualScreen );
+	}
+
+	[Fact]
+	public void ClearingWindowThatEndsOnLeaderRepairsContinuationOutsideWindow() {
+		CursesScreen screen = new( 5, 1 );
+		CursesWindow standard = screen.StandardWindow;
+		standard.Move( 0, 2 );
+		standard.Write( "\u754C" );
+		CursesWindow window = screen.CreateWindow(
+			0,
+			1,
+			1,
+			2
+		);
+
+		window.Clear();
+
+		Assert.True( screen.VirtualScreen[ 0, 2 ].IsBlank );
+		Assert.True( screen.VirtualScreen[ 0, 3 ].IsBlank );
+		CursesCellFootprint.Validate( screen.VirtualScreen );
 	}
 
 	[Fact]
