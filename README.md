@@ -1,6 +1,6 @@
 # Icod.DCurses
 
-![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.3.0/icod_tui_toolchain.jpg)
+![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.4.0/icod_tui_toolchain.jpg)
 
 `Icod.DCurses` is a managed, cross-platform curses-like terminal UI library for
 .NET.
@@ -9,52 +9,47 @@ The library sits above `Icod.TermInfo` and `Icod.Terminal`. `Icod.TermInfo`
 remains the immutable terminal-capability authority; `Icod.Terminal` owns the
 live terminal session, host mode, dimensions, lifecycle, input decoding, and
 reversible presentation and input-protocol leases. `Icod.DCurses` owns
-curses-shaped events, virtual screens and windows, terminal cells and styles,
-rendition policy, and refresh/damage synchronization.
+curses-shaped events, virtual screens and windows, pads and viewports, terminal
+cells and styles, rendition policy, and refresh/damage synchronization.
 
 ## Status
 
-`Icod.DCurses 0.3.0` is the current published stable release.
+`Icod.DCurses 0.4.0` is the current published stable release.
 
-The `0.4.0` window editing and composition contract is feature-frozen and has
-passed its release-candidate gate. The source version and package version are now
-stable `0.4.0`; publication remains post-merge until the matching `main` commit
-passes the Release matrix and `v0.4.0` is created.
+Development toward `1.0.0` continues on the `0.5.0` pads and large-surfaces
+line. The current development package is `0.5.0-alpha.4`.
 
-T401-T403 established the 0.4 package foundation, explicit non-standard window
-repositioning, window-local cell inspection, rectangular fill, and
-clear-to-beginning-of-line.
+T501-T503 established the pad backing surface and direct rectangular
+presentation. A `CursesPad` owns a large off-screen logical surface and exposes a
+normal `CursesWindow` through `ContentWindow`, so the stable Unicode, editing,
+composition, drawing, and damage contracts are reused rather than reimplemented.
 
-T404 adds Unicode-safe cell and line insertion/deletion using
-snapshot-transform-commit semantics. T405 adds deterministic destructive copy
-and blank-transparent overlay, including same-window overlap. T406 adds
-geometric horizontal/vertical lines and explicit border construction while
-leaving capability-aware line-glyph selection to the planned 0.6 presentation
-release.
+T504 added independently pannable `CursesPadViewport` instances with `SetSource`,
+`PanBy`, and `Present`. One pad may be shown through multiple viewports without a
+global pad scroll position.
 
-T407 completes the feature-side release with safe range-oriented damage marking
-and querying. A public untouch operation is deliberately omitted because
-arbitrarily clearing logical dirty state could suppress refresh work still
-required by retained physical-screen knowledge.
+T505 deliberately reuses `ContentWindow.CreateSubwindow(...)` as the shared
+derived-pad-view contract instead of adding a redundant `CursesSubpad` type.
+T506 adds independent per-viewport `HasVisiblePadChanges` observation. There is
+no public global pad-clean/acknowledge operation, so one viewport cannot hide
+changes from another.
 
-T408 is complete: the 0.4 public API, documentation, dependency boundary, and
-fresh package-consumer surface passed the regret gate. `0.4.0-rc.1` then passed
-Windows, Linux, macOS, and canonical package/fresh-consumer validation without a
-public-contract correction. T409 has promoted that unchanged contract to stable
-`0.4.0` source for one final PR validation before merge.
+T507 is complete and green on Windows, Linux, macOS, and package-only validation.
+It covers destination resize/reposition, all pad corners, wide-cell boundaries,
+very tall and wide pads, repeated panning, editor-like mutations, and fresh
+package consumption.
 
-`0.3.0` established the Unicode terminal-cell contract: malformed UTF-16 is
-normalized before segmentation; width decisions operate on complete text
-elements; Unicode 17.0.0 East Asian Width and Emoji-property data are generated
-and checked in; East Asian Ambiguous policy is explicit; and public
-column-measurement/truncation/slicing helpers share the same rules as window
-writes.
+T508 is the active public API/documentation/package regret gate. The 0.5 public
+surface is feature-frozen. Per-cell viewport revision tracking is internal and
+enabled only for pad backing surfaces; ordinary logical screens retain their
+pre-0.5 memory profile.
 
-`0.2.0` completed stable `Icod.Terminal 1.0.0` semantic-input parity: the curses
-facade carries the complete stable key vocabulary, modifier state,
-press/repeat/release phases, modern character metadata, and optional keyboard
-reporting while keeping raw terminal decoding and protocol lifecycle in
-`Icod.Terminal`.
+Earlier stable releases established:
+
+- `0.4.0`: Unicode-safe window geometry, editing, composition, drawing, and
+  damage-range operations;
+- `0.3.0`: Unicode 17 terminal-cell semantics and column-safe text helpers;
+- `0.2.0`: complete stable `Icod.Terminal 1.0.0` semantic input parity.
 
 The dependency baseline remains:
 
@@ -71,17 +66,19 @@ The first release line was driven by the requirements of `top`, `slabtop`, and
 managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
-train through `1.0.0`, and `Icod.DCurses-0.4.0-Development-Roadmap.md` for the
-window editing/composition tranche. The 0.4 checkpoints and release gates are
-recorded in:
+train through `1.0.0`, and `Icod.DCurses-0.5.0-Development-Roadmap.md` for the
+active pad/large-surface tranche. Current 0.5 decisions and gates are recorded
+in:
 
-- `docs/T402-T403-Window-Geometry-and-Region-Editing.md`
-- `docs/T405-Window-Composition.md`
-- `docs/T406-Geometric-Line-and-Border-Drawing.md`
-- `docs/T407-Damage-Ranges-and-Editing-Acceptance.md`
-- `docs/T408-Public-API-Documentation-and-Package-Regret-Gate.md`
-- `docs/T409-0.4.0-Stable-Release-Closure.md`
-- `docs/Public-API-Baseline-0.4.md`
+- `docs/T504-Stateful-Pad-Viewport-and-Panning.md`
+- `docs/T505-T506-Derived-Pad-Views-and-Damage.md`
+- `docs/T507-Resize-Clipping-and-Large-Surface-Acceptance.md`
+- `docs/T508-Public-API-Documentation-and-Package-Regret-Gate.md`
+- `docs/Public-API-Baseline-0.5.md`
+
+The completed 0.4 window-editing release is recorded in
+`Icod.DCurses-0.4.0-Development-Roadmap.md`, its T402-T409 documents, and
+`docs/Public-API-Baseline-0.4.md`.
 
 The completed 0.3 Unicode release is recorded in
 `Icod.DCurses-0.3.0-Development-Roadmap.md`, its T302-T308 documents, and
@@ -99,20 +96,20 @@ baseline inherited by later releases.
 ## Architecture
 
 ```text
-top / slabtop / watch / other TUIs
-                 |
-            Icod.DCurses
-     windows / cells / refresh
-       rendition / curses events
-                 |
-            Icod.Terminal
- session / input / lifecycle / dimensions
- presentation / input-protocol leases
-                 |
-            Icod.TermInfo
-      terminal capability model
-                 |
-            terminal / tty
+top / slabtop / watch / editors / pagers / other TUIs
+                         |
+                    Icod.DCurses
+       windows / pads / cells / refresh
+         rendition / curses events
+                         |
+                    Icod.Terminal
+      session / input / lifecycle / dimensions
+       presentation / input-protocol leases
+                         |
+                    Icod.TermInfo
+             terminal capability model
+                         |
+                  terminal / tty
 ```
 
 `Icod.DCurses` does not hard-code one terminal family. Terminal-specific output
@@ -136,7 +133,7 @@ The implementation targets:
 The current published stable package is:
 
 ```text
-dotnet add package Icod.DCurses --version 0.3.0
+dotnet add package Icod.DCurses --version 0.4.0
 ```
 
 ## Quick start
@@ -168,6 +165,54 @@ CursesEvent terminalEvent = await session.ReadEventAsync();
 The session owns the presentation state it enters and restores that state when
 disposed. Applications should consume terminal input and lifecycle activity
 through `CursesSession` rather than adding a parallel terminal reader.
+
+## Pads and large surfaces (`0.5`)
+
+Pads are in-memory off-screen logical surfaces. They reuse ordinary
+`CursesWindow` editing semantics and can be larger than the destination terminal
+screen:
+
+```csharp
+CursesPad pad = new( 200, 5_000 );
+CursesWindow content = pad.ContentWindow;
+
+content.Move( 100, 20 );
+content.Write( "A界B — large logical document" );
+
+CursesWindow editor = session.StandardScreen;
+CursesPadViewport viewport = pad.CreateViewport(
+    editor,
+    padRow: 95,
+    padColumn: 10,
+    rows: 20,
+    columns: 70,
+    destinationRow: 1,
+    destinationColumn: 2
+);
+
+viewport.Present();
+await session.RefreshAsync();
+
+viewport.PanBy( 10, 0 );
+if ( viewport.HasVisiblePadChanges ) {
+    viewport.Present();
+    await session.RefreshAsync();
+}
+```
+
+`HasVisiblePadChanges` reports whether the currently visible **pad source** moved
+or changed since that viewport last presented. It does not claim ownership of
+the destination. `Present()` remains authoritative and will restore the viewport
+if another logical window overwrote its destination region.
+
+Multiple viewports can observe one pad independently. Presenting one does not
+acknowledge changes for another. Shared pad-local views use
+`pad.ContentWindow.CreateSubwindow(...)`; no separate subpad hierarchy is
+required.
+
+Pads do not own terminal sessions or physical refresh state, and they do not
+resize merely because the terminal resizes. Viewport geometry is revalidated
+against the current destination on every presentation.
 
 ## Window editing and composition (`0.4`)
 
