@@ -56,6 +56,7 @@ VerifyApprovedDependencySurface();
 VerifyInputSemanticSurface();
 VerifyUnicodeWidthSurface();
 VerifyColumnTextSurface();
+VerifyWindowEditingSurface();
 
 if ( string.Equals(
 	Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_INTERACTIVE" ),
@@ -184,6 +185,110 @@ static void VerifyColumnTextSurface() {
 	) ) {
 		throw new InvalidOperationException(
 			"DCurses package-only column helpers did not honor the supplied width provider."
+		);
+	}
+}
+
+static void VerifyWindowEditingSurface() {
+	CursesScreen logical = new(
+		16,
+		8
+	);
+	CursesWindow source = logical.CreateWindow(
+		1,
+		1,
+		4,
+		8
+	);
+	source.Reposition(
+		2,
+		2
+	);
+	source.FillRectangle(
+		0,
+		0,
+		4,
+		8,
+		CursesCell.Blank()
+	);
+	source.Move(
+		0,
+		0
+	);
+	source.Write( "A\u754CBC" );
+	if ( "A" != source.GetCell( 0, 0 ).Content ) {
+		throw new InvalidOperationException(
+			"DCurses package-only window inspection surface failed validation."
+		);
+	}
+
+	source.Move(
+		0,
+		1
+	);
+	source.InsertCells();
+	source.DeleteCells();
+	source.Move(
+		1,
+		0
+	);
+	source.InsertLines();
+	source.DeleteLines();
+	source.ClearToBeginningOfLine();
+
+	CursesWindow destination = logical.CreateWindow(
+		1,
+		1,
+		4,
+		8
+	);
+	source.CopyRectangleTo(
+		destination,
+		0,
+		0,
+		2,
+		4,
+		0,
+		0
+	);
+	source.OverlayRectangleTo(
+		destination,
+		0,
+		0,
+		2,
+		4,
+		1,
+		2
+	);
+	destination.DrawHorizontalLine(
+		2,
+		1,
+		5,
+		new CursesCell( "-" )
+	);
+	destination.DrawVerticalLine(
+		0,
+		7,
+		4,
+		new CursesCell( "|" )
+	);
+	destination.DrawBorder(
+		new CursesCell( "-" ),
+		new CursesCell( "|" ),
+		new CursesCell( "+" ),
+		new CursesCell( "+" ),
+		new CursesCell( "+" ),
+		new CursesCell( "+" )
+	);
+	destination.TouchRegion(
+		1,
+		1,
+		2,
+		3
+	);
+	if ( !destination.IsRegionTouched( 1, 1, 2, 3 ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only damage-range surface failed validation."
 		);
 	}
 }
