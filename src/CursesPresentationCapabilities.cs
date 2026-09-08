@@ -18,7 +18,7 @@ public readonly record struct CursesPresentationCapabilities {
 	private const int NoColorVideoDim = 16;
 	private const int NoColorVideoBold = 32;
 	private const int NoColorVideoInvisible = 64;
-	private const int NoColorVideoItalic = 2048;
+	private const int NoColorVideoItalic = 32768;
 
 	internal CursesPresentationCapabilities(
 		int indexedColorCount,
@@ -175,6 +175,9 @@ public readonly record struct CursesPresentationCapabilities {
 			null != terminal.GetString( StringCapability.AlternateCharacterSet )
 			&& null != terminal.GetString( StringCapability.EnterAlternateCharacterSetMode )
 			&& null != terminal.GetString( StringCapability.ExitAlternateCharacterSetMode );
+		CursesTextAttributes colorRestrictedAttributes =
+			TranslateNoColorVideoMask( colors.NoColorVideoMask )
+				& supportedAttributes;
 
 		return new CursesPresentationCapabilities(
 			colors.IndexedColorCount,
@@ -184,7 +187,7 @@ public readonly record struct CursesPresentationCapabilities {
 			colors.HasOriginalColorPair
 				|| null != terminal.GetString( StringCapability.ExitAttributeMode ),
 			supportedAttributes,
-			TranslateNoColorVideoMask( colors.NoColorVideoMask ),
+			colorRestrictedAttributes,
 			supportsAlternateCharacterSet,
 			null != terminal.GetString( StringCapability.CursorInvisible ),
 			null != terminal.GetString( StringCapability.CursorNormal ),
