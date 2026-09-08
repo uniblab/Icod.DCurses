@@ -2,9 +2,9 @@
 
 **Project:** `Icod.DCurses`  
 **Development line:** `0.4.0`  
-**Current development version:** `0.4.0-alpha.6`  
+**Current development version:** `0.4.0-rc.1`  
 **Stable baseline:** `0.3.0`  
-**Status:** Regret review complete; release-candidate validation pending
+**Status:** Complete; release-candidate promotion approved
 
 ## 1. Purpose
 
@@ -92,7 +92,7 @@ No direct dependency is added and the approved public Terminal/TermInfo type all
 
 ## 9. Package-consumer review
 
-The fresh package-only consumer now executes the 0.4 surface from the generated `.nupkg`, including:
+The fresh package-only consumer executes the 0.4 surface from the generated `.nupkg`, including:
 
 - repositioning;
 - cell inspection and rectangle fill;
@@ -104,9 +104,9 @@ The fresh package-only consumer now executes the 0.4 surface from the generated 
 
 This is in addition to the established input and Unicode package checks.
 
-## 10. Release-candidate gate
+## 10. Gate result
 
-T408 may close and `0.4.0-rc.1` may be prepared when the complete alpha.6 contract passes:
+The complete `0.4.0-alpha.6` contract passed:
 
 - Windows Staging build/tests;
 - Linux Staging build/tests;
@@ -116,4 +116,6 @@ T408 may close and `0.4.0-rc.1` may be prepared when the complete alpha.6 contra
 - public dependency-boundary tests;
 - the frozen 0.4 public API contract tests.
 
-No additional feature family should enter after release-candidate promotion.
+No public-contract correction was required. T408 is closed and the unchanged feature contract is promoted to `0.4.0-rc.1` for T409 release closure.
+
+No additional feature family may enter after this point.
