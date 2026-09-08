@@ -138,7 +138,12 @@ public sealed class CursesMouseEvent {
 		const CursesKeyModifiers known =
 			CursesKeyModifiers.Shift
 			| CursesKeyModifiers.Control
-			| CursesKeyModifiers.Alt;
+			| CursesKeyModifiers.Alt
+			| CursesKeyModifiers.Super
+			| CursesKeyModifiers.Hyper
+			| CursesKeyModifiers.Meta
+			| CursesKeyModifiers.CapsLock
+			| CursesKeyModifiers.NumLock;
 
 		if ( 0 != ( modifiers & ~known ) ) {
 			throw new ArgumentOutOfRangeException(

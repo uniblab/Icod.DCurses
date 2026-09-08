@@ -49,28 +49,46 @@ demonstration rather than a Unicode-conformance test.
 
 ## Icod.DCurses.Input.Showcase
 
-`Icod.DCurses.Input.Showcase` originated as the live Icod.Terminal 0.2 rich-input
-acceptance consumer and remains the 0.1 rich-input showcase on the current
-`Icod.Terminal 1.0.0` / `Icod.TermInfo 1.10.0` baseline. It independently
-requests bracketed paste, focus reporting, and mouse button reporting through
-`CursesSession.AcquireInputProtocolsAsync`, then shows whether each protocol is
-available for the selected terminal profile.
+`Icod.DCurses.Input.Showcase` is the live rich-input inspector for the current
+`Icod.Terminal 1.0.0` / `Icod.TermInfo 1.10.0` baseline. During the `0.2.0`
+development line it also demonstrates the expanded Terminal 1.0 keyboard
+semantics carried through the curses facade.
 
-All input still arrives through the ordinary `CursesSession.ReadEventAsync`
-stream. The showcase reports:
+At startup the showcase independently requests:
 
-- ordinary text and named keys;
-- Shift, Control, and Alt modifier combinations;
+- keyboard event-type reporting;
+- bracketed-paste reporting;
+- focus reporting;
+- mouse button reporting.
+
+Keyboard reporting uses `CursesKeyboardReportingMode.EventTypes` rather than
+`AllKeys` so a supporting terminal can report Press/Repeat/Release information
+without forcing every ordinary text-producing key into a key-event escape
+sequence. Every protocol request remains optional. Unsupported requests are
+reported as controlled unavailable results and do not prevent the remaining
+showcase from running.
+
+All input arrives through the ordinary `CursesSession.ReadEventAsync` stream.
+The inspector displays:
+
+- ordinary text and the complete semantic key vocabulary;
+- Press, Repeat, and Release key phases where reported;
+- Shift, Control, Alt, Super, Hyper, Meta, CapsLock, and NumLock modifier state;
 - numbered function keys;
+- character, shifted-layout character, and base-layout character identities;
+- associated text supplied by modern keyboard protocols;
 - normalized mouse action/button/modifier data and zero-based cell coordinates;
 - focus gained/lost events;
 - bracketed-paste begin/data/end framing;
 - lifecycle notifications such as resize.
 
-Useful interactions to try:
+Useful interactions to try depend on the active terminal and negotiated keyboard
+protocol. Representative examples include:
 
 ```text
 Shift+Tab / Ctrl+R / Shift+F7
+Keypad and media keys when the host reports them
+Modifier-key combinations including Super/Meta where supported
 Paste several lines of text
 Click and use the mouse wheel
 Move focus away from the terminal and back
@@ -78,12 +96,13 @@ Resize the terminal
 Escape
 ```
 
-`Q` exits the inspector. Escape deliberately does not exit because Escape itself,
+`Q` exits the inspector whether it arrives as ordinary text or as a semantic
+Character key event. Escape deliberately does not exit because Escape itself,
 and Escape-prefixed input, remain useful decoder observations.
 
-A protocol reported as unavailable is not automatically a failure. DCurses uses
-the controlled result from `Icod.Terminal`; the showcase does not install a
-private parser or hard-coded fallback sequence for an unavailable protocol.
+The showcase never installs a private keyboard parser, mouse parser, paste
+reader, protocol escape emitter, or fallback negotiation path. All byte-stream
+decoding and protocol lifecycle remain owned by `Icod.Terminal`.
 
 ```text
 dotnet run --project samples/Icod.DCurses.Input.Showcase/Icod.DCurses.Input.Showcase.csproj

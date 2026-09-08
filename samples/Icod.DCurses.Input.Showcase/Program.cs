@@ -16,6 +16,15 @@ List<string> recentEvents = [];
 
 await TryAcquireInputProtocolAsync(
 	session,
+	"Keyboard event types",
+	new CursesInputProtocolOptions {
+		KeyboardReportingMode = CursesKeyboardReportingMode.EventTypes
+	},
+	protocolLeases,
+	protocolStatus
+);
+await TryAcquireInputProtocolAsync(
+	session,
 	"Bracketed paste",
 	new CursesInputProtocolOptions {
 		BracketedPaste = true
@@ -46,7 +55,11 @@ long eventNumber = 0;
 string lastKind = "None";
 string lastDetail = "-";
 string lastKey = "-";
+string lastPhase = "-";
 string lastCharacter = "-";
+string lastShiftedCharacter = "-";
+string lastBaseLayoutCharacter = "-";
+string lastAssociatedText = "-";
 string lastModifiers = "-";
 string lastFunctionKey = "-";
 string lastLifecycle = "-";
@@ -58,7 +71,11 @@ DrawInspector(
 	lastKind,
 	lastDetail,
 	lastKey,
+	lastPhase,
 	lastCharacter,
+	lastShiftedCharacter,
+	lastBaseLayoutCharacter,
+	lastAssociatedText,
 	lastModifiers,
 	lastFunctionKey,
 	lastLifecycle,
@@ -90,9 +107,25 @@ try {
 					? input.Key.ToString()
 					: "-"
 				;
+				lastPhase = input.KeyPhase.HasValue
+					? input.KeyPhase.Value.ToString()
+					: "-"
+				;
 				lastCharacter = input.Character.HasValue
 					? FormatRune( input.Character.Value )
 					: "-"
+				;
+				lastShiftedCharacter = input.ShiftedCharacter.HasValue
+					? FormatRune( input.ShiftedCharacter.Value )
+					: "-"
+				;
+				lastBaseLayoutCharacter = input.BaseLayoutCharacter.HasValue
+					? FormatRune( input.BaseLayoutCharacter.Value )
+					: "-"
+				;
+				lastAssociatedText = null == input.AssociatedText
+					? "-"
+					: FormatAssociatedText( input.AssociatedText )
 				;
 				lastModifiers = CursesKeyModifiers.None == input.Modifiers
 					? "-"
@@ -114,9 +147,9 @@ try {
 					break;
 				}
 
-				if ( CursesInputEventKind.Text == input.Kind
-					&& input.Character.HasValue
-					&& input.Character.Value.Value is 'q' or 'Q' ) {
+				if ( input.Character.HasValue
+					&& input.Character.Value.Value is 'q' or 'Q'
+					&& input.Kind is CursesInputEventKind.Text or CursesInputEventKind.Key ) {
 					running = false;
 				}
 				break;
@@ -130,7 +163,11 @@ try {
 				lastKind = "Lifecycle";
 				lastDetail = $"Lifecycle {lifecycle.Kind}";
 				lastKey = "-";
+				lastPhase = "-";
 				lastCharacter = "-";
+				lastShiftedCharacter = "-";
+				lastBaseLayoutCharacter = "-";
+				lastAssociatedText = "-";
 				lastModifiers = "-";
 				lastFunctionKey = "-";
 				lastLifecycle = lifecycle.Kind.ToString();
@@ -150,7 +187,11 @@ try {
 				lastKind = "Timeout";
 				lastDetail = "Timeout";
 				lastKey = "-";
+				lastPhase = "-";
 				lastCharacter = "-";
+				lastShiftedCharacter = "-";
+				lastBaseLayoutCharacter = "-";
+				lastAssociatedText = "-";
 				lastModifiers = "-";
 				lastFunctionKey = "-";
 				lastLifecycle = "-";
@@ -173,7 +214,11 @@ try {
 			lastKind,
 			lastDetail,
 			lastKey,
+			lastPhase,
 			lastCharacter,
+			lastShiftedCharacter,
+			lastBaseLayoutCharacter,
+			lastAssociatedText,
 			lastModifiers,
 			lastFunctionKey,
 			lastLifecycle,
@@ -219,7 +264,11 @@ static void DrawInspector(
 	string lastKind,
 	string lastDetail,
 	string lastKey,
+	string lastPhase,
 	string lastCharacter,
+	string lastShiftedCharacter,
+	string lastBaseLayoutCharacter,
+	string lastAssociatedText,
 	string lastModifiers,
 	string lastFunctionKey,
 	string lastLifecycle,
@@ -230,7 +279,11 @@ static void DrawInspector(
 	ArgumentNullException.ThrowIfNull( lastKind );
 	ArgumentNullException.ThrowIfNull( lastDetail );
 	ArgumentNullException.ThrowIfNull( lastKey );
+	ArgumentNullException.ThrowIfNull( lastPhase );
 	ArgumentNullException.ThrowIfNull( lastCharacter );
+	ArgumentNullException.ThrowIfNull( lastShiftedCharacter );
+	ArgumentNullException.ThrowIfNull( lastBaseLayoutCharacter );
+	ArgumentNullException.ThrowIfNull( lastAssociatedText );
 	ArgumentNullException.ThrowIfNull( lastModifiers );
 	ArgumentNullException.ThrowIfNull( lastFunctionKey );
 	ArgumentNullException.ThrowIfNull( lastLifecycle );
@@ -261,39 +314,34 @@ static void DrawInspector(
 
 	WriteLine(
 		screen,
-		6,
-		"Try modified keys, paste, mouse clicks/wheel, focus changes, and resize."
+		7,
+		"Try modern/modified keys, paste, mouse, focus changes, and resize."
 	);
 	WriteLine(
 		screen,
-		7,
+		8,
 		"Events come through CursesSession.ReadEventAsync. Q exits."
 	);
 	WriteLine(
 		screen,
-		9,
+		10,
 		"Last decoded event",
 		titleStyle
 	);
 	WriteLine(
 		screen,
-		10,
+		11,
 		$"Kind:         {lastKind}"
 	);
 	WriteLine(
 		screen,
-		11,
+		12,
 		$"Detail:       {lastDetail}"
 	);
 	WriteLine(
 		screen,
-		12,
-		$"Key:          {lastKey}"
-	);
-	WriteLine(
-		screen,
 		13,
-		$"Character:    {lastCharacter}"
+		$"Key:          {lastKey}    Phase: {lastPhase}"
 	);
 	WriteLine(
 		screen,
@@ -303,23 +351,38 @@ static void DrawInspector(
 	WriteLine(
 		screen,
 		15,
-		$"Function key: {lastFunctionKey}"
+		$"Character:    {lastCharacter}"
 	);
 	WriteLine(
 		screen,
 		16,
-		$"Lifecycle:    {lastLifecycle}"
+		$"Shifted:      {lastShiftedCharacter}"
+	);
+	WriteLine(
+		screen,
+		17,
+		$"Base layout:  {lastBaseLayoutCharacter}"
 	);
 	WriteLine(
 		screen,
 		18,
+		$"Associated:   {lastAssociatedText}"
+	);
+	WriteLine(
+		screen,
+		19,
+		$"Function key: {lastFunctionKey}    Lifecycle: {lastLifecycle}"
+	);
+	WriteLine(
+		screen,
+		21,
 		"Recent events",
 		titleStyle
 	);
 
 	int availableRows = Math.Max(
 		0,
-		screen.Rows - 20
+		screen.Rows - 22
 	);
 	int count = Math.Min(
 		availableRows,
@@ -330,7 +393,7 @@ static void DrawInspector(
 		int sourceIndex = recentEvents.Count - count + offset;
 		WriteLine(
 			screen,
-			19 + offset,
+			22 + offset,
 			recentEvents[ sourceIndex ]
 		);
 	}
@@ -393,17 +456,21 @@ static string DescribeKey(
 	ArgumentNullException.ThrowIfNull( input );
 
 	string modifiers = FormatModifiers( input.Modifiers );
+	string phase = input.KeyPhase.HasValue
+		? $" [{input.KeyPhase.Value}]"
+		: string.Empty
+	;
 	if ( CursesKey.Function == input.Key
 		&& input.FunctionKeyNumber.HasValue ) {
-		return $"{modifiers}F{input.FunctionKeyNumber.Value}";
+		return $"{modifiers}F{input.FunctionKeyNumber.Value}{phase}";
 	}
 
 	if ( CursesKey.Character == input.Key
 		&& input.Character.HasValue ) {
-		return $"{modifiers}Character {FormatRune( input.Character.Value )}";
+		return $"{modifiers}Character {FormatRune( input.Character.Value )}{phase}";
 	}
 
-	return $"{modifiers}{input.Key}";
+	return $"{modifiers}{input.Key}{phase}";
 }
 
 static string DescribeMouse(
@@ -464,6 +531,20 @@ static string FormatRune(
 	Rune rune
 ) {
 	return $"U+{rune.Value:X4} '{rune}'";
+}
+
+static string FormatAssociatedText(
+	string text
+) {
+	ArgumentNullException.ThrowIfNull( text );
+	return "\""
+		+ text
+			.Replace( "\\", "\\\\", StringComparison.Ordinal )
+			.Replace( "\r", "\\r", StringComparison.Ordinal )
+			.Replace( "\n", "\\n", StringComparison.Ordinal )
+			.Replace( "\t", "\\t", StringComparison.Ordinal )
+		+ "\""
+	;
 }
 
 static void AddRecentEvent(
