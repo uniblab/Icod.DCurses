@@ -48,6 +48,17 @@ public sealed class CursesVirtualScreenChangeTrackingTests {
 	}
 
 	[Fact]
+	public void OrdinaryCursesScreenDoesNotEnablePadChangeTracking() {
+		CursesScreen screen = new(
+			80,
+			24
+		);
+
+		Assert.False( screen.VirtualScreen.ChangeTrackingEnabled );
+		Assert.Equal( 0UL, screen.VirtualScreen.ChangeRevision );
+	}
+
+	[Fact]
 	public void CursesPadEnablesChangeTrackingForItsBackingSurface() {
 		CursesPad pad = new(
 			4,
