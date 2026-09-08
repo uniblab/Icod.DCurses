@@ -54,6 +54,7 @@ if ( 100 != logicalScreen.Columns
 
 VerifyApprovedDependencySurface();
 VerifyInputSemanticSurface();
+VerifyUnicodeWidthSurface();
 
 if ( string.Equals(
 	Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_INTERACTIVE" ),
@@ -134,6 +135,27 @@ static void VerifyInputSemanticSurface() {
 		| CursesKeyModifiers.Meta
 		| CursesKeyModifiers.CapsLock
 		| CursesKeyModifiers.NumLock;
+}
+
+static void VerifyUnicodeWidthSurface() {
+	if ( "17.0.0" != UnicodeCursesTextWidthProvider.UnicodeDataVersion ) {
+		throw new InvalidOperationException(
+			"DCurses package-only Unicode width data version is not 17.0.0."
+		);
+	}
+
+	UnicodeCursesTextWidthProvider narrow = UnicodeCursesTextWidthProvider.Instance;
+	UnicodeCursesTextWidthProvider wide =
+		UnicodeCursesTextWidthProvider.WideAmbiguousInstance;
+	if ( CursesAmbiguousWidthPolicy.Narrow != narrow.AmbiguousWidthPolicy
+		|| CursesAmbiguousWidthPolicy.Wide != wide.AmbiguousWidthPolicy
+		|| 1 != narrow.GetWidth( "\u03A9" )
+		|| 2 != wide.GetWidth( "\u03A9" )
+		|| 2 != narrow.GetWidth( "\U00016FF2" ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only Unicode width policy surface failed validation."
+		);
+	}
 }
 
 static async Task<int> RunInteractiveAsync() {
