@@ -11,7 +11,7 @@ namespace Icod.DCurses;
 public sealed class CursesVirtualScreen {
 	private readonly CursesCell[] cells;
 	private readonly bool[] dirtyCells;
-	private readonly ulong[] cellChangeRevisions;
+	private ulong[]? cellChangeRevisions;
 	private int dirtyCellCount;
 	private ulong changeRevision;
 
@@ -30,7 +30,6 @@ public sealed class CursesVirtualScreen {
 		Rows = rows;
 		cells = new CursesCell[ cellCount ];
 		dirtyCells = new bool[ cellCount ];
-		cellChangeRevisions = new ulong[ cellCount ];
 		Array.Fill(
 			dirtyCells,
 			true
@@ -139,6 +138,9 @@ public sealed class CursesVirtualScreen {
 	/// <summary>Gets the latest logical content/damage revision for this surface.</summary>
 	internal ulong ChangeRevision => changeRevision;
 
+	/// <summary>Gets whether per-cell logical content/damage revision tracking is enabled.</summary>
+	internal bool ChangeTrackingEnabled => null != cellChangeRevisions;
+
 	/// <summary>
 	/// Gets or sets whether ordinary replacement writes repair an existing wide-cell footprint.
 	/// </summary>
@@ -150,6 +152,11 @@ public sealed class CursesVirtualScreen {
 	internal bool RepairWideFootprintsOnReplacement {
 		get;
 		set;
+	}
+
+	/// <summary>Enables per-cell logical content/damage revision tracking for specialized consumers.</summary>
+	internal void EnableChangeTracking() {
+		cellChangeRevisions ??= new ulong[ cells.Length ];
 	}
 
 	/// <summary>Gets whether one logical coordinate is marked dirty.</summary>
@@ -169,7 +176,11 @@ public sealed class CursesVirtualScreen {
 	internal ulong GetCellChangeRevision(
 		int row,
 		int column ) {
-		return cellChangeRevisions[ GetOffset( row, column ) ];
+		ulong[] revisions = cellChangeRevisions
+			?? throw new InvalidOperationException(
+				"Logical change revision tracking is not enabled for this virtual screen."
+			);
+		return revisions[ GetOffset( row, column ) ];
 	}
 
 	/// <summary>Marks one logical coordinate dirty without changing its value.</summary>
@@ -197,8 +208,10 @@ public sealed class CursesVirtualScreen {
 
 	/// <summary>Marks every logical cell dirty.</summary>
 	internal void Invalidate() {
-		for ( int offset = 0; offset < cells.Length; offset++ ) {
-			RecordChange( offset );
+		if ( null != cellChangeRevisions ) {
+			for ( int offset = 0; offset < cells.Length; offset++ ) {
+				RecordChange( offset );
+			}
 		}
 		Array.Fill(
 			dirtyCells,
@@ -251,9 +264,14 @@ public sealed class CursesVirtualScreen {
 	}
 
 	private void RecordChange( int offset ) {
+		ulong[]? revisions = cellChangeRevisions;
+		if ( null == revisions ) {
+			return;
+		}
+
 		unchecked {
 			changeRevision++;
-			cellChangeRevisions[ offset ] = changeRevision;
+			revisions[ offset ] = changeRevision;
 		}
 	}
 
