@@ -1,8 +1,7 @@
 namespace Icod.DCurses;
 
-using System.Buffers;
-using System.Globalization;
 using System.Text;
+using Icod.DCurses.Internal;
 
 /// <summary>Controls horizontal boundary behavior when writing through a <see cref="CursesWindow"/>.</summary>
 public enum CursesWrapMode {
@@ -228,9 +227,7 @@ public sealed class CursesWindow {
 		ArgumentNullException.ThrowIfNull( text );
 		ValidateText( text );
 
-		TextElementEnumerator elements = StringInfo.GetTextElementEnumerator( text );
-		while ( elements.MoveNext() ) {
-			string textElement = (string)elements.Current;
+		foreach ( string textElement in CursesUnicodeText.EnumerateTextElements( text ) ) {
 			if ( !WriteTextElementCore(
 				textElement,
 				style
@@ -521,8 +518,7 @@ public sealed class CursesWindow {
 			}
 		}
 
-		string normalized = NormalizeMalformedUtf16( textElement );
-		int width = screen.TextWidthProvider.GetWidth( normalized );
+		int width = screen.TextWidthProvider.GetWidth( textElement );
 		if ( width < 0 || width > 2 ) {
 			throw new InvalidOperationException(
 				"The configured curses text-width provider returned a width outside the supported range."
@@ -530,12 +526,12 @@ public sealed class CursesWindow {
 		}
 
 		if ( 0 == width ) {
-			return AppendZeroWidthText( normalized );
+			return AppendZeroWidthText( textElement );
 		}
 
 		return WriteDisplayCellCore(
 			new CursesCell(
-				normalized,
+				textElement,
 				style,
 				width
 			),
@@ -723,30 +719,6 @@ public sealed class CursesWindow {
 			column,
 			backgroundCell
 		);
-	}
-
-	private static string NormalizeMalformedUtf16( string text ) {
-		ArgumentNullException.ThrowIfNull( text );
-
-		StringBuilder normalized = new();
-		ReadOnlySpan<char> remaining = text.AsSpan();
-		while ( !remaining.IsEmpty ) {
-			OperationStatus status = Rune.DecodeFromUtf16(
-				remaining,
-				out Rune rune,
-				out int consumed
-			);
-			if ( OperationStatus.Done == status ) {
-				normalized.Append( rune.ToString() );
-				remaining = remaining[ consumed.. ];
-				continue;
-			}
-
-			normalized.Append( Rune.ReplacementChar.ToString() );
-			remaining = remaining[ 1.. ];
-		}
-
-		return normalized.ToString();
 	}
 
 	private bool AdvanceRow() {
