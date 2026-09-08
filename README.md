@@ -17,7 +17,7 @@ rendition policy, and refresh/damage synchronization.
 `Icod.DCurses 0.2.0` is the current published stable release.
 
 Development toward `1.0.0` continues on the `0.3.0` Unicode and terminal-cell
-line. The current development package is `0.3.0-alpha.6`.
+line. The current release candidate is `0.3.0-rc.1`.
 
 T301 and T302 established the normalized Unicode text-element pipeline used by
 `CursesWindow.Write(string)`: malformed UTF-16 is replaced before segmentation,
@@ -27,7 +27,8 @@ T303 pins the terminal-width data contract to Unicode 17.0.0, replaces the old
 permanent hand-maintained East Asian Width predicate with checked-in generated
 data, and exposes explicit narrow/wide East Asian Ambiguous policy. Narrow
 remains the default; wide-Ambiguous behavior is opt-in and does not depend on
-locale or environment guessing.
+locale or environment guessing. Unicode 17 `Emoji` property data is also
+generated and checked in for VS16 and emoji-ZWJ candidate classification.
 
 T304 adds public terminal-column helpers through `CursesText.MeasureColumns`,
 `TruncateToColumns`, and `SliceByColumns`, using the same normalization,
@@ -37,13 +38,13 @@ T305 hardens screen/window two-column leader/continuation footprints across
 preserved resize and subwindow boundaries while retaining `CursesVirtualScreen`
 as an exact low-level cell store when used independently. T306 adds the broader
 Unicode conformance corpus, package-only consumer coverage, and live Unicode
-diagnostics showcase. Windows, Linux, macOS, and package validation are green
-for the completed T301-T306 foundation.
+diagnostics showcase.
 
-T307 is now the active release gate: public API, documentation, and package
-regret review before release-candidate promotion. The remaining emoji-property
-classification used by VS16/ZWJ recognition is being audited as part of this
-gate and will not be silently deferred past `0.3.0`.
+T307 is complete: the 0.3 public API, Unicode-data contract, dependency boundary,
+documentation, and package-consumer surface have passed the regret gate and are
+feature-frozen. T308 is the active release-closure tranche. No new feature family
+enters before stable `0.3.0`; `0.3.0-rc.1` exists only to validate the frozen
+contract before stable-source promotion.
 
 `0.2.0` completed stable `Icod.Terminal 1.0.0` semantic-input parity: the curses
 facade carries the complete stable key vocabulary, modifier state,
@@ -67,14 +68,17 @@ managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
 train through `1.0.0`, and `Icod.DCurses-0.3.0-Development-Roadmap.md` for the
-active Unicode/terminal-cell tranche. The completed 0.3 checkpoints are recorded
-in:
+active Unicode/terminal-cell tranche. The 0.3 checkpoints and release gates are
+recorded in:
 
 - `docs/T302-Normalized-Grapheme-Text-Pipeline.md`
 - `docs/T303-Unicode-Width-Data-and-Ambiguous-Policy.md`
 - `docs/T304-Column-Oriented-Text-Helpers.md`
 - `docs/T305-Wide-Cell-Footprint-Invariants.md`
 - `docs/T306-Unicode-Conformance-and-Consumer-Acceptance.md`
+- `docs/T307-Public-API-Documentation-and-Package-Regret-Gate.md`
+- `docs/T308-0.3.0-Stable-Release-Closure.md`
+- `docs/Public-API-Baseline-0.3.md`
 
 `Icod.DCurses-0.2.0-Development-Roadmap.md` and
 `docs/Public-API-Baseline-0.2.md` record the stable semantic-input release.
