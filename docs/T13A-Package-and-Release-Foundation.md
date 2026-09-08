@@ -1,5 +1,10 @@
 # T13A — Package and Release Foundation
 
+> **Historical checkpoint.** This document records the Alpha-20 package/release
+> foundation. Its dependency and workflow descriptions are intentionally kept as
+> historical context. The current stable dependency baseline is
+> `Icod.Terminal 1.0.0` / `Icod.TermInfo 1.10.0` as of `Icod.DCurses 0.1.1`.
+
 **Project:** `Icod.DCurses`
 **Development line:** `0.1.0`
 **Development version:** `0.1.0-Alpha-20`

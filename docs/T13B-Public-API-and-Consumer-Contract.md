@@ -1,12 +1,17 @@
 # T13B — Public API and Consumer Contract Regret Review
 
+> **Historical checkpoint.** This document records the Alpha-21 public-API and
+> consumer-contract review. Its dependency versions remain as historical context.
+> The current stable dependency baseline is `Icod.Terminal 1.0.0` /
+> `Icod.TermInfo 1.10.0` as of `Icod.DCurses 0.1.1`.
+
 **Project:** `Icod.DCurses`
 **Development line:** `0.1.0`
 **Development version:** `0.1.0-Alpha-21`
 **Tranche:** T13B — public API and consumer-contract regret review
 **Reference branch:** `0.1.0`
 **Reference commit before tranche:** `0a2bcc39b4e5459da9910ac9cf42a6949db1406f`
-**Status:** Implementation prepared; validation gate pending
+**Status:** Complete — 0.1 public API and consumer contract accepted
 
 ---
 
@@ -103,35 +108,27 @@ explain how the migration occurred.
 
 ## 7. Stable dependency release-order gate
 
-The current DCurses package depends on the published
+At this checkpoint the DCurses package depended on the published
 `Icod.Terminal 0.2.0-alpha.6` prerelease.
 
-The public API review does not justify publishing a stable `Icod.DCurses 0.1.0`
-package while its required live-terminal substrate remains prerelease.
+The public API review did not justify publishing a stable `Icod.DCurses 0.1.0`
+package while its required live-terminal substrate remained prerelease.
 
-Therefore T13B stays at `0.1.0-Alpha-21`.
-
-T13C begins after stable `Icod.Terminal 0.2.0` is published. T13C will:
-
-1. update the DCurses Terminal dependency to `0.2.0`;
-2. update package-verifier, package-smoke, README, and release-workflow
-   dependency metadata to the same version;
-3. set both `Version` and `PackageVersion` to `0.1.0`;
-4. rerun the complete three-host Release/package-only consumer gate;
-5. merge the release commit to `main`;
-6. create `v0.1.0` only after the matching main commit is green.
+Therefore T13B stayed at `0.1.0-Alpha-21` and deferred stable dependency closure
+to T13C.
 
 ## 8. Validation gate
 
-T13B is accepted when:
+T13B was accepted after:
 
-1. Debug/Staging/Release builds remain clean;
-2. the ordinary test suite passes;
-3. the new deterministic CursesCell null-validation regression test passes;
-4. the quick-start sample builds with the new timed/styled update path;
-5. Staging package verification and the isolated consumer pass on Windows,
+1. Debug/Staging/Release builds remained clean;
+2. the ordinary test suite passed;
+3. the deterministic CursesCell null-validation regression test passed;
+4. the quick-start sample built with the new timed/styled update path;
+5. Staging package verification and the isolated consumer passed on Windows,
    Ubuntu, and macOS;
-6. the public API baseline and README accurately describe the 0.1 contract;
-7. `git diff --check` reports no whitespace errors.
+6. the public API baseline and README accurately described the 0.1 contract;
+7. `git diff --check` reported no whitespace errors.
 
-After this gate passes, DCurses may wait at Alpha-21 while Terminal T20 closes.
+The accepted public API decisions remain recorded in
+[`Public-API-Baseline-0.1.md`](Public-API-Baseline-0.1.md).

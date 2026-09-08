@@ -1,4 +1,6 @@
 using Icod.DCurses;
+using Icod.Terminal;
+using Icod.TermInfo;
 
 CursesScreen logicalScreen = new(
 	80,
@@ -50,6 +52,8 @@ if ( 100 != logicalScreen.Columns
 	return 1;
 }
 
+VerifyApprovedDependencySurface();
+
 if ( string.Equals(
 	Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_INTERACTIVE" ),
 	"1",
@@ -62,6 +66,22 @@ Console.WriteLine(
 	"DCurses package-only consumer compiled and executed successfully."
 );
 return 0;
+
+static void VerifyApprovedDependencySurface() {
+	Type[] approvedDependencyTypes = [
+		typeof( TerminalSession ),
+		typeof( TerminalEndpoint ),
+		typeof( TerminalControlResult<TerminalSize> ),
+		typeof( TerminalDescription ),
+		typeof( TerminalSize )
+	];
+
+	if ( 5 != approvedDependencyTypes.Length ) {
+		throw new InvalidOperationException(
+			"DCurses package-only dependency-surface smoke validation failed."
+		);
+	}
+}
 
 static async Task<int> RunInteractiveAsync() {
 	await using CursesSession session = await CursesSession.OpenAsync(

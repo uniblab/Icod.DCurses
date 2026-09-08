@@ -4,7 +4,9 @@ The repository contains six executable samples. They are intentionally separate
 so the minimal session lifecycle stays easy to copy without mixing it with the
 interactive and acceptance-focused showcases.
 
-All sample projects target `net10.0`.
+All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the
+repository `Icod.DCurses` project, which in turn uses `Icod.Terminal 1.0.0` and
+`Icod.TermInfo 1.10.0`.
 
 ## Icod.DCurses.Sample
 
@@ -48,9 +50,9 @@ demonstration rather than a Unicode-conformance test.
 ## Icod.DCurses.Input.Showcase
 
 `Icod.DCurses.Input.Showcase` originated as the live Icod.Terminal 0.2 rich-input
-acceptance consumer and remains the 0.1 rich-input showcase on
-`Icod.Terminal 0.3.0`. It independently requests bracketed paste, focus
-reporting, and mouse button reporting through
+acceptance consumer and remains the 0.1 rich-input showcase on the current
+`Icod.Terminal 1.0.0` / `Icod.TermInfo 1.10.0` baseline. It independently
+requests bracketed paste, focus reporting, and mouse button reporting through
 `CursesSession.AcquireInputProtocolsAsync`, then shows whether each protocol is
 available for the selected terminal profile.
 

@@ -1,10 +1,15 @@
 # Icod.Terminal 0.3 Downstream Acceptance
 
+> **Historical checkpoint.** This document records the Terminal 0.3 downstream
+> acceptance work performed during the DCurses 0.1 development line. The
+> current stable dependency baseline is `Icod.Terminal 1.0.0` and
+> `Icod.TermInfo 1.10.0` as of `Icod.DCurses 0.1.1`.
+
 **DCurses version:** `0.1.0-Alpha-22`
 **Terminal package:** `Icod.Terminal 0.3.0-alpha.8`
 **TermInfo package:** `Icod.TermInfo 1.3.0`
 **Reference commit:** `1e1cb2e5043f5ccfaf68d2380f3d870fb6e0f7c8`
-**Status:** execution pending
+**Status:** completed historical compatibility checkpoint
 
 Alpha-22 is a downstream compatibility checkpoint for the Terminal 0.3 release
 candidate. It does not add a DCurses feature family and does not decide the
@@ -27,5 +32,5 @@ The architecture must remain unchanged:
 The fresh package-only restore consumes locally packed DCurses while resolving
 `Icod.Terminal 0.3.0-alpha.8` and `Icod.TermInfo 1.3.0` from NuGet.org.
 
-If Alpha-22 passes without production-source changes, Terminal 0.3 has satisfied
-its required real-downstream DCurses acceptance.
+Alpha-22 passed without requiring DCurses to regain private terminal mechanics,
+providing the required real-downstream Terminal 0.3 acceptance checkpoint.
