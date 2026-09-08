@@ -13,6 +13,7 @@ $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 Import-Module (Join-Path $PSScriptRoot 'RepositoryTools.psm1') -Force
 $solutionPath = Get-RepositorySolution -RepositoryRoot $repositoryRoot
 $artifactDirectory = Join-Path $repositoryRoot 'artifacts'
+$isWindowsHost = 'Windows_NT' -eq $env:OS
 
 function Invoke-Clean {
     Write-Host ''
@@ -55,7 +56,7 @@ function Invoke-Pack {
 function Invoke-Validate {
     Write-Host ''
     Write-Host "=== Validate ($Configuration) ==="
-    if ($IsWindows) {
+    if ($isWindowsHost) {
         & cmd /c (Join-Path $repositoryRoot '.github/scripts/verify-release-package.cmd') $artifactDirectory $Configuration
     } else {
         & bash (Join-Path $repositoryRoot '.github/scripts/verify-release-package.sh') $artifactDirectory $Configuration
