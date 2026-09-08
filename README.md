@@ -17,7 +17,7 @@ cells and styles, rendition policy, and refresh/damage synchronization.
 `Icod.DCurses 0.4.0` is the current published stable release.
 
 Development toward `1.0.0` continues on the `0.5.0` pads and large-surfaces
-line. The current development package is `0.5.0-alpha.4`.
+line. The current release candidate is `0.5.0-rc.1`.
 
 T501-T503 established the pad backing surface and direct rectangular
 presentation. A `CursesPad` owns a large off-screen logical surface and exposes a
@@ -39,10 +39,15 @@ It covers destination resize/reposition, all pad corners, wide-cell boundaries,
 very tall and wide pads, repeated panning, editor-like mutations, and fresh
 package consumption.
 
-T508 is the active public API/documentation/package regret gate. The 0.5 public
-surface is feature-frozen. Per-cell viewport revision tracking is internal and
-enabled only for pad backing surfaces; ordinary logical screens retain their
-pre-0.5 memory profile.
+T508 is complete. The 0.5 public surface is feature-frozen and machine-guarded;
+per-cell viewport revision tracking is internal and enabled only for pad backing
+surfaces, so ordinary logical screens retain their pre-0.5 memory profile. The
+complete alpha.4 contract passed Windows, Linux, macOS, and canonical
+package/fresh-consumer validation without a public-contract correction.
+
+T509 is now the active release-closure gate. The unchanged frozen contract is
+promoted to `0.5.0-rc.1` for one definitive release-candidate matrix before
+stable-source promotion.
 
 Earlier stable releases established:
 
@@ -74,6 +79,7 @@ in:
 - `docs/T505-T506-Derived-Pad-Views-and-Damage.md`
 - `docs/T507-Resize-Clipping-and-Large-Surface-Acceptance.md`
 - `docs/T508-Public-API-Documentation-and-Package-Regret-Gate.md`
+- `docs/T509-0.5.0-Stable-Release-Closure.md`
 - `docs/Public-API-Baseline-0.5.md`
 
 The completed 0.4 window-editing release is recorded in
