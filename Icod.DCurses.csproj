@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.5.0</Version>
-		<AssemblyVersion>0.5.0.0</AssemblyVersion>
+		<Version>0.6.0-alpha.1</Version>
+		<AssemblyVersion>0.6.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.5.0</PackageVersion>
+		<PackageVersion>0.6.0-alpha.1</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.5.0 establishes the pads and large-surfaces contract: CursesPad, destructive viewport projection, independently pannable CursesPadViewport state, shared derived views through CursesWindow subwindows, independent visible-pad change observation, strict resize revalidation, large-surface acceptance, package-only coverage, and pad-only opt-in revision tracking so ordinary logical screens retain their pre-0.5 memory profile. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.6.0-alpha.1 begins the rendition, drawing, and presentation release line from the published 0.5.0 pad/viewport baseline. The tranche establishes the capability-aware presentation contract, completes the semantic text-attribute vocabulary, and begins a curses-shaped read-only presentation-capabilities view while retaining Icod.TermInfo as the capability authority. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
