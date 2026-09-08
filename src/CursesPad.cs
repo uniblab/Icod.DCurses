@@ -116,4 +116,18 @@ public sealed class CursesPad {
 			destinationColumn
 		);
 	}
+
+	/// <summary>Gets the latest pad-local content/damage revision.</summary>
+	internal ulong ChangeRevision => backingScreen.VirtualScreen.ChangeRevision;
+
+	/// <summary>Gets one pad cell's latest content/damage revision.</summary>
+	internal ulong GetCellChangeRevision(
+		int row,
+		int column
+	) {
+		return backingScreen.VirtualScreen.GetCellChangeRevision(
+			row,
+			column
+		);
+	}
 }
