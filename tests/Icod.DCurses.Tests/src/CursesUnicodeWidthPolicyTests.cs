@@ -6,7 +6,7 @@ using Xunit;
 namespace Icod.DCurses.Tests;
 
 /// <summary>
-/// Verifies the T303 Unicode 17 terminal-width data and explicit Ambiguous-width policy.
+/// Verifies the T303/T307 Unicode 17 terminal-width data and explicit Ambiguous-width policy.
 /// </summary>
 public sealed class CursesUnicodeWidthPolicyTests {
 	[Fact]
@@ -14,6 +14,10 @@ public sealed class CursesUnicodeWidthPolicyTests {
 		Assert.Equal(
 			"17.0.0",
 			UnicodeCursesTextWidthProvider.UnicodeDataVersion
+		);
+		Assert.Equal(
+			UnicodeEastAsianWidthData.UnicodeVersion,
+			UnicodeEmojiData.UnicodeVersion
 		);
 		Assert.Equal(
 			CursesAmbiguousWidthPolicy.Narrow,
@@ -29,8 +33,10 @@ public sealed class CursesUnicodeWidthPolicyTests {
 	public void GeneratedUnicode17RangeTablesAreStableSortedAndNonOverlapping() {
 		Assert.Equal( 179, UnicodeEastAsianWidthData.AmbiguousRanges.Length );
 		Assert.Equal( 120, UnicodeEastAsianWidthData.WideOrFullwidthRanges.Length );
+		Assert.Equal( 151, UnicodeEmojiData.EmojiRanges.Length );
 		AssertRangesAreStrictlySeparated( UnicodeEastAsianWidthData.AmbiguousRanges );
 		AssertRangesAreStrictlySeparated( UnicodeEastAsianWidthData.WideOrFullwidthRanges );
+		AssertRangesAreStrictlySeparated( UnicodeEmojiData.EmojiRanges );
 	}
 
 	[Theory]
@@ -116,6 +122,28 @@ public sealed class CursesUnicodeWidthPolicyTests {
 			UnicodeCursesTextWidthProvider.WideAmbiguousInstance.GetWidth(
 				emojiPresentationHeart
 			)
+		);
+	}
+
+	[Theory]
+	[InlineData( "\u00A9\uFE0F" )]
+	[InlineData( "\u00AE\uFE0F" )]
+	[InlineData( "\u2122\uFE0F" )]
+	[InlineData( "\u2194\uFE0F" )]
+	public void Vs16UsesUnicodeEmojiPropertyOutsideLegacyHeuristicRanges( string text ) {
+		Assert.Equal(
+			2,
+			UnicodeCursesTextWidthProvider.Instance.GetWidth( text )
+		);
+	}
+
+	[Theory]
+	[InlineData( "\u2605\uFE0F" )]
+	[InlineData( "\U0001F000\uFE0F" )]
+	public void Vs16DoesNotPromoteScalarsWithoutUnicodeEmojiProperty( string text ) {
+		Assert.Equal(
+			1,
+			UnicodeCursesTextWidthProvider.Instance.GetWidth( text )
 		);
 	}
 
