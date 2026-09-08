@@ -136,15 +136,16 @@ or:
 ./build.sh
 ```
 
-Both scripts perform clean, restore, build, test, pack, and validate operations
-by default and also accept one of those phase names individually.
+Both wrappers delegate to `packaging/Invoke-Build.ps1` and use the `Debug`
+configuration for local development. With no section argument they perform
+restore, build, test, pack, and package validation. They also accept
+`clean`, `restore`, `build`, `test`, `pack`, or `validate`; prerequisite phases
+are run automatically where needed.
 
-The repository includes a root `NuGet.Config` which clears inherited package
-sources and restores public dependencies from NuGet.org. This keeps local and
-hosted builds on the same dependency artifacts instead of allowing a user- or
-machine-level feed with the same package IDs and versions to silently change the
-compile graph. The local build wrappers also force dependency reevaluation
-during restore after package-version changes.
+Pull-request validation promotes the build to `Staging`. Pushes to `main` and
+release tags use `Release`. Package validation exercises the packed artifact and
+a fresh package-only consumer rather than relying only on the repository project
+references.
 
 ## Authors
 
