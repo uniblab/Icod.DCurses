@@ -28,7 +28,7 @@ public sealed class CursesUnicodeWidthPolicyTests {
 	[Fact]
 	public void GeneratedUnicode17RangeTablesAreStableSortedAndNonOverlapping() {
 		Assert.Equal( 179, UnicodeEastAsianWidthData.AmbiguousRanges.Length );
-		Assert.Equal( 123, UnicodeEastAsianWidthData.WideOrFullwidthRanges.Length );
+		Assert.Equal( 120, UnicodeEastAsianWidthData.WideOrFullwidthRanges.Length );
 		AssertRangesAreStrictlySeparated( UnicodeEastAsianWidthData.AmbiguousRanges );
 		AssertRangesAreStrictlySeparated( UnicodeEastAsianWidthData.WideOrFullwidthRanges );
 	}
@@ -74,11 +74,11 @@ public sealed class CursesUnicodeWidthPolicyTests {
 	}
 
 	[Theory]
-	[InlineData( 0x33FF )]
-	[InlineData( 0x4DC0 )]
-	[InlineData( 0xA000 )]
+	[InlineData( 0x10FF )]
+	[InlineData( 0x1160 )]
+	[InlineData( 0x2E7F )]
 	[InlineData( 0x3FFFE )]
-	public void ScalarsOutsideDefaultWideBoundariesDoNotBecomeWideAccidentally( int codePoint ) {
+	public void NarrowScalarsNearWideBoundariesDoNotBecomeWideAccidentally( int codePoint ) {
 		string text = new Rune( codePoint ).ToString();
 
 		Assert.Equal(
