@@ -18,7 +18,7 @@ public sealed class CursesScreen {
 		ICursesTextWidthProvider? textWidthProvider = null ) {
 		TextWidthProvider = textWidthProvider
 			?? UnicodeCursesTextWidthProvider.Instance;
-		virtualScreen = new CursesVirtualScreen(
+		virtualScreen = CreateOwnedVirtualScreen(
 			columns,
 			rows
 		);
@@ -92,7 +92,7 @@ public sealed class CursesScreen {
 			return;
 		}
 
-		CursesVirtualScreen replacement = new(
+		CursesVirtualScreen replacement = CreateOwnedVirtualScreen(
 			columns,
 			rows
 		);
@@ -174,6 +174,18 @@ public sealed class CursesScreen {
 				"The window extends beyond its containing surface."
 			);
 		}
+	}
+
+	private static CursesVirtualScreen CreateOwnedVirtualScreen(
+		int columns,
+		int rows ) {
+		CursesVirtualScreen result = new(
+			columns,
+			rows
+		) {
+			RepairWideFootprintsOnReplacement = true
+		};
+		return result;
 	}
 }
 
