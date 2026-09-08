@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.1.0</Version>
-		<AssemblyVersion>0.1.0.0</AssemblyVersion>
+		<Version>0.1.1</Version>
+		<AssemblyVersion>0.1.1.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.1.0</PackageVersion>
+		<PackageVersion>0.1.1</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.1.0 establishes the first stable managed DCurses contract for .NET 8, .NET 9, and .NET 10 using Icod.Terminal 0.3.0 and Icod.TermInfo 1.4.1, with virtual screens and windows, retained refresh, styled output, rich input, lifecycle restoration, and ProcPs-shaped watch/slabtop/top acceptance.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.1.1 updates the stable 0.1 dependency baseline to Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0 while retaining the existing DCurses public API and application-shaped acceptance contract.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -95,7 +95,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Icod.Terminal" Version="0.3.0" />
-		<PackageReference Include="Icod.TermInfo" Version="1.4.1" />
+		<PackageReference Include="Icod.Terminal" Version="1.0.0" />
+		<PackageReference Include="Icod.TermInfo" Version="1.10.0" />
 	</ItemGroup>
 </Project>
