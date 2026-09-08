@@ -22,6 +22,27 @@ public sealed class CursesUnicodeTextPipelineTests {
 		);
 	}
 
+	[Fact]
+	public void WindowWriteUsesNormalizedElementsBeforeWidthMeasurement() {
+		RecordingWidthProvider provider = new();
+		CursesScreen screen = new(
+			4,
+			1,
+			provider
+		);
+		string malformed = new( [ '\uD800', '\u0301', 'X' ] );
+
+		screen.StandardWindow.Write( malformed );
+
+		Assert.Equal(
+			[ "\uFFFD\u0301", "X" ],
+			provider.TextElements
+		);
+		Assert.Equal( "\uFFFD\u0301", screen.VirtualScreen[ 0, 0 ].Content );
+		Assert.Equal( "X", screen.VirtualScreen[ 0, 1 ].Content );
+		Assert.Equal( 2, screen.StandardWindow.CursorColumn );
+	}
+
 	[Theory]
 	[InlineData( "e\u0301" )]
 	[InlineData( "\U0001F1FA\U0001F1F8" )]
@@ -79,5 +100,18 @@ public sealed class CursesUnicodeTextPipelineTests {
 		Assert.Equal( 1, screen.VirtualScreen[ 0, 0 ].DisplayWidth );
 		Assert.True( screen.VirtualScreen[ 0, 1 ].IsBlank );
 		Assert.Equal( 1, screen.StandardWindow.CursorColumn );
+	}
+
+	private sealed class RecordingWidthProvider
+		: ICursesTextWidthProvider {
+		private readonly List<string> textElements = [];
+
+		internal IReadOnlyList<string> TextElements => textElements;
+
+		public int GetWidth( string textElement ) {
+			ArgumentException.ThrowIfNullOrEmpty( textElement );
+			textElements.Add( textElement );
+			return 1;
+		}
 	}
 }
