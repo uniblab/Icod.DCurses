@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.4.0-alpha.6</Version>
+		<Version>0.4.0-rc.1</Version>
 		<AssemblyVersion>0.4.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.4.0-alpha.6</PackageVersion>
+		<PackageVersion>0.4.0-rc.1</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.4.0-alpha.6 completes the feature-side window editing and composition foundation with safe range touch/query operations, editor-like Unicode acceptance, and package-only coverage of geometry, editing, composition, drawing, and damage APIs. Public untouch is deliberately omitted to protect refresh correctness. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.4.0-rc.1 freezes the window editing and composition contract for release validation: non-standard window repositioning, local cell/region editing, Unicode-safe cell and line insertion/deletion, deterministic copy/overlay, geometric line and border drawing, and safe range touch/query operations. Public untouch remains deliberately omitted to preserve refresh correctness. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
