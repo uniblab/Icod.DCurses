@@ -27,6 +27,7 @@ public sealed class CursesPad {
 			rows,
 			textWidthProvider
 		);
+		backingScreen.VirtualScreen.EnableChangeTracking();
 		ContentWindow = backingScreen.StandardWindow;
 	}
 
