@@ -20,7 +20,7 @@ public enum CursesWrapMode {
 /// therefore update the same logical cells. Coordinates supplied to window methods are zero-based and local
 /// to that window.
 /// </remarks>
-public sealed class CursesWindow {
+public sealed partial class CursesWindow {
 	private const int TabWidth = 8;
 
 	private readonly CursesScreen screen;
@@ -172,6 +172,34 @@ public sealed class CursesWindow {
 		);
 		cursorRow = row;
 		cursorColumn = column;
+	}
+
+	/// <summary>Repositions a non-standard window relative to its immediate parent or owning screen.</summary>
+	/// <param name="row">The new zero-based origin row.</param>
+	/// <param name="column">The new zero-based origin column.</param>
+	/// <remarks>The window cursor remains unchanged.</remarks>
+	public void Reposition(
+		int row,
+		int column ) {
+		if ( isStandardWindow ) {
+			throw new InvalidOperationException(
+				"The standard window is anchored to its owning CursesScreen."
+			);
+		}
+
+		int containingRows = parent?.Rows ?? screen.Rows;
+		int containingColumns = parent?.Columns ?? screen.Columns;
+		CursesScreen.ValidateWindowRectangle(
+			row,
+			column,
+			Rows,
+			Columns,
+			containingRows,
+			containingColumns
+		);
+
+		originRow = row;
+		originColumn = column;
 	}
 
 	/// <summary>Changes the dimensions of a non-standard window without changing its origin.</summary>
