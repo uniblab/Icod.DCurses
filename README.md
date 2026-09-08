@@ -17,7 +17,9 @@ cells and styles, rendition policy, and refresh/damage synchronization.
 `Icod.DCurses 0.4.0` is the current published stable release.
 
 Development toward `1.0.0` continues on the `0.5.0` pads and large-surfaces
-line. The current release candidate is `0.5.0-rc.1`.
+line. The source version and package version are now stable `0.5.0`; publication
+remains post-merge until the matching `main` commit passes the Release matrix and
+`v0.5.0` is created.
 
 T501-T503 established the pad backing surface and direct rectangular
 presentation. A `CursesPad` owns a large off-screen logical surface and exposes a
@@ -45,9 +47,10 @@ surfaces, so ordinary logical screens retain their pre-0.5 memory profile. The
 complete alpha.4 contract passed Windows, Linux, macOS, and canonical
 package/fresh-consumer validation without a public-contract correction.
 
-T509 is now the active release-closure gate. The unchanged frozen contract is
-promoted to `0.5.0-rc.1` for one definitive release-candidate matrix before
-stable-source promotion.
+T509 release-candidate validation is also complete: `0.5.0-rc.1` passed Windows,
+Linux, macOS, and canonical package/fresh-consumer validation without requiring a
+correction. The unchanged contract has been promoted to stable `0.5.0` source
+for one final PR gate before merge.
 
 Earlier stable releases established:
 
