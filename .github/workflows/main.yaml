@@ -1,0 +1,66 @@
+name: main
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: 10.0.x
+  CONFIGURATION: Release
+  PACKAGE_ARTIFACT: icod-dcurses-main-packages
+
+jobs:
+  runtime:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: Windows x64
+          - os: windows-11-arm
+            name: Windows ARM64
+          - os: ubuntu-24.04
+            name: Linux x64
+          - os: ubuntu-24.04-arm
+            name: Linux ARM64
+          - os: macos-15-intel
+            name: macOS x64
+          - os: macos-15
+            name: macOS ARM64
+    name: Runtime ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - run: dotnet restore '${{ github.event.repository.name }}.sln'
+      - run: dotnet build '${{ github.event.repository.name }}.sln' -c ${{ env.CONFIGURATION }} --no-restore -p:ContinuousIntegrationBuild=true
+      - run: dotnet test '${{ github.event.repository.name }}.sln' -c ${{ env.CONFIGURATION }} --no-build --no-restore --logger trx
+
+  package:
+    name: Package candidate
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - shell: pwsh
+        run: ./packaging/Invoke-Build.ps1 -Section validate -Configuration '${{ env.CONFIGURATION }}'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PACKAGE_ARTIFACT }}
+          path: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+          if-no-files-found: error
+          retention-days: 7
