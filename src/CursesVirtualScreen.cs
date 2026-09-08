@@ -230,7 +230,15 @@ public sealed class CursesVirtualScreen {
 		}
 
 		CursesCell continuation = CursesCell.Continuation( leader.Style );
-		if ( cells[ offset ] == continuation ) {
+		CursesCell existing = cells[ offset ];
+		if ( existing == continuation ) {
+			return;
+		}
+		if ( existing.IsContinuation ) {
+			SetCellRaw(
+				offset,
+				continuation
+			);
 			return;
 		}
 
