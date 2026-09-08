@@ -17,6 +17,13 @@ rendition policy, and refresh/damage synchronization.
 `Icod.DCurses 0.1.1` is the current stable maintenance release of the managed
 DCurses 0.1 contract.
 
+Development toward `1.0.0` is active. The current development package is
+`0.2.0-alpha.1`, beginning the Terminal 1.0 input-semantic-parity tranche. This
+release line expands the curses event facade to preserve the complete stable
+`Icod.Terminal 1.0.0` key vocabulary, modifiers, key phases, modern character
+metadata, and negotiated keyboard-reporting modes without introducing a second
+keyboard decoder.
+
 `0.1.0-Alpha-15` established the automated Icod.Terminal T19 rich-input
 acceptance boundary against `Icod.Terminal 0.2.0-alpha.6`, and
 `0.1.0-Alpha-16` added the live rich-input acceptance showcase. Alpha-17 through
@@ -30,24 +37,30 @@ without requiring DCurses to regain private terminal mechanics.
 The original stable `0.1.0` dependency freeze used `Icod.Terminal 0.3.0` and
 `Icod.TermInfo 1.4.1`. `0.1.1` advances that accepted contract to
 `Icod.Terminal 1.0.0` and `Icod.TermInfo 1.10.0` without intentionally changing
-the existing DCurses public API or ownership model.
+the existing DCurses public API or ownership model. The `0.2.0` development
+line retains those stable dependency versions.
 
 The retired DCurses backend, native mode, lifecycle-source, input-decoder, and
 pre-Terminal session implementations remain removed. DCurses does not add a
-mouse parser, paste reader, protocol escape emitter, or second input loop.
+mouse parser, paste reader, protocol escape emitter, keyboard decoder, or second
+input loop.
 
-The first release line is driven by the requirements of `top`, `slabtop`, and
-`watch`.
+The first release line was driven by the requirements of `top`, `slabtop`, and
+`watch`. The 1.0 development train broadens that foundation into a general
+managed TUI contract.
 
-See `docs/Dependency-Baseline-0.1.1.md` for the authoritative current
-Terminal/TermInfo dependency and ownership baseline, `Icod.DCurses-Development-Roadmap.md`
-for the broader development contract through `1.0.0`,
-`docs/Icod-Terminal-T10-Integration.md` for the historical substrate reset,
-`docs/Icod-Terminal-T19-Rich-Input-Acceptance.md` for the historical rich-input
-acceptance checkpoint, `docs/T13B-Public-API-and-Consumer-Contract.md` for the
-0.1 regret review, `docs/T13C-0.1.0-Stable-Release-Closure.md` for the stable
-0.1.0 release closure, and `docs/Public-API-Baseline-0.1.md` for the release-line
-API baseline.
+See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
+train from `0.2.0` through `1.0.0`, and
+`Icod.DCurses-0.2.0-Development-Roadmap.md` for the active Terminal 1.0 input
+parity tranche. `docs/Dependency-Baseline-0.1.1.md` records the stable
+Terminal/TermInfo dependency and ownership baseline.
+
+`Icod.DCurses-Development-Roadmap.md` retains the original project roadmap and
+0.1 development history. Historical integration checkpoints remain under
+`docs/`, including `docs/Icod-Terminal-T10-Integration.md`,
+`docs/Icod-Terminal-T19-Rich-Input-Acceptance.md`,
+`docs/T13B-Public-API-and-Consumer-Contract.md`, and
+`docs/T13C-0.1.0-Stable-Release-Closure.md`.
 
 ## Architecture
 
@@ -74,7 +87,7 @@ and reversible terminal state are centralized in `Icod.Terminal`.
 
 ## Target
 
-The initial implementation targets:
+The implementation targets:
 
 - .NET 8
 - .NET 9
@@ -84,12 +97,14 @@ The initial implementation targets:
 - Linux
 - macOS
 
-The `0.1.1` runtime dependency set is:
+The current runtime dependency set is:
 
 - `Icod.Terminal` 1.0.0
 - `Icod.TermInfo` 1.10.0
 
 ## Installation
+
+The current stable package is:
 
 ```text
 dotnet add package Icod.DCurses --version 0.1.1
