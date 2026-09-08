@@ -2,8 +2,8 @@
 
 **Project:** `Icod.DCurses`  
 **Development line:** `0.3.0`  
-**Current development version:** `0.3.0-alpha.6`  
-**Status:** Regret review complete; release-candidate validation pending
+**Current development version:** `0.3.0-rc.1`  
+**Status:** Complete; release-candidate promotion approved
 
 ## 1. Purpose
 
@@ -125,9 +125,9 @@ The repository now documents:
 
 The detailed accepted public surface is recorded in `docs/Public-API-Baseline-0.3.md`.
 
-## 10. Gate
+## 10. Gate result
 
-T307 may close and `0.3.0-rc.1` may be prepared when the current alpha.6 source passes:
+The completed `0.3.0-alpha.6` source passed:
 
 - Windows Staging build/tests;
 - Linux Staging build/tests;
@@ -135,4 +135,6 @@ T307 may close and `0.3.0-rc.1` may be prepared when the current alpha.6 source 
 - canonical package validation;
 - fresh package-only consumers for all supported target frameworks.
 
-No additional feature family should enter after that promotion.
+The public regret review is therefore closed and the same feature-frozen contract is promoted to `0.3.0-rc.1` for T308 release validation.
+
+No additional feature family enters after this point.
