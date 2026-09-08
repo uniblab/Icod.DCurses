@@ -76,10 +76,15 @@ public sealed class CursesVirtualScreen {
 		return cells[ GetOffset( row, column ) ];
 	}
 
-	/// <summary>Sets one logical cell.</summary>
+	/// <summary>Sets one logical cell while preserving wide-cell leader/continuation invariants.</summary>
 	/// <param name="row">The zero-based row.</param>
 	/// <param name="column">The zero-based column.</param>
 	/// <param name="cell">The replacement logical cell.</param>
+	/// <remarks>
+	/// Replacing either half of an existing two-column footprint clears the other half. Writing a
+	/// two-column leader installs its continuation automatically. A continuation can only be assigned
+	/// immediately after an existing two-column leader.
+	/// </remarks>
 	public void SetCell(
 		int row,
 		int column,
@@ -89,12 +94,44 @@ public sealed class CursesVirtualScreen {
 			column
 		);
 
-		if ( cells[ offset ] == cell ) {
+		if ( cell.IsContinuation ) {
+			SetContinuationCell(
+				row,
+				column,
+				offset
+			);
 			return;
 		}
 
-		cells[ offset ] = cell;
-		MarkDirty( offset );
+		if ( 2 == cell.DisplayWidth
+			&& column + 1 >= Columns ) {
+			throw new ArgumentException(
+				"A two-column cell cannot begin in the final screen column.",
+				nameof( cell )
+			);
+		}
+
+		RepairExistingFootprint(
+			row,
+			column
+		);
+		if ( 2 == cell.DisplayWidth ) {
+			RepairExistingFootprint(
+				row,
+				column + 1
+			);
+		}
+
+		SetCellRaw(
+			offset,
+			cell
+		);
+		if ( 2 == cell.DisplayWidth ) {
+			SetCellRaw(
+				offset + 1,
+				CursesCell.Continuation( cell.Style )
+			);
+		}
 	}
 
 	/// <summary>Clears the logical screen to default blank cells.</summary>
@@ -111,13 +148,24 @@ public sealed class CursesVirtualScreen {
 	/// <summary>Fills every logical coordinate with the same cell value.</summary>
 	/// <param name="cell">The cell value copied to every coordinate.</param>
 	public void Fill( CursesCell cell ) {
-		for ( int offset = 0; offset < cells.Length; offset++ ) {
-			if ( cells[ offset ] == cell ) {
-				continue;
-			}
+		if ( cell.IsContinuation ) {
+			throw new ArgumentException(
+				"A continuation cell cannot fill a logical screen independently.",
+				nameof( cell )
+			);
+		}
+		if ( 2 == cell.DisplayWidth ) {
+			throw new ArgumentException(
+				"A two-column cell cannot be repeated independently into every logical coordinate.",
+				nameof( cell )
+			);
+		}
 
-			cells[ offset ] = cell;
-			MarkDirty( offset );
+		for ( int offset = 0; offset < cells.Length; offset++ ) {
+			SetCellRaw(
+				offset,
+				cell
+			);
 		}
 	}
 
@@ -159,6 +207,98 @@ public sealed class CursesVirtualScreen {
 			true
 		);
 		dirtyCellCount = dirtyCells.Length;
+	}
+
+	private void SetContinuationCell(
+		int row,
+		int column,
+		int offset
+	) {
+		if ( 0 == column ) {
+			throw new ArgumentException(
+				"A continuation cell requires a preceding two-column leader.",
+				"cell"
+			);
+		}
+
+		CursesCell leader = cells[ offset - 1 ];
+		if ( leader.IsContinuation || 2 != leader.DisplayWidth ) {
+			throw new ArgumentException(
+				"A continuation cell requires a preceding two-column leader.",
+				"cell"
+			);
+		}
+
+		CursesCell continuation = CursesCell.Continuation( leader.Style );
+		if ( cells[ offset ] == continuation ) {
+			return;
+		}
+
+		RepairExistingFootprint(
+			row,
+			column
+		);
+		SetCellRaw(
+			offset,
+			continuation
+		);
+	}
+
+	private void RepairExistingFootprint(
+		int row,
+		int column
+	) {
+		int offset = GetOffset(
+			row,
+			column
+		);
+		CursesCell existing = cells[ offset ];
+		if ( existing.IsContinuation ) {
+			if ( 0 < column ) {
+				CursesCell leader = cells[ offset - 1 ];
+				if ( !leader.IsContinuation && 2 == leader.DisplayWidth ) {
+					SetCellRaw(
+						offset - 1,
+						CursesCell.Blank( leader.Style )
+					);
+				}
+			}
+
+			SetCellRaw(
+				offset,
+				CursesCell.Blank( existing.Style )
+			);
+			return;
+		}
+
+		if ( 2 == existing.DisplayWidth
+			&& column + 1 < Columns
+			&& cells[ offset + 1 ].IsContinuation ) {
+			CursesCell continuation = cells[ offset + 1 ];
+			SetCellRaw(
+				offset + 1,
+				CursesCell.Blank( continuation.Style )
+			);
+		}
+
+		if ( !existing.IsBlank ) {
+			SetCellRaw(
+				offset,
+				CursesCell.Blank( existing.Style )
+			);
+		}
+	}
+
+	private void SetCellRaw(
+		int offset,
+		CursesCell cell
+	) {
+		if ( cells[ offset ] == cell ) {
+			return;
+		}
+
+		cells[ offset ] = cell;
+		MarkDirty( offset );
 	}
 
 	private void MarkDirty( int offset ) {
