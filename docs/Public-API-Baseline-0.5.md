@@ -3,11 +3,11 @@
 **Project:** `Icod.DCurses`  
 **Release line:** `0.5.x`  
 **Prepared during:** T508  
-**Current development version:** `0.5.0-alpha.4`  
+**Current candidate:** `0.5.0-rc.1`  
 **Stable baseline:** `0.4.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Dependency baseline:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
-**Status:** Pre-release public-contract baseline
+**Status:** Release-candidate public-contract baseline
 
 ## 1. Purpose
 
