@@ -63,7 +63,7 @@ exit /b %errorlevel%
 :restore
 echo.
 echo === Restore ===
-dotnet restore Icod.DCurses.sln
+dotnet restore Icod.DCurses.sln --force
 exit /b %errorlevel%
 
 :build
