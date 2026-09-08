@@ -64,8 +64,13 @@ public sealed class CursesModernKeyboardAcceptanceTests {
 		transport.QueueInput(
 			Encoding.UTF8.GetBytes(
 				"\u001b[97:65:113;6:2;120u"
+					+ "\u001b[57430;256:1u"
+					+ "\u001b[57358;1:1u"
+					+ "\u001b[57441;1:1u"
+					+ "\u001b[57452;1:1u"
 					+ "\u001b[57414;1:3u"
 					+ "\u001b[57455;17:3u"
+					+ "<f0><f63>"
 					+ "\u001b[I"
 					+ "\u001b[200~ok\u001b[201~"
 					+ "\u001b[<0;3;4M"
@@ -88,6 +93,40 @@ public sealed class CursesModernKeyboardAcceptanceTests {
 		);
 		Assert.Equal( CursesKeyEventPhase.Repeat, character.KeyPhase );
 
+		CursesInputEvent media = RequireInput(
+			await session.ReadEventAsync( timeout.Token )
+		);
+		CursesKeyModifiers allModifiers =
+			CursesKeyModifiers.Shift
+				| CursesKeyModifiers.Control
+				| CursesKeyModifiers.Alt
+				| CursesKeyModifiers.Super
+				| CursesKeyModifiers.Hyper
+				| CursesKeyModifiers.Meta
+				| CursesKeyModifiers.CapsLock
+				| CursesKeyModifiers.NumLock;
+		Assert.Equal( CursesKey.MediaPlayPause, media.Key );
+		Assert.Equal( allModifiers, media.Modifiers );
+		Assert.Equal( CursesKeyEventPhase.Press, media.KeyPhase );
+
+		CursesInputEvent lockKey = RequireInput(
+			await session.ReadEventAsync( timeout.Token )
+		);
+		Assert.Equal( CursesKey.CapsLock, lockKey.Key );
+		Assert.Equal( CursesKeyEventPhase.Press, lockKey.KeyPhase );
+
+		CursesInputEvent leftModifier = RequireInput(
+			await session.ReadEventAsync( timeout.Token )
+		);
+		Assert.Equal( CursesKey.LeftShift, leftModifier.Key );
+		Assert.Equal( CursesKeyEventPhase.Press, leftModifier.KeyPhase );
+
+		CursesInputEvent rightModifier = RequireInput(
+			await session.ReadEventAsync( timeout.Token )
+		);
+		Assert.Equal( CursesKey.RightMeta, rightModifier.Key );
+		Assert.Equal( CursesKeyEventPhase.Press, rightModifier.KeyPhase );
+
 		CursesInputEvent keypad = RequireInput(
 			await session.ReadEventAsync( timeout.Token )
 		);
@@ -101,6 +140,19 @@ public sealed class CursesModernKeyboardAcceptanceTests {
 		Assert.Equal( CursesKey.Unrecognized, unrecognized.Key );
 		Assert.Equal( CursesKeyModifiers.Hyper, unrecognized.Modifiers );
 		Assert.Equal( CursesKeyEventPhase.Release, unrecognized.KeyPhase );
+
+		CursesInputEvent function0 = RequireInput(
+			await session.ReadEventAsync( timeout.Token )
+		);
+		CursesInputEvent function63 = RequireInput(
+			await session.ReadEventAsync( timeout.Token )
+		);
+		Assert.Equal( CursesKey.Function, function0.Key );
+		Assert.Equal( 0, function0.FunctionKeyNumber );
+		Assert.Equal( CursesKeyEventPhase.Press, function0.KeyPhase );
+		Assert.Equal( CursesKey.Function, function63.Key );
+		Assert.Equal( 63, function63.FunctionKeyNumber );
+		Assert.Equal( CursesKeyEventPhase.Press, function63.KeyPhase );
 
 		CursesInputEvent focus = RequireInput(
 			await session.ReadEventAsync( timeout.Token )
@@ -160,6 +212,8 @@ public sealed class CursesModernKeyboardAcceptanceTests {
 
 	private static TerminalDescription CreateRichInputTerminal() {
 		return new TerminalDescriptionBuilder( "dcurses-modern-keyboard-test" )
+			.SetString( StringCapability.KeyF0, "<f0>" )
+			.SetString( StringCapability.KeyF63, "<f63>" )
 			.SetExtendedString( "BE", "<P+>" )
 			.SetExtendedString( "BD", "<P->" )
 			.SetExtendedString( "PS", "\u001b[200~" )
