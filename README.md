@@ -16,8 +16,10 @@ rendition policy, and refresh/damage synchronization.
 
 `Icod.DCurses 0.2.0` is the current published stable release.
 
-Development toward `1.0.0` continues on the `0.3.0` Unicode and terminal-cell
-line. The current release candidate is `0.3.0-rc.1`.
+The `0.3.0` Unicode and terminal-cell source contract is now prepared as a stable
+release candidate for merge. The source version and package version are `0.3.0`;
+publication remains post-merge and therefore the published package is still
+`0.2.0` until the `v0.3.0` release workflow completes.
 
 T301 and T302 established the normalized Unicode text-element pipeline used by
 `CursesWindow.Write(string)`: malformed UTF-16 is replaced before segmentation,
@@ -41,10 +43,10 @@ Unicode conformance corpus, package-only consumer coverage, and live Unicode
 diagnostics showcase.
 
 T307 is complete: the 0.3 public API, Unicode-data contract, dependency boundary,
-documentation, and package-consumer surface have passed the regret gate and are
-feature-frozen. T308 is the active release-closure tranche. No new feature family
-enters before stable `0.3.0`; `0.3.0-rc.1` exists only to validate the frozen
-contract before stable-source promotion.
+documentation, and package-consumer surface passed the regret gate and are
+feature-frozen. The `0.3.0-rc.1` validation gate passed on Windows, Linux, macOS,
+and the canonical package/fresh-consumer job. T308 has promoted that unchanged
+contract to stable `0.3.0` source for the final PR validation before merge.
 
 `0.2.0` completed stable `Icod.Terminal 1.0.0` semantic-input parity: the curses
 facade carries the complete stable key vocabulary, modifier state,
@@ -68,7 +70,7 @@ managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
 train through `1.0.0`, and `Icod.DCurses-0.3.0-Development-Roadmap.md` for the
-active Unicode/terminal-cell tranche. The 0.3 checkpoints and release gates are
+Unicode/terminal-cell tranche. The 0.3 checkpoints and release gates are
 recorded in:
 
 - `docs/T302-Normalized-Grapheme-Text-Pipeline.md`
