@@ -3,6 +3,7 @@ namespace Icod.DCurses;
 using System.Globalization;
 using System.Text;
 using Icod.DCurses.Internal;
+using Icod.DCurses.Internal.Generated;
 
 /// <summary>
 /// Computes terminal display width for one Unicode text element.
@@ -17,22 +18,57 @@ public interface ICursesTextWidthProvider {
 }
 
 /// <summary>
-/// Provides the default Unicode display-width policy used by DCurses.
+/// Controls how East Asian Ambiguous characters consume terminal columns.
+/// </summary>
+public enum CursesAmbiguousWidthPolicy {
+	/// <summary>Treat East Asian Ambiguous characters as one terminal column.</summary>
+	Narrow = 0,
+
+	/// <summary>Treat East Asian Ambiguous characters as two terminal columns.</summary>
+	Wide = 1
+}
+
+/// <summary>
+/// Provides the versioned Unicode display-width policy used by DCurses.
 /// </summary>
 /// <remarks>
-/// The 0.3 development line evaluates the complete Unicode text element for sequence families whose
-/// terminal width cannot be determined from the first scalar alone. East Asian Ambiguous characters
-/// remain narrow by default; the explicit selectable ambiguous-width policy is completed by T303.
+/// The provider uses Unicode 17.0.0 East Asian Width data for scalar width classification
+/// and complete Unicode text elements for emoji/keycap/flag/ZWJ presentation decisions.
+/// East Asian Ambiguous characters are narrow by default; applications which require wide
+/// Ambiguous semantics can explicitly select <see cref="WideAmbiguousInstance"/>.
 /// </remarks>
 public sealed class UnicodeCursesTextWidthProvider
 	: ICursesTextWidthProvider {
-	private static readonly UnicodeCursesTextWidthProvider instance = new();
+	private static readonly UnicodeCursesTextWidthProvider instance = new(
+		CursesAmbiguousWidthPolicy.Narrow
+	);
+	private static readonly UnicodeCursesTextWidthProvider wideAmbiguousInstance = new(
+		CursesAmbiguousWidthPolicy.Wide
+	);
 
-	private UnicodeCursesTextWidthProvider() {
+	private UnicodeCursesTextWidthProvider(
+		CursesAmbiguousWidthPolicy ambiguousWidthPolicy
+	) {
+		if ( !Enum.IsDefined( ambiguousWidthPolicy ) ) {
+			throw new ArgumentOutOfRangeException( nameof( ambiguousWidthPolicy ) );
+		}
+
+		this.AmbiguousWidthPolicy = ambiguousWidthPolicy;
 	}
 
-	/// <summary>Gets the shared default width provider.</summary>
+	/// <summary>Gets the shared default provider, which treats East Asian Ambiguous characters as narrow.</summary>
 	public static UnicodeCursesTextWidthProvider Instance => instance;
+
+	/// <summary>Gets the shared provider which treats East Asian Ambiguous characters as wide.</summary>
+	public static UnicodeCursesTextWidthProvider WideAmbiguousInstance => wideAmbiguousInstance;
+
+	/// <summary>Gets the Unicode data version used by the built-in width providers.</summary>
+	public static string UnicodeDataVersion => UnicodeEastAsianWidthData.UnicodeVersion;
+
+	/// <summary>Gets this provider's East Asian Ambiguous-width policy.</summary>
+	public CursesAmbiguousWidthPolicy AmbiguousWidthPolicy {
+		get;
+	}
 
 	/// <inheritdoc />
 	public int GetWidth( string textElement ) {
@@ -42,6 +78,7 @@ public sealed class UnicodeCursesTextWidthProvider
 		Rune? firstVisible = null;
 		bool hasEmojiCandidate = false;
 		bool hasZeroWidthJoiner = false;
+		bool hasTextPresentationSelector = false;
 		bool hasEmojiPresentationSelector = false;
 		bool hasKeycap = false;
 		int regionalIndicatorCount = 0;
@@ -57,6 +94,7 @@ public sealed class UnicodeCursesTextWidthProvider
 				continue;
 			}
 			if ( 0xFE0E == value ) {
+				hasTextPresentationSelector = true;
 				continue;
 			}
 			if ( 0x20E3 == value ) {
@@ -81,6 +119,9 @@ public sealed class UnicodeCursesTextWidthProvider
 		}
 
 		int firstValue = firstVisible.Value.Value;
+		if ( hasTextPresentationSelector ) {
+			return GetBaseWidth( firstValue );
+		}
 		if ( hasKeycap && IsKeycapBase( firstValue ) ) {
 			return 2;
 		}
@@ -94,10 +135,25 @@ public sealed class UnicodeCursesTextWidthProvider
 			return 2;
 		}
 
-		return IsWide( firstValue )
-			? 2
-			: 1
-		;
+		return GetBaseWidth( firstValue );
+	}
+
+	private int GetBaseWidth( int value ) {
+		if ( IsInRanges(
+			value,
+			UnicodeEastAsianWidthData.WideOrFullwidthRanges
+		) ) {
+			return 2;
+		}
+		if ( CursesAmbiguousWidthPolicy.Wide == this.AmbiguousWidthPolicy
+			&& IsInRanges(
+				value,
+				UnicodeEastAsianWidthData.AmbiguousRanges
+			) ) {
+			return 2;
+		}
+
+		return 1;
 	}
 
 	private static bool IsZeroWidthCategory( UnicodeCategory category ) {
@@ -122,21 +178,28 @@ public sealed class UnicodeCursesTextWidthProvider
 			|| value is >= 0x2600 and <= 0x27BF;
 	}
 
-	private static bool IsWide( int value ) {
-		return value >= 0x1100
-			&& (
-				value <= 0x115F
-				|| 0x2329 == value
-				|| 0x232A == value
-				|| ( value >= 0x2E80 && value <= 0xA4CF && 0x303F != value )
-				|| ( value >= 0xAC00 && value <= 0xD7A3 )
-				|| ( value >= 0xF900 && value <= 0xFAFF )
-				|| ( value >= 0xFE10 && value <= 0xFE19 )
-				|| ( value >= 0xFE30 && value <= 0xFE6F )
-				|| ( value >= 0xFF00 && value <= 0xFF60 )
-				|| ( value >= 0xFFE0 && value <= 0xFFE6 )
-				|| ( value >= 0x1F300 && value <= 0x1FAFF )
-				|| ( value >= 0x20000 && value <= 0x3FFFD )
-			);
+	private static bool IsInRanges(
+		int value,
+		UnicodeWidthRange[] ranges
+	) {
+		ArgumentNullException.ThrowIfNull( ranges );
+		int low = 0;
+		int high = ranges.Length - 1;
+		while ( low <= high ) {
+			int middle = low + ( ( high - low ) / 2 );
+			UnicodeWidthRange range = ranges[ middle ];
+			if ( value < range.First ) {
+				high = middle - 1;
+				continue;
+			}
+			if ( value > range.Last ) {
+				low = middle + 1;
+				continue;
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 }
