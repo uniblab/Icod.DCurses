@@ -55,6 +55,7 @@ if ( 100 != logicalScreen.Columns
 VerifyApprovedDependencySurface();
 VerifyInputSemanticSurface();
 VerifyUnicodeWidthSurface();
+VerifyColumnTextSurface();
 
 if ( string.Equals(
 	Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_INTERACTIVE" ),
@@ -154,6 +155,33 @@ static void VerifyUnicodeWidthSurface() {
 		|| 2 != narrow.GetWidth( "\U00016FF2" ) ) {
 		throw new InvalidOperationException(
 			"DCurses package-only Unicode width policy surface failed validation."
+		);
+	}
+}
+
+static void VerifyColumnTextSurface() {
+	const string text = "A\u754CB";
+	if ( 4 != CursesText.MeasureColumns( text )
+		|| "A" != CursesText.TruncateToColumns(
+			text,
+			2
+		)
+		|| "\u754CB" != CursesText.SliceByColumns(
+			text,
+			1,
+			3
+		) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only column-text surface failed validation."
+		);
+	}
+
+	if ( 2 != CursesText.MeasureColumns(
+		"\u03A9",
+		UnicodeCursesTextWidthProvider.WideAmbiguousInstance
+	) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only column helpers did not honor the supplied width provider."
 		);
 	}
 }
