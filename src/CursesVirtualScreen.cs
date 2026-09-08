@@ -11,7 +11,9 @@ namespace Icod.DCurses;
 public sealed class CursesVirtualScreen {
 	private readonly CursesCell[] cells;
 	private readonly bool[] dirtyCells;
+	private ulong[]? cellChangeRevisions;
 	private int dirtyCellCount;
+	private ulong changeRevision;
 
 	/// <summary>Initializes a blank logical screen.</summary>
 	/// <param name="columns">The positive number of columns.</param>
@@ -133,6 +135,12 @@ public sealed class CursesVirtualScreen {
 	/// <summary>Gets the number of logical cells currently marked dirty.</summary>
 	internal int DirtyCellCount => dirtyCellCount;
 
+	/// <summary>Gets the latest logical content/damage revision for this surface.</summary>
+	internal ulong ChangeRevision => changeRevision;
+
+	/// <summary>Gets whether per-cell logical content/damage revision tracking is enabled.</summary>
+	internal bool ChangeTrackingEnabled => null != cellChangeRevisions;
+
 	/// <summary>
 	/// Gets or sets whether ordinary replacement writes repair an existing wide-cell footprint.
 	/// </summary>
@@ -146,6 +154,11 @@ public sealed class CursesVirtualScreen {
 		set;
 	}
 
+	/// <summary>Enables per-cell logical content/damage revision tracking for specialized consumers.</summary>
+	internal void EnableChangeTracking() {
+		cellChangeRevisions ??= new ulong[ cells.Length ];
+	}
+
 	/// <summary>Gets whether one logical coordinate is marked dirty.</summary>
 	/// <param name="row">The zero-based row.</param>
 	/// <param name="column">The zero-based column.</param>
@@ -156,13 +169,32 @@ public sealed class CursesVirtualScreen {
 		return dirtyCells[ GetOffset( row, column ) ];
 	}
 
+	/// <summary>Gets the latest logical content/damage revision for one cell.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <returns>The cell-local change revision.</returns>
+	internal ulong GetCellChangeRevision(
+		int row,
+		int column ) {
+		ulong[] revisions = cellChangeRevisions
+			?? throw new InvalidOperationException(
+				"Logical change revision tracking is not enabled for this virtual screen."
+			);
+		return revisions[ GetOffset( row, column ) ];
+	}
+
 	/// <summary>Marks one logical coordinate dirty without changing its value.</summary>
 	/// <param name="row">The zero-based row.</param>
 	/// <param name="column">The zero-based column.</param>
 	internal void TouchCell(
 		int row,
 		int column ) {
-		MarkDirty( GetOffset( row, column ) );
+		int offset = GetOffset(
+			row,
+			column
+		);
+		RecordChange( offset );
+		MarkDirty( offset );
 	}
 
 	/// <summary>Gets a read-only view of the logical cell storage.</summary>
@@ -176,6 +208,11 @@ public sealed class CursesVirtualScreen {
 
 	/// <summary>Marks every logical cell dirty.</summary>
 	internal void Invalidate() {
+		if ( null != cellChangeRevisions ) {
+			for ( int offset = 0; offset < cells.Length; offset++ ) {
+				RecordChange( offset );
+			}
+		}
 		Array.Fill(
 			dirtyCells,
 			true
@@ -222,7 +259,20 @@ public sealed class CursesVirtualScreen {
 		}
 
 		cells[ offset ] = cell;
+		RecordChange( offset );
 		MarkDirty( offset );
+	}
+
+	private void RecordChange( int offset ) {
+		ulong[]? revisions = cellChangeRevisions;
+		if ( null == revisions ) {
+			return;
+		}
+
+		unchecked {
+			changeRevision++;
+			revisions[ offset ] = changeRevision;
+		}
 	}
 
 	private void MarkDirty( int offset ) {

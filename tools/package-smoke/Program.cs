@@ -57,6 +57,7 @@ VerifyInputSemanticSurface();
 VerifyUnicodeWidthSurface();
 VerifyColumnTextSurface();
 VerifyWindowEditingSurface();
+VerifyPadSurface();
 
 if ( string.Equals(
 	Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_INTERACTIVE" ),
@@ -291,6 +292,90 @@ static void VerifyWindowEditingSurface() {
 			"DCurses package-only damage-range surface failed validation."
 		);
 	}
+}
+
+static void VerifyPadSurface() {
+	CursesPad pad = new(
+		40,
+		20
+	);
+	CursesWindow derived = pad.ContentWindow.CreateSubwindow(
+		2,
+		3,
+		6,
+		12
+	);
+	derived.Move(
+		1,
+		1
+	);
+	derived.Write( "A\u754CB" );
+
+	CursesScreen destination = new(
+		8,
+		3
+	);
+	pad.PresentTo(
+		destination.StandardWindow,
+		3,
+		4,
+		1,
+		4,
+		0,
+		0
+	);
+	if ( "A" != destination.StandardWindow.GetCell( 0, 0 ).Content
+		|| "\u754C" != destination.StandardWindow.GetCell( 0, 1 ).Content
+		|| !destination.StandardWindow.GetCell( 0, 2 ).IsContinuation
+		|| "B" != destination.StandardWindow.GetCell( 0, 3 ).Content ) {
+		throw new InvalidOperationException(
+			"DCurses package-only pad presentation surface failed validation."
+		);
+	}
+
+	CursesPadViewport viewport = pad.CreateViewport(
+		destination.StandardWindow,
+		2,
+		3,
+		3,
+		8,
+		0,
+		0
+	);
+	if ( !viewport.HasVisiblePadChanges ) {
+		throw new InvalidOperationException(
+			"A fresh package-only pad viewport must require presentation."
+		);
+	}
+	viewport.Present();
+	if ( viewport.HasVisiblePadChanges ) {
+		throw new InvalidOperationException(
+			"A presented package-only pad viewport remained changed."
+		);
+	}
+
+	pad.ContentWindow.TouchRegion(
+		2,
+		3,
+		1,
+		1
+	);
+	if ( !viewport.HasVisiblePadChanges ) {
+		throw new InvalidOperationException(
+			"Package-only pad damage was not observed by the viewport."
+		);
+	}
+	viewport.Present();
+	viewport.PanBy(
+		1,
+		1
+	);
+	if ( !viewport.HasVisiblePadChanges ) {
+		throw new InvalidOperationException(
+			"Package-only pad panning did not invalidate the viewport."
+		);
+	}
+	viewport.Present();
 }
 
 static async Task<int> RunInteractiveAsync() {
