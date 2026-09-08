@@ -1,6 +1,6 @@
 # Icod.DCurses
 
-![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.1.1/icod_tui_toolchain.jpg)
+![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.3.0/icod_tui_toolchain.jpg)
 
 `Icod.DCurses` is a managed, cross-platform curses-like terminal UI library for
 .NET.
@@ -14,39 +14,37 @@ rendition policy, and refresh/damage synchronization.
 
 ## Status
 
-`Icod.DCurses 0.2.0` is the current published stable release.
+`Icod.DCurses 0.3.0` is the current published stable release.
 
-The `0.3.0` Unicode and terminal-cell source contract is now prepared as a stable
-release candidate for merge. The source version and package version are `0.3.0`;
-publication remains post-merge and therefore the published package is still
-`0.2.0` until the `v0.3.0` release workflow completes.
+Development toward `1.0.0` continues on the `0.4.0` window editing and
+composition line. The current development package is `0.4.0-alpha.6`.
 
-T301 and T302 established the normalized Unicode text-element pipeline used by
-`CursesWindow.Write(string)`: malformed UTF-16 is replaced before segmentation,
-and width decisions operate on complete normalized text elements.
+T401-T403 established the 0.4 package foundation, explicit non-standard window
+repositioning, window-local cell inspection, rectangular fill, and
+clear-to-beginning-of-line.
 
-T303 pins the terminal-width data contract to Unicode 17.0.0, replaces the old
-permanent hand-maintained East Asian Width predicate with checked-in generated
-data, and exposes explicit narrow/wide East Asian Ambiguous policy. Narrow
-remains the default; wide-Ambiguous behavior is opt-in and does not depend on
-locale or environment guessing. Unicode 17 `Emoji` property data is also
-generated and checked in for VS16 and emoji-ZWJ candidate classification.
+T404 adds Unicode-safe cell and line insertion/deletion using
+snapshot-transform-commit semantics. T405 adds deterministic destructive copy
+and blank-transparent overlay, including same-window overlap. T406 adds
+geometric horizontal/vertical lines and explicit border construction while
+leaving capability-aware line-glyph selection to the planned 0.6 presentation
+release.
 
-T304 adds public terminal-column helpers through `CursesText.MeasureColumns`,
-`TruncateToColumns`, and `SliceByColumns`, using the same normalization,
-segmentation, and width-provider contract as windows.
+T407 completes the feature-side release with safe range-oriented damage marking
+and querying. A public untouch operation is deliberately omitted because
+arbitrarily clearing logical dirty state could suppress refresh work still
+required by retained physical-screen knowledge. The complete T401-T407 feature
+contract is green on Windows, Linux, macOS, and fresh package-only validation.
 
-T305 hardens screen/window two-column leader/continuation footprints across
-preserved resize and subwindow boundaries while retaining `CursesVirtualScreen`
-as an exact low-level cell store when used independently. T306 adds the broader
-Unicode conformance corpus, package-only consumer coverage, and live Unicode
-diagnostics showcase.
+T408 is now the active public API/documentation/package regret gate. No new
+feature family enters before the 0.4 release candidate.
 
-T307 is complete: the 0.3 public API, Unicode-data contract, dependency boundary,
-documentation, and package-consumer surface passed the regret gate and are
-feature-frozen. The `0.3.0-rc.1` validation gate passed on Windows, Linux, macOS,
-and the canonical package/fresh-consumer job. T308 has promoted that unchanged
-contract to stable `0.3.0` source for the final PR validation before merge.
+`0.3.0` established the Unicode terminal-cell contract: malformed UTF-16 is
+normalized before segmentation; width decisions operate on complete text
+elements; Unicode 17.0.0 East Asian Width and Emoji-property data are generated
+and checked in; East Asian Ambiguous policy is explicit; and public
+column-measurement/truncation/slicing helpers share the same rules as window
+writes.
 
 `0.2.0` completed stable `Icod.Terminal 1.0.0` semantic-input parity: the curses
 facade carries the complete stable key vocabulary, modifier state,
@@ -69,18 +67,20 @@ The first release line was driven by the requirements of `top`, `slabtop`, and
 managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
-train through `1.0.0`, and `Icod.DCurses-0.3.0-Development-Roadmap.md` for the
-Unicode/terminal-cell tranche. The 0.3 checkpoints and release gates are
+train through `1.0.0`, and `Icod.DCurses-0.4.0-Development-Roadmap.md` for the
+active window editing/composition tranche. The current 0.4 checkpoints are
 recorded in:
 
-- `docs/T302-Normalized-Grapheme-Text-Pipeline.md`
-- `docs/T303-Unicode-Width-Data-and-Ambiguous-Policy.md`
-- `docs/T304-Column-Oriented-Text-Helpers.md`
-- `docs/T305-Wide-Cell-Footprint-Invariants.md`
-- `docs/T306-Unicode-Conformance-and-Consumer-Acceptance.md`
-- `docs/T307-Public-API-Documentation-and-Package-Regret-Gate.md`
-- `docs/T308-0.3.0-Stable-Release-Closure.md`
-- `docs/Public-API-Baseline-0.3.md`
+- `docs/T402-T403-Window-Geometry-and-Region-Editing.md`
+- `docs/T405-Window-Composition.md`
+- `docs/T406-Geometric-Line-and-Border-Drawing.md`
+- `docs/T407-Damage-Ranges-and-Editing-Acceptance.md`
+- `docs/T408-Public-API-Documentation-and-Package-Regret-Gate.md`
+- `docs/Public-API-Baseline-0.4.md`
+
+The completed 0.3 Unicode release is recorded in
+`Icod.DCurses-0.3.0-Development-Roadmap.md`, its T302-T308 documents, and
+`docs/Public-API-Baseline-0.3.md`.
 
 `Icod.DCurses-0.2.0-Development-Roadmap.md` and
 `docs/Public-API-Baseline-0.2.md` record the stable semantic-input release.
@@ -131,7 +131,7 @@ The implementation targets:
 The current published stable package is:
 
 ```text
-dotnet add package Icod.DCurses --version 0.2.0
+dotnet add package Icod.DCurses --version 0.3.0
 ```
 
 ## Quick start
@@ -163,6 +163,38 @@ CursesEvent terminalEvent = await session.ReadEventAsync();
 The session owns the presentation state it enters and restores that state when
 disposed. Applications should consume terminal input and lifecycle activity
 through `CursesSession` rather than adding a parallel terminal reader.
+
+## Window editing and composition (`0.4`)
+
+The 0.4 line adds window-local editing and composition while retaining the
+shared-view model:
+
+```csharp
+CursesScreen logical = new( 80, 24 );
+CursesWindow editor = logical.CreateWindow( 2, 4, 18, 60 );
+
+editor.Reposition( 3, 5 );
+editor.FillRectangle( 0, 0, 18, 60, CursesCell.Blank() );
+editor.Move( 1, 2 );
+editor.Write( "A界B" );
+editor.InsertCells( 2 );
+
+CursesWindow status = logical.CreateWindow( 21, 5, 1, 60 );
+editor.CopyRectangleTo( status, 1, 0, 1, 20, 0, 0 );
+
+editor.DrawHorizontalLine( 16, 1, 58, new CursesCell( "-" ) );
+editor.TouchRegion( 0, 0, 18, 60 );
+bool needsRefresh = editor.IsRegionTouched( 0, 0, 18, 60 );
+```
+
+`CopyRectangleTo` includes source blanks; `OverlayRectangleTo` treats ordinary
+source blanks as transparent. Overlapping copies snapshot the source before any
+destination write. Editing and drawing preserve the cursor and retain the 0.3
+wide-cell invariants.
+
+Drawing methods accept caller-supplied one-column cells in 0.4. Capability-aware
+Unicode/alternate-character-set line-glyph selection is intentionally deferred
+to the 0.6 presentation tranche.
 
 ## Unicode column helpers (`0.3`)
 
