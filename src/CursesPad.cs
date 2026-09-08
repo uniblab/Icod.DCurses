@@ -7,7 +7,8 @@ namespace Icod.DCurses;
 /// <remarks>
 /// A pad does not own a terminal session or perform physical terminal output. Its content window reuses
 /// the standard DCurses Unicode, cell, editing, composition, drawing, and damage semantics. Selected pad
-/// rectangles can be projected into ordinary destination windows through <see cref="PresentTo"/>.
+/// rectangles can be projected into ordinary destination windows through <see cref="PresentTo"/> or an
+/// independently pannable <see cref="CursesPadViewport"/>.
 /// </remarks>
 public sealed class CursesPad {
 	private readonly CursesScreen backingScreen;
@@ -75,6 +76,37 @@ public sealed class CursesPad {
 		ArgumentNullException.ThrowIfNull( destination );
 
 		ContentWindow.CopyRectangleTo(
+			destination,
+			padRow,
+			padColumn,
+			rows,
+			columns,
+			destinationRow,
+			destinationColumn
+		);
+	}
+
+	/// <summary>Creates an independently pannable viewport bound to one destination window.</summary>
+	/// <param name="destination">The destination logical window.</param>
+	/// <param name="padRow">The initial zero-based first pad row.</param>
+	/// <param name="padColumn">The initial zero-based first pad column.</param>
+	/// <param name="rows">The positive viewport height.</param>
+	/// <param name="columns">The positive viewport width.</param>
+	/// <param name="destinationRow">The zero-based first destination row.</param>
+	/// <param name="destinationColumn">The zero-based first destination column.</param>
+	/// <returns>The independent logical viewport state.</returns>
+	public CursesPadViewport CreateViewport(
+		CursesWindow destination,
+		int padRow,
+		int padColumn,
+		int rows,
+		int columns,
+		int destinationRow,
+		int destinationColumn
+	) {
+		ArgumentNullException.ThrowIfNull( destination );
+		return new CursesPadViewport(
+			this,
 			destination,
 			padRow,
 			padColumn,
