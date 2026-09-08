@@ -184,11 +184,12 @@ public sealed class PublicPadApiContractTests {
 		ArgumentNullException.ThrowIfNull( parameterTypes );
 
 		MethodInfo method = Assert.Single(
-			methods.Where( candidate => string.Equals(
+			methods,
+			candidate => string.Equals(
 				candidate.Name,
 				name,
 				StringComparison.Ordinal
-			) )
+			)
 		);
 		Assert.Equal( returnType, method.ReturnType );
 		AssertParameterTypes(
