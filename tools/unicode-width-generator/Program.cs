@@ -6,6 +6,14 @@ using System.Text;
 internal static class Program {
 	private const string ExpectedUnicodeVersion = "17.0.0";
 
+	private static readonly UnicodeRange[] defaultWideRanges = [
+		new( 0x3400, 0x4DBF ),
+		new( 0x4E00, 0x9FFF ),
+		new( 0xF900, 0xFAFF ),
+		new( 0x20000, 0x2FFFD ),
+		new( 0x30000, 0x3FFFD )
+	];
+
 	public static int Main(
 		string[] args
 	) {
@@ -25,7 +33,7 @@ internal static class Program {
 			ValidateVersion( lines );
 
 			List<UnicodeRange> ambiguous = [];
-			List<UnicodeRange> wide = [];
+			List<UnicodeRange> wide = [ .. defaultWideRanges ];
 
 			foreach ( string rawLine in lines ) {
 				string line = rawLine.Split( '#', 2 )[ 0 ].Trim();
@@ -42,17 +50,24 @@ internal static class Program {
 
 				UnicodeRange range = ParseRange( fields[ 0 ].Trim() );
 				string property = fields[ 1 ].Trim();
+				ValidateDefaultWideOverlap(
+					range,
+					property
+				);
 				switch ( property ) {
 					case "A":
-						AddMerged( ambiguous, range );
+						ambiguous.Add( range );
 						break;
 
 					case "W":
 					case "F":
-						AddMerged( wide, range );
+						wide.Add( range );
 						break;
 				}
 			}
+
+			UnicodeRange[] mergedAmbiguous = MergeRanges( ambiguous );
+			UnicodeRange[] mergedWide = MergeRanges( wide );
 
 			Directory.CreateDirectory(
 				Path.GetDirectoryName( outputPath )
@@ -62,13 +77,17 @@ internal static class Program {
 			);
 			File.WriteAllText(
 				outputPath,
-				GenerateSource( ambiguous, wide ),
+				GenerateSource(
+					mergedAmbiguous,
+					mergedWide
+				),
 				new UTF8Encoding( encoderShouldEmitUTF8Identifier: false )
 			);
 
 			Console.WriteLine(
 				$"Generated Unicode {ExpectedUnicodeVersion} East Asian width data: "
-					+ $"{ambiguous.Count} ambiguous ranges, {wide.Count} wide/fullwidth ranges."
+					+ $"{mergedAmbiguous.Length} ambiguous ranges, "
+					+ $"{mergedWide.Length} wide/fullwidth ranges."
 			);
 			return 0;
 		} catch ( Exception exception ) when (
@@ -127,26 +146,56 @@ internal static class Program {
 		return new UnicodeRange( first, last );
 	}
 
-	private static void AddMerged(
-		List<UnicodeRange> ranges,
-		UnicodeRange next
+	private static void ValidateDefaultWideOverlap(
+		UnicodeRange range,
+		string property
+	) {
+		ArgumentException.ThrowIfNullOrWhiteSpace( property );
+		if ( property is "W" or "F" ) {
+			return;
+		}
+
+		foreach ( UnicodeRange defaultWide in defaultWideRanges ) {
+			if ( range.Last < defaultWide.First
+				|| defaultWide.Last < range.First ) {
+				continue;
+			}
+
+			throw new InvalidDataException(
+				$"EastAsianWidth property '{property}' overlaps Unicode's "
+					+ $"default-wide range U+{defaultWide.First:X}..U+{defaultWide.Last:X}."
+			);
+		}
+	}
+
+	private static UnicodeRange[] MergeRanges(
+		IEnumerable<UnicodeRange> ranges
 	) {
 		ArgumentNullException.ThrowIfNull( ranges );
-		if ( 0 == ranges.Count ) {
-			ranges.Add( next );
-			return;
+		UnicodeRange[] ordered = ranges
+			.OrderBy( range => range.First )
+			.ThenBy( range => range.Last )
+			.ToArray();
+		if ( 0 == ordered.Length ) {
+			return [];
 		}
 
-		UnicodeRange previous = ranges[ ^1 ];
-		if ( next.First <= previous.Last + 1 ) {
-			ranges[ ^1 ] = new UnicodeRange(
-				previous.First,
-				Math.Max( previous.Last, next.Last )
-			);
-			return;
+		List<UnicodeRange> merged = [ ordered[ 0 ] ];
+		for ( int index = 1; index < ordered.Length; index++ ) {
+			UnicodeRange next = ordered[ index ];
+			UnicodeRange previous = merged[ ^1 ];
+			if ( next.First <= previous.Last + 1 ) {
+				merged[ ^1 ] = new UnicodeRange(
+					previous.First,
+					Math.Max( previous.Last, next.Last )
+				);
+				continue;
+			}
+
+			merged.Add( next );
 		}
 
-		ranges.Add( next );
+		return merged.ToArray();
 	}
 
 	private static string GenerateSource(
