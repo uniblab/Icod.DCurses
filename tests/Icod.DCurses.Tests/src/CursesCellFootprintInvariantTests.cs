@@ -5,7 +5,7 @@ using Xunit;
 namespace Icod.DCurses.Tests;
 
 /// <summary>
-/// Verifies wide-cell leader/continuation invariants through structural screen operations.
+/// Verifies wide-cell leader/continuation invariants through structural screen and window operations.
 /// </summary>
 public sealed class CursesCellFootprintInvariantTests {
 	[Fact]
@@ -87,6 +87,62 @@ public sealed class CursesCellFootprintInvariantTests {
 	}
 
 	[Fact]
+	public void ClearingWindowThatBeginsOnContinuationRepairsLeaderOutsideWindow() {
+		CursesScreen screen = new( 5, 1 );
+		screen.StandardWindow.Write( "\u754CAB" );
+		CursesWindow window = screen.CreateWindow(
+			0,
+			1,
+			1,
+			2
+		);
+
+		window.Clear();
+
+		Assert.True( screen.VirtualScreen[ 0, 0 ].IsBlank );
+		Assert.True( screen.VirtualScreen[ 0, 1 ].IsBlank );
+		CursesCellFootprint.Validate( screen.VirtualScreen );
+	}
+
+	[Fact]
+	public void ClearingWindowThatEndsOnLeaderRepairsContinuationOutsideWindow() {
+		CursesScreen screen = new( 5, 1 );
+		CursesWindow standard = screen.StandardWindow;
+		standard.Move( 0, 2 );
+		standard.Write( "\u754C" );
+		CursesWindow window = screen.CreateWindow(
+			0,
+			1,
+			1,
+			2
+		);
+
+		window.Clear();
+
+		Assert.True( screen.VirtualScreen[ 0, 2 ].IsBlank );
+		Assert.True( screen.VirtualScreen[ 0, 3 ].IsBlank );
+		CursesCellFootprint.Validate( screen.VirtualScreen );
+	}
+
+	[Fact]
+	public void WritingAtSubwindowLeftBoundaryRepairsLeaderOutsideWindow() {
+		CursesScreen screen = new( 5, 1 );
+		screen.StandardWindow.Write( "\u754CAB" );
+		CursesWindow window = screen.CreateWindow(
+			0,
+			1,
+			1,
+			3
+		);
+
+		window.Write( "X" );
+
+		Assert.True( screen.VirtualScreen[ 0, 0 ].IsBlank );
+		Assert.Equal( "X", screen.VirtualScreen[ 0, 1 ].Content );
+		CursesCellFootprint.Validate( screen.VirtualScreen );
+	}
+
+	[Fact]
 	public void WindowWideWritesRemainValidAcrossRepeatedScreenResizes() {
 		CursesScreen screen = new( 12, 3 );
 		CursesWindow window = screen.StandardWindow;
@@ -110,6 +166,77 @@ public sealed class CursesCellFootprintInvariantTests {
 				rows,
 				preserveContents: true
 			);
+			CursesCellFootprint.Validate( screen.VirtualScreen );
+		}
+	}
+
+	[Fact]
+	public void SeededWindowOperationsPreserveWideFootprints() {
+		Random random = new( 0x3030 );
+		CursesScreen screen = new( 12, 4 );
+		string[] values = [
+			"A",
+			"\u754C",
+			"\u2764\uFE0F",
+			"\U0001F1FA\U0001F1F8",
+			"1\uFE0F\u20E3",
+			"XY"
+		];
+
+		for ( int iteration = 0; iteration < 128; iteration++ ) {
+			CursesWindow standard = screen.StandardWindow;
+			switch ( random.Next( 6 ) ) {
+				case 0:
+					standard.Move(
+						random.Next( standard.Rows ),
+						random.Next( standard.Columns )
+					);
+					standard.WrapMode = 0 == random.Next( 2 )
+						? CursesWrapMode.Clip
+						: CursesWrapMode.Wrap
+					;
+					standard.Write( values[ random.Next( values.Length ) ] );
+					break;
+
+				case 1:
+					standard.Move(
+						random.Next( standard.Rows ),
+						random.Next( standard.Columns )
+					);
+					standard.ClearToEndOfLine();
+					break;
+
+				case 2:
+					int windowColumns = random.Next( 1, screen.Columns + 1 );
+					int windowRows = random.Next( 1, screen.Rows + 1 );
+					int windowColumn = random.Next( 0, screen.Columns - windowColumns + 1 );
+					int windowRow = random.Next( 0, screen.Rows - windowRows + 1 );
+					CursesWindow window = screen.CreateWindow(
+						windowRow,
+						windowColumn,
+						windowRows,
+						windowColumns
+					);
+					window.Clear();
+					break;
+
+				case 3:
+					standard.ScrollUp( random.Next( 1, standard.Rows + 1 ) );
+					break;
+
+				case 4:
+					standard.ScrollDown( random.Next( 1, standard.Rows + 1 ) );
+					break;
+
+				default:
+					screen.Resize(
+						random.Next( 4, 13 ),
+						random.Next( 2, 6 ),
+						preserveContents: true
+					);
+					break;
+			}
+
 			CursesCellFootprint.Validate( screen.VirtualScreen );
 		}
 	}
