@@ -6,7 +6,9 @@
 **Development dependency baseline:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Release theme:** Terminal 1.0 input semantic parity  
-**Status:** Active
+**Current development version:** `0.2.0-rc.1`  
+**Current tranche:** T208 — stable release closure  
+**Status:** T201-T207 complete in source; release-candidate validation active
 
 ---
 
@@ -94,6 +96,9 @@ T201  0.2 package/version and contract foundation
   -> T207  package/public API baseline and documentation gate
   -> T208  0.2.0 stable closure
 ```
+
+T201-T207 are complete in the `0.2.0-rc.1` source tree. T208 is release closure
+only and SHALL NOT add another feature family.
 
 ---
 
@@ -338,6 +343,9 @@ and public `CursesSession.ReadEventAsync(...)`.
 **Gate T205:** no stable Terminal 1.0 semantic input can reach an untested DCurses
 mapping path.
 
+The completed checkpoint is recorded in
+[`docs/T205-Terminal-1.0-Input-Compatibility-Acceptance.md`](docs/T205-Terminal-1.0-Input-Compatibility-Acceptance.md).
+
 ---
 
 # 9. T206 — Showcase and Consumer Acceptance
@@ -366,6 +374,9 @@ Capability absence remains a controlled result rather than a failure.
 demonstrate richer semantics on terminals supporting negotiated keyboard
 reporting.
 
+The completed checkpoint is recorded in
+[`docs/T206-Rich-Input-Showcase-and-Consumer-Acceptance.md`](docs/T206-Rich-Input-Showcase-and-Consumer-Acceptance.md).
+
 ---
 
 # 10. T207 — Public API, Documentation, and Package Gate
@@ -387,6 +398,10 @@ Before stable `0.2.0`:
 **Gate T207:** the complete new public input contract is intentional,
 documented, package-consumable, and cross-platform green.
 
+The source/API/package-regret portion is complete and recorded in
+[`docs/T207-Public-API-Documentation-and-Package-Gate.md`](docs/T207-Public-API-Documentation-and-Package-Gate.md).
+`0.2.0-rc.1` is the release-candidate validation checkpoint.
+
 ---
 
 # 11. T208 — Stable 0.2.0 Closure
@@ -395,6 +410,7 @@ T208 is release closure only.
 
 Required work:
 
+- require `0.2.0-rc.1` Staging runtime and package validation to pass;
 - set `<Version>` and `<PackageVersion>` to `0.2.0`;
 - synchronize assembly/package version policy;
 - update release notes;
