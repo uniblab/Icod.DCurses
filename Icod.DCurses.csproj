@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.3.0-alpha.6</Version>
+		<Version>0.3.0-rc.1</Version>
 		<AssemblyVersion>0.3.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.3.0-alpha.6</PackageVersion>
+		<PackageVersion>0.3.0-rc.1</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.3.0-alpha.6 completes the Unicode terminal-cell conformance and structural invariant foundation: Unicode 17 width data, explicit East Asian Ambiguous policy, public column helpers, preserved wide-cell footprints across window boundaries and resize, package-only acceptance, and a Unicode diagnostics showcase. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.3.0-rc.1 freezes the Unicode terminal-cell contract for release validation: Unicode 17.0.0 East Asian Width and Emoji-property data, explicit narrow/wide East Asian Ambiguous policy, normalized grapheme-aware window writes, column-safe measurement/truncation/slicing helpers, and hardened wide-cell structural invariants. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
