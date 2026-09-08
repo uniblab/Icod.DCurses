@@ -10,7 +10,7 @@ clean()
 restore()
 {
     printf '\n=== Restore ===\n'
-    dotnet restore Icod.DCurses.sln
+    dotnet restore Icod.DCurses.sln --force
 }
 
 build()
