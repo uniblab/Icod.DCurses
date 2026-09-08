@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.2.0-alpha.3</Version>
+		<Version>0.2.0-rc.1</Version>
 		<AssemblyVersion>0.2.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.2.0-alpha.3</PackageVersion>
+		<PackageVersion>0.2.0-rc.1</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.2.0-alpha.3 completes T206 consumer acceptance by updating the live rich-input showcase for Terminal 1.0 keyboard event phases, full modifiers, alternate character identities, associated text, and optional keyboard reporting.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.2.0-rc.1 completes the Terminal 1.0 semantic-input parity feature set and T207 public API/package regret review. It preserves the stable dependency baseline on Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
