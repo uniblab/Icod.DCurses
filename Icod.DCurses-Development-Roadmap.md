@@ -8,10 +8,11 @@
 **Initial target frameworks:** `net8.0`; `net9.0`; `net10.0`
 **Configurations:** `Debug`; `Staging`; `Release`
 **License:** LGPL-3.0-or-later
-**Current development target:** `0.1.0`
-**Current tranche:** T13C — 0.1.0 stable release closure
+**Current stable baseline:** `0.1.1`
+**Current development target:** `1.0.0`
+**Current tranche:** dependency-baseline cleanup and 1.0 planning
 **Stable contract target:** `1.0.0`
-**Status:** T01-T13B and Alpha-22 acceptance complete; T13C freezes Icod.Terminal 0.3.0 / Icod.TermInfo 1.4.1 and prepares the stable 0.1.0 release gate
+**Status:** The 0.1 release line is complete. `0.1.1` uses `Icod.Terminal 1.0.0` and `Icod.TermInfo 1.10.0`; the next development plan will carry the library from this stable baseline toward the 1.0 contract.
 
 ---
 
@@ -127,24 +128,25 @@ Windows Console and Windows Terminal behavior SHALL not be treated as an afterth
 
 ## 3. Dependency and Framework Policy
 
-### 3.1 Active 0.1 dependencies
+### 3.1 Active 0.1 dependency baseline
 
-The stable 0.1 dependency graph is:
+The current stable dependency graph is:
 
 ```text
-Icod.DCurses 0.1.0
-    -> Icod.Terminal 0.3.0
-    -> Icod.TermInfo 1.4.1
+Icod.DCurses 0.1.1
+    -> Icod.Terminal 1.0.0
+    -> Icod.TermInfo 1.10.0
 ```
 
 `Icod.TermInfo` is the terminal-capability authority. `Icod.Terminal` is the
 neutral live-terminal endpoint/control substrate. `Icod.CommandFramework` is no
 longer a runtime dependency of DCurses.
 
-Alpha-22 served as the Terminal 0.3 downstream compatibility checkpoint. T13C
-freezes the stable dependency decision after that acceptance without adding a
-project reference, second raw input reader, or private CSI/DCS response parser
-to DCurses.
+The exact current dependency, ownership, package, and approved public-type
+boundary is recorded in
+[`docs/Dependency-Baseline-0.1.1.md`](docs/Dependency-Baseline-0.1.1.md).
+The earlier Terminal 0.3 and T13 documents remain historical checkpoints for the
+0.1.0 release sequence rather than current dependency guidance.
 
 ### 3.2 Initial target frameworks
 
@@ -996,9 +998,9 @@ The project SHALL maintain the following rules throughout development:
 
 ---
 
-## 18. Immediate Development Sequence
+## 18. Historical 0.1.0 Development Sequence
 
-The active implementation sequence for `0.1.0` is:
+The completed implementation sequence for `0.1.0` was:
 
 ```text
 T01  repository / solution / package scaffold
@@ -1020,6 +1022,7 @@ T01  repository / solution / package scaffold
   -> 0.1.0
 ```
 
-The current implementation tranche is therefore **T13B**, freezing the 0.1
-consumer contract while stable `Icod.Terminal 0.2.0` completes its own release
-gate.
+That sequence is complete. `Icod.DCurses 0.1.1` is the current stable baseline,
+with `Icod.Terminal 1.0.0` and `Icod.TermInfo 1.10.0`. The next active sequence
+will be defined by the dedicated 1.0 development plan rather than by reopening
+the completed T01-T13 milestones.
