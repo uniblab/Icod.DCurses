@@ -20,7 +20,7 @@ public enum CursesWrapMode {
 /// therefore update the same logical cells. Coordinates supplied to window methods are zero-based and local
 /// to that window.
 /// </remarks>
-public sealed class CursesWindow {
+public sealed partial class CursesWindow {
 	private const int TabWidth = 8;
 
 	private readonly CursesScreen screen;
