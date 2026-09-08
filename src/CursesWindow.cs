@@ -174,6 +174,34 @@ public sealed class CursesWindow {
 		cursorColumn = column;
 	}
 
+	/// <summary>Repositions a non-standard window relative to its immediate parent or owning screen.</summary>
+	/// <param name="row">The new zero-based origin row.</param>
+	/// <param name="column">The new zero-based origin column.</param>
+	/// <remarks>The window cursor remains unchanged.</remarks>
+	public void Reposition(
+		int row,
+		int column ) {
+		if ( isStandardWindow ) {
+			throw new InvalidOperationException(
+				"The standard window is anchored to its owning CursesScreen."
+			);
+		}
+
+		int containingRows = parent?.Rows ?? screen.Rows;
+		int containingColumns = parent?.Columns ?? screen.Columns;
+		CursesScreen.ValidateWindowRectangle(
+			row,
+			column,
+			Rows,
+			Columns,
+			containingRows,
+			containingColumns
+		);
+
+		originRow = row;
+		originColumn = column;
+	}
+
 	/// <summary>Changes the dimensions of a non-standard window without changing its origin.</summary>
 	/// <param name="rows">The positive new height.</param>
 	/// <param name="columns">The positive new width.</param>
