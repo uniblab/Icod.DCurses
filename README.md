@@ -140,6 +140,36 @@ The session owns the presentation state it enters and restores that state when
 disposed. Applications should consume terminal input and lifecycle activity
 through `CursesSession` rather than adding a parallel terminal reader.
 
+## Modern keyboard input (`0.2` development)
+
+Applications which want key-event phases can request them through the curses
+protocol lease without using Terminal protocol types directly:
+
+```csharp
+var keyboard = await session.AcquireInputProtocolsAsync(
+    new CursesInputProtocolOptions {
+        KeyboardReportingMode = CursesKeyboardReportingMode.EventTypes
+    }
+);
+
+if ( keyboard.IsAvailable ) {
+    await using CursesInputProtocolLease lease = keyboard.GetRequiredValue();
+    CursesEvent current = await session.ReadEventAsync();
+
+    if ( current.Input is {
+        Kind: CursesInputEventKind.Key
+    } input ) {
+        CursesKey key = input.Key;
+        CursesKeyEventPhase? phase = input.KeyPhase;
+        CursesKeyModifiers modifiers = input.Modifiers;
+    }
+}
+```
+
+Keyboard reporting is optional. A terminal which cannot provide the requested
+mode returns a controlled unavailable result; applications can continue using
+the ordinary curses input stream.
+
 ## Build
 
 From the repository root:
