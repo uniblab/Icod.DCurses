@@ -2,9 +2,9 @@
 
 **Project:** `Icod.DCurses`  
 **Development line:** `0.5.0`  
-**Current development version:** `0.5.0-alpha.4`  
+**Current candidate:** `0.5.0-rc.1`  
 **Stable baseline:** `0.4.0`  
-**Status:** Regret review complete; final alpha gate pending
+**Status:** Complete; release-candidate validation in progress
 
 ## 1. Purpose
 
@@ -122,18 +122,24 @@ The fresh package-only consumer exercises the 0.5 surface from the generated `.n
 - panning;
 - repeated presentation.
 
-## 12. Release-candidate gate
+## 12. Alpha gate result
 
-T508 may close and `0.5.0-rc.1` may be prepared when the complete alpha.4 contract plus the opt-in tracking correction passes:
+The complete `0.5.0-alpha.4` contract plus the opt-in tracking correction passed:
 
 - Windows Staging build/tests;
 - Linux Staging build/tests;
 - macOS Staging build/tests;
 - canonical package validation;
-- fresh package-only consumers for all target frameworks;
+- fresh package-only consumers;
 - public dependency-boundary tests;
 - frozen 0.5 public API contract tests;
 - change-tracking opt-in tests;
 - large-pad/resize/panning acceptance tests.
 
-No additional pad feature family should enter after release-candidate promotion.
+No public-contract correction was required.
+
+## 13. Release-candidate handoff
+
+T508 is complete. The accepted contract has been promoted unchanged to `0.5.0-rc.1` for T509 release closure.
+
+No additional pad feature family should enter after this point.
