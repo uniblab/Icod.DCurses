@@ -1,41 +1,24 @@
 # Icod.DCurses 1.0.0 Development Roadmap
 
 **Project:** `Icod.DCurses`  
-**Stable baseline:** `0.1.1`  
+**Stable baseline:** `0.4.0`  
 **Development destination:** `1.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** Approved development plan
+**Status:** Approved development plan; `0.5.0` active
 
 ---
 
 ## 1. Purpose
 
-This document defines the post-`0.1.1` development sequence that carries
-`Icod.DCurses` to a stable `1.0.0` managed curses contract.
+This document defines the development sequence that carries `Icod.DCurses` to a stable `1.0.0` managed curses contract.
 
-The earlier roadmap was intentionally broad and staged feature families across
-`0.2.0` through `0.9.0`. The implementation and its substrate libraries have
-advanced enough that the old sequence is no longer the best development order.
-Several capabilities once scheduled for later releases are already present in
-the stable `0.1` line, including:
+The implementation and its substrate libraries have advanced enough that the original sequence is no longer the best development order. Several capabilities once scheduled for later releases were already present in the early stable line, including retained logical and physical screen state, damage-driven refresh, windows/subwindows, wrapping/scrolling, indexed/RGB color, semantic mouse/focus/paste input, reversible rich-input leases, and Terminal-owned resize/lifecycle integration.
 
-- retained logical and physical screen state;
-- damage-driven refresh;
-- root windows and subwindows;
-- horizontal wrapping and vertical scrolling;
-- indexed and RGB color;
-- semantic mouse input;
-- focus input;
-- bracketed paste;
-- reversible rich-input protocol leases;
-- resize and lifecycle integration through `Icod.Terminal`.
+The current roadmap therefore orders the remaining contract gaps by dependency: Terminal semantic parity, Unicode/cell correctness, richer editing/composition, pads, presentation, refresh optimization, production hardening, and final public-contract freeze.
 
-The new roadmap therefore focuses on the remaining contract gaps and orders them
-by dependency: Terminal semantic parity first, then Unicode/cell correctness,
-then richer editing/composition, pads, presentation, refresh optimization,
-production hardening, and finally public-contract freeze.
+Completed milestones are retained below because later releases depend on their frozen contracts.
 
 ---
 
@@ -60,8 +43,7 @@ Applications
                  terminal / tty
 ```
 
-`Icod.DCurses` SHALL NOT regain responsibilities that belong to
-`Icod.Terminal` or `Icod.TermInfo`.
+`Icod.DCurses` SHALL NOT regain responsibilities that belong to `Icod.Terminal` or `Icod.TermInfo`.
 
 In particular, DCurses SHALL NOT add:
 
@@ -72,9 +54,7 @@ In particular, DCurses SHALL NOT add:
 - application-specific ProcPs policy;
 - terminal emulation or PTY ownership.
 
-DCurses MAY expose curses-shaped abstractions over stable Terminal mechanisms
-when doing so creates useful TUI semantics and avoids forcing ordinary consumers
-to drop down into the Terminal layer.
+DCurses MAY expose curses-shaped abstractions over stable Terminal mechanisms when doing so creates useful TUI semantics and avoids forcing ordinary consumers to drop down into the Terminal layer.
 
 ---
 
@@ -85,132 +65,85 @@ to drop down into the Terminal layer.
 | `0.2.0` | Terminal 1.0 input semantic parity | DCurses consumes the complete stable Terminal key/event/protocol contract without losing information or throwing on valid Terminal input |
 | `0.3.0` | Unicode and terminal-cell contract | Grapheme-aware, column-safe text semantics are frozen before richer editing APIs are built |
 | `0.4.0` | Window editing and composition | Mature geometry, editing, line drawing, copy/overlay, and region operations suitable for general TUIs |
-| `0.5.0` | Pads and large surfaces | Large off-screen cell surfaces, viewports, subpads, and efficient panning |
+| `0.5.0` | Pads and large surfaces | Large off-screen cell surfaces, viewports, derived views, independent viewport damage observation, and efficient panning |
 | `0.6.0` | Rendition, drawing, and presentation | Complete managed presentation vocabulary with capability-aware degradation |
 | `0.7.0` | Refresh and output optimization | Synchronized output, better terminal-operation selection, scrolling/edit optimizations, and measurable output efficiency |
 | `0.8.0` | Production hardening | Explicit concurrency model, lifecycle/race recovery, stress testing, performance, and failure resilience |
 | `0.9.0` | Contract freeze / release candidate | Public API regret review, compatibility fingerprint, documentation and package freeze |
 | `1.0.0` | Stable release closure | Stable managed contract with no surprise feature family introduced during release closure |
 
-The version numbers describe development checkpoints, not a requirement to
-recreate historical native-curses versioning or function families one-for-one.
+The version numbers describe development checkpoints, not a requirement to recreate historical native-curses versioning or function families one-for-one.
 
 ---
 
 # 4. Version 0.2.0 — Terminal 1.0 Input Semantic Parity
 
-## 4.1 Objective
+`0.2.0` established complete stable Terminal semantic keyboard/input parity through the curses facade, including the expanded key vocabulary, press/repeat/release phases, modern modifiers, shifted/base-layout characters, associated text, `Unrecognized`, and curses-shaped keyboard-reporting protocol acquisition.
 
-`Icod.Terminal 1.0.0` has a broader stable semantic keyboard contract than the
-current DCurses adapter. DCurses `0.2.0` SHALL consume that contract completely
-through the curses event facade.
-
-The release SHALL cover:
-
-- the complete stable Terminal semantic key vocabulary;
-- press, repeat, and release key phases;
-- Shift, Control, Alt, Super, Hyper, Meta, CapsLock, and NumLock modifier state;
-- shifted-layout character identity;
-- base-layout character identity;
-- associated text supplied by modern keyboard protocols;
-- stable handling of Terminal's `Unrecognized` semantic key;
-- curses-shaped keyboard reporting protocol acquisition;
-- exhaustive conversion tests so a future Terminal vocabulary change cannot
-  silently become an application-time exception.
-
-The detailed implementation plan is maintained in
-`Icod.DCurses-0.2.0-Development-Roadmap.md`.
+The detailed implementation plan is maintained in `Icod.DCurses-0.2.0-Development-Roadmap.md`.
 
 ---
 
 # 5. Version 0.3.0 — Unicode and Terminal-Cell Contract
 
-## 5.1 Why Unicode moves early
+`0.3.0` froze the terminal-cell foundation required by later editing and viewport APIs:
 
-Unicode correctness is foundational to every later editing and viewport API.
-The library must know what one drawable text element means before operations
-such as insertion, deletion, clipping, copying, and pad viewporting can be
-frozen.
-
-The `0.3.0` contract SHALL establish:
-
-- extended grapheme-cluster iteration appropriate for terminal cells;
-- deterministic zero-, one-, and two-column measurement;
+- normalized malformed UTF-16 before segmentation;
+- complete text-element width decisions;
+- deterministic zero-, one-, and two-column semantics;
 - continuation-cell invariants;
-- combining-sequence behavior;
-- variation-selector behavior;
-- emoji ZWJ behavior;
-- regional-indicator flag behavior;
-- keycap-sequence behavior;
-- safe overwrite of existing wide cells;
-- safe clipping without emitting half of a wide element;
-- deterministic malformed-Unicode behavior;
-- an explicit East Asian Ambiguous-width policy;
-- centrally owned/versioned Unicode width data or algorithm;
-- column-oriented measurement and slicing helpers such as measurement,
-  truncation, and safe column slicing.
+- combining, variation-selector, emoji-ZWJ, flag, and keycap behavior;
+- safe wide-cell overwrite and clipping;
+- explicit East Asian Ambiguous-width policy;
+- Unicode 17.0.0 width/emoji data;
+- public column measurement, truncation, and slicing helpers.
 
-The goal is terminal-cell correctness, not general-purpose script shaping.
-Bidirectional layout, Arabic shaping, Indic shaping, and general font shaping
-remain outside the core 1.0 contract.
+The goal remains terminal-cell correctness, not general-purpose script shaping. Bidirectional layout, Arabic shaping, Indic shaping, and general font shaping remain outside the core 1.0 contract.
 
 ---
 
 # 6. Version 0.4.0 — Window Editing and Composition
 
-The existing window model already provides root windows, subwindows, movement of
-the logical cursor, resizing, wrapping, clear/erase, scrolling, touch, and
-invalidation. `0.4.0` SHALL mature this into a general TUI editing surface.
+`0.4.0` matured the window/view model into a general TUI editing surface with:
 
-Candidate required families:
-
-- repositioning non-standard windows;
-- rigorously defined parent/subwindow geometry and lifetime semantics;
+- non-standard window repositioning and explicit nested geometry;
 - public window-local cell inspection;
-- region fill operations;
-- clear-to-beginning-of-line where useful;
-- insert/delete character or cell ranges;
-- insert/delete line ranges;
-- horizontal and vertical line drawing;
-- borders and boxes;
-- copy-region operations;
-- destructive overwrite operations;
-- transparent overlay operations;
-- range touch/untouch and dirty-query operations;
-- predictable cursor behavior after editing operations;
-- Unicode-safe behavior for every editing primitive.
+- region fill and erase completion;
+- insert/delete cells and lines;
+- deterministic destructive copy and transparent overlay;
+- horizontal/vertical geometric drawing and borders;
+- range-oriented touch/query semantics;
+- Unicode-safe wide-cell repair across every editing boundary.
 
-The managed API SHALL use descriptive managed names rather than reproduce native
-`w*` function naming mechanically.
+The managed API uses descriptive managed names rather than reproducing native `w*` function naming mechanically.
 
 ---
 
 # 7. Version 0.5.0 — Pads and Large Surfaces
 
-`0.5.0` SHALL add cell surfaces larger than the physical terminal.
+`0.5.0` is the active development release. Its detailed tranche plan is maintained in `Icod.DCurses-0.5.0-Development-Roadmap.md`.
 
-The release SHOULD introduce a managed pad abstraction with:
+The release introduces large in-memory off-screen cell surfaces which reuse the 0.3/0.4 contracts rather than duplicating them. The accepted design includes:
 
-- arbitrary positive dimensions within defined resource limits;
-- the same cell/style/text semantics as windows;
-- pad-local cursor state;
-- subpads or derived views where they are useful and unambiguous;
-- rectangular viewport presentation into a screen/window;
+- `CursesPad` as an off-screen logical surface;
+- ordinary `CursesWindow` editing through `ContentWindow`;
+- direct rectangular pad-to-window presentation;
+- independent `CursesPadViewport` projection state;
 - vertical and horizontal panning;
-- clipping at both pad and destination boundaries;
-- efficient refresh of only the visible viewport;
-- damage propagation across viewport changes;
-- explicit behavior when the physical terminal resizes.
+- ordinary `CreateSubwindow(...)` as the shared derived-pad-view model;
+- independent per-viewport visible pad change observation;
+- explicit touch/invalidation propagation without a global pad-clean acknowledgement;
+- strict destination-geometry revalidation after resize;
+- wide-cell-safe source/destination boundary handling;
+- large-surface and repeated-panning acceptance.
 
-Editors, pagers, log viewers, inspectors, tables, and file managers SHOULD be
-possible without application-private viewport infrastructure.
+Pads do not own terminal sessions, terminal modes, terminal input, physical-screen state, or a second refresh engine.
 
 ---
 
 # 8. Version 0.6.0 — Rendition, Drawing, and Presentation
 
-The stable managed color model already supports terminal-default, indexed, and
-RGB requests. `0.6.0` SHALL complete the presentation contract around it.
+The stable managed color model already supports terminal-default, indexed, and RGB requests. `0.6.0` SHALL complete the presentation contract around it.
 
 Candidate scope:
 
@@ -230,27 +163,21 @@ Candidate scope:
 - corners, tees, crossings, horizontal and vertical line primitives;
 - Unicode or terminal alternate-character-set fallback policy;
 - cursor presentation semantics beyond simple visibility where justified;
-- a small read-only curses presentation-capabilities view if ordinary TUI
-  decisions otherwise require direct TermInfo inspection.
+- a small read-only curses presentation-capabilities view if ordinary TUI decisions otherwise require direct TermInfo inspection.
 
-A historical color-pair facade MAY be added for compatibility, but color pairs
-SHALL NOT replace the semantic foreground/background model as the primary API.
+A historical color-pair facade MAY be added for compatibility, but color pairs SHALL NOT replace the semantic foreground/background model as the primary API.
 
 ---
 
 # 9. Version 0.7.0 — Refresh and Output Optimization
 
-The current refresh design already separates desired logical state from retained
-physical-screen knowledge. `0.7.0` SHALL optimize that model without weakening
-its correctness.
+The current refresh design already separates desired logical state from retained physical-screen knowledge. `0.7.0` SHALL optimize that model without weakening its correctness.
 
 Required investigation includes:
 
-- integrating Terminal synchronized-output framing around refresh batches when
-  available;
+- integrating Terminal synchronized-output framing around refresh batches when available;
 - measuring emitted bytes as well as elapsed time and allocation volume;
-- relative cursor motion versus absolute addressing where capability/cost data
-  makes the choice worthwhile;
+- relative cursor motion versus absolute addressing where capability/cost data makes the choice worthwhile;
 - insert/delete-character optimization;
 - insert/delete-line optimization;
 - scroll-region optimization;
@@ -259,28 +186,21 @@ Required investigation includes:
 - preserving correct state after partial writes or failed refreshes;
 - large-screen and high-frequency refresh benchmarks.
 
-Correctness SHALL remain more important than finding a globally minimal escape
-sequence stream.
+Correctness SHALL remain more important than finding a globally minimal escape sequence stream.
 
-The primary managed batching boundary remains `RefreshAsync()` unless concrete
-consumer evidence proves a separate native-style `noutrefresh`/`doupdate`
-contract is beneficial.
+The primary managed batching boundary remains `RefreshAsync()` unless concrete consumer evidence proves a separate native-style `noutrefresh`/`doupdate` contract is beneficial.
 
 ---
 
 # 10. Version 0.8.0 — Production Hardening
 
-`0.8.0` SHALL turn the feature-complete pre-1.0 library into a production-grade
-runtime component.
+`0.8.0` SHALL turn the feature-complete pre-1.0 library into a production-grade runtime component.
 
-The release SHALL explicitly freeze the concurrency model. The default design
-preference is:
+The release SHALL explicitly freeze the concurrency model. The default design preference is:
 
-- logical screen/window/pad mutation is single-writer unless documented
-  otherwise;
+- logical screen/window/pad mutation is single-writer unless documented otherwise;
 - session input/output/refresh ownership is internally serialized where needed;
-- the library does not add pervasive locks to every cell mutation merely to
-  claim transparent thread safety.
+- the library does not add pervasive locks to every cell mutation merely to claim transparent thread safety.
 
 Hardening coverage SHALL include:
 
@@ -317,15 +237,13 @@ The `0.9.0` tranche SHALL:
 - freeze cell/text/Unicode semantics;
 - freeze input event semantics;
 - freeze exception and cancellation behavior;
-- decide finally which approved Terminal/TermInfo types remain in the public
-  1.x contract;
+- decide finally which approved Terminal/TermInfo types remain in the public 1.x contract;
 - establish a machine-readable public API fingerprint/baseline;
 - validate nullable annotations;
 - validate XML documentation;
 - validate package metadata and package-only consumers;
 - expand conceptual documentation and migration guidance;
-- run editor-like, pager-like, Unicode-heavy, rich-input, lifecycle, and
-  high-frequency refresh acceptance workloads.
+- run editor-like, pager-like, Unicode-heavy, rich-input, lifecycle, and high-frequency refresh acceptance workloads.
 
 ---
 
@@ -341,12 +259,10 @@ Before publication:
 - package-only consumers SHALL pass for representative TUI workloads;
 - `top`, `slabtop`, and `watch` SHALL remain valid downstream consumers;
 - Unicode/cell behavior SHALL be documented and tested;
-- terminal restoration SHALL be demonstrated for normal exit, exceptions,
-  cancellation, resize, and supported suspend/resume;
+- terminal restoration SHALL be demonstrated for normal exit, exceptions, cancellation, resize, and supported suspend/resume;
 - no known refresh correctness defect SHALL remain;
 - package version, assembly version, and compatibility policy SHALL be frozen;
-- README, samples, conceptual docs, and XML docs SHALL describe the supported
-  stable contract;
+- README, samples, conceptual docs, and XML docs SHALL describe the supported stable contract;
 - NuGet.org and GitHub Packages publication SHALL use the validated tag artifact.
 
 ---
@@ -371,8 +287,7 @@ The following are not required for `Icod.DCurses 1.0.0`:
 - bidirectional or complex-script text shaping;
 - wrappers for every feature exposed by `Icod.Terminal`.
 
-Focused compatibility or widget packages MAY be developed after the stable core
-contract exists.
+Focused compatibility or widget packages MAY be developed after the stable core contract exists.
 
 ---
 
@@ -380,43 +295,31 @@ contract exists.
 
 Throughout the 1.0 train:
 
-1. `<Version>` and `<PackageVersion>` SHALL remain synchronized with the active
-   development package.
-2. `Debug` remains the local-development configuration, pull requests use
-   `Staging`, and `main`/tags use `Release`.
-3. `net8.0`, `net9.0`, and `net10.0` remain first-class targets unless a
-   concrete support/security constraint requires reconsideration.
-4. Public/protected/internal methods SHALL validate applicable parameters at
-   entry.
+1. `<Version>` and `<PackageVersion>` SHALL remain synchronized with the active development package.
+2. `Debug` remains the local-development configuration, pull requests use `Staging`, and `main`/tags use `Release`.
+3. `net8.0`, `net9.0`, and `net10.0` remain first-class targets unless a concrete support/security constraint requires reconsideration.
+4. Public/protected/internal methods SHALL validate applicable parameters at entry.
 5. Braces SHALL be used for every `if`/`else` body.
-6. Terminal capability behavior SHALL remain TermInfo-driven when a capability
-   models the operation.
-7. Tests SHALL remain non-interactive unless explicitly categorized as manual
-   acceptance.
+6. Terminal capability behavior SHALL remain TermInfo-driven when a capability models the operation.
+7. Tests SHALL remain non-interactive unless explicitly categorized as manual acceptance.
 8. Tests SHALL not write unsolicited standard output/error.
 9. Public API additions SHALL be deliberate contract decisions.
-10. The dependency-boundary allow-list SHALL prevent accidental new
-    Terminal/TermInfo public leakage.
-11. Every release SHALL include package-only validation from the generated
-    artifact.
-12. Historical milestone documents SHALL remain historical rather than being
-    rewritten to describe current versions.
+10. The dependency-boundary allow-list SHALL prevent accidental new Terminal/TermInfo public leakage.
+11. Every release SHALL include package-only validation from the generated artifact.
+12. Historical milestone documents SHALL remain historical rather than being rewritten to describe current versions.
 
 ---
 
 ## 15. Immediate Sequence
 
 ```text
-0.1.1 stable baseline
-  -> 0.2.0 Terminal 1.0 input semantic parity
-  -> 0.3.0 Unicode / terminal-cell contract
-  -> 0.4.0 window editing and composition
-  -> 0.5.0 pads and large surfaces
+0.2.0 Terminal 1.0 input semantic parity        complete
+  -> 0.3.0 Unicode / terminal-cell contract     complete
+  -> 0.4.0 window editing and composition       complete
+  -> 0.5.0 pads and large surfaces              active
   -> 0.6.0 rendition / drawing / presentation
   -> 0.7.0 refresh and output optimization
   -> 0.8.0 production hardening
   -> 0.9.0 contract freeze / RC
   -> 1.0.0 stable closure
 ```
-
-The active development release is `0.2.0`.
