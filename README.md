@@ -14,14 +14,14 @@ rendition policy, and refresh/damage synchronization.
 
 ## Status
 
-`Icod.DCurses 0.1.1` is the current stable maintenance release of the managed
-DCurses 0.1 contract.
+`Icod.DCurses 0.1.1` is the current published stable release.
 
-Development toward `1.0.0` is active. The current development package is
-`0.2.0-rc.1`. T201-T206 complete the Terminal 1.0 semantic-input feature set,
-and T207 freezes the new public API, documentation, dependency boundary, and
-package-only consumer contract. Only T208 stable `0.2.0` release closure remains
-before the roadmap moves to the Unicode/terminal-cell tranche in `0.3.0`.
+The `0.2.0` stable source is prepared in the current development branch. T201-T207
+complete and freeze the Terminal 1.0 semantic-input feature set, public API,
+documentation, dependency boundary, showcase, and package-only consumer contract.
+T208 is now the release gate: this stable source must pass PR validation, merge to
+`main`, pass the six-runner Release matrix, and only then may `v0.2.0` be tagged
+and published.
 
 `0.1.0-Alpha-15` established the automated Icod.Terminal T19 rich-input
 acceptance boundary against `Icod.Terminal 0.2.0-alpha.6`, and
@@ -34,10 +34,9 @@ validated published `Icod.Terminal 0.3.0-alpha.8` and `Icod.TermInfo 1.3.0`
 without requiring DCurses to regain private terminal mechanics.
 
 The original stable `0.1.0` dependency freeze used `Icod.Terminal 0.3.0` and
-`Icod.TermInfo 1.4.1`. `0.1.1` advances that accepted contract to
-`Icod.Terminal 1.0.0` and `Icod.TermInfo 1.10.0` without intentionally changing
-the existing DCurses public API or ownership model. The `0.2.0` development
-line retains those stable dependency versions.
+`Icod.TermInfo 1.4.1`. `0.1.1` advanced that accepted contract to
+`Icod.Terminal 1.0.0` and `Icod.TermInfo 1.10.0`. `0.2.0` retains those stable
+dependency versions while expanding the curses-owned semantic input facade.
 
 The retired DCurses backend, native mode, lifecycle-source, input-decoder, and
 pre-Terminal session implementations remain removed. DCurses does not add a
@@ -50,8 +49,8 @@ managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
 train from `0.2.0` through `1.0.0`, and
-`Icod.DCurses-0.2.0-Development-Roadmap.md` for the active Terminal 1.0 input
-parity tranche. `docs/Public-API-Baseline-0.2.md` records the accepted 0.2 public
+`Icod.DCurses-0.2.0-Development-Roadmap.md` for the Terminal 1.0 input-parity
+release. `docs/Public-API-Baseline-0.2.md` records the accepted `0.2` public
 input contract, while `docs/Dependency-Baseline-0.1.1.md` records the stable
 Terminal/TermInfo dependency and ownership baseline.
 
@@ -104,10 +103,17 @@ The current runtime dependency set is:
 
 ## Installation
 
-The current stable package is:
+The current published stable package remains:
 
 ```text
 dotnet add package Icod.DCurses --version 0.1.1
+```
+
+After the `v0.2.0` release tag publishes successfully, the stable installation
+command becomes:
+
+```text
+dotnet add package Icod.DCurses --version 0.2.0
 ```
 
 ## Quick start
@@ -140,7 +146,7 @@ The session owns the presentation state it enters and restores that state when
 disposed. Applications should consume terminal input and lifecycle activity
 through `CursesSession` rather than adding a parallel terminal reader.
 
-## Modern keyboard input (`0.2` development)
+## Modern keyboard input (`0.2`)
 
 Applications which want key-event phases can request them through the curses
 protocol lease without using Terminal protocol types directly:
