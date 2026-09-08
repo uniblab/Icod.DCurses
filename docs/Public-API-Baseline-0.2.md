@@ -3,9 +3,10 @@
 **Project:** `Icod.DCurses`  
 **Release line:** `0.2.x`  
 **Baseline prepared in:** `0.2.0-alpha.3` / T207  
+**Stable release:** `0.2.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Dependency baseline:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
-**Status:** Pre-stable public contract baseline
+**Status:** Release-line source contract baseline
 
 ---
 
