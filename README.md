@@ -1,6 +1,6 @@
 # Icod.DCurses
 
-![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.1.0/icod_tui_toolchain.jpg)
+![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.1.1/icod_tui_toolchain.jpg)
 
 `Icod.DCurses` is a managed, cross-platform curses-like terminal UI library for
 .NET.
@@ -14,8 +14,8 @@ rendition policy, and refresh/damage synchronization.
 
 ## Status
 
-`Icod.DCurses 0.1.0` is the first stable release of the managed DCurses
-contract.
+`Icod.DCurses 0.1.1` is the current stable maintenance release of the managed
+DCurses 0.1 contract.
 
 `0.1.0-Alpha-15` established the automated Icod.Terminal T19 rich-input
 acceptance boundary against `Icod.Terminal 0.2.0-alpha.6`, and
@@ -27,14 +27,16 @@ regret pass and required styled/updating quick-start sample. Alpha-22 then
 validated published `Icod.Terminal 0.3.0-alpha.8` and `Icod.TermInfo 1.3.0`
 without requiring DCurses to regain private terminal mechanics.
 
-The stable `0.1.0` dependency freeze advances that accepted contract to
-`Icod.Terminal 0.3.0` and `Icod.TermInfo 1.4.1`.
+The original stable `0.1.0` dependency freeze used `Icod.Terminal 0.3.0` and
+`Icod.TermInfo 1.4.1`. `0.1.1` advances that accepted contract to
+`Icod.Terminal 1.0.0` and `Icod.TermInfo 1.10.0` without intentionally changing
+the existing DCurses public API or ownership model.
 
 The retired DCurses backend, native mode, lifecycle-source, input-decoder, and
 pre-Terminal session implementations remain removed. DCurses does not add a
 mouse parser, paste reader, protocol escape emitter, or second input loop.
 
-The first release is driven by the requirements of `top`, `slabtop`, and
+The first release line is driven by the requirements of `top`, `slabtop`, and
 `watch`.
 
 See `Icod.DCurses-Development-Roadmap.md` for the broader development contract
@@ -79,15 +81,15 @@ The initial implementation targets:
 - Linux
 - macOS
 
-The stable `0.1.0` runtime dependency set is:
+The `0.1.1` runtime dependency set is:
 
-- `Icod.Terminal` 0.3.0
-- `Icod.TermInfo` 1.4.1
+- `Icod.Terminal` 1.0.0
+- `Icod.TermInfo` 1.10.0
 
 ## Installation
 
 ```text
-dotnet add package Icod.DCurses --version 0.1.0
+dotnet add package Icod.DCurses --version 0.1.1
 ```
 
 ## Quick start
@@ -136,6 +138,13 @@ or:
 
 Both scripts perform clean, restore, build, test, pack, and validate operations
 by default and also accept one of those phase names individually.
+
+The repository includes a root `NuGet.Config` which clears inherited package
+sources and restores public dependencies from NuGet.org. This keeps local and
+hosted builds on the same dependency artifacts instead of allowing a user- or
+machine-level feed with the same package IDs and versions to silently change the
+compile graph. The local build wrappers also force dependency reevaluation
+during restore after package-version changes.
 
 ## Authors
 
