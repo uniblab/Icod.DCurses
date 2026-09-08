@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.3.0-alpha.2</Version>
+		<Version>0.3.0</Version>
 		<AssemblyVersion>0.3.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.3.0-alpha.2</PackageVersion>
+		<PackageVersion>0.3.0</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.3.0-alpha.2 makes the normalized Unicode text-element pipeline authoritative for CursesWindow.Write, ensuring malformed UTF-16 replacement occurs before grapheme segmentation and width measurement while retaining cluster-sensitive emoji, keycap, flag, and ZWJ handling. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.3.0 establishes the Unicode terminal-cell contract for Icod.DCurses: Unicode 17.0.0 generated East Asian Width and Emoji-property data, explicit narrow/wide East Asian Ambiguous policy, normalized grapheme-aware window writes, column-safe measurement/truncation/slicing helpers, Unicode conformance coverage, and hardened wide-cell structural invariants. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>

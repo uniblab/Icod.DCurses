@@ -16,20 +16,37 @@ rendition policy, and refresh/damage synchronization.
 
 `Icod.DCurses 0.2.0` is the current published stable release.
 
-Development toward `1.0.0` continues on the `0.3.0` Unicode and terminal-cell
-line. The current development package is `0.3.0-alpha.2`.
+The `0.3.0` Unicode and terminal-cell source contract is now prepared as a stable
+release candidate for merge. The source version and package version are `0.3.0`;
+publication remains post-merge and therefore the published package is still
+`0.2.0` until the `v0.3.0` release workflow completes.
 
-T301 established the normalized Unicode/grapheme and cluster-sensitive width
-foundation. T302 now makes that normalization/segmentation path authoritative
-for `CursesWindow.Write(string)`: malformed UTF-16 is replaced before text-element
-segmentation, and the configured width provider receives complete normalized
-text elements.
+T301 and T302 established the normalized Unicode text-element pipeline used by
+`CursesWindow.Write(string)`: malformed UTF-16 is replaced before segmentation,
+and width decisions operate on complete normalized text elements.
 
-T303 is in progress. The `0.3.x` width-data contract is pinned to Unicode
-17.0.0, with generated East Asian Width data checked into the repository rather
-than downloaded during normal builds. East Asian Ambiguous width remains narrow
-by default; a future T303 provider surface will allow explicit wide-Ambiguous
-selection without locale or environment guessing.
+T303 pins the terminal-width data contract to Unicode 17.0.0, replaces the old
+permanent hand-maintained East Asian Width predicate with checked-in generated
+data, and exposes explicit narrow/wide East Asian Ambiguous policy. Narrow
+remains the default; wide-Ambiguous behavior is opt-in and does not depend on
+locale or environment guessing. Unicode 17 `Emoji` property data is also
+generated and checked in for VS16 and emoji-ZWJ candidate classification.
+
+T304 adds public terminal-column helpers through `CursesText.MeasureColumns`,
+`TruncateToColumns`, and `SliceByColumns`, using the same normalization,
+segmentation, and width-provider contract as windows.
+
+T305 hardens screen/window two-column leader/continuation footprints across
+preserved resize and subwindow boundaries while retaining `CursesVirtualScreen`
+as an exact low-level cell store when used independently. T306 adds the broader
+Unicode conformance corpus, package-only consumer coverage, and live Unicode
+diagnostics showcase.
+
+T307 is complete: the 0.3 public API, Unicode-data contract, dependency boundary,
+documentation, and package-consumer surface passed the regret gate and are
+feature-frozen. The `0.3.0-rc.1` validation gate passed on Windows, Linux, macOS,
+and the canonical package/fresh-consumer job. T308 has promoted that unchanged
+contract to stable `0.3.0` source for the final PR validation before merge.
 
 `0.2.0` completed stable `Icod.Terminal 1.0.0` semantic-input parity: the curses
 facade carries the complete stable key vocabulary, modifier state,
@@ -53,10 +70,17 @@ managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
 train through `1.0.0`, and `Icod.DCurses-0.3.0-Development-Roadmap.md` for the
-active Unicode/terminal-cell tranche. `docs/T302-Normalized-Grapheme-Text-Pipeline.md`
-records the completed normalized string-write pipeline, and
-`docs/T303-Unicode-Width-Data-and-Ambiguous-Policy.md` records the active Unicode
-17 width-data policy.
+Unicode/terminal-cell tranche. The 0.3 checkpoints and release gates are
+recorded in:
+
+- `docs/T302-Normalized-Grapheme-Text-Pipeline.md`
+- `docs/T303-Unicode-Width-Data-and-Ambiguous-Policy.md`
+- `docs/T304-Column-Oriented-Text-Helpers.md`
+- `docs/T305-Wide-Cell-Footprint-Invariants.md`
+- `docs/T306-Unicode-Conformance-and-Consumer-Acceptance.md`
+- `docs/T307-Public-API-Documentation-and-Package-Regret-Gate.md`
+- `docs/T308-0.3.0-Stable-Release-Closure.md`
+- `docs/Public-API-Baseline-0.3.md`
 
 `Icod.DCurses-0.2.0-Development-Roadmap.md` and
 `docs/Public-API-Baseline-0.2.md` record the stable semantic-input release.
@@ -139,6 +163,25 @@ CursesEvent terminalEvent = await session.ReadEventAsync();
 The session owns the presentation state it enters and restores that state when
 disposed. Applications should consume terminal input and lifecycle activity
 through `CursesSession` rather than adding a parallel terminal reader.
+
+## Unicode column helpers (`0.3`)
+
+Applications can measure or trim printable text using the same terminal-column
+contract as window writes:
+
+```csharp
+int columns = CursesText.MeasureColumns( "A界B" );
+string prefix = CursesText.TruncateToColumns( "A界B", 3 );
+string slice = CursesText.SliceByColumns( "A界B", 1, 2 );
+```
+
+The default provider uses Unicode 17.0.0 data and treats East Asian Ambiguous
+characters as narrow. Applications that deliberately require wide-Ambiguous
+semantics can pass `UnicodeCursesTextWidthProvider.WideAmbiguousInstance` to a
+`CursesScreen` or to the `CursesText` helpers.
+
+Column helpers normalize malformed UTF-16 before text-element segmentation,
+reject terminal controls, and never return half of a two-column text element.
 
 ## Modern keyboard input (`0.2`)
 

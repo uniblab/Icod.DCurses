@@ -54,6 +54,8 @@ if ( 100 != logicalScreen.Columns
 
 VerifyApprovedDependencySurface();
 VerifyInputSemanticSurface();
+VerifyUnicodeWidthSurface();
+VerifyColumnTextSurface();
 
 if ( string.Equals(
 	Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_INTERACTIVE" ),
@@ -134,6 +136,56 @@ static void VerifyInputSemanticSurface() {
 		| CursesKeyModifiers.Meta
 		| CursesKeyModifiers.CapsLock
 		| CursesKeyModifiers.NumLock;
+}
+
+static void VerifyUnicodeWidthSurface() {
+	if ( "17.0.0" != UnicodeCursesTextWidthProvider.UnicodeDataVersion ) {
+		throw new InvalidOperationException(
+			"DCurses package-only Unicode width data version is not 17.0.0."
+		);
+	}
+
+	UnicodeCursesTextWidthProvider narrow = UnicodeCursesTextWidthProvider.Instance;
+	UnicodeCursesTextWidthProvider wide =
+		UnicodeCursesTextWidthProvider.WideAmbiguousInstance;
+	if ( CursesAmbiguousWidthPolicy.Narrow != narrow.AmbiguousWidthPolicy
+		|| CursesAmbiguousWidthPolicy.Wide != wide.AmbiguousWidthPolicy
+		|| 1 != narrow.GetWidth( "\u03A9" )
+		|| 2 != wide.GetWidth( "\u03A9" )
+		|| 2 != narrow.GetWidth( "\U00016FF2" )
+		|| 2 != narrow.GetWidth( "\u00A9\uFE0F" )
+		|| 1 != narrow.GetWidth( "\u2605\uFE0F" ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only Unicode width policy surface failed validation."
+		);
+	}
+}
+
+static void VerifyColumnTextSurface() {
+	const string text = "A\u754CB";
+	if ( 4 != CursesText.MeasureColumns( text )
+		|| "A" != CursesText.TruncateToColumns(
+			text,
+			2
+		)
+		|| "\u754CB" != CursesText.SliceByColumns(
+			text,
+			1,
+			3
+		) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only column-text surface failed validation."
+		);
+	}
+
+	if ( 2 != CursesText.MeasureColumns(
+		"\u03A9",
+		UnicodeCursesTextWidthProvider.WideAmbiguousInstance
+	) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only column helpers did not honor the supplied width provider."
+		);
+	}
 }
 
 static async Task<int> RunInteractiveAsync() {

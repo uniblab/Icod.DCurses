@@ -1,5 +1,7 @@
 namespace Icod.DCurses;
 
+using Icod.DCurses.Internal;
+
 /// <summary>
 /// Owns the logical terminal frame and the standard screen window projected over that frame.
 /// </summary>
@@ -16,7 +18,7 @@ public sealed class CursesScreen {
 		ICursesTextWidthProvider? textWidthProvider = null ) {
 		TextWidthProvider = textWidthProvider
 			?? UnicodeCursesTextWidthProvider.Instance;
-		virtualScreen = new CursesVirtualScreen(
+		virtualScreen = CreateOwnedVirtualScreen(
 			columns,
 			rows
 		);
@@ -84,7 +86,13 @@ public sealed class CursesScreen {
 		int columns,
 		int rows,
 		bool preserveContents = true ) {
-		CursesVirtualScreen replacement = new(
+		if ( columns == Columns
+			&& rows == Rows
+			&& preserveContents ) {
+			return;
+		}
+
+		CursesVirtualScreen replacement = CreateOwnedVirtualScreen(
 			columns,
 			rows
 		);
@@ -104,12 +112,8 @@ public sealed class CursesScreen {
 					replacement[ row, column ] = virtualScreen[ row, column ];
 				}
 			}
-		}
 
-		if ( columns == Columns
-			&& rows == Rows
-			&& preserveContents ) {
-			return;
+			CursesCellFootprint.Repair( replacement );
 		}
 
 		int oldColumns = Columns;
@@ -170,6 +174,18 @@ public sealed class CursesScreen {
 				"The window extends beyond its containing surface."
 			);
 		}
+	}
+
+	private static CursesVirtualScreen CreateOwnedVirtualScreen(
+		int columns,
+		int rows ) {
+		CursesVirtualScreen result = new(
+			columns,
+			rows
+		) {
+			RepairWideFootprintsOnReplacement = true
+		};
+		return result;
 	}
 }
 
