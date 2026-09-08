@@ -18,11 +18,11 @@ rendition policy, and refresh/damage synchronization.
 DCurses 0.1 contract.
 
 Development toward `1.0.0` is active. The current development package is
-`0.2.0-alpha.1`, beginning the Terminal 1.0 input-semantic-parity tranche. This
-release line expands the curses event facade to preserve the complete stable
-`Icod.Terminal 1.0.0` key vocabulary, modifiers, key phases, modern character
-metadata, and negotiated keyboard-reporting modes without introducing a second
-keyboard decoder.
+`0.2.0-alpha.3`, in the Terminal 1.0 input-semantic-parity tranche. T201-T205
+establish the complete stable Terminal 1.0 key/modifier/phase mapping and
+negotiated modern-keyboard acceptance; T206 updates the live rich-input showcase
+and consumer documentation for that expanded contract. The next gate is T207 —
+public API, documentation, and package regret review before stable `0.2.0`.
 
 `0.1.0-Alpha-15` established the automated Icod.Terminal T19 rich-input
 acceptance boundary against `Icod.Terminal 0.2.0-alpha.6`, and
