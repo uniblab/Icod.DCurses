@@ -3,7 +3,7 @@ namespace Icod.DCurses.Terminal;
 using Icod.Terminal;
 
 /// <summary>
-/// Internal refresh-output boundary retained during the Terminal T10 validation cycle.
+/// Internal refresh-output boundary between DCurses rendition and the owning Terminal session.
 /// </summary>
 /// <remarks>
 /// This is not a live-terminal ownership abstraction. The implementation delegates application

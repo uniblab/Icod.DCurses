@@ -1,9 +1,14 @@
 # Icod.Terminal T19 — Rich-Input Acceptance
 
+> **Historical checkpoint.** This document records the Terminal T19 rich-input
+> acceptance performed during the DCurses 0.1 development line. The current
+> stable dependency baseline is `Icod.Terminal 1.0.0` and
+> `Icod.TermInfo 1.10.0` as of `Icod.DCurses 0.1.1`.
+
 **Project:** `Icod.DCurses`
 **DCurses development version:** `0.1.0-Alpha-16`
 **Terminal acceptance target:** `Icod.Terminal 0.2.0-alpha.6`
-**Status:** Alpha-15 automated acceptance validated; Alpha-16 interactive acceptance current
+**Status:** completed historical acceptance checkpoint
 
 ---
 
@@ -114,10 +119,7 @@ fallback parser or emitter.
 
 ## 6. Gate
 
-The DCurses portion of Terminal T19 is accepted when Alpha-16 builds/tests in CI
-and the interactive showcase confirms the available rich-input mechanisms on a
-live terminal without leaving protocol or presentation state behind on exit.
-
-After that checkpoint, Terminal T19 may close. DCurses T12 remains open until the
-`top`, `slabtop`, and `watch` ProcPs acceptance work proves that no generic
-full-screen terminal infrastructure remains necessary in `Icod.ProcPs.Shared`.
+The DCurses portion of Terminal T19 completed with the Alpha-16 acceptance line.
+Later Terminal and TermInfo upgrades retained the same ownership model, and the
+current rich-input showcase continues to exercise that contract through the
+stable dependencies.

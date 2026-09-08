@@ -1,11 +1,16 @@
 # Icod.Terminal T10 Integration — DCurses Alpha-12
 
+> **Historical checkpoint.** This document records the original Terminal T10
+> substrate cutover. That migration is complete. The current stable dependency
+> baseline is `Icod.Terminal 1.0.0` and `Icod.TermInfo 1.10.0` as of
+> `Icod.DCurses 0.1.1`.
+
 **Repository baseline:** `Icod.DCurses/main` at `39a7aa6b68ccf95e18df826c318a612abda5fd6e`
 **DCurses development package:** `0.1.0-Alpha-12`
 **Terminal dependency:** `Icod.Terminal 0.1.0-alpha.10`
 **TermInfo dependency:** `Icod.TermInfo 1.0.0`
 **Cleanup completion:** `Icod.DCurses 0.1.0-Alpha-14` on the post-Alpha-13 main line
-**Current Terminal dependency after timing rebase:** `Icod.Terminal 0.1.0-alpha.11`
+**Terminal dependency after timing rebase:** `Icod.Terminal 0.1.0-alpha.11`
 
 ## Purpose
 
@@ -128,8 +133,6 @@ tests, screen/window tests, and Unicode tests remain in place.
 
 ## Follow-up
 
-The Icod.Terminal T10 responsibility reset is now closed. Development proceeds
-to the existing T12 ProcPs acceptance tranche for `top`, `slabtop`, and `watch`.
-Reusable gaps discovered by those acceptance consumers should be fixed in
-Icod.Terminal or Icod.DCurses rather than reintroduced as application-private
-terminal infrastructure.
+The Icod.Terminal T10 responsibility reset is closed. Subsequent ProcPs
+acceptance and dependency upgrades preserved the same ownership boundary rather
+than reintroducing application-private terminal infrastructure.
