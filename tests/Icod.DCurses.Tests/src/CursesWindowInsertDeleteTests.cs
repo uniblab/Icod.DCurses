@@ -155,6 +155,10 @@ public sealed class CursesWindowInsertDeleteTests {
 			3,
 			4
 		);
+		window.Reposition(
+			2,
+			3
+		);
 		window.FillRectangle(
 			0,
 			0,
@@ -175,10 +179,6 @@ public sealed class CursesWindowInsertDeleteTests {
 			1,
 			4,
 			new CursesCell( "C" )
-		);
-		window.Reposition(
-			2,
-			3
 		);
 		window.Move(
 			1,
