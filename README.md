@@ -18,11 +18,10 @@ rendition policy, and refresh/damage synchronization.
 DCurses 0.1 contract.
 
 Development toward `1.0.0` is active. The current development package is
-`0.2.0-alpha.3`, in the Terminal 1.0 input-semantic-parity tranche. T201-T205
-establish the complete stable Terminal 1.0 key/modifier/phase mapping and
-negotiated modern-keyboard acceptance; T206 updates the live rich-input showcase
-and consumer documentation for that expanded contract. The next gate is T207 —
-public API, documentation, and package regret review before stable `0.2.0`.
+`0.2.0-rc.1`. T201-T206 complete the Terminal 1.0 semantic-input feature set,
+and T207 freezes the new public API, documentation, dependency boundary, and
+package-only consumer contract. Only T208 stable `0.2.0` release closure remains
+before the roadmap moves to the Unicode/terminal-cell tranche in `0.3.0`.
 
 `0.1.0-Alpha-15` established the automated Icod.Terminal T19 rich-input
 acceptance boundary against `Icod.Terminal 0.2.0-alpha.6`, and
@@ -52,7 +51,8 @@ managed TUI contract.
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
 train from `0.2.0` through `1.0.0`, and
 `Icod.DCurses-0.2.0-Development-Roadmap.md` for the active Terminal 1.0 input
-parity tranche. `docs/Dependency-Baseline-0.1.1.md` records the stable
+parity tranche. `docs/Public-API-Baseline-0.2.md` records the accepted 0.2 public
+input contract, while `docs/Dependency-Baseline-0.1.1.md` records the stable
 Terminal/TermInfo dependency and ownership baseline.
 
 `Icod.DCurses-Development-Roadmap.md` retains the original project roadmap and
