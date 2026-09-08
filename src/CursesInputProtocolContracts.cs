@@ -17,6 +17,26 @@ public enum CursesMouseTrackingMode {
 }
 
 /// <summary>
+/// Identifies the requested semantic keyboard-reporting intensity.
+/// </summary>
+public enum CursesKeyboardReportingMode {
+	/// <summary>
+	/// Disambiguate keyboard escape/control sequences while preserving ordinary direct text delivery.
+	/// </summary>
+	Disambiguated = 0,
+
+	/// <summary>
+	/// Add press/repeat/release information where the negotiated protocol reports it.
+	/// </summary>
+	EventTypes = 1,
+
+	/// <summary>
+	/// Request uniform key-event reporting, including text-producing and modifier keys.
+	/// </summary>
+	AllKeys = 2
+}
+
+/// <summary>
 /// Describes reversible rich-input protocol reporting requested by a curses consumer.
 /// </summary>
 public sealed class CursesInputProtocolOptions {
@@ -38,6 +58,12 @@ public sealed class CursesInputProtocolOptions {
 		init;
 	}
 
+	/// <summary>Gets or initializes the requested keyboard reporting intensity, when any.</summary>
+	public CursesKeyboardReportingMode? KeyboardReportingMode {
+		get;
+		init;
+	}
+
 	internal void Validate() {
 		if ( this.MouseTrackingMode.HasValue
 			&& !Enum.IsDefined( this.MouseTrackingMode.Value ) ) {
@@ -47,9 +73,18 @@ public sealed class CursesInputProtocolOptions {
 				"The curses mouse tracking mode is not recognized."
 			);
 		}
+		if ( this.KeyboardReportingMode.HasValue
+			&& !Enum.IsDefined( this.KeyboardReportingMode.Value ) ) {
+			throw new ArgumentOutOfRangeException(
+				nameof( this.KeyboardReportingMode ),
+				this.KeyboardReportingMode.Value,
+				"The curses keyboard reporting mode is not recognized."
+			);
+		}
 		if ( !this.BracketedPaste
 			&& !this.FocusReporting
-			&& !this.MouseTrackingMode.HasValue ) {
+			&& !this.MouseTrackingMode.HasValue
+			&& !this.KeyboardReportingMode.HasValue ) {
 			throw new ArgumentException(
 				"At least one curses input protocol must be requested."
 			);
@@ -67,6 +102,13 @@ public sealed class CursesInputProtocolOptions {
 				CursesMouseTrackingMode.AnyMotion => TerminalMouseTrackingMode.AnyMotion,
 				null => null,
 				_ => throw new ArgumentOutOfRangeException( nameof( this.MouseTrackingMode ) )
+			},
+			KeyboardReportingMode = this.KeyboardReportingMode switch {
+				CursesKeyboardReportingMode.Disambiguated => TerminalKeyboardReportingMode.Disambiguated,
+				CursesKeyboardReportingMode.EventTypes => TerminalKeyboardReportingMode.EventTypes,
+				CursesKeyboardReportingMode.AllKeys => TerminalKeyboardReportingMode.AllKeys,
+				null => null,
+				_ => throw new ArgumentOutOfRangeException( nameof( this.KeyboardReportingMode ) )
 			}
 		};
 	}
@@ -89,6 +131,7 @@ public sealed class CursesInputProtocolLease : IAsyncDisposable {
 		this.BracketedPaste = options.BracketedPaste;
 		this.FocusReporting = options.FocusReporting;
 		this.MouseTrackingMode = options.MouseTrackingMode;
+		this.KeyboardReportingMode = options.KeyboardReportingMode;
 	}
 
 	/// <summary>Gets whether this lease requests bracketed-paste reporting.</summary>
@@ -103,6 +146,11 @@ public sealed class CursesInputProtocolLease : IAsyncDisposable {
 
 	/// <summary>Gets the mouse tracking request owned by this lease, when any.</summary>
 	public CursesMouseTrackingMode? MouseTrackingMode {
+		get;
+	}
+
+	/// <summary>Gets the keyboard reporting request owned by this lease, when any.</summary>
+	public CursesKeyboardReportingMode? KeyboardReportingMode {
 		get;
 	}
 
