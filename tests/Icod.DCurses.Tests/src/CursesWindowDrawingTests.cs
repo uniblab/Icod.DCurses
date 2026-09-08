@@ -93,7 +93,10 @@ public sealed class CursesWindowDrawingTests {
 		Assert.Equal( 1, window.CursorRow );
 		Assert.Equal( 1, window.CursorColumn );
 		AssertRowContent( window, 0, "1--2" );
-		AssertRowContent( window, 1, "|  |" );
+		Assert.Equal( "|", window.GetCell( 1, 0 ).Content );
+		Assert.True( window.GetCell( 1, 1 ).IsBlank );
+		Assert.True( window.GetCell( 1, 2 ).IsBlank );
+		Assert.Equal( "|", window.GetCell( 1, 3 ).Content );
 		AssertRowContent( window, 2, "3--4" );
 	}
 
