@@ -6,9 +6,9 @@
 **Development dependency baseline:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Release theme:** Terminal 1.0 input semantic parity  
-**Current development version:** `0.2.0-rc.1`  
+**Current development version:** `0.2.0`  
 **Current tranche:** T208 — stable release closure  
-**Status:** T201-T207 complete in source; release-candidate validation active
+**Status:** Stable source closure prepared; PR validation active
 
 ---
 
@@ -97,8 +97,10 @@ T201  0.2 package/version and contract foundation
   -> T208  0.2.0 stable closure
 ```
 
-T201-T207 are complete in the `0.2.0-rc.1` source tree. T208 is release closure
-only and SHALL NOT add another feature family.
+T201-T207 are complete. The `0.2.0-rc.1` gate passed on Windows, Linux, macOS,
+and the canonical package/fresh-consumer job. T208 has therefore assigned the
+stable `0.2.0` source identity; merge, main Release validation, tagging, and
+publication remain after the PR gate.
 
 ---
 
@@ -398,9 +400,10 @@ Before stable `0.2.0`:
 **Gate T207:** the complete new public input contract is intentional,
 documented, package-consumable, and cross-platform green.
 
-The source/API/package-regret portion is complete and recorded in
+The completed checkpoint is recorded in
 [`docs/T207-Public-API-Documentation-and-Package-Gate.md`](docs/T207-Public-API-Documentation-and-Package-Gate.md).
-`0.2.0-rc.1` is the release-candidate validation checkpoint.
+The `0.2.0-rc.1` Staging and package validation gate passed before T208 assigned
+the stable source version.
 
 ---
 
@@ -408,16 +411,21 @@ The source/API/package-regret portion is complete and recorded in
 
 T208 is release closure only.
 
-Required work:
+Source closure work:
 
-- require `0.2.0-rc.1` Staging runtime and package validation to pass;
-- set `<Version>` and `<PackageVersion>` to `0.2.0`;
-- synchronize assembly/package version policy;
-- update release notes;
-- rerun full Staging and Release validation;
+- `0.2.0-rc.1` Staging runtime and package validation passed;
+- `<Version>` and `<PackageVersion>` are set to `0.2.0`;
+- `AssemblyVersion` remains `0.2.0.0`;
+- stable release notes describe the final semantic-input contract;
+- the public API baseline is frozen as the `0.2.x` release-line source baseline;
+- `docs/T208-0.2.0-Stable-Release-Closure.md` records the merge/publication gate.
+
+Remaining release gate:
+
+- require this stable source PR to pass Staging runtime and package validation;
 - merge the release commit to `main`;
-- require the new six-runner `main` Release matrix to pass;
-- create `v0.2.0` only after the matching main commit is green;
+- require the six-runner `main` Release matrix to pass;
+- create `v0.2.0` only after the matching `main` commit is green;
 - publish through the tag-controlled release workflow;
 - verify NuGet.org, GitHub Packages, GitHub Release assets, symbols, and
   checksums.
