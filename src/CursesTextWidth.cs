@@ -1,8 +1,8 @@
 namespace Icod.DCurses;
 
-using System.Buffers;
 using System.Globalization;
 using System.Text;
+using Icod.DCurses.Internal;
 
 /// <summary>
 /// Computes terminal display width for one Unicode text element.
@@ -17,11 +17,12 @@ public interface ICursesTextWidthProvider {
 }
 
 /// <summary>
-/// Provides the conservative Unicode display-width policy used by DCurses 0.1.
+/// Provides the default Unicode display-width policy used by DCurses.
 /// </summary>
 /// <remarks>
-/// This policy intentionally centralizes display-width ownership so later Unicode releases can refine
-/// East Asian, emoji, and locale-sensitive behavior without changing the window API.
+/// The 0.3 development line evaluates the complete Unicode text element for sequence families whose
+/// terminal width cannot be determined from the first scalar alone. East Asian Ambiguous characters
+/// remain narrow by default; the explicit selectable ambiguous-width policy is completed by T303.
 /// </remarks>
 public sealed class UnicodeCursesTextWidthProvider
 	: ICursesTextWidthProvider {
@@ -37,27 +38,65 @@ public sealed class UnicodeCursesTextWidthProvider
 	public int GetWidth( string textElement ) {
 		ArgumentException.ThrowIfNullOrEmpty( textElement );
 
-		Rune first = GetFirstRune( textElement );
-		UnicodeCategory category = Rune.GetUnicodeCategory( first );
-		if ( IsZeroWidthCategory( category ) ) {
+		string normalized = CursesUnicodeText.NormalizeMalformedUtf16( textElement );
+		Rune? firstVisible = null;
+		bool hasEmojiCandidate = false;
+		bool hasZeroWidthJoiner = false;
+		bool hasEmojiPresentationSelector = false;
+		bool hasKeycap = false;
+		int regionalIndicatorCount = 0;
+
+		foreach ( Rune rune in normalized.EnumerateRunes() ) {
+			int value = rune.Value;
+			if ( 0x200D == value ) {
+				hasZeroWidthJoiner = true;
+				continue;
+			}
+			if ( 0xFE0F == value ) {
+				hasEmojiPresentationSelector = true;
+				continue;
+			}
+			if ( 0xFE0E == value ) {
+				continue;
+			}
+			if ( 0x20E3 == value ) {
+				hasKeycap = true;
+				continue;
+			}
+			if ( IsRegionalIndicator( value ) ) {
+				regionalIndicatorCount++;
+			}
+			if ( IsEmojiCandidate( value ) ) {
+				hasEmojiCandidate = true;
+			}
+
+			UnicodeCategory category = Rune.GetUnicodeCategory( rune );
+			if ( !IsZeroWidthCategory( category ) && !firstVisible.HasValue ) {
+				firstVisible = rune;
+			}
+		}
+
+		if ( !firstVisible.HasValue ) {
 			return 0;
 		}
 
-		return IsWide( first.Value )
+		int firstValue = firstVisible.Value.Value;
+		if ( hasKeycap && IsKeycapBase( firstValue ) ) {
+			return 2;
+		}
+		if ( 2 <= regionalIndicatorCount && IsRegionalIndicator( firstValue ) ) {
+			return 2;
+		}
+		if ( hasEmojiPresentationSelector && IsEmojiCandidate( firstValue ) ) {
+			return 2;
+		}
+		if ( hasZeroWidthJoiner && hasEmojiCandidate ) {
+			return 2;
+		}
+
+		return IsWide( firstValue )
 			? 2
 			: 1
-		;
-	}
-
-	private static Rune GetFirstRune( string text ) {
-		OperationStatus status = Rune.DecodeFromUtf16(
-			text.AsSpan(),
-			out Rune rune,
-			out _
-		);
-		return OperationStatus.Done == status
-			? rune
-			: Rune.ReplacementChar
 		;
 	}
 
@@ -66,6 +105,21 @@ public sealed class UnicodeCursesTextWidthProvider
 			or UnicodeCategory.SpacingCombiningMark
 			or UnicodeCategory.EnclosingMark
 			or UnicodeCategory.Format;
+	}
+
+	private static bool IsKeycapBase( int value ) {
+		return '#' == value
+			|| '*' == value
+			|| value is >= '0' and <= '9';
+	}
+
+	private static bool IsRegionalIndicator( int value ) {
+		return value is >= 0x1F1E6 and <= 0x1F1FF;
+	}
+
+	private static bool IsEmojiCandidate( int value ) {
+		return value is >= 0x1F000 and <= 0x1FAFF
+			|| value is >= 0x2600 and <= 0x27BF;
 	}
 
 	private static bool IsWide( int value ) {
