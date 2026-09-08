@@ -1,5 +1,6 @@
 using System.Text;
 using Icod.DCurses;
+using Icod.DCurses.Internal.Generated;
 using Xunit;
 
 namespace Icod.DCurses.Tests;
@@ -22,6 +23,14 @@ public sealed class CursesUnicodeWidthPolicyTests {
 			CursesAmbiguousWidthPolicy.Wide,
 			UnicodeCursesTextWidthProvider.WideAmbiguousInstance.AmbiguousWidthPolicy
 		);
+	}
+
+	[Fact]
+	public void GeneratedUnicode17RangeTablesAreStableSortedAndNonOverlapping() {
+		Assert.Equal( 179, UnicodeEastAsianWidthData.AmbiguousRanges.Length );
+		Assert.Equal( 123, UnicodeEastAsianWidthData.WideOrFullwidthRanges.Length );
+		AssertRangesAreStrictlySeparated( UnicodeEastAsianWidthData.AmbiguousRanges );
+		AssertRangesAreStrictlySeparated( UnicodeEastAsianWidthData.WideOrFullwidthRanges );
 	}
 
 	[Theory]
@@ -125,5 +134,25 @@ public sealed class CursesUnicodeWidthPolicyTests {
 		Assert.True( screen.VirtualScreen[ 0, 1 ].IsContinuation );
 		Assert.Equal( "X", screen.VirtualScreen[ 0, 2 ].Content );
 		Assert.Equal( 3, screen.StandardWindow.CursorColumn );
+	}
+
+	private static void AssertRangesAreStrictlySeparated(
+		IReadOnlyList<UnicodeWidthRange> ranges
+	) {
+		ArgumentNullException.ThrowIfNull( ranges );
+		for ( int index = 0; index < ranges.Count; index++ ) {
+			UnicodeWidthRange current = ranges[ index ];
+			Assert.InRange( current.First, 0, 0x10FFFF );
+			Assert.InRange( current.Last, current.First, 0x10FFFF );
+			if ( 0 == index ) {
+				continue;
+			}
+
+			UnicodeWidthRange previous = ranges[ index - 1 ];
+			Assert.True(
+				previous.Last + 1 < current.First,
+				$"Generated Unicode ranges overlap or remain mergeable at index {index}."
+			);
+		}
 	}
 }
