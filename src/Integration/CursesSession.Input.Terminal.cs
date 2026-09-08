@@ -90,7 +90,16 @@ public sealed partial class CursesSession {
 				ConvertKey( input.Key ),
 				ConvertModifiers( input.Modifiers ),
 				input.Character,
-				input.FunctionKeyNumber
+				input.FunctionKeyNumber,
+				ConvertKeyPhase(
+					input.KeyPhase
+						?? throw new InvalidOperationException(
+							"Terminal key event has no key phase."
+						)
+				),
+				input.ShiftedCharacter,
+				input.BaseLayoutCharacter,
+				input.AssociatedText
 			),
 			TerminalInputEventKind.Mouse => CursesInputEvent.FromMouse(
 				ConvertMouseEvent(
@@ -147,7 +156,81 @@ public sealed partial class CursesSession {
 			TerminalKey.Insert => CursesKey.Insert,
 			TerminalKey.Delete => CursesKey.Delete,
 			TerminalKey.Function => CursesKey.Function,
+			TerminalKey.CapsLock => CursesKey.CapsLock,
+			TerminalKey.ScrollLock => CursesKey.ScrollLock,
+			TerminalKey.NumLock => CursesKey.NumLock,
+			TerminalKey.PrintScreen => CursesKey.PrintScreen,
+			TerminalKey.Pause => CursesKey.Pause,
+			TerminalKey.Menu => CursesKey.Menu,
+			TerminalKey.Keypad0 => CursesKey.Keypad0,
+			TerminalKey.Keypad1 => CursesKey.Keypad1,
+			TerminalKey.Keypad2 => CursesKey.Keypad2,
+			TerminalKey.Keypad3 => CursesKey.Keypad3,
+			TerminalKey.Keypad4 => CursesKey.Keypad4,
+			TerminalKey.Keypad5 => CursesKey.Keypad5,
+			TerminalKey.Keypad6 => CursesKey.Keypad6,
+			TerminalKey.Keypad7 => CursesKey.Keypad7,
+			TerminalKey.Keypad8 => CursesKey.Keypad8,
+			TerminalKey.Keypad9 => CursesKey.Keypad9,
+			TerminalKey.KeypadDecimal => CursesKey.KeypadDecimal,
+			TerminalKey.KeypadDivide => CursesKey.KeypadDivide,
+			TerminalKey.KeypadMultiply => CursesKey.KeypadMultiply,
+			TerminalKey.KeypadSubtract => CursesKey.KeypadSubtract,
+			TerminalKey.KeypadAdd => CursesKey.KeypadAdd,
+			TerminalKey.KeypadEnter => CursesKey.KeypadEnter,
+			TerminalKey.KeypadEqual => CursesKey.KeypadEqual,
+			TerminalKey.KeypadSeparator => CursesKey.KeypadSeparator,
+			TerminalKey.KeypadLeft => CursesKey.KeypadLeft,
+			TerminalKey.KeypadRight => CursesKey.KeypadRight,
+			TerminalKey.KeypadUp => CursesKey.KeypadUp,
+			TerminalKey.KeypadDown => CursesKey.KeypadDown,
+			TerminalKey.KeypadPageUp => CursesKey.KeypadPageUp,
+			TerminalKey.KeypadPageDown => CursesKey.KeypadPageDown,
+			TerminalKey.KeypadHome => CursesKey.KeypadHome,
+			TerminalKey.KeypadEnd => CursesKey.KeypadEnd,
+			TerminalKey.KeypadInsert => CursesKey.KeypadInsert,
+			TerminalKey.KeypadDelete => CursesKey.KeypadDelete,
+			TerminalKey.KeypadBegin => CursesKey.KeypadBegin,
+			TerminalKey.MediaPlay => CursesKey.MediaPlay,
+			TerminalKey.MediaPause => CursesKey.MediaPause,
+			TerminalKey.MediaPlayPause => CursesKey.MediaPlayPause,
+			TerminalKey.MediaReverse => CursesKey.MediaReverse,
+			TerminalKey.MediaStop => CursesKey.MediaStop,
+			TerminalKey.MediaFastForward => CursesKey.MediaFastForward,
+			TerminalKey.MediaRewind => CursesKey.MediaRewind,
+			TerminalKey.MediaTrackNext => CursesKey.MediaTrackNext,
+			TerminalKey.MediaTrackPrevious => CursesKey.MediaTrackPrevious,
+			TerminalKey.MediaRecord => CursesKey.MediaRecord,
+			TerminalKey.VolumeDown => CursesKey.VolumeDown,
+			TerminalKey.VolumeUp => CursesKey.VolumeUp,
+			TerminalKey.VolumeMute => CursesKey.VolumeMute,
+			TerminalKey.LeftShift => CursesKey.LeftShift,
+			TerminalKey.LeftControl => CursesKey.LeftControl,
+			TerminalKey.LeftAlt => CursesKey.LeftAlt,
+			TerminalKey.LeftSuper => CursesKey.LeftSuper,
+			TerminalKey.LeftHyper => CursesKey.LeftHyper,
+			TerminalKey.LeftMeta => CursesKey.LeftMeta,
+			TerminalKey.RightShift => CursesKey.RightShift,
+			TerminalKey.RightControl => CursesKey.RightControl,
+			TerminalKey.RightAlt => CursesKey.RightAlt,
+			TerminalKey.RightSuper => CursesKey.RightSuper,
+			TerminalKey.RightHyper => CursesKey.RightHyper,
+			TerminalKey.RightMeta => CursesKey.RightMeta,
+			TerminalKey.IsoLevel3Shift => CursesKey.IsoLevel3Shift,
+			TerminalKey.IsoLevel5Shift => CursesKey.IsoLevel5Shift,
+			TerminalKey.Unrecognized => CursesKey.Unrecognized,
 			_ => throw new ArgumentOutOfRangeException( nameof( key ) )
+		};
+	}
+
+	private static CursesKeyEventPhase ConvertKeyPhase(
+		TerminalKeyEventPhase phase
+	) {
+		return phase switch {
+			TerminalKeyEventPhase.Press => CursesKeyEventPhase.Press,
+			TerminalKeyEventPhase.Repeat => CursesKeyEventPhase.Repeat,
+			TerminalKeyEventPhase.Release => CursesKeyEventPhase.Release,
+			_ => throw new ArgumentOutOfRangeException( nameof( phase ) )
 		};
 	}
 
@@ -223,6 +306,21 @@ public sealed partial class CursesSession {
 		}
 		if ( 0 != ( modifiers & TerminalKeyModifiers.Alt ) ) {
 			converted |= CursesKeyModifiers.Alt;
+		}
+		if ( 0 != ( modifiers & TerminalKeyModifiers.Super ) ) {
+			converted |= CursesKeyModifiers.Super;
+		}
+		if ( 0 != ( modifiers & TerminalKeyModifiers.Hyper ) ) {
+			converted |= CursesKeyModifiers.Hyper;
+		}
+		if ( 0 != ( modifiers & TerminalKeyModifiers.Meta ) ) {
+			converted |= CursesKeyModifiers.Meta;
+		}
+		if ( 0 != ( modifiers & TerminalKeyModifiers.CapsLock ) ) {
+			converted |= CursesKeyModifiers.CapsLock;
+		}
+		if ( 0 != ( modifiers & TerminalKeyModifiers.NumLock ) ) {
+			converted |= CursesKeyModifiers.NumLock;
 		}
 		return converted;
 	}
