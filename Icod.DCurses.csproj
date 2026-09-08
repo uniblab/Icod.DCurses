@@ -22,7 +22,7 @@
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.5.0-alpha.4 hardens pads and viewports across destination resize/reposition, source and destination edge clipping, wide-cell boundaries, very tall and wide pads, repeated panning, editor-like mutations, and fresh package-only consumption of the accepted 0.5 surface. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.5.0-alpha.4 is the feature-frozen pads and large-surfaces checkpoint: CursesPad, direct viewport projection, independently pannable CursesPadViewport state, shared derived views through CursesWindow subwindows, independent visible-pad damage observation, large-surface/resize acceptance, and package-only coverage. The T508 regret pass makes pad revision tracking opt-in so ordinary logical screens retain their pre-0.5 memory profile. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
