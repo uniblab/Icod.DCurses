@@ -18,7 +18,7 @@ CursesStyle titleStyle = new(
 );
 
 int spinnerIndex = 0;
-int markerRow = 9;
+int markerRow = 12;
 int markerColumn = 2;
 CursesCursorVisibility cursorVisibility = CursesCursorVisibility.Hidden;
 string status = "Ready.";
@@ -201,21 +201,41 @@ static void DrawShowcase(
 	WriteLine(
 		screen,
 		2,
-		"Unicode: ASCII | café | e\u0301 | \U0001D11E | 界"
+		$"Unicode width data: {UnicodeCursesTextWidthProvider.UnicodeDataVersion}   Ambiguous: Narrow"
+	);
+	WriteLine(
+		screen,
+		3,
+		"Text: ASCII | café | e\u0301 | \U0001D11E | Ω"
 	);
 	WriteLine(
 		screen,
 		4,
-		"Arrows move @ | B alert | C cursor | I invalidate"
+		"Wide: 界 | Ａ | ❤️ | 👍🏽"
 	);
 	WriteLine(
 		screen,
 		5,
-		"Space immediate refresh | Q or Escape exit"
+		"Sequences: 🇺🇸 | 1️⃣ | 👩‍💻"
 	);
 	WriteLine(
 		screen,
 		6,
+		$"Ω columns: narrow {CursesText.MeasureColumns( "Ω" )} / wide {CursesText.MeasureColumns( "Ω", UnicodeCursesTextWidthProvider.WideAmbiguousInstance )}"
+	);
+	WriteLine(
+		screen,
+		8,
+		"Arrows move @ | B alert | C cursor | I invalidate"
+	);
+	WriteLine(
+		screen,
+		9,
+		"Space immediate refresh | Q or Escape exit"
+	);
+	WriteLine(
+		screen,
+		10,
 		$"Requested cursor visibility: {cursorVisibility}"
 	);
 
@@ -228,7 +248,7 @@ static void DrawShowcase(
 	} else {
 		WriteLine(
 			screen,
-			8,
+			12,
 			"Enlarge the terminal to display the movable marker."
 		);
 	}
@@ -265,7 +285,7 @@ static void WriteLine(
 static bool HasMarkerArea( CursesWindow screen ) {
 	ArgumentNullException.ThrowIfNull( screen );
 
-	return screen.Rows >= 11
+	return screen.Rows >= 14
 		&& 0 < screen.Columns;
 }
 
@@ -283,7 +303,7 @@ static void ClampMarker(
 
 	row = Math.Clamp(
 		row,
-		9,
+		12,
 		screen.Rows - 2
 	);
 	column = Math.Clamp(
