@@ -7,7 +7,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Release theme:** Production hardening  
-**Status:** T801 active
+**Status:** T801-T807 complete; `0.8.0-rc.1` T808 gate active
 
 ---
 
@@ -39,14 +39,14 @@ Terminal remains the authoritative byte-stream reader, lifecycle observer, prese
 ## 3. Development Sequence
 
 ```text
-T801  package/version + hardening/concurrency contract foundation
-  -> T802  session lifetime + pending-read/lifecycle disposal semantics
-  -> T803  input/refresh concurrency and cancellation stress
-  -> T804  resize/suspend/resume storms + rich-input lease coordination
-  -> T805  partial-write/output-failure/restoration recovery
-  -> T806  repeated session entry/exit and Terminal 1.4 ownership soak
-  -> T807  large pads/screens + high-frequency/allocation-pressure stress
-  -> T808  x64/ARM64, package, API, documentation, and regret gate
+T801  package/version + hardening/concurrency contract foundation        complete
+  -> T802  session lifetime + pending-read/lifecycle disposal semantics  complete
+  -> T803  input/refresh concurrency and cancellation stress             complete
+  -> T804  resize/suspend/resume storms + rich-input lease coordination  complete
+  -> T805  partial-write/output-failure/restoration recovery             complete
+  -> T806  repeated session entry/exit and Terminal 1.4 ownership soak   complete
+  -> T807  large pads/screens + high-frequency/allocation-pressure stress complete
+  -> T808  x64/ARM64, package, API, documentation, and regret gate       active
   -> T809  stable 0.8.0 closure
 ```
 
@@ -201,9 +201,15 @@ Required checks:
 - README and samples document the single-writer/concurrency/lifetime contract;
 - all hardening helpers remain internal/test/tool infrastructure unless a concrete consumer requirement justifies public surface.
 
-The PR workflow MAY be expanded to the same six-architecture runtime matrix already used by `main` when the cost is justified by the release gate.
+The PR workflow is expanded to the same six-architecture runtime matrix already used by `main`.
 
-**Gate T808:** one exact release-candidate head passes the complete architecture/runtime/package matrix.
+The public API regret decision is **zero new public API** for 0.8. The accepted 0.7 public surface remains the 0.8 public surface.
+
+The pre-RC implementation head `015b028167337cfacdd39f9a38550548644f6059` passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation.
+
+The formal RC record is maintained in `docs/T808-Hardening-Regret-and-Release-Candidate-Gate.md`, and the public surface decision is frozen in `docs/Public-API-Baseline-0.8.md`.
+
+**Gate T808:** one exact `0.8.0-rc.1` head passes the complete architecture/runtime/package matrix.
 
 ---
 
