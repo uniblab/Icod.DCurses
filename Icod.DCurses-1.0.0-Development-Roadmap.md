@@ -4,7 +4,7 @@
 **Published stable baseline:** `0.6.0`  
 **Validated stable source:** `0.7.0`  
 **Development destination:** `1.0.0`  
-**Runtime dependencies:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
+**Runtime dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Status:** Approved development plan; `0.7.0` stable-source merge gate active; `0.8.0` next
