@@ -10,7 +10,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Theme:** semantic cell metadata and retained hyperlinks  
-**Status:** T1101–T1105 complete; T1106 implementation qualified and documentation-complete alpha.6 gate active; T1107 next
+**Status:** T1101–T1106 complete; T1106 documentation-complete alpha.6 qualified at `59232c1e`; T1107 application/performance/allocation acceptance active
 
 ---
 
@@ -62,7 +62,7 @@ The only intentional new exported types remain:
 - `CursesHyperlink`;
 - `CursesCellMetadata`.
 
-T1104–T1106 add no further public API.
+T1104–T1107 add no further public API.
 
 Compatible 1.x policy:
 
@@ -299,11 +299,19 @@ Implementation/focused-test heads:
 
 Both passed all seven jobs.
 
+Documentation-complete qualified head:
+
+```text
+59232c1eb9da1bd97f8c3ea950c757159f82a15f
+```
+
+Workflow #507 (`34416436456`) — seven jobs green.
+
 Permanent record:
 
 - `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`
 
-**Status:** implementation qualified; documentation-synchronized alpha.6 exact-head gate active.
+**Status:** complete and qualified.
 
 ---
 
@@ -361,6 +369,16 @@ Required cases:
 
 T1107 should not introduce public diagnostics solely to gather acceptance evidence.
 
+Active application-shaped acceptance head:
+
+```text
+ac23d7e920b7f27679b1835b59cdbb3baaaf7708
+```
+
+This first T1107 acceptance layer adds editor-like wide linked mutation, pager-scale many-link/no-op settling, the exact 2,048 × 256 reference pad with sparse and dense semantic rows plus independent viewports, dense-link coalescing, and explicit many-distinct-link transaction behavior. It is additive test coverage only; no public API or production optimization is introduced by this checkpoint.
+
+**Status:** active; seven-job qualification pending for the acceptance head and remaining Terminal-backed/performance evidence under review.
+
 ---
 
 ## 11. T1108 — API/package/documentation/regret gate
@@ -400,8 +418,8 @@ T1101  contract/reference/version-policy freeze             complete
   -> T1103  hyperlink value/public write/read contract      complete
   -> T1104  retained physical hyperlink renderer            complete
   -> T1105  editing/copy/overlay/pad propagation            complete
-  -> T1106  lifecycle/failure/cancellation/recovery         alpha.6 exact-head gate
-  -> T1107  application/performance/allocation acceptance   next
+  -> T1106  lifecycle/failure/cancellation/recovery         complete
+  -> T1107  application/performance/allocation acceptance   active
   -> T1108  public API/package/documentation/regret gate
   -> T1109  RC and stable 1.1.0 closure
 ```
