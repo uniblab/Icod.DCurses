@@ -18,10 +18,11 @@ synchronization.
 `Icod.DCurses 0.5.0` is the current published stable release.
 
 Development toward `1.0.0` continues on the `0.6.0` rendition, drawing, and
-presentation line. The active development package is `0.6.0-alpha.2` with
-assembly version `0.6.0.0`.
+presentation line. T601 through T608 are complete and the frozen release-candidate
+package is `0.6.0-rc.1` with assembly version `0.6.0.0`. T609 release closure is
+active; no new presentation feature family will enter before stable `0.6.0`.
 
-The completed 0.6 foundation through T606 adds:
+The frozen 0.6 contract adds:
 
 - a complete semantic rendition vocabulary including italic, blink, conceal,
   and strikeout;
@@ -33,11 +34,10 @@ The completed 0.6 foundation through T606 adds:
 - `ncv`-aware physical style degradation without mutating logical cell style;
 - semantic `CursesLineGlyph` cells;
 - semantic horizontal, vertical, and border drawing overloads;
-- capability-aware ACS, Unicode, and ASCII line presentation.
-
-T607 is the active acceptance tranche. The package-only consumer and live
-showcase exercise the new presentation surface before T608 freezes the public
-API and package contract.
+- capability-aware ACS, Unicode, and ASCII line presentation;
+- session lifecycle/disposal acceptance after rich non-default presentation;
+- warning level 4 and warnings-as-errors for library and tests under Staging, so
+  PR validation exercises Release-equivalent compiler/analyzer severity.
 
 Earlier stable releases established:
 
@@ -64,10 +64,11 @@ managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
 train through `1.0.0`, and `Icod.DCurses-0.6.0-Development-Roadmap.md` for the
-active presentation tranche. Current 0.6 decisions are recorded in:
+active presentation tranche. Current 0.6 decisions and gates are recorded in:
 
 - `docs/T603-T606-Presentation-Resolution-and-Line-Drawing.md`
-- `docs/Public-API-Baseline-0.6.md` once the T608 freeze gate completes.
+- `docs/T607-T608-Presentation-Acceptance-and-Freeze.md`
+- `docs/Public-API-Baseline-0.6.md`.
 
 The completed 0.5 pad release is recorded in
 `Icod.DCurses-0.5.0-Development-Roadmap.md`, its T504-T509 documents, and
@@ -388,11 +389,11 @@ restore, build, test, pack, and package validation. They also accept
 are run automatically where needed.
 
 Pull-request validation promotes the build to `Staging`. Pushes to `main` and
-release tags use `Release`. The test project treats Staging analyzer warnings as
-errors, so xUnit and compiler analyzer regressions are caught before merge while
-the library itself retains the normal Staging configuration. Package validation
-exercises the packed artifact and a fresh package-only consumer rather than
-relying only on repository project references.
+release tags use `Release`. Both the library and test projects use warning level
+4 with warnings-as-errors under Staging, so ordinary PR validation exercises the
+same compiler/analyzer severity policy that matters to Release without compiling
+the solution twice. Package validation exercises the packed artifact and a fresh
+package-only consumer rather than relying only on repository project references.
 
 The Unicode width-data generator is a maintainer tool outside the solution. See
 `tools/unicode-width-generator/README.md`; normal builds do not fetch Unicode
