@@ -17,15 +17,15 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 `Icod.DCurses 1.0.0` is the current published stable release.
 
-`Icod.DCurses 1.1.0-alpha.5` is the active post-1.0 development checkpoint on PR #25.
+`Icod.DCurses 1.1.0-alpha.6` is the active post-1.0 development checkpoint on PR #25.
 
-T1101 froze the stable 1.0 compatibility floor, retained `AssemblyVersion 1.0.0.0` for compatible additive 1.x releases, and advanced the direct Terminal dependency to 1.6.0. T1102 selected a lazily allocated row-sparse metadata reference plane. T1103 introduced the additive public semantic-content API. T1104 added retained physical hyperlink rendering through Terminal's bounded OSC 8 ownership. T1105 now propagates semantic metadata through structural editing, composition, pads/viewports, scrolling, and preserved screen resize.
+T1101 froze the stable 1.0 compatibility floor, retained `AssemblyVersion 1.0.0.0` for compatible additive 1.x releases, and advanced the direct Terminal dependency to 1.6.0. T1102 selected a lazily allocated row-sparse metadata reference plane. T1103 introduced the additive public semantic-content API. T1104 added retained physical hyperlink rendering through Terminal's typed OSC 8 ownership. T1105 propagated semantic metadata through structural editing/composition/pads/resize. T1106 hardens cancellation, output failure, synchronized-output cleanup, lifecycle replay, and uncertain hyperlink cleanup.
 
 Current development identity:
 
 ```text
-Version         1.1.0-alpha.5
-PackageVersion  1.1.0-alpha.5
+Version         1.1.0-alpha.6
+PackageVersion  1.1.0-alpha.6
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -47,7 +47,7 @@ Current provisional 1.1 development contract:
 sha256 d7fb2040d9cd22ed71e90e788f453c73eb29d681f2cc0f7aaefa805792fab2ea
 ```
 
-The two intentional new exported types are `CursesHyperlink` and `CursesCellMetadata`. T1104 and T1105 add no further public API.
+The two intentional new exported types are `CursesHyperlink` and `CursesCellMetadata`. T1104–T1106 add no further public API.
 
 ## Installation
 
@@ -149,7 +149,7 @@ Icod.TermInfo.TerminalDescription
 Icod.TermInfo.TerminalSize
 ```
 
-These preserve the authoritative session, endpoint, live-size result, and immutable terminal-description vocabulary. No additional Terminal/TermInfo type may enter a public DCurses signature without an explicit compatibility decision.
+No additional Terminal/TermInfo type may enter a public DCurses signature without an explicit compatibility decision.
 
 See:
 
@@ -160,8 +160,6 @@ See:
 ## 1.1 semantic metadata and hyperlinks
 
 The 1.1 release introduces semantic meaning attached to retained content, beginning with hyperlinks.
-
-The governing separation is:
 
 ```text
 visual rendition     -> CursesStyle
@@ -180,14 +178,7 @@ cell + int-token wrapper overhead             +8 bytes per cell
 
 At the established 2,048 × 256 pad scale, one unconditional extra eight-byte slot would add exactly 4 MiB even when metadata is unused.
 
-The selected row-sparse metadata reference plane therefore provides:
-
-- no semantic plane allocation until metadata is actually used;
-- per-row reference allocation only for rows containing metadata;
-- release of empty rows and eventually the complete plane;
-- O(1) coordinate lookup;
-- row snapshot/replace mechanics that compose with the editing model;
-- unchanged, context-free `CursesCell` values.
+The selected row-sparse metadata plane allocates no per-row metadata storage until needed, releases empty rows, provides O(1) coordinate lookup, composes with row snapshots, and leaves `CursesCell` unchanged.
 
 ### Logical public contract
 
@@ -211,17 +202,13 @@ Metadata can also be inspected or changed at window/virtual-screen coordinates t
 
 Two-column text elements carry one coherent metadata value across the leader/continuation footprint. Ordinary unannotated replacement clears overwritten semantic metadata even if the glyph/style value is otherwise unchanged. Metadata-only changes participate in logical damage tracking.
 
-`CursesHyperlink` follows Terminal-compatible target/identifier rules while remaining a DCurses-native type. DCurses never dereferences or activates hyperlink targets.
-
 ### Retained physical hyperlink rendering
 
 T1104 compares retained physical metadata independently of glyph/style equality. A hyperlink change therefore repaints even when the visible cell is unchanged, while an unchanged linked second refresh emits no repeated hyperlink payload.
 
-Adjacent cells with equal style and metadata are coalesced into one semantic text run. Each linked payload is sent through `TerminalSession.WriteHyperlinkAsync(...)`; DCurses does not construct OSC 8 begin/end frames and does not hold a long-lived Terminal hyperlink lease across unrelated refresh output.
+Adjacent cells with equal style and metadata are coalesced into one semantic text run. Each linked payload is sent through Terminal's typed hyperlink operation; DCurses does not construct OSC 8 frames.
 
-If a link is removed while the cell value remains unchanged, the cell is rewritten as ordinary unlinked text. Physical invalidation clears retained cell and semantic knowledge so later refresh repaints linked content safely.
-
-An actual synchronized `TerminalSession`/`CursesSession` integration test verifies that Terminal emits canonical OSC 8 begin/text/end inside the synchronized-output bracket without deadlock.
+A real synchronized `TerminalSession`/`CursesSession` integration test verifies canonical Terminal OSC 8 begin/text/end output inside the synchronized-output bracket without deadlock.
 
 ### Structural semantic propagation
 
@@ -236,15 +223,25 @@ T1105 moves semantic metadata together with surviving logical content through:
 - preserved screen resize;
 - wide-cell normalization and clipping repair.
 
-The implementation uses an internal transient `CursesLogicalCellState` pair containing `CursesCell` plus optional `CursesCellMetadata`; it does not alter the public `CursesCell` layout.
+The internal transient `CursesLogicalCellState` pairs `CursesCell` with optional `CursesCellMetadata` during these transformations without altering the public cell layout.
 
-`CopyRectangleTo` transfers source metadata with copied content, including a deliberately annotated source blank. `OverlayRectangleTo` keeps the stable blank-transparency rule: a blank source coordinate does not replace either the destination cell or destination metadata. Overlapping copies snapshot both cell and metadata state before mutation.
+`CopyRectangleTo` transfers semantic state, including an annotated source blank. `OverlayRectangleTo` retains the stable transparency rule: a source blank replaces neither destination content nor destination metadata. Multiple pad viewports acknowledge semantic-only changes independently.
 
-Pad semantic-only changes participate in the existing cell-revision mechanism. Multiple viewports over one pad retain independent observation state until each viewport presents the change.
+### Failure, cancellation, and recovery
 
-Preserved screen resize copies semantic metadata in the surviving overlap. If a two-column element is clipped, wide-footprint repair removes metadata together with the discarded incomplete glyph.
+T1106 distinguishes two Terminal-owned cleanup models.
 
-Terminal-native erase, character-shift, line-shift, and scrolling shortcuts remain conservatively disabled while desired or retained physical semantic metadata exists. Logical propagation is now proven; T1107 will decide whether any physical structural optimization can be re-enabled without changing semantic results.
+A failed synchronized-output final release is retryable because DCurses still owns the `TerminalSynchronizedOutputLease`. DCurses retains that failed lease, invalidates physical state, and retries the same cleanup before starting another synchronized refresh or resetting rendition during lifecycle/disposal. Repeated cleanup failure blocks the new refresh body.
+
+Terminal's bounded hyperlink operation is different. A non-cancellation failure may leave an internal synthetic hyperlink lease owned by Terminal, but that lease is not returned to DCurses. DCurses therefore cannot safely determine whether OSC 8 begin, application text, or close was the uncertain stage. After such a failure, the Terminal-backed curses output **fails closed for further application text until the owning `CursesSession` is disposed**. Terminal control cleanup and flush remain available, and Terminal session disposal remains the authoritative final hyperlink cleanup path.
+
+Caller cancellation reported before hyperlink transmission does not poison later semantic output. If cancellation arrives after one bounded semantic run has completed but before the full refresh finishes, the refresh engine invalidates retained physical state and a later fresh-token refresh repaints the complete logical image.
+
+Terminal's meaningful hyperlink text + cleanup dual failure remains visible as an aggregate through `CursesSession.RefreshAsync()`. The existing refresh + synchronized-output restoration dual-failure rule likewise remains intact.
+
+Suspend/resume invalidates retained physical semantic knowledge, so visible linked content is repainted after lifecycle re-entry.
+
+Terminal-native erase, character-shift, line-shift, and scrolling shortcuts remain conservatively disabled while desired or retained physical semantic metadata exists. T1107 will decide whether any can be safely re-enabled with semantic-equivalence evidence.
 
 See:
 
@@ -252,6 +249,7 @@ See:
 - `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`
 - `docs/T1104-Retained-Physical-Hyperlink-Renderer.md`
 - `docs/T1105-Editing-Composition-and-Pad-Semantic-Propagation.md`
+- `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`
 
 ## Concurrency and production hardening
 
@@ -260,10 +258,10 @@ The stable library uses a deliberately narrow concurrency model rather than perv
 - logical screens, windows, pads, and viewports are single-writer;
 - one Terminal-owned event wait may coexist with refresh/output work;
 - terminal-mutating curses operations are serialized internally;
-- caller cancellation of one wait does not discard Terminal decoder state or fragmented input;
+- caller cancellation does not discard Terminal decoder state;
 - disposal unblocks pending DCurses event/lifecycle waits while preserving authoritative restoration;
-- resize/suspend/resume and rich-input/full-screen ownership survive repeated stress cycles;
-- output uncertainty invalidates retained physical state and a later refresh returns through a safe repaint path.
+- output uncertainty invalidates retained physical state;
+- semantic cleanup uncertainty is never hidden by optimistic continued application output.
 
 No public scheduler, lock/token abstraction, hardening helper, or diagnostics/statistics surface is part of the stable API.
 
@@ -283,7 +281,7 @@ await using CursesSession session = await CursesSession.OpenAsync(
 
 `UseSynchronizedOutput` defaults to `false`. DCurses delegates synchronized-output ownership to `Icod.Terminal`; it does not infer support from a terminal name or construct private mode sequences itself.
 
-Internal refresh optimization can select safe cursor motion, erase operations, character/line insertion and deletion, full-width scrolling, temporary scroll regions, and differential rendition transitions. Correctness and recoverability take precedence over minimizing every possible escape stream. Semantic content currently selects conservative direct rewriting for transformations whose terminal-level hyperlink behavior is not yet proven.
+Internal refresh optimization can select safe cursor motion, erase operations, character/line insertion and deletion, full-width scrolling, temporary scroll regions, and differential rendition transitions. Semantic content currently selects conservative direct rewriting for transformations whose terminal-level hyperlink behavior is not yet proven.
 
 Representative deterministic maintainer fixtures include:
 
@@ -341,11 +339,11 @@ viewport.Present();
 await session.RefreshAsync();
 ```
 
-Multiple viewports may observe one pad independently. Pads and viewports do not own terminal sessions or physical refresh state. T1105 additionally proves that semantic-only changes are observed and presented independently by multiple viewports.
+Multiple viewports may observe one pad independently. Pads and viewports do not own terminal sessions or physical refresh state. Semantic-only changes are observed and presented independently by multiple viewports.
 
 ## Window editing and composition
 
-Windows are shared logical views. Editing, copying, overlay, drawing, and damage operations preserve the Unicode/wide-cell contract.
+Windows are shared logical views. Editing, copying, overlay, drawing, and damage operations preserve the Unicode/wide-cell contract and, where content moves, its semantic metadata.
 
 ```csharp
 CursesScreen logical = new( 80, 24 );
@@ -416,6 +414,7 @@ Current post-1.0 authorities:
 - `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`
 - `docs/T1104-Retained-Physical-Hyperlink-Renderer.md`
 - `docs/T1105-Editing-Composition-and-Pad-Semantic-Propagation.md`
+- `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`
 - `docs/Public-API-Fingerprint-1.1.json`
 
 The published 1.0 closure records remain stable compatibility authorities and are not rewritten merely to reflect later development versions.
