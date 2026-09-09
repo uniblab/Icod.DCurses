@@ -243,6 +243,12 @@ Required behavior:
 - scrolling-region state is restored before the refresh transaction ends;
 - cost must beat direct rewrite for the selected diff.
 
+**Implementation status:** complete in `0.7.0-alpha.6`; final exact-head matrix/package validation pending.
+
+The accepted implementation uses an internal exact-transform resolver over retained full-screen state. It compares advertised `il`/`il1`, `dl`/`dl1`, `ind`/`indn`, and `ri`/`rin` forms, allows temporary `csr` only for a provable full-width interior region, includes region setup/restoration and cursor movement in its strict byte-cost gate, preserves complete wide-cell and semantic-line rows, and restores the full scrolling region even after operation failure or cancellation. Simultaneous operation and restoration failures are both retained. Partial-width window edits remain on the ordinary renderer.
+
+Detailed record: `docs/T706-Physical-Line-Shift-and-Scroll-Region-Optimization.md`.
+
 **Gate T706:** terminal-style pager/editor scrolling workloads reduce bytes while producing the same final physical screen as the fallback renderer.
 
 ---
