@@ -17,15 +17,15 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 `Icod.DCurses 1.0.0` is the current published stable release.
 
-`Icod.DCurses 1.1.0-alpha.4` is the active post-1.0 development checkpoint on PR #25.
+`Icod.DCurses 1.1.0-alpha.5` is the active post-1.0 development checkpoint on PR #25.
 
-T1101 froze the stable 1.0 compatibility floor, retained `AssemblyVersion 1.0.0.0` for compatible additive 1.x releases, and advanced the direct Terminal dependency to 1.6.0. T1102 selected a lazily allocated row-sparse metadata reference plane. T1103 introduced the first additive public semantic-content API. T1104 now renders retained hyperlinks physically through Terminal's typed bounded OSC 8 ownership while preserving DCurses' retained damage model.
+T1101 froze the stable 1.0 compatibility floor, retained `AssemblyVersion 1.0.0.0` for compatible additive 1.x releases, and advanced the direct Terminal dependency to 1.6.0. T1102 selected a lazily allocated row-sparse metadata reference plane. T1103 introduced the additive public semantic-content API. T1104 added retained physical hyperlink rendering through Terminal's bounded OSC 8 ownership. T1105 now propagates semantic metadata through structural editing, composition, pads/viewports, scrolling, and preserved screen resize.
 
 Current development identity:
 
 ```text
-Version         1.1.0-alpha.4
-PackageVersion  1.1.0-alpha.4
+Version         1.1.0-alpha.5
+PackageVersion  1.1.0-alpha.5
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -47,7 +47,7 @@ Current provisional 1.1 development contract:
 sha256 d7fb2040d9cd22ed71e90e788f453c73eb29d681f2cc0f7aaefa805792fab2ea
 ```
 
-The two intentional new exported types are `CursesHyperlink` and `CursesCellMetadata`. T1104 adds no further public API.
+The two intentional new exported types are `CursesHyperlink` and `CursesCellMetadata`. T1104 and T1105 add no further public API.
 
 ## Installation
 
@@ -186,7 +186,7 @@ The selected row-sparse metadata reference plane therefore provides:
 - per-row reference allocation only for rows containing metadata;
 - release of empty rows and eventually the complete plane;
 - O(1) coordinate lookup;
-- row snapshot/replace mechanics that can compose with the existing editing model;
+- row snapshot/replace mechanics that compose with the editing model;
 - unchanged, context-free `CursesCell` values.
 
 ### Logical public contract
@@ -221,15 +221,37 @@ Adjacent cells with equal style and metadata are coalesced into one semantic tex
 
 If a link is removed while the cell value remains unchanged, the cell is rewritten as ordinary unlinked text. Physical invalidation clears retained cell and semantic knowledge so later refresh repaints linked content safely.
 
-Until T1105/T1107 prove equivalent semantic behavior for terminal-native editing operations, erase, character-shift, and line-shift/scrolling shortcuts are conservatively disabled whenever desired or retained physical semantic metadata exists.
-
 An actual synchronized `TerminalSession`/`CursesSession` integration test verifies that Terminal emits canonical OSC 8 begin/text/end inside the synchronized-output bracket without deadlock.
+
+### Structural semantic propagation
+
+T1105 moves semantic metadata together with surviving logical content through:
+
+- insert/delete cells;
+- insert/delete lines;
+- upward/downward scrolling;
+- destructive rectangle copy;
+- transparent overlay;
+- pad presentation and independent pad viewports;
+- preserved screen resize;
+- wide-cell normalization and clipping repair.
+
+The implementation uses an internal transient `CursesLogicalCellState` pair containing `CursesCell` plus optional `CursesCellMetadata`; it does not alter the public `CursesCell` layout.
+
+`CopyRectangleTo` transfers source metadata with copied content, including a deliberately annotated source blank. `OverlayRectangleTo` keeps the stable blank-transparency rule: a blank source coordinate does not replace either the destination cell or destination metadata. Overlapping copies snapshot both cell and metadata state before mutation.
+
+Pad semantic-only changes participate in the existing cell-revision mechanism. Multiple viewports over one pad retain independent observation state until each viewport presents the change.
+
+Preserved screen resize copies semantic metadata in the surviving overlap. If a two-column element is clipped, wide-footprint repair removes metadata together with the discarded incomplete glyph.
+
+Terminal-native erase, character-shift, line-shift, and scrolling shortcuts remain conservatively disabled while desired or retained physical semantic metadata exists. Logical propagation is now proven; T1107 will decide whether any physical structural optimization can be re-enabled without changing semantic results.
 
 See:
 
 - `docs/Public-API-Fingerprint-1.1.json`
 - `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`
 - `docs/T1104-Retained-Physical-Hyperlink-Renderer.md`
+- `docs/T1105-Editing-Composition-and-Pad-Semantic-Propagation.md`
 
 ## Concurrency and production hardening
 
@@ -261,7 +283,7 @@ await using CursesSession session = await CursesSession.OpenAsync(
 
 `UseSynchronizedOutput` defaults to `false`. DCurses delegates synchronized-output ownership to `Icod.Terminal`; it does not infer support from a terminal name or construct private mode sequences itself.
 
-Internal refresh optimization can select safe cursor motion, erase operations, character/line insertion and deletion, full-width scrolling, temporary scroll regions, and differential rendition transitions. Correctness and recoverability take precedence over minimizing every possible escape stream. Semantic content currently selects conservative direct rewriting for transformations whose hyperlink behavior is not yet proven.
+Internal refresh optimization can select safe cursor motion, erase operations, character/line insertion and deletion, full-width scrolling, temporary scroll regions, and differential rendition transitions. Correctness and recoverability take precedence over minimizing every possible escape stream. Semantic content currently selects conservative direct rewriting for transformations whose terminal-level hyperlink behavior is not yet proven.
 
 Representative deterministic maintainer fixtures include:
 
@@ -319,9 +341,7 @@ viewport.Present();
 await session.RefreshAsync();
 ```
 
-Multiple viewports may observe one pad independently. Pads and viewports do not own terminal sessions or physical refresh state.
-
-Full semantic propagation through editing, copy/overlay, pads, and viewports is a T1105 requirement; callers should not infer that future contract from the alpha.4 renderer foundation alone.
+Multiple viewports may observe one pad independently. Pads and viewports do not own terminal sessions or physical refresh state. T1105 additionally proves that semantic-only changes are observed and presented independently by multiple viewports.
 
 ## Window editing and composition
 
@@ -338,7 +358,7 @@ editor.DrawHorizontalLine( 16, 1, 58 );
 editor.TouchRegion( 0, 0, 18, 60 );
 ```
 
-`CopyRectangleTo` copies source blanks; `OverlayRectangleTo` treats ordinary source blanks as transparent.
+`CopyRectangleTo` copies source blanks and their semantic state; `OverlayRectangleTo` treats source blanks as fully transparent and therefore preserves destination semantic metadata at those coordinates.
 
 ## Unicode column helpers
 
@@ -395,6 +415,7 @@ Current post-1.0 authorities:
 - `docs/T1102-Semantic-Metadata-Representation-and-Memory-Gate.md`
 - `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`
 - `docs/T1104-Retained-Physical-Hyperlink-Renderer.md`
+- `docs/T1105-Editing-Composition-and-Pad-Semantic-Propagation.md`
 - `docs/Public-API-Fingerprint-1.1.json`
 
 The published 1.0 closure records remain stable compatibility authorities and are not rewritten merely to reflect later development versions.
