@@ -7,7 +7,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Release theme:** Production hardening  
-**Status:** T801-T807 complete; `0.8.0-rc.1` T808 gate active
+**Status:** T801-T808 complete; T809 stable-source merge gate active
 
 ---
 
@@ -39,15 +39,15 @@ Terminal remains the authoritative byte-stream reader, lifecycle observer, prese
 ## 3. Development Sequence
 
 ```text
-T801  package/version + hardening/concurrency contract foundation        complete
-  -> T802  session lifetime + pending-read/lifecycle disposal semantics  complete
-  -> T803  input/refresh concurrency and cancellation stress             complete
-  -> T804  resize/suspend/resume storms + rich-input lease coordination  complete
-  -> T805  partial-write/output-failure/restoration recovery             complete
-  -> T806  repeated session entry/exit and Terminal 1.4 ownership soak   complete
+T801  package/version + hardening/concurrency contract foundation         complete
+  -> T802  session lifetime + pending-read/lifecycle disposal semantics   complete
+  -> T803  input/refresh concurrency and cancellation stress              complete
+  -> T804  resize/suspend/resume storms + rich-input lease coordination   complete
+  -> T805  partial-write/output-failure/restoration recovery              complete
+  -> T806  repeated session entry/exit and Terminal 1.4 ownership soak    complete
   -> T807  large pads/screens + high-frequency/allocation-pressure stress complete
-  -> T808  x64/ARM64, package, API, documentation, and regret gate       active
-  -> T809  stable 0.8.0 closure
+  -> T808  x64/ARM64, package, API, documentation, and regret gate        complete
+  -> T809  stable 0.8.0 closure                                           active
 ```
 
 ---
@@ -185,31 +185,25 @@ Correctness gates SHALL use deterministic final-screen equivalence, bounded reta
 
 # 11. T808 — Architecture, Package, API, and Regret Gate
 
-T808 SHALL perform the pre-release hardening regret audit.
+T808 is complete.
 
-Required checks:
+The PR workflow uses the same six-architecture runtime set as `main`:
 
 - Windows x64 and ARM64;
 - Linux x64 and ARM64;
-- macOS x64 and ARM64;
-- `net8.0`, `net9.0`, and `net10.0`;
-- Staging warnings-as-errors;
-- package structure and exact dependency versions;
-- package-only fresh consumer;
-- public dependency-boundary tests;
-- no accidental public concurrency/diagnostics types;
-- README and samples document the single-writer/concurrency/lifetime contract;
-- all hardening helpers remain internal/test/tool infrastructure unless a concrete consumer requirement justifies public surface.
+- macOS x64 and ARM64.
 
-The PR workflow is expanded to the same six-architecture runtime matrix already used by `main`.
+Each runtime job validates `net8.0`, `net9.0`, and `net10.0` under Staging warnings-as-errors. Package validation verifies package structure, exact dependencies, and a package-only fresh consumer.
 
 The public API regret decision is **zero new public API** for 0.8. The accepted 0.7 public surface remains the 0.8 public surface.
 
-The pre-RC implementation head `015b028167337cfacdd39f9a38550548644f6059` passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation.
+The pre-RC implementation head `015b028167337cfacdd39f9a38550548644f6059` passed the complete gate.
+
+The exact `0.8.0-rc.1` head `6247b9dc290089e5db82f83929d07b4b674b8d8b` also passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation.
 
 The formal RC record is maintained in `docs/T808-Hardening-Regret-and-Release-Candidate-Gate.md`, and the public surface decision is frozen in `docs/Public-API-Baseline-0.8.md`.
 
-**Gate T808:** one exact `0.8.0-rc.1` head passes the complete architecture/runtime/package matrix.
+**Gate T808:** satisfied.
 
 ---
 
@@ -217,13 +211,21 @@ The formal RC record is maintained in `docs/T808-Hardening-Regret-and-Release-Ca
 
 T809 is release closure only.
 
-It SHALL:
+The accepted release candidate has been promoted unchanged to:
 
-- promote the accepted release candidate to `Version 0.8.0` / `PackageVersion 0.8.0` while retaining `AssemblyVersion 0.8.0.0`;
-- freeze the hardening/concurrency/lifetime decisions;
-- synchronize README, package release notes, public API baseline, 0.8 roadmap, and 1.0 roadmap;
-- require the exact stable-source PR head to pass the full T808 gate;
-- leave merge, post-merge Release validation, tagging, and publication as explicit later actions.
+```text
+Version         0.8.0
+PackageVersion  0.8.0
+AssemblyVersion 0.8.0.0
+```
+
+The stable closure record is maintained in `docs/T809-0.8.0-Stable-Release-Closure.md`.
+
+Remaining gate:
+
+- require the exact stable-source PR head to pass the same six-architecture runtime matrix and package/fresh-consumer validation;
+- once green, leave that head untouched except for PR metadata;
+- merge, post-merge Release validation, `v0.8.0` tagging, and publication remain explicit later actions.
 
 No new feature family or public API may enter T809.
 
