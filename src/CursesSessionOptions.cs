@@ -74,6 +74,21 @@ public sealed class CursesSessionOptions
 		init;
 	} = true;
 
+	/// <summary>
+	/// Gets or initializes whether each refresh should be framed by the Terminal synchronized-output
+	/// lease using DEC private mode 2026.
+	/// </summary>
+	/// <remarks>
+	/// This option is disabled by default because framing adds fixed output overhead to every refresh.
+	/// Enabling it requests optimistic synchronized-output framing; it does not prove that the physical
+	/// terminal recognizes or continues honoring DEC private mode 2026.
+	/// </remarks>
+	public bool UseSynchronizedOutput
+	{
+		get;
+		init;
+	}
+
 	/// <summary>Validates the configured session options.</summary>
 	internal void Validate()
 	{
