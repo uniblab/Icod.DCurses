@@ -1,5 +1,7 @@
 namespace Icod.DCurses;
 
+using Icod.DCurses.Internal;
+
 /// <summary>
 /// Stores the application-requested logical image of a terminal screen.
 /// </summary>
@@ -11,6 +13,7 @@ namespace Icod.DCurses;
 public sealed class CursesVirtualScreen {
 	private readonly CursesCell[] cells;
 	private readonly bool[] dirtyCells;
+	private CursesSparseCellPlane<CursesCellMetadata>? semanticMetadata;
 	private ulong[]? cellChangeRevisions;
 	private int dirtyCellCount;
 	private ulong changeRevision;
@@ -78,10 +81,97 @@ public sealed class CursesVirtualScreen {
 		return cells[ GetOffset( row, column ) ];
 	}
 
+	/// <summary>Gets semantic metadata associated with one logical coordinate.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <returns>The semantic metadata, or <see langword="null"/> when none is associated.</returns>
+	public CursesCellMetadata? GetMetadata(
+		int row,
+		int column ) {
+		_ = GetOffset(
+			row,
+			column
+		);
+		return semanticMetadata?.Get(
+			row,
+			column
+		);
+	}
+
+	/// <summary>Associates semantic metadata with one logical text element footprint.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <param name="metadata">The metadata to associate, or <see langword="null"/> to remove metadata.</param>
+	/// <remarks>
+	/// When the coordinate belongs to a valid two-column text element, both the leader and continuation
+	/// coordinate receive the same semantic metadata.
+	/// </remarks>
+	public void SetMetadata(
+		int row,
+		int column,
+		CursesCellMetadata? metadata ) {
+		int offset = GetOffset(
+			row,
+			column
+		);
+		CursesCell cell = cells[ offset ];
+
+		if ( cell.IsContinuation
+			&& 0 < column ) {
+			CursesCell leader = cells[ offset - 1 ];
+			if ( !leader.IsContinuation
+				&& 2 == leader.DisplayWidth ) {
+				SetMetadataRaw(
+					row,
+					column - 1,
+					offset - 1,
+					metadata
+				);
+				SetMetadataRaw(
+					row,
+					column,
+					offset,
+					metadata
+				);
+				return;
+			}
+		}
+
+		if ( 2 == cell.DisplayWidth
+			&& column + 1 < Columns
+			&& cells[ offset + 1 ].IsContinuation ) {
+			SetMetadataRaw(
+				row,
+				column,
+				offset,
+				metadata
+			);
+			SetMetadataRaw(
+				row,
+				column + 1,
+				offset + 1,
+				metadata
+			);
+			return;
+		}
+
+		SetMetadataRaw(
+			row,
+			column,
+			offset,
+			metadata
+		);
+	}
+
 	/// <summary>Sets one logical cell.</summary>
 	/// <param name="row">The zero-based row.</param>
 	/// <param name="column">The zero-based column.</param>
 	/// <param name="cell">The replacement logical cell.</param>
+	/// <remarks>
+	/// Replacing a logical cell removes semantic metadata associated with the existing text-element
+	/// footprint. Use <see cref="SetMetadata(int,int,CursesCellMetadata?)"/> after replacement when the
+	/// new content should carry metadata.
+	/// </remarks>
 	public void SetCell(
 		int row,
 		int column,
@@ -91,6 +181,11 @@ public sealed class CursesVirtualScreen {
 			column
 		);
 
+		ClearExistingMetadataFootprint(
+			row,
+			column,
+			offset
+		);
 		if ( cells[ offset ] == cell ) {
 			return;
 		}
@@ -124,6 +219,7 @@ public sealed class CursesVirtualScreen {
 	/// <summary>Fills every logical coordinate with the same cell value.</summary>
 	/// <param name="cell">The cell value copied to every coordinate.</param>
 	public void Fill( CursesCell cell ) {
+		semanticMetadata = null;
 		for ( int offset = 0; offset < cells.Length; offset++ ) {
 			SetCellRaw(
 				offset,
@@ -140,6 +236,9 @@ public sealed class CursesVirtualScreen {
 
 	/// <summary>Gets whether per-cell logical content/damage revision tracking is enabled.</summary>
 	internal bool ChangeTrackingEnabled => null != cellChangeRevisions;
+
+	/// <summary>Gets the number of coordinates carrying semantic metadata.</summary>
+	internal int SemanticMetadataCount => semanticMetadata?.Count ?? 0;
 
 	/// <summary>
 	/// Gets or sets whether ordinary replacement writes repair an existing wide-cell footprint.
@@ -249,6 +348,90 @@ public sealed class CursesVirtualScreen {
 				);
 			}
 		}
+	}
+
+	private void ClearExistingMetadataFootprint(
+		int row,
+		int column,
+		int offset ) {
+		if ( semanticMetadata is null ) {
+			return;
+		}
+
+		CursesCell existing = cells[ offset ];
+		if ( existing.IsContinuation
+			&& 0 < column ) {
+			CursesCell leader = cells[ offset - 1 ];
+			if ( !leader.IsContinuation
+				&& 2 == leader.DisplayWidth ) {
+				SetMetadataRaw(
+					row,
+					column - 1,
+					offset - 1,
+					null
+				);
+			}
+		}
+
+		SetMetadataRaw(
+			row,
+			column,
+			offset,
+			null
+		);
+		if ( 2 == existing.DisplayWidth
+			&& column + 1 < Columns ) {
+			SetMetadataRaw(
+				row,
+				column + 1,
+				offset + 1,
+				null
+			);
+		}
+	}
+
+	private void SetMetadataRaw(
+		int row,
+		int column,
+		int offset,
+		CursesCellMetadata? metadata ) {
+		CursesCellMetadata? current = semanticMetadata?.Get(
+			row,
+			column
+		);
+		if ( Equals(
+			current,
+			metadata
+		) ) {
+			return;
+		}
+
+		if ( metadata is null ) {
+			if ( semanticMetadata is null ) {
+				return;
+			}
+			semanticMetadata.Set(
+				row,
+				column,
+				null
+			);
+			if ( semanticMetadata.IsEmpty ) {
+				semanticMetadata = null;
+			}
+		} else {
+			semanticMetadata ??= new CursesSparseCellPlane<CursesCellMetadata>(
+				Columns,
+				Rows
+			);
+			semanticMetadata.Set(
+				row,
+				column,
+				metadata
+			);
+		}
+
+		RecordChange( offset );
+		MarkDirty( offset );
 	}
 
 	private void SetCellRaw(
