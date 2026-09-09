@@ -144,6 +144,23 @@ public sealed class CursesSemanticMetadataTests {
 	}
 
 	[Fact]
+	public void FillThatOnlyRemovesMetadataStillInvalidatesSurface() {
+		CursesVirtualScreen screen = new( 4, 1 );
+		screen.SetMetadata(
+			0,
+			1,
+			LinkMetadata()
+		);
+		screen.MarkClean();
+		Assert.Equal( 1, screen.SemanticMetadataCount );
+
+		screen.Fill( default );
+
+		Assert.Equal( 0, screen.SemanticMetadataCount );
+		Assert.Equal( screen.CellCount, screen.DirtyCellCount );
+	}
+
+	[Fact]
 	public void RemovingMetadataReleasesLogicalSemanticValue() {
 		CursesVirtualScreen screen = new( 4, 1 );
 		screen.SetMetadata(
