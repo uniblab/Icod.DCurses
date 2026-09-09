@@ -12,6 +12,7 @@ using Icod.TermInfo;
 public sealed partial class CursesSession : IAsyncDisposable {
 	private readonly object disposeSync = new();
 	private readonly SemaphoreSlim terminalActivityGate = new( 1, 1 );
+	private readonly CancellationTokenSource sessionLifetimeStop = new();
 	private readonly TerminalSession terminalSession;
 	private readonly CursesTerminalOutput refreshOutput;
 	private readonly CursesTerminalLifecycleParticipant lifecycleParticipant;
@@ -165,7 +166,7 @@ public sealed partial class CursesSession : IAsyncDisposable {
 			await session.InitializePresentationAsync( cancellationToken ).ConfigureAwait( false );
 			return session;
 		} catch ( Exception exception ) {
-			Interlocked.Exchange( ref session.disposeStarted, 1 );
+			session.BeginDisposal();
 			try {
 				await session.RestoreOwnedStateAsync(
 					disposeTerminalSession: false
@@ -192,7 +193,7 @@ public sealed partial class CursesSession : IAsyncDisposable {
 	public ValueTask DisposeAsync() {
 		lock ( this.disposeSync ) {
 			if ( this.disposeTask is null ) {
-				Interlocked.Exchange( ref this.disposeStarted, 1 );
+				this.BeginDisposal();
 				this.disposeTask = this.DisposeOnceAsync();
 			}
 			return new ValueTask( this.disposeTask );
@@ -201,6 +202,12 @@ public sealed partial class CursesSession : IAsyncDisposable {
 
 	private Task DisposeOnceAsync() {
 		return this.RestoreOwnedStateAsync( disposeTerminalSession: true );
+	}
+
+	private void BeginDisposal() {
+		if ( 0 == Interlocked.Exchange( ref this.disposeStarted, 1 ) ) {
+			this.sessionLifetimeStop.Cancel();
+		}
 	}
 
 	private async Task RestoreOwnedStateAsync(
@@ -261,6 +268,27 @@ public sealed partial class CursesSession : IAsyncDisposable {
 		return new TerminalActivityLease( this.terminalActivityGate );
 	}
 
+	private SessionWaitCancellationScope CreateSessionWaitCancellationScope(
+		CancellationToken cancellationToken
+	) {
+		cancellationToken.ThrowIfCancellationRequested();
+		if ( 0 != Volatile.Read( ref this.disposeStarted ) ) {
+			throw new ObjectDisposedException( nameof( CursesSession ) );
+		}
+
+		return new SessionWaitCancellationScope(
+			this.sessionLifetimeStop.Token,
+			cancellationToken
+		);
+	}
+
+	private bool IsDisposalCancellation(
+		CancellationToken callerCancellationToken
+	) {
+		return this.sessionLifetimeStop.IsCancellationRequested
+			&& !callerCancellationToken.IsCancellationRequested;
+	}
+
 	private static TerminalInputMode ToTerminalInputMode(
 		CursesInputMode inputMode
 	) {
@@ -308,6 +336,34 @@ public sealed partial class CursesSession : IAsyncDisposable {
 		public void Dispose() {
 			SemaphoreSlim? current = Interlocked.Exchange( ref this.gate, null );
 			current?.Release();
+		}
+	}
+
+	private sealed class SessionWaitCancellationScope : IDisposable {
+		private readonly CancellationTokenSource? linkedSource;
+
+		internal SessionWaitCancellationScope(
+			CancellationToken sessionLifetimeToken,
+			CancellationToken callerCancellationToken
+		) {
+			if ( callerCancellationToken.CanBeCanceled ) {
+				this.linkedSource = CancellationTokenSource.CreateLinkedTokenSource(
+					sessionLifetimeToken,
+					callerCancellationToken
+				);
+				this.Token = this.linkedSource.Token;
+				return;
+			}
+
+			this.Token = sessionLifetimeToken;
+		}
+
+		internal CancellationToken Token {
+			get;
+		}
+
+		public void Dispose() {
+			this.linkedSource?.Dispose();
 		}
 	}
 }
