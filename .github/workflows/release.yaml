@@ -23,6 +23,8 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       prerelease: ${{ steps.version.outputs.prerelease }}
+      terminal_version: ${{ steps.version.outputs.terminal_version }}
+      terminfo_version: ${{ steps.version.outputs.terminfo_version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,7 +38,7 @@ jobs:
               throw "Release tag '$env:GITHUB_REF_NAME' does not point to a commit contained in main."
           }
       - id: version
-        name: Validate tag and package version
+        name: Validate tag, package version, and direct dependencies
         shell: pwsh
         run: |
           $tag = $env:GITHUB_REF_NAME
@@ -56,8 +58,20 @@ jobs:
           if ($tagVersion -ne $packageVersionNode.InnerText) {
               throw "Tag version '$tagVersion' does not match PackageVersion '$($packageVersionNode.InnerText)'."
           }
+
+          $terminalNode = $project.SelectSingleNode("/Project/ItemGroup/PackageReference[@Include='Icod.Terminal']")
+          $termInfoNode = $project.SelectSingleNode("/Project/ItemGroup/PackageReference[@Include='Icod.TermInfo']")
+          if ($null -eq $terminalNode -or [string]::IsNullOrWhiteSpace($terminalNode.Version)) {
+              throw 'Icod.DCurses.csproj must declare a versioned Icod.Terminal PackageReference.'
+          }
+          if ($null -eq $termInfoNode -or [string]::IsNullOrWhiteSpace($termInfoNode.Version)) {
+              throw 'Icod.DCurses.csproj must declare a versioned Icod.TermInfo PackageReference.'
+          }
+
           "version=$tagVersion" >> $env:GITHUB_OUTPUT
           "prerelease=$($tagVersion.Contains('-').ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          "terminal_version=$($terminalNode.Version)" >> $env:GITHUB_OUTPUT
+          "terminfo_version=$($termInfoNode.Version)" >> $env:GITHUB_OUTPUT
 
   runtime:
     needs: metadata
@@ -189,6 +203,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           $version = '${{ needs.metadata.outputs.version }}'
+          $terminalVersion = '${{ needs.metadata.outputs.terminal_version }}'
+          $termInfoVersion = '${{ needs.metadata.outputs.terminfo_version }}'
           $assets = @(Get-ChildItem -LiteralPath 'artifacts/release-assets' -File | Sort-Object Name | ForEach-Object { $_.FullName })
           $notes = @'
           ## Installation
@@ -198,8 +214,8 @@ jobs:
           ```
 
           `Icod.DCurses` targets `net8.0`, `net9.0`, and `net10.0`. Its runtime package dependencies are
-          `Icod.Terminal 1.0.0` and `Icod.TermInfo 1.10.0`.
-          '@ -f $version
+          `Icod.Terminal {1}` and `Icod.TermInfo {2}`.
+          '@ -f $version, $terminalVersion, $termInfoVersion
           $arguments = @('release', 'create', $env:GITHUB_REF_NAME, '--verify-tag', '--title', "Icod.DCurses $version", '--generate-notes', '--notes', $notes)
           if ('true' -eq '${{ needs.metadata.outputs.prerelease }}') {
               $arguments += '--prerelease'

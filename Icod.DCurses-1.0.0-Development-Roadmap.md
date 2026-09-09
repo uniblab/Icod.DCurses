@@ -1,31 +1,25 @@
 # Icod.DCurses 1.0.0 Development Roadmap
 
 **Project:** `Icod.DCurses`  
-**Published stable baseline:** `0.7.0`  
-**Validated stable source:** `0.8.0`  
+**Published stable baseline:** `0.8.0`  
+**Validated stable-source target:** `0.9.0`  
 **Development destination:** `1.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** Approved development plan; `0.8.0` stable source validated and awaiting explicit merge; `0.9.0` next
+**Status:** 0.9 contract freeze complete through T908; stable-source T909 merge gate active; `1.0.0` release closure next
 
 ---
 
 ## 1. Purpose
 
-This document defines the development sequence that carries `Icod.DCurses` to a stable `1.0.0` managed curses contract.
+This roadmap carries `Icod.DCurses` to a stable `1.0.0` managed curses contract.
 
-The implementation and its substrate libraries have advanced enough that the original sequence is no longer the best development order. Several capabilities once scheduled for later releases were already present in the early stable line, including retained logical and physical screen state, damage-driven refresh, windows/subwindows, wrapping/scrolling, indexed/RGB color, semantic mouse/focus/paste input, reversible rich-input leases, and Terminal-owned resize/lifecycle integration.
-
-The current roadmap therefore orders the remaining contract gaps by dependency: Terminal semantic parity, Unicode/cell correctness, richer editing/composition, pads, presentation, refresh optimization, production hardening, and final public-contract freeze.
-
-Completed milestones are retained below because later releases depend on their frozen contracts.
+The feature-building portion of the pre-1.0 train is complete. `0.9.0` freezes the public and semantic contract intended to become 1.0; `1.0.0` is therefore release closure, not another feature or breaking-cleanup tranche.
 
 ---
 
-## 2. Architectural Boundary
-
-The dependency and responsibility direction remains:
+## 2. Architectural boundary
 
 ```text
 Applications
@@ -44,285 +38,185 @@ Applications
                  terminal / tty
 ```
 
-`Icod.DCurses` SHALL NOT regain responsibilities that belong to `Icod.Terminal` or `Icod.TermInfo`.
-
-In particular, DCurses SHALL NOT add:
-
-- a second raw terminal input loop;
-- a private terminal-mode implementation;
-- a private terminal query/response router;
-- a second terminal capability database;
-- application-specific ProcPs policy;
-- terminal emulation or PTY ownership.
-
-DCurses MAY expose curses-shaped abstractions over stable Terminal mechanisms when doing so creates useful TUI semantics and avoids forcing ordinary consumers to drop down into the Terminal layer.
+DCurses does not regain responsibilities that belong to Terminal or TermInfo. In particular it does not add a second raw input loop, private terminal-mode owner, private capability database, terminal emulator, PTY owner, or ProcPs/application policy.
 
 ---
 
-## 3. Release Train
+## 3. Release train
 
-| Release | Theme | Principal outcome |
+| Release | Theme | Outcome |
 |---|---|---|
-| `0.2.0` | Terminal 1.0 input semantic parity | DCurses consumes the complete stable Terminal key/event/protocol contract without losing information or throwing on valid Terminal input |
-| `0.3.0` | Unicode and terminal-cell contract | Grapheme-aware, column-safe text semantics are frozen before richer editing APIs are built |
-| `0.4.0` | Window editing and composition | Mature geometry, editing, line drawing, copy/overlay, and region operations suitable for general TUIs |
-| `0.5.0` | Pads and large surfaces | Large off-screen cell surfaces, viewports, derived views, independent viewport damage observation, and efficient panning |
-| `0.6.0` | Rendition, drawing, and presentation | Complete managed presentation vocabulary with capability-aware degradation |
-| `0.7.0` | Refresh and output optimization | Synchronized output, better terminal-operation selection, scrolling/edit optimizations, and measurable output efficiency |
-| `0.8.0` | Production hardening | Explicit concurrency model, lifecycle/race recovery, stress testing, performance, and failure resilience |
-| `0.9.0` | Contract freeze / release candidate | Public API regret review, compatibility fingerprint, documentation and package freeze |
-| `1.0.0` | Stable release closure | Stable managed contract with no surprise feature family introduced during release closure |
-
-The version numbers describe development checkpoints, not a requirement to recreate historical native-curses versioning or function families one-for-one.
+| `0.2.0` | Terminal semantic input parity | Stable curses facade for complete Terminal key/event/protocol semantics |
+| `0.3.0` | Unicode and terminal-cell contract | Unicode 17 width data, complete text elements, wide-cell invariants, column-safe helpers |
+| `0.4.0` | Window editing and composition | Geometry, editing, copy/overlay, drawing, region/damage operations |
+| `0.5.0` | Pads and large surfaces | Off-screen pads, independent viewports, panning and visible-change observation |
+| `0.6.0` | Rendition, drawing, presentation | Complete semantic style/presentation vocabulary and capability-aware degradation |
+| `0.7.0` | Refresh/output optimization | Cost-aware terminal operations, synchronized output, structural edit/scroll optimizations |
+| `0.8.0` | Production hardening | Explicit concurrency/lifetime/failure model, ownership/race recovery, stress acceptance |
+| `0.9.0` | Contract freeze / release candidate | API fingerprint, semantic/lifetime/dependency/documentation/package freeze |
+| `1.0.0` | Stable release closure | Publish the accepted 0.9 contract without a surprise feature family |
 
 ---
 
-# 4. Version 0.2.0 — Terminal 1.0 Input Semantic Parity
+## 4. Completed contract milestones
 
-`0.2.0` established complete stable Terminal semantic keyboard/input parity through the curses facade, including the expanded key vocabulary, press/repeat/release phases, modern modifiers, shifted/base-layout characters, associated text, `Unrecognized`, and curses-shaped keyboard-reporting protocol acquisition.
+### 0.2 — semantic input
 
-The detailed implementation plan is maintained in `Icod.DCurses-0.2.0-Development-Roadmap.md`.
+The curses facade preserves the stable Terminal semantic keyboard/input model, including modern key vocabulary, press/repeat/release phases, modifiers, associated text, focus, paste, mouse, lifecycle, protocol acquisition, and controlled availability. Terminal remains the byte-stream decoder and lease owner.
 
----
+### 0.3 — Unicode/cells
 
-# 5. Version 0.3.0 — Unicode and Terminal-Cell Contract
+The frozen text model includes malformed UTF-16 normalization, complete Unicode text-element processing, zero/one/two-column semantics, continuation-cell invariants, combining/variation-selector/keycap/flag/emoji/ZWJ behavior, Unicode 17.0.0 width data, explicit narrow/wide East Asian Ambiguous policy, and public measure/truncate/slice helpers expressed in terminal columns.
 
-`0.3.0` froze the terminal-cell foundation required by later editing and viewport APIs:
+Bidirectional layout, Arabic/Indic shaping, and general font shaping remain outside the core contract.
 
-- normalized malformed UTF-16 before segmentation;
-- complete text-element width decisions;
-- deterministic zero-, one-, and two-column semantics;
-- continuation-cell invariants;
-- combining, variation-selector, emoji-ZWJ, flag, and keycap behavior;
-- safe wide-cell overwrite and clipping;
-- explicit East Asian Ambiguous-width policy;
-- Unicode 17.0.0 width/emoji data;
-- public column measurement, truncation, and slicing helpers.
+### 0.4 — windows/editing/composition
 
-The goal remains terminal-cell correctness, not general-purpose script shaping. Bidirectional layout, Arabic shaping, Indic shaping, and general font shaping remain outside the core 1.0 contract.
+The window model provides shared logical views with zero-based parent-local geometry, repositioning/resizing, inspection, fill/erase, insert/delete cells and lines, copy/overlay, drawing, and damage operations while preserving wide-cell correctness.
 
----
+### 0.5 — pads/large surfaces
 
-# 6. Version 0.4.0 — Window Editing and Composition
+`CursesPad` is an off-screen logical surface reusing the window editing contract. `CursesPadViewport` adds independent projection/panning/change-observation state without owning terminal modes, input, or physical refresh state.
 
-`0.4.0` matured the window/view model into a general TUI editing surface with:
+### 0.6 — presentation
 
-- non-standard window repositioning and explicit nested geometry;
-- public window-local cell inspection;
-- region fill and erase completion;
-- insert/delete cells and lines;
-- deterministic destructive copy and transparent overlay;
-- horizontal/vertical geometric drawing and borders;
-- range-oriented touch/query semantics;
-- Unicode-safe wide-cell repair across every editing boundary.
+The semantic presentation contract includes indexed/direct color policy, default color restoration, bold/dim/italic/underline/reverse/standout/blink/conceal/strikeout, `ncv`-aware degradation, presentation-capability observation, semantic line cells, and ACS/Unicode/ASCII fallback.
 
-The managed API uses descriptive managed names rather than reproducing native `w*` function naming mechanically.
+### 0.7 — refresh/output optimization
 
----
+The retained logical/physical model remains authoritative while safe, strictly cheaper advertised terminal operations may be selected. The release includes synchronized-output framing, cost-aware cursor movement/erase, exact insert/delete-character and insert/delete-line/scroll optimization, temporary scroll-region restoration, differential rendition transitions, deterministic byte/write gates, and safe fallback after output uncertainty.
 
-# 7. Version 0.5.0 — Pads and Large Surfaces
+### 0.8 — production hardening
 
-`0.5.0` is complete and published. Its detailed tranche plan is maintained in `Icod.DCurses-0.5.0-Development-Roadmap.md`.
+`0.8.0` is complete and published.
 
-The release introduced large in-memory off-screen logical surfaces which reuse the 0.3/0.4 contracts rather than duplicating them. The accepted design includes:
-
-- `CursesPad` as an off-screen logical surface;
-- ordinary `CursesWindow` editing through `ContentWindow`;
-- direct rectangular pad-to-window presentation;
-- independent `CursesPadViewport` projection state;
-- vertical and horizontal panning;
-- ordinary `CreateSubwindow(...)` as the shared derived-pad-view model;
-- independent per-viewport visible pad change observation;
-- explicit touch/invalidation propagation without a global pad-clean acknowledgement;
-- strict destination-geometry revalidation after resize;
-- wide-cell-safe source/destination boundary handling;
-- large-surface and repeated-panning acceptance;
-- pad-only opt-in revision tracking so ordinary logical screens retain their pre-0.5 per-cell memory profile.
-
-Pads do not own terminal sessions, terminal modes, terminal input, physical-screen state, or a second refresh engine.
-
----
-
-# 8. Version 0.6.0 — Rendition, Drawing, and Presentation
-
-`0.6.0` is complete and published. Its detailed tranche plan is maintained in `Icod.DCurses-0.6.0-Development-Roadmap.md`.
-
-The release completed the managed presentation contract with:
-
-- capability-aware indexed-color range handling;
-- direct RGB/truecolor degradation policy;
-- default foreground/background restoration;
-- complete bold, dim, italic, underline, reverse, standout, blink, conceal, and strikeout semantics where safely available;
-- `ncv`-aware physical degradation without mutating logical style;
-- a read-only `CursesPresentationCapabilities` view;
-- semantic line-drawing cells and window drawing overloads;
-- ACS, Unicode, and ASCII physical line-glyph fallback;
-- lifecycle/disposal restoration acceptance after rich presentation;
-- warning level 4 and warnings-as-errors under Staging and Release.
-
----
-
-# 9. Version 0.7.0 — Refresh and Output Optimization
-
-`0.7.0` is complete and published.
-
-The accepted release optimizes the retained logical/physical screen model without weakening its correctness:
-
-- opt-in Terminal-owned synchronized-output framing through `CursesSessionOptions.UseSynchronizedOutput`, default `false`;
-- deterministic cost-aware cursor-motion selection;
-- deterministic cost-aware erase selection;
-- exact physical insert/delete-character optimization;
-- exact physical insert/delete-line and forward/reverse scrolling optimization;
-- temporary full-width scroll-region optimization with failure-safe restoration;
-- differential retained-rendition transitions that preserve reset-first safety;
-- deterministic byte/write/fallback/failure-recovery gates;
-- package-only validation of the sole 0.7 public addition.
-
-The release keeps cost models, candidate resolvers, operation plans, retained physical state, and refresh measurement infrastructure internal. It does not introduce a public diagnostics/statistics surface.
-
-Representative deterministic maintainer fixtures include:
-
-```text
-T701 established-default -> bold: 19 bytes / 4 writes
-T707 established-default -> bold: 13 bytes / 3 writes
-editor two-column insertion:       2 optimized vs 34 fallback bytes
-pager one-line deletion:            4 optimized vs 166 fallback bytes
-160 x 60 full repaint:           9661 bytes / 121 writes / 1 flush
-1000 one-cell updates:           2000 bytes / 2000 writes / 1000 flushes
-```
-
-The detailed plan and freeze record are maintained in `Icod.DCurses-0.7.0-Development-Roadmap.md`, `docs/T701-Refresh-Cost-Foundation-and-Baseline.md` through `docs/T709-0.7.0-Stable-Release-Closure.md`, and `docs/Public-API-Baseline-0.7.md`.
-
-Correctness remains more important than finding a globally minimal escape sequence stream. The primary managed batching boundary remains `RefreshAsync()`.
-
----
-
-# 10. Version 0.8.0 — Production Hardening
-
-`0.8.0` has completed T801 through T809. The stable source is validated and awaiting explicit merge.
-
-The accepted hardening contract freezes these rules:
+The accepted 1.x hardening model is:
 
 - logical screen/window/pad/viewport mutation is single-writer unless explicitly documented otherwise;
 - one Terminal-owned event consumer may wait concurrently with refresh/output activity;
-- terminal-mutating session activity is internally serialized;
-- pending DCurses event/lifecycle waits are unblocked by disposal without discarding Terminal decoder state;
+- terminal-mutating session work is internally serialized;
 - caller cancellation remains distinguishable from disposal;
-- output uncertainty invalidates retained physical knowledge so later refresh returns through the safe renderer;
-- resize/suspend/resume and rich-input ownership are stress-tested under repeated cycles;
-- repeated entry/exit restores Terminal and protocol ownership deterministically;
-- large pads, large screens, sparse refresh, high-frequency refresh, and no-op refresh are exercised under bounded deterministic stress;
-- hardening machinery remains private/test-only and adds no public API.
+- disposal unblocks pending DCurses event/lifecycle waits without discarding Terminal decoder state;
+- repeated disposal shares one restoration operation;
+- resize/suspend/resume and rich-input ownership survive repeated stress cycles;
+- output uncertainty invalidates retained physical knowledge for safe retry;
+- Terminal restoration remains authoritative after DCurses presentation failures;
+- no public hardening/scheduler/lock/diagnostics API is added.
 
-The PR runtime gate covers Windows x64/ARM64, Linux x64/ARM64, and macOS x64/ARM64, with `net8.0`, `net9.0`, and `net10.0` under Staging warnings-as-errors plus package/fresh-consumer validation.
-
-The exact `0.8.0-rc.1` head `6247b9dc290089e5db82f83929d07b4b674b8d8b` passed that complete gate.
-
-Stable `0.8.0` source head `533f2cd78b1eecdaad936678f09790955da6308b` passed the same seven-job gate. The final roadmap-record head `9cdcab96d57f2d887d08709693b52de186bfe4fb`, which changes only release documentation, also passed the complete seven-job gate and is the definitive merge candidate.
-
-The detailed plan is maintained in `Icod.DCurses-0.8.0-Development-Roadmap.md`. Implementation and release records are maintained in `docs/T801-T807-Production-Hardening-Implementation.md`, `docs/T808-Hardening-Regret-and-Release-Candidate-Gate.md`, `docs/T809-0.8.0-Stable-Release-Closure.md`, and `docs/Public-API-Baseline-0.8.md`.
+The runtime/package gate covers Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64 and `net8.0`/`net9.0`/`net10.0`.
 
 ---
 
-# 11. Version 0.9.0 — Contract Freeze and Release Candidate
+## 5. Version 0.9.0 — final contract freeze
 
-No major feature family SHOULD enter after this release begins.
+`0.9.0` is the contract intended to become 1.0.
 
-The `0.9.0` tranche SHALL:
+The canonical compiled public API baseline is:
 
-- review every public type and member;
-- remove accidental public surface;
-- freeze type/member naming;
-- freeze enum numeric values;
-- freeze coordinate/dimension semantics;
-- freeze session and ownership semantics;
-- freeze window and pad lifetime semantics;
-- freeze cell/text/Unicode semantics;
-- freeze input event semantics;
-- freeze exception and cancellation behavior;
-- decide finally which approved Terminal/TermInfo types remain in the public 1.x contract;
-- establish a machine-readable public API fingerprint/baseline;
-- validate nullable annotations;
-- validate XML documentation;
-- validate package metadata and package-only consumers;
-- expand conceptual documentation and migration guidance;
-- run editor-like, pager-like, Unicode-heavy, rich-input, lifecycle, and high-frequency refresh acceptance workloads.
+```text
+sha256:            274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
+exported types:    43
+contract lines:   309
+```
+
+It is machine-generated identically on `net8.0`, `net9.0`, and `net10.0` and covers declared public signatures, enum values, generic constraints, parameter/ref/default metadata, accessor visibility, fields/constants, and compiled nullability.
+
+Dedicated semantic tests additionally freeze zero-based row/column and parent-local geometry, rows/columns dimension semantics, representative range/argument exception categories and parameter identities, half-open column slicing, Unicode 17.0.0/Ambiguous-width policy, semantic line identity, wide-footprint repair, ownership transfer, cancellation/disposal, EOF, output-failure/retry, dual-failure, and restoration rules.
+
+The final accepted lower-layer public type definitions are exactly:
+
+```text
+Icod.Terminal.TerminalSession
+Icod.Terminal.TerminalEndpoint
+Icod.Terminal.TerminalControlResult<T>
+Icod.TermInfo.TerminalDescription
+Icod.TermInfo.TerminalSize
+```
+
+No public breaking cleanup was accepted relative to 0.8. Existing 0.8 source consumers therefore have no planned migration to the 0.9 public contract.
+
+The package/release review corrected GitHub Release dependency-note generation so Terminal/TermInfo versions come from the project package references rather than a hard-coded string.
+
+Representative acceptance reuses the established editor/pager, Unicode, rich-input, lifecycle, ownership, failure-recovery, pad, large-screen, sparse/high-frequency/no-op, `top`, `slabtop`, `watch`, and package-only consumer gates.
+
+Exact `0.9.0-rc.1` head:
+
+```text
+67269d0346e31c356414007dc807c82eeebe97aa
+```
+
+passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation.
+
+T909 promotes the unchanged contract to stable `0.9.0`, adds the final human-readable API baseline, and performs a documentation audit/correction pass before the exact stable-source merge gate.
+
+Detailed records:
+
+- `Icod.DCurses-0.9.0-Development-Roadmap.md`
+- `docs/Public-API-Fingerprint-0.9.json`
+- `docs/Public-API-Baseline-0.9.md`
+- `docs/T901-Public-Surface-Inventory-and-Regret-Review.md`
+- `docs/T904-Lifetime-Ownership-Exception-and-Cancellation-Freeze.md`
+- `docs/T905-Nullable-Documentation-and-Dependency-Regret-Review.md`
+- `docs/0.9-Contract-Freeze-and-1.0-Migration-Guide.md`
+- `docs/T907-Representative-Application-Acceptance-Gate.md`
+- `docs/T908-Contract-Regret-Package-Architecture-and-RC-Gate.md`
+- `docs/T909-0.9.0-Stable-Release-Closure-and-Documentation-Audit.md`
 
 ---
 
-# 12. Version 1.0.0 — Stable Closure
+## 6. Version 1.0.0 — stable closure
 
-`1.0.0` SHALL be release closure, not another feature tranche.
+`1.0.0` SHALL be release closure over the accepted 0.9 contract.
 
 Before publication:
 
-- the complete `0.9` public API baseline SHALL be intentionally accepted;
-- all supported target frameworks SHALL build/test/package cleanly;
-- the full Windows/Linux/macOS runtime matrix SHALL pass;
-- package-only consumers SHALL pass for representative TUI workloads;
-- `top`, `slabtop`, and `watch` SHALL remain valid downstream consumers;
-- Unicode/cell behavior SHALL be documented and tested;
-- terminal restoration SHALL be demonstrated for normal exit, exceptions, cancellation, resize, and supported suspend/resume;
-- no known refresh correctness defect SHALL remain;
-- package version, assembly version, and compatibility policy SHALL be frozen;
-- README, samples, conceptual docs, and XML docs SHALL describe the supported stable contract;
-- NuGet.org and GitHub Packages publication SHALL use the validated tag artifact.
+- the complete 0.9 fingerprint SHALL remain intentionally accepted;
+- no unreviewed public signature, enum value, nullability, dependency-boundary, or semantic change may enter;
+- all `net8.0`, `net9.0`, and `net10.0` targets SHALL build/test/package cleanly;
+- Windows/Linux/macOS x64/ARM64 validation SHALL pass;
+- package-only consumers SHALL pass from the generated artifact;
+- `top`, `slabtop`, and `watch` acceptance builds SHALL remain valid downstream indicators;
+- Unicode/cell behavior and geometry semantics SHALL remain documented/tested;
+- terminal restoration SHALL remain demonstrated for normal exit, exceptions, cancellation, resize, suspend/resume, and output failure;
+- README, migration guide, conceptual docs, XML docs, package metadata, and release notes SHALL agree;
+- NuGet.org/GitHub Packages publication SHALL use the validated tag artifact.
+
+If 1.0 closure discovers a defect that can be fixed within the frozen contract, it should be fixed compatibly. A breaking change requires a deliberate compatibility decision rather than being treated as ordinary release cleanup.
 
 ---
 
-## 13. Explicit 1.0 Non-Goals
+## 7. Explicit 1.0 non-goals
 
-The following are not required for `Icod.DCurses 1.0.0`:
-
-- native `ncurses` ABI compatibility;
-- exhaustive source-level C curses compatibility;
-- `printw`/`scanw`-style formatted-I/O compatibility;
-- forms;
-- menus;
-- panels;
-- widget/toolkit frameworks;
-- declarative UI;
-- terminal emulation;
-- pseudo-terminal creation or management;
-- SSH transport;
-- graphics protocols;
-- arbitrary child ANSI interpretation;
-- bidirectional or complex-script text shaping;
-- wrappers for every feature exposed by `Icod.Terminal`.
-
-Focused compatibility or widget packages MAY be developed after the stable core contract exists.
+The stable core does not require native `ncurses` ABI compatibility, exhaustive C curses source compatibility, `printw`/`scanw` compatibility, forms/menus/panels, a widget toolkit, declarative UI, terminal emulation, PTY management, SSH transport, graphics protocols, arbitrary child ANSI interpretation, bidirectional/complex-script shaping, wrappers for every Terminal feature, transparent multi-writer thread safety, or a public diagnostics/performance API without a stable-core requirement.
 
 ---
 
-## 14. Cross-Cutting Engineering Rules
+## 8. Cross-cutting release rules
 
-Throughout the 1.0 train:
-
-1. `<Version>` and `<PackageVersion>` SHALL remain synchronized with the active development package.
-2. `Debug` remains the local-development configuration, pull requests use `Staging`, and `main`/tags use `Release`.
-3. `net8.0`, `net9.0`, and `net10.0` remain first-class targets unless a concrete support/security constraint requires reconsideration.
-4. Public/protected/internal methods SHALL validate applicable parameters at entry.
-5. Braces SHALL be used for every `if`/`else` body.
-6. Terminal capability behavior SHALL remain TermInfo-driven when a capability models the operation.
-7. Tests SHALL remain non-interactive unless explicitly categorized as manual acceptance.
-8. Tests SHALL not write unsolicited standard output/error.
-9. Public API additions SHALL be deliberate contract decisions.
-10. The dependency-boundary allow-list SHALL prevent accidental new Terminal/TermInfo public leakage.
-11. Every release SHALL include package-only validation from the generated artifact.
-12. Historical milestone documents SHALL remain historical rather than being rewritten to describe current versions.
+1. `<Version>` and `<PackageVersion>` remain synchronized.
+2. Debug is local development; PRs use Staging; `main`/tags use Release.
+3. `net8.0`, `net9.0`, and `net10.0` remain first-class targets.
+4. Public/protected/internal methods validate applicable arguments at entry.
+5. All `if`/`else` bodies use braces.
+6. Terminal capability behavior remains TermInfo-driven where a capability models the operation.
+7. Tests remain non-interactive unless explicitly manual and do not emit unsolicited stdout/stderr.
+8. Public API changes are deliberate compatibility decisions.
+9. The Terminal/TermInfo dependency allow-list prevents accidental lower-layer leakage.
+10. Every release validates the generated package and fresh consumer.
+11. Historical milestone documents remain historical rather than being rewritten to current dependency versions.
 
 ---
 
-## 15. Immediate Sequence
+## 9. Immediate sequence
 
 ```text
-0.2.0 Terminal 1.0 input semantic parity        complete
-  -> 0.3.0 Unicode / terminal-cell contract     complete
-  -> 0.4.0 window editing and composition       complete
-  -> 0.5.0 pads and large surfaces              complete
-  -> 0.6.0 rendition / drawing / presentation   complete and published
-  -> 0.7.0 refresh and output optimization      complete and published
-  -> 0.8.0 production hardening                 stable source validated; merge pending
-  -> 0.9.0 contract freeze / RC                 next
-  -> 1.0.0 stable closure
+0.2.0 semantic input parity                    complete
+  -> 0.3.0 Unicode / terminal-cell contract   complete
+  -> 0.4.0 editing/composition                complete
+  -> 0.5.0 pads/large surfaces                complete
+  -> 0.6.0 presentation                       complete and published
+  -> 0.7.0 refresh/output optimization        complete and published
+  -> 0.8.0 production hardening               complete and published
+  -> 0.9.0 contract freeze / RC               stable-source merge gate
+  -> 1.0.0 stable release closure             next
 ```

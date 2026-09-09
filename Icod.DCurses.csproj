@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.8.0</Version>
-		<AssemblyVersion>0.8.0.0</AssemblyVersion>
+		<Version>0.9.0</Version>
+		<AssemblyVersion>0.9.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.8.0</PackageVersion>
+		<PackageVersion>0.9.0</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.8.0 production hardening freezes the existing public contract while strengthening lifetime, concurrency, cancellation, lifecycle, failure-recovery, ownership, and scale behavior. Logical screens, windows, pads, and viewports remain single-writer; one Terminal-owned event consumer may wait concurrently with serialized refresh/output activity; disposal unblocks pending DCurses input/lifecycle waits without discarding Terminal decoder state; output uncertainty invalidates retained physical knowledge for safe retry; repeated rich-input/full-screen ownership cycles restore deterministically; and bounded large-pad, large-screen, sparse-refresh, and no-op workloads are exercised. The 0.8 release adds no public API. PR validation covers Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, net8.0/net9.0/net10.0, and package/fresh-consumer validation. Dependencies remain Icod.Terminal 1.4.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.9.0 freezes the managed Icod.DCurses contract intended for direct 1.0 release closure. The stable contract is machine-guarded by a public API fingerprint of 43 exported types and 309 canonical contract lines; enum values, geometry, Unicode/cell semantics, lifetime, ownership, exception/cancellation behavior, nullable metadata, and the approved Terminal/TermInfo dependency boundary are deliberately reviewed and frozen. No public breaking cleanup was accepted relative to 0.8.0, so existing 0.8 source consumers have no planned migration. Package and conceptual documentation are synchronized with the published 0.8.0 predecessor, release-note dependency versions are derived from project PackageReference metadata, and representative editor, pager, Unicode, rich-input, lifecycle, ownership, failure-recovery, pad, large-screen, high-frequency, no-op, top, slabtop, and watch acceptance remains in the release gate. Dependencies remain Icod.Terminal 1.4.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
