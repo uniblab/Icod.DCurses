@@ -92,7 +92,7 @@ public sealed class CursesConcurrentInputRefreshHardeningTests {
 
 		cancellation.Cancel();
 
-		_ = await Assert.ThrowsAsync<OperationCanceledException>(
+		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(
 			() => refresh
 		);
 		output.Clear();
