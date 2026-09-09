@@ -13,6 +13,7 @@ internal sealed class CursesRefreshEngine {
 	private readonly TerminalDescription terminal;
 	private readonly ITerminalOutput output;
 	private readonly CursesPresentationResolver presentationResolver;
+	private readonly CursesLinePresentationResolver linePresentationResolver;
 	private readonly SemaphoreSlim refreshGate = new( 1, 1 );
 
 	private CursesPhysicalScreenState? physicalScreen;
@@ -34,6 +35,7 @@ internal sealed class CursesRefreshEngine {
 		this.terminal = terminal;
 		this.output = output;
 		presentationResolver = new CursesPresentationResolver( terminal );
+		linePresentationResolver = new CursesLinePresentationResolver( terminal );
 	}
 
 	/// <summary>Requests complete physical-screen invalidation at the next refresh boundary.</summary>
@@ -101,9 +103,7 @@ internal sealed class CursesRefreshEngine {
 				column,
 				cancellationToken
 			).ConfigureAwait( false );
-			await output.FlushAsync(
-				cancellationToken
-			).ConfigureAwait( false );
+			await output.FlushAsync( cancellationToken ).ConfigureAwait( false );
 		} catch {
 			InvalidateKnownState();
 			throw;
@@ -233,6 +233,7 @@ internal sealed class CursesRefreshEngine {
 					row,
 					start,
 					end,
+					screen.TextWidthProvider,
 					cancellationToken
 				).ConfigureAwait( false );
 				column = end + 1;
@@ -385,8 +386,10 @@ internal sealed class CursesRefreshEngine {
 		int row,
 		int start,
 		int end,
+		ICursesTextWidthProvider textWidthProvider,
 		CancellationToken cancellationToken
 	) {
+		ArgumentNullException.ThrowIfNull( textWidthProvider );
 		await MoveCursorAsync(
 			row,
 			start,
@@ -408,6 +411,7 @@ internal sealed class CursesRefreshEngine {
 				segmentStart,
 				segmentEnd,
 				style,
+				textWidthProvider,
 				cancellationToken
 			).ConfigureAwait( false );
 			segmentStart = segmentEnd + 1;
@@ -420,33 +424,23 @@ internal sealed class CursesRefreshEngine {
 		int start,
 		int end,
 		CursesStyle style,
+		ICursesTextWidthProvider textWidthProvider,
 		CancellationToken cancellationToken
 	) {
+		ArgumentNullException.ThrowIfNull( textWidthProvider );
 		await ApplyStyleAsync(
 			style,
 			cancellationToken
 		).ConfigureAwait( false );
 
-		StringBuilder payload = new();
-		for ( int column = start; column <= end; column++ ) {
-			CursesCell cell = desired[ row, column ];
-			if ( cell.IsContinuation ) {
-				continue;
-			}
-
-			payload.Append(
-				cell.IsBlank
-					? " "
-					: cell.Content
-			);
-		}
-
-		if ( 0 < payload.Length ) {
-			await WriteTextAsync(
-				payload.ToString(),
-				cancellationToken
-			).ConfigureAwait( false );
-		}
+		await RenderCellContentAsync(
+			desired,
+			row,
+			start,
+			end,
+			textWidthProvider,
+			cancellationToken
+		).ConfigureAwait( false );
 
 		for ( int column = start; column <= end; column++ ) {
 			physicalScreen!.SetCell(
@@ -463,6 +457,85 @@ internal sealed class CursesRefreshEngine {
 			cursorRow = null;
 			cursorColumn = null;
 		}
+	}
+
+	private async ValueTask RenderCellContentAsync(
+		CursesVirtualScreen desired,
+		int row,
+		int start,
+		int end,
+		ICursesTextWidthProvider textWidthProvider,
+		CancellationToken cancellationToken
+	) {
+		ArgumentNullException.ThrowIfNull( desired );
+		ArgumentNullException.ThrowIfNull( textWidthProvider );
+
+		StringBuilder payload = new();
+		bool alternateCharacterSetActive = false;
+		for ( int column = start; column <= end; column++ ) {
+			CursesCell cell = desired[ row, column ];
+			if ( cell.IsContinuation ) {
+				continue;
+			}
+
+			bool useAlternateCharacterSet = false;
+			string content;
+			if ( cell.IsBlank ) {
+				content = " ";
+			} else if ( cell.LineGlyph.HasValue ) {
+				CursesPhysicalLineGlyph resolved = linePresentationResolver.Resolve(
+					cell.LineGlyph.Value,
+					textWidthProvider
+				);
+				content = resolved.Content;
+				useAlternateCharacterSet = resolved.UsesAlternateCharacterSet;
+			} else {
+				content = cell.Content;
+			}
+
+			if ( useAlternateCharacterSet != alternateCharacterSetActive ) {
+				await FlushTextPayloadAsync(
+					payload,
+					cancellationToken
+				).ConfigureAwait( false );
+				await WriteCapabilityIfPresentAsync(
+					useAlternateCharacterSet
+						? StringCapability.EnterAlternateCharacterSetMode
+						: StringCapability.ExitAlternateCharacterSetMode,
+					cancellationToken
+				).ConfigureAwait( false );
+				alternateCharacterSetActive = useAlternateCharacterSet;
+			}
+
+			payload.Append( content );
+		}
+
+		await FlushTextPayloadAsync(
+			payload,
+			cancellationToken
+		).ConfigureAwait( false );
+		if ( alternateCharacterSetActive ) {
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.ExitAlternateCharacterSetMode,
+				cancellationToken
+			).ConfigureAwait( false );
+		}
+	}
+
+	private async ValueTask FlushTextPayloadAsync(
+		StringBuilder payload,
+		CancellationToken cancellationToken
+	) {
+		ArgumentNullException.ThrowIfNull( payload );
+		if ( 0 == payload.Length ) {
+			return;
+		}
+
+		await WriteTextAsync(
+			payload.ToString(),
+			cancellationToken
+		).ConfigureAwait( false );
+		payload.Clear();
 	}
 
 	private async ValueTask MoveCursorAsync(
