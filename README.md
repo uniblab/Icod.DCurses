@@ -15,11 +15,13 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 ## Status
 
-`Icod.DCurses 0.8.0` is the current published stable package.
+`Icod.DCurses 1.0.0` is the stable-source candidate on PR #23.
 
-The `0.9.0` line is the final pre-1.0 contract freeze. Its runtime/public behavior has been promoted unchanged from the green `0.9.0-rc.1` candidate to stable `0.9.0` source, retaining assembly version `0.9.0.0`. The remaining branch gate is exact-head Staging validation before merge; post-merge Release validation, tagging, and publication are separate later actions.
+The accepted `1.0.0-rc.1` contract was promoted unchanged to stable `1.0.0` package metadata with `AssemblyVersion 1.0.0.0`. Exact RC head `1968bae18610e69e56dc8f720bffb099cb58eb24` passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation before stable promotion.
 
-The frozen 0.9 public contract contains:
+The merged `0.9.0` source baseline also passed the complete post-merge `Release` matrix before 1.0 work began.
+
+The frozen stable public contract contains:
 
 ```text
 43 exported types
@@ -27,22 +29,22 @@ The frozen 0.9 public contract contains:
 sha256 274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
 ```
 
-CI regenerates that fingerprint from the compiled assembly for `net8.0`, `net9.0`, and `net10.0`. It includes declared public signatures, enum values, generic constraints, parameter/ref/default metadata, accessor visibility, fields/constants, and compiled nullability. Dedicated compatibility tests additionally freeze geometry, Unicode/cell, lifetime, cancellation, ownership, and failure behavior.
+The 1.0 machine baseline is intentionally identical to the 0.9 freeze. CI regenerates the compiled fingerprint for `net8.0`, `net9.0`, and `net10.0`, and a separate compatibility test requires the 1.0 baseline to match the historical 0.9 baseline exactly.
 
-No public breaking cleanup was accepted during the 0.9 regret review. Existing 0.8 source consumers therefore have no planned source migration to the frozen 0.9 contract.
-
-The dependency baseline is:
+The direct dependency baseline remains:
 
 - `Icod.Terminal` 1.4.0
 - `Icod.TermInfo` 1.10.0
 
 ## Installation
 
-Until `0.9.0` is merged, tagged, and published, the current published stable package remains:
+The latest published GitHub release remains `0.8.0`. The merged `0.9.0` source and stable `1.0.0` PR source are not presented here as published packages until their respective tag/publication workflows complete.
 
 ```text
 dotnet add package Icod.DCurses --version 0.8.0
 ```
+
+After `v1.0.0` is merged, tagged, published, and verified, this installation example will move to the stable 1.0 package.
 
 ## Architecture
 
@@ -65,7 +67,7 @@ top / slabtop / watch / editors / pagers / other TUIs
 
 `Icod.DCurses` does not hard-code one terminal family, maintain a second capability database, install a second raw input loop, own terminal modes independently of `Icod.Terminal`, emulate a terminal, or create/manage PTYs.
 
-## Target
+## Targets
 
 - .NET 8
 - .NET 9
@@ -101,11 +103,11 @@ await session.RefreshAsync();
 CursesEvent terminalEvent = await session.ReadEventAsync();
 ```
 
-A `CursesSession` restores the presentation and Terminal-owned state it acquires when it is disposed. Applications should consume terminal input and lifecycle activity through the curses/Terminal ownership model rather than adding a parallel byte reader.
+A `CursesSession` restores the presentation and Terminal-owned state it acquires when disposed. Applications should consume terminal input and lifecycle activity through the curses/Terminal ownership model rather than adding a parallel byte reader.
 
-## Contract freeze and compatibility (`0.9`)
+## Stable 1.0 compatibility contract
 
-The 0.9 line freezes the public contract intended for `1.0.0` rather than introducing a new feature family.
+Stable `1.0.0` source carries forward the exact contract frozen in 0.9 and accepted by the green 1.0 RC gate.
 
 The accepted compatibility rules include:
 
@@ -116,14 +118,15 @@ The accepted compatibility rules include:
 - Unicode width data is Unicode 17.0.0;
 - East Asian Ambiguous characters are narrow by default and wide only through `UnicodeCursesTextWidthProvider.WideAmbiguousInstance`;
 - semantic line cells remain distinct from ordinary Unicode box-drawing text;
-- logical screen/window/pad/viewport mutation is single-writer unless a member explicitly states otherwise;
+- logical screen/window/pad/viewport mutation is single-writer unless explicitly documented otherwise;
 - one Terminal-owned event consumer may wait concurrently with serialized refresh/output activity;
 - caller cancellation remains cancellation, while disposal-unblocked waits surface `ObjectDisposedException`;
-- uncertain/partial output invalidates retained physical knowledge so a later refresh can repaint safely;
 - repeated disposal shares one restoration operation;
-- independently meaningful primary/restoration failures are preserved rather than silently discarded.
+- uncertain/partial output invalidates retained physical knowledge so a later refresh can repaint safely;
+- independently meaningful primary/restoration failures remain observable;
+- Terminal remains the authoritative owner of host-state restoration.
 
-The final intentional lower-layer public type set is exactly:
+The only lower-layer type definitions intentionally visible in the public DCurses contract are:
 
 ```text
 Icod.Terminal.TerminalSession
@@ -133,28 +136,31 @@ Icod.TermInfo.TerminalDescription
 Icod.TermInfo.TerminalSize
 ```
 
-These types preserve the authoritative lower-layer session, endpoint, live-size result, and immutable terminal-description vocabulary. No additional Terminal/TermInfo type may enter a public DCurses signature without an explicit compatibility review.
+These preserve the authoritative session, endpoint, live-size result, and immutable terminal-description vocabulary. No additional Terminal/TermInfo type may enter a public DCurses signature without an explicit compatibility decision.
 
-See `docs/0.9-Contract-Freeze-and-1.0-Migration-Guide.md` and `docs/Public-API-Baseline-0.9.md` for the complete frozen contract.
+See:
 
-## Production hardening (`0.8`)
+- `docs/Public-API-Fingerprint-1.0.json`
+- `docs/Public-API-Baseline-1.0.md`
+- `docs/1.0-Stable-Compatibility-and-Migration-Guide.md`
 
-The 0.8 release established the concurrency and failure-resilience model retained by 0.9:
+## Concurrency and production hardening
 
-- logical surfaces are deliberately single-writer rather than per-cell locked;
-- input waits may coexist with refresh/output without adding another decoder;
-- terminal-mutating work is internally serialized;
-- disposal unblocks pending DCurses input/lifecycle waits while preserving Terminal decoder state;
-- caller cancellation does not discard fragmented UTF-8 or escape input owned by Terminal;
-- resize/suspend/resume and rich-input/full-screen ownership are stress-tested;
-- uncertain output invalidates retained physical state for safe recovery;
-- large pads/screens, sparse refresh, high-frequency refresh, and no-op refresh are exercised under bounded deterministic stress.
+The stable library uses a deliberately narrow concurrency model rather than pervasive per-cell locking:
 
-The 0.8 release added no public API.
+- logical screens, windows, pads, and viewports are single-writer;
+- one Terminal-owned event wait may coexist with refresh/output work;
+- terminal-mutating curses operations are serialized internally;
+- caller cancellation of one wait does not discard Terminal decoder state or fragmented input;
+- disposal unblocks pending DCurses event/lifecycle waits while preserving authoritative restoration;
+- resize/suspend/resume and rich-input/full-screen ownership survive repeated stress cycles;
+- output uncertainty invalidates retained physical state and a later refresh returns through a safe repaint path.
 
-## Refresh and output optimization (`0.7`)
+No public scheduler, lock/token abstraction, hardening helper, or diagnostics/statistics surface is part of the stable API.
 
-The retained logical/physical screen model remains authoritative. DCurses may select a cheaper physical terminal operation only when the active TermInfo description advertises the required capability, retained state proves the same final result, and the concrete emitted cost is a strict win. Otherwise the ordinary renderer is used.
+## Refresh and output optimization
+
+The retained logical/physical screen model remains authoritative. DCurses may choose a cheaper terminal operation only when the active TermInfo description advertises the required capability, retained state proves the same final result, and the emitted cost is a strict win. Otherwise it uses the ordinary renderer.
 
 Synchronized presentation is opt-in:
 
@@ -170,7 +176,7 @@ await using CursesSession session = await CursesSession.OpenAsync(
 
 Internal refresh optimization can select safe cursor motion, erase operations, character/line insertion and deletion, full-width scrolling, temporary scroll regions, and differential rendition transitions. Correctness and recoverability take precedence over minimizing every possible escape stream.
 
-Representative maintainer fixtures include:
+Representative deterministic maintainer fixtures include:
 
 ```text
 T701 established-default -> bold: 19 bytes / 4 writes
@@ -181,11 +187,11 @@ pager one-line deletion:            4 optimized vs 166 fallback bytes
 1000 one-cell updates:           2000 bytes / 2000 writes / 1000 flushes
 ```
 
-These are deterministic comparison fixtures, not universal performance claims for every terminal.
+These are comparison fixtures, not universal performance claims for every terminal.
 
-## Rendition and semantic drawing (`0.6`)
+## Presentation and semantic drawing
 
-Logical styles are terminal-independent. The physical renderer resolves them against advertised capabilities and degrades unsupported presentation without mutating logical `CursesStyle` values.
+Logical styles remain terminal-independent. The physical renderer resolves them against advertised TermInfo capabilities and degrades unsupported presentation without mutating logical `CursesStyle` values.
 
 ```csharp
 CursesStyle heading = new(
@@ -200,9 +206,9 @@ screen.Write( "Presentation-aware heading", heading );
 screen.DrawHorizontalLine( 12, 4, 30 );
 ```
 
-`CursesPresentationCapabilities` exposes the curses-level presentation vocabulary needed by applications without requiring ordinary consumers to inspect raw terminfo strings.
+`CursesPresentationCapabilities` exposes curses-level presentation information without requiring ordinary applications to inspect raw terminfo strings.
 
-## Pads and large surfaces (`0.5`)
+## Pads and large surfaces
 
 `CursesPad` is an off-screen logical surface and reuses ordinary `CursesWindow` editing semantics.
 
@@ -228,9 +234,9 @@ await session.RefreshAsync();
 
 Multiple viewports may observe one pad independently. Pads and viewports do not own terminal sessions or physical refresh state.
 
-## Window editing and composition (`0.4`)
+## Window editing and composition
 
-Windows are shared logical views. Editing, copying, overlay, drawing, and damage operations preserve the Unicode/wide-cell rules established by the text model.
+Windows are shared logical views. Editing, copying, overlay, drawing, and damage operations preserve the Unicode/wide-cell contract.
 
 ```csharp
 CursesScreen logical = new( 80, 24 );
@@ -243,9 +249,9 @@ editor.DrawHorizontalLine( 16, 1, 58 );
 editor.TouchRegion( 0, 0, 18, 60 );
 ```
 
-`CopyRectangleTo` is destructive copy including blanks; `OverlayRectangleTo` treats ordinary source blanks as transparent.
+`CopyRectangleTo` copies source blanks; `OverlayRectangleTo` treats ordinary source blanks as transparent.
 
-## Unicode column helpers (`0.3`)
+## Unicode column helpers
 
 ```csharp
 int columns = CursesText.MeasureColumns( "A界B" );
@@ -255,9 +261,9 @@ string slice = CursesText.SliceByColumns( "A界B", 1, 2 );
 
 The helpers normalize malformed UTF-16, reject terminal controls, operate on complete Unicode text elements, and never return half of a two-column element.
 
-## Modern keyboard and rich input (`0.2+`)
+## Modern keyboard and rich input
 
-Applications can request richer keyboard reporting through curses-owned protocol options while Terminal remains the decoder/lease owner:
+Applications can request richer keyboard reporting through curses-owned protocol options while Terminal remains the decoder and lease owner:
 
 ```csharp
 var keyboard = await session.AcquireInputProtocolsAsync(
@@ -267,7 +273,7 @@ var keyboard = await session.AcquireInputProtocolsAsync(
 );
 ```
 
-The curses event facade also carries the stable focus, paste, mouse, lifecycle, and end-of-input semantics established in the pre-1.0 train.
+The curses event facade also carries stable focus, paste, mouse, lifecycle, and end-of-input semantics.
 
 ## Validation and packaging
 
@@ -283,30 +289,30 @@ or:
 ./build.sh
 ```
 
-Pull requests use Staging with warnings-as-errors. `main` and release tags use Release. The PR runtime matrix covers Windows/Linux/macOS x64 and ARM64; the library/test matrix covers `net8.0`, `net9.0`, and `net10.0`.
+Pull requests use Staging with warnings-as-errors. Pushes to `main` and release tags use Release. Runtime validation covers Windows/Linux/macOS x64 and ARM64; the library/test matrix covers `net8.0`, `net9.0`, and `net10.0`.
 
-Package validation verifies the generated `.nupkg`/`.snupkg`, exact dependency groups, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh package-only consumer rather than relying only on repository project references.
+Package validation verifies the generated `.nupkg`/`.snupkg`, package and assembly identity, exact dependency groups, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh package-only consumer rather than relying only on project references.
 
-The release workflow derives the displayed `Icod.Terminal` and `Icod.TermInfo` dependency versions directly from the project `PackageReference` values so GitHub Release notes cannot silently drift from package metadata.
+The release workflow derives displayed `Icod.Terminal` and `Icod.TermInfo` dependency versions directly from the project `PackageReference` values so GitHub Release notes cannot silently drift from package metadata.
 
-## Release-train documentation
+## Release documentation
 
-The authoritative remaining release train is `Icod.DCurses-1.0.0-Development-Roadmap.md`.
+The active release-closure roadmap is:
 
-The 0.9 contract freeze is recorded in:
+- `Icod.DCurses-1.0.0-Development-Roadmap.md`
 
-- `Icod.DCurses-0.9.0-Development-Roadmap.md`
-- `docs/Public-API-Fingerprint-0.9.json`
-- `docs/Public-API-Baseline-0.9.md`
-- `docs/T901-Public-Surface-Inventory-and-Regret-Review.md`
-- `docs/T904-Lifetime-Ownership-Exception-and-Cancellation-Freeze.md`
-- `docs/T905-Nullable-Documentation-and-Dependency-Regret-Review.md`
-- `docs/0.9-Contract-Freeze-and-1.0-Migration-Guide.md`
-- `docs/T907-Representative-Application-Acceptance-Gate.md`
-- `docs/T908-Contract-Regret-Package-Architecture-and-RC-Gate.md`
-- `docs/T909-0.9.0-Stable-Release-Closure-and-Documentation-Audit.md`
+The 1.0 closure records include:
 
-Historical release roadmaps and tranche documents remain historical records and are not rewritten merely to reflect later dependency or package versions.
+- `docs/T1001-1.0.0-Release-Closure-Foundation.md`
+- `docs/T1002-1.0-Public-Contract-Carry-Forward.md`
+- `docs/T1003-1.0-Documentation-Package-and-Release-Audit.md`
+- `docs/T1004-1.0.0-RC-Final-Gate.md`
+- `docs/T1005-1.0.0-Stable-Release-Closure.md`
+- `docs/Public-API-Fingerprint-1.0.json`
+- `docs/Public-API-Baseline-1.0.md`
+- `docs/1.0-Stable-Compatibility-and-Migration-Guide.md`
+
+The frozen 0.9 contract and earlier release roadmaps remain historical compatibility records and are not rewritten merely to reflect later dependency or package versions.
 
 ## Authors
 
