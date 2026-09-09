@@ -4,7 +4,7 @@
 **Stable predecessor:** `0.7.0`  
 **Dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
 **Public API delta:** none  
-**Status:** T808 hardening/regret gate
+**Status:** `0.8.0-rc.1` freeze candidate
 
 ## Purpose
 
@@ -46,7 +46,7 @@ No public scheduler, event loop, diagnostics record, concurrency token, lock, or
 
 `0.8.0` adds no new `Icod.Terminal` or `Icod.TermInfo` type to public signatures.
 
-The existing approved boundary continues to be enforced by `PublicDependencyBoundaryTests`.
+The existing approved boundary continues to be enforced by `PublicDependencyBoundaryTests`, and `PublicHardeningApiContractTests` guards against accidental hardening/concurrency helper exposure.
 
 ## Package boundary
 
@@ -62,3 +62,5 @@ Package-only validation remains required.
 ## Regret decision
 
 No new public surface is justified by T801-T807. The hardening machinery is valuable precisely because it strengthens the existing contract without making synchronization primitives, failure-injection infrastructure, or implementation scheduling permanent consumer obligations.
+
+The pre-RC hardening implementation head `015b028167337cfacdd39f9a38550548644f6059` passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation. The final baseline becomes stable only after the exact `0.8.0-rc.1` and later stable `0.8.0` heads pass the same gate.
