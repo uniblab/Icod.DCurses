@@ -2,9 +2,8 @@
 
 **Project:** `Icod.DCurses`  
 **Repository:** `https://github.com/uniblab/Icod.DCurses`  
-**Merged stable-source baseline:** `1.0.0`  
+**Published stable baseline:** `1.0.0`  
 **Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
-**Latest published release at 1.1 start:** `0.9.0`  
 **Current development package:** `1.1.0-alpha.3`  
 **Assembly version:** `1.0.0.0`  
 **Current runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
@@ -31,7 +30,7 @@ Current development is organized by stable 1.x release documents rather than by 
 
 | Release | Theme | Status |
 |---|---|---|
-| `1.0.0` | Stable core contract | Merged; publication remains separate |
+| `1.0.0` | Stable core contract | Published stable baseline |
 | `1.1.0` | Semantic cell metadata and hyperlinks | Active — `1.1.0-alpha.3`; T1103 |
 | `1.2.0` | Panels, layers, visibility, and z-order composition | Approved future release |
 | `1.3.0` | Layout and resize primitives | Approved future release |
@@ -104,7 +103,7 @@ Terminal 1.6.0 strengthens the CSI/parser/query foundation and internal pixel-ge
 
 ## Compatibility and version policy
 
-The stable 1.0 public contract remains the compatibility floor:
+The published stable 1.0 public contract remains the compatibility floor:
 
 ```text
 sha256:            274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
@@ -215,7 +214,7 @@ Current authorities:
 - `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`;
 - `docs/Public-API-Fingerprint-1.1.json` — provisional 1.1 development fingerprint.
 
-Stable 1.0 closure authority:
+Published stable 1.0 closure authority:
 
 - `Icod.DCurses-1.0.0-Development-Roadmap.md`;
 - `docs/Public-API-Fingerprint-1.0.json`;
