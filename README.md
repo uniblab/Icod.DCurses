@@ -1,6 +1,6 @@
 # Icod.DCurses
 
-![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.7.0/icod_tui_toolchain.jpg)
+![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.8.0/icod_tui_toolchain.jpg)
 
 [![PR Staging build](https://github.com/uniblab/Icod.DCurses/actions/workflows/pull-request.yaml/badge.svg)](https://github.com/uniblab/Icod.DCurses/actions/workflows/pull-request.yaml)
 [![Main Release validation](https://github.com/uniblab/Icod.DCurses/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/uniblab/Icod.DCurses/actions/workflows/main.yaml)
@@ -18,17 +18,32 @@ synchronization.
 
 ## Status
 
-`Icod.DCurses 0.7.0` is the current published stable release.
+`Icod.DCurses 0.8.0` is the current published stable release.
 
-The `0.8.0` production-hardening line has completed T801 through T808 and has
-been promoted unchanged from the green `0.8.0-rc.1` candidate to stable source,
-retaining assembly version `0.8.0.0`. The T809 stable-source merge gate is
-active; merge, post-merge Release validation, tagging, and publication remain
-later explicit steps.
+The `0.9.0` development line is the contract-freeze and release-candidate pass
+for the managed API intended to become `1.0.0`. It begins from the published
+0.8 production-hardening baseline with package checkpoint `0.9.0-alpha.1` and
+assembly version `0.9.0.0`.
 
-The stable 0.8 source deliberately adds no public API; it strengthens lifetime,
-concurrency, cancellation, lifecycle, failure-recovery, repeated ownership, and
-large-surface/high-frequency behavior around the existing 0.7 contract.
+The initial 0.9 public-surface inventory contains **43 exported types** and
+**309 canonical declared contract lines**. CI regenerates a deterministic
+public API fingerprint from each compiled target framework; the initial accepted
+SHA-256 is:
+
+```text
+274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
+```
+
+The fingerprint freezes type/member signatures, enum values, parameter/ref/default
+metadata, generic constraints, accessor visibility, and compiled nullability.
+Separate compatibility tests pin geometry, Unicode/cell, lifetime, cancellation,
+ownership, and failure semantics which reflection cannot express by itself.
+No major feature family is planned for 0.9, and no breaking cleanup is intended
+to be deferred to `1.0.0`.
+
+The published 0.8 release deliberately added no public API; it strengthened
+lifetime, concurrency, cancellation, lifecycle, failure-recovery, repeated
+ownership, and large-surface/high-frequency behavior around the 0.7 contract.
 
 The accepted 0.8 hardening contract includes:
 
@@ -46,7 +61,7 @@ The accepted 0.8 hardening contract includes:
 - repeated resize/suspend/resume and rich-input/full-screen ownership cycles;
 - bounded large-pad, large-screen, sparse-refresh, high-frequency, and no-op
   refresh stress;
-- six-architecture PR validation across Windows, Linux, and macOS x64/ARM64.
+- six-architecture validation across Windows, Linux, and macOS x64/ARM64.
 
 The published 0.7 release added or improved:
 
@@ -91,14 +106,20 @@ The first release line was driven by the requirements of `top`, `slabtop`, and
 managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
-train through `1.0.0`, and `Icod.DCurses-0.8.0-Development-Roadmap.md` for the
-production-hardening tranche. The 0.8 implementation and release decisions are
-recorded in:
+train through `1.0.0`, and `Icod.DCurses-0.9.0-Development-Roadmap.md` for the
+contract-freeze tranche. The 0.9 inventory, compatibility, and migration decisions
+are recorded in:
 
-- `docs/T801-T807-Production-Hardening-Implementation.md`
-- `docs/T808-Hardening-Regret-and-Release-Candidate-Gate.md`
-- `docs/T809-0.8.0-Stable-Release-Closure.md`
-- `docs/Public-API-Baseline-0.8.md`.
+- `docs/Public-API-Fingerprint-0.9.json`
+- `docs/T901-Public-Surface-Inventory-and-Regret-Review.md`
+- `docs/T904-Lifetime-Ownership-Exception-and-Cancellation-Freeze.md`
+- `docs/T905-Nullable-Documentation-and-Dependency-Regret-Review.md`
+- `docs/0.9-Contract-Freeze-and-1.0-Migration-Guide.md`
+- `docs/T907-Representative-Application-Acceptance-Gate.md`.
+
+The completed 0.8 production-hardening release is recorded in
+`Icod.DCurses-0.8.0-Development-Roadmap.md`, its T801-T809 documents, and
+`docs/Public-API-Baseline-0.8.md`.
 
 The completed 0.7 refresh/output release is recorded in
 `Icod.DCurses-0.7.0-Development-Roadmap.md`, its T701-T709 documents, and
@@ -169,12 +190,12 @@ The implementation targets:
 The current published stable package is:
 
 ```text
-dotnet add package Icod.DCurses --version 0.7.0
+dotnet add package Icod.DCurses --version 0.8.0
 ```
 
-`0.8.0` is the validated stable source on PR #21; it is not presented here as a
-published package until the later merge, Release-matrix, tag, and publication
-gates complete.
+The `0.9.0` line is under development on PR #22 and is not presented as a stable
+published package until its release-candidate, stable-source, merge, Release,
+tag, and publication gates complete.
 
 ## Quick start
 
@@ -205,6 +226,33 @@ CursesEvent terminalEvent = await session.ReadEventAsync();
 The session owns the presentation state it enters and restores that state when
 disposed. Applications should consume terminal input and lifecycle activity
 through `CursesSession` rather than adding a parallel terminal reader.
+
+## Contract freeze and compatibility (`0.9`)
+
+The 0.9 line turns the pre-1.0 contract into a machine-guarded compatibility
+baseline. Existing 0.8 consumers have no planned source migration at the initial
+freeze. Any public cleanup identified before 1.0 must occur during 0.9 together
+with a fingerprint update and migration note; it will not be deferred to the
+`1.0.0` closure.
+
+The accepted compatibility rules include:
+
+- zero-based row/column coordinates and parent-local subwindow origins;
+- half-open column intervals which never split a two-column text element;
+- Unicode 17.0.0 width data with narrow East Asian Ambiguous characters by
+  default and an explicit wide-Ambiguous provider;
+- semantic line cells remaining distinct from ordinary Unicode box-drawing text;
+- single-writer logical surfaces with one supported event wait concurrent with
+  refresh/output work;
+- caller cancellation remaining cancellation while disposal-unblocked waits
+  surface `ObjectDisposedException`;
+- conservative retained-state invalidation after uncertain output and safe retry;
+- exactly five intentionally exposed lower-layer public type definitions:
+  `TerminalSession`, `TerminalEndpoint`, `TerminalControlResult<T>`,
+  `TerminalDescription`, and `TerminalSize`.
+
+See `docs/0.9-Contract-Freeze-and-1.0-Migration-Guide.md` for the compatibility
+and migration details.
 
 ## Production hardening and concurrency (`0.8`)
 
@@ -530,7 +578,7 @@ Pull-request validation promotes the build to `Staging`. Pushes to `main` and
 release tags use `Release`. Both the library and test projects use warning level
 4 with warnings-as-errors under Staging, so ordinary PR validation exercises the
 same compiler/analyzer severity policy that matters to Release without compiling
-the solution twice. For 0.8, PR runtime validation covers Windows x64/ARM64,
+the solution twice. The 0.9 contract-freeze PR validates Windows x64/ARM64,
 Linux x64/ARM64, and macOS x64/ARM64. Package validation exercises the packed
 artifact and a fresh package-only consumer rather than relying only on repository
 project references.
