@@ -56,13 +56,13 @@
 
 	<PropertyGroup Condition=" '$(Configuration)' == 'Staging' ">
 		<ErrorReport>prompt</ErrorReport>
-		<WarningLevel>3</WarningLevel>
+		<WarningLevel>4</WarningLevel>
 		<DebugSymbols>true</DebugSymbols>
 		<DebugType>portable</DebugType>
 		<Optimize>false</Optimize>
 		<DefineConstants>TRACE</DefineConstants>
 		<SignAssembly>false</SignAssembly>
-		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	</PropertyGroup>
 
 	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
