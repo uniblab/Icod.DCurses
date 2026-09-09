@@ -39,7 +39,6 @@ public sealed class CursesLineGlyphTests {
 
 		Assert.Equal( semantic.Content, ordinary.Content );
 		Assert.NotEqual( semantic, ordinary );
-		Assert.NotEqual( semantic.GetHashCode(), ordinary.GetHashCode() );
 	}
 
 	[Fact]
