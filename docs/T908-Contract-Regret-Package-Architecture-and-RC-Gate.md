@@ -4,7 +4,7 @@
 **Candidate version:** `0.9.0-rc.1`  
 **Assembly version:** `0.9.0.0`  
 **Dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
-**Status:** release-candidate promotion active
+**Status:** complete; exact RC head accepted
 
 ## Objective
 
@@ -88,10 +88,26 @@ Exact pre-RC head `1011c7db06632137c4ca268d496e2f561040addb` passed:
 - macOS ARM64;
 - package/fresh-consumer validation.
 
-This establishes that T901–T907 are complete before candidate version promotion.
+This establishes that T901–T907 were complete before candidate version promotion.
 
-## RC gate
+## Accepted RC result
 
-The exact `0.9.0-rc.1` source containing candidate package metadata and this T908 record must pass the same seven-job Staging matrix.
+Exact `0.9.0-rc.1` head:
 
-If that exact candidate is green and no documentation/contract inconsistency is found, T909 may promote the unchanged API and behavior contract to stable `0.9.0`.
+```text
+67269d0346e31c356414007dc807c82eeebe97aa
+```
+
+passed the complete seven-job Staging matrix:
+
+- Windows x64;
+- Windows ARM64;
+- Linux x64;
+- Linux ARM64;
+- macOS x64;
+- macOS ARM64;
+- package/fresh-consumer validation.
+
+The API fingerprint and dependency boundary remained unchanged.
+
+T908 is therefore complete and T909 may promote the unchanged API/behavior contract to stable `0.9.0` while performing release/documentation closure only.
