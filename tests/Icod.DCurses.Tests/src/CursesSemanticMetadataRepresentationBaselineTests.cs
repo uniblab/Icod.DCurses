@@ -18,17 +18,14 @@ public sealed class CursesSemanticMetadataRepresentationBaselineTests {
 		int referenceCandidateSize = Unsafe.SizeOf<CellWithMetadataReference>();
 		int tokenCandidateSize = Unsafe.SizeOf<CellWithMetadataToken>();
 
+		Assert.True( 0 < baselineSize );
 		Assert.Equal(
-			72,
-			baselineSize
+			IntPtr.Size,
+			referenceCandidateSize - baselineSize
 		);
 		Assert.Equal(
-			80,
-			referenceCandidateSize
-		);
-		Assert.Equal(
-			80,
-			tokenCandidateSize
+			IntPtr.Size,
+			tokenCandidateSize - baselineSize
 		);
 
 		const long LargePadCellCount = 2_048L * 256L;
