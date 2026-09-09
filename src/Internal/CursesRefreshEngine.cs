@@ -18,7 +18,6 @@ internal sealed class CursesRefreshEngine {
 
 	private CursesPhysicalScreenState? physicalScreen;
 	private CursesStyle? currentStyle;
-	private bool? alternateCharacterSetActive;
 	private int? cursorRow;
 	private int? cursorColumn;
 	private int invalidationRequested = 1;
@@ -122,10 +121,6 @@ internal sealed class CursesRefreshEngine {
 		cancellationToken.ThrowIfCancellationRequested();
 		await refreshGate.WaitAsync( cancellationToken ).ConfigureAwait( false );
 		try {
-			await SetAlternateCharacterSetAsync(
-				enabled: false,
-				cancellationToken
-			).ConfigureAwait( false );
 			if ( currentStyle.HasValue ) {
 				await ResetAttributesAsync(
 					currentStyle.Value.Attributes,
@@ -199,13 +194,8 @@ internal sealed class CursesRefreshEngine {
 		if ( 0 != Interlocked.Exchange( ref invalidationRequested, 0 ) ) {
 			physicalScreen!.Invalidate();
 			currentStyle = null;
-			alternateCharacterSetActive = null;
 			cursorRow = null;
 			cursorColumn = null;
-			await SetAlternateCharacterSetAsync(
-				enabled: false,
-				cancellationToken
-			).ConfigureAwait( false );
 		}
 
 		for ( int row = 0; row < desired.Rows; row++ ) {
@@ -481,6 +471,7 @@ internal sealed class CursesRefreshEngine {
 		ArgumentNullException.ThrowIfNull( textWidthProvider );
 
 		StringBuilder payload = new();
+		bool alternateCharacterSetActive = false;
 		for ( int column = start; column <= end; column++ ) {
 			CursesCell cell = desired[ row, column ];
 			if ( cell.IsContinuation ) {
@@ -502,16 +493,18 @@ internal sealed class CursesRefreshEngine {
 				content = cell.Content;
 			}
 
-			if ( !alternateCharacterSetActive.HasValue
-				|| alternateCharacterSetActive.Value != useAlternateCharacterSet ) {
+			if ( useAlternateCharacterSet != alternateCharacterSetActive ) {
 				await FlushTextPayloadAsync(
 					payload,
 					cancellationToken
 				).ConfigureAwait( false );
-				await SetAlternateCharacterSetAsync(
-					useAlternateCharacterSet,
+				await WriteCapabilityIfPresentAsync(
+					useAlternateCharacterSet
+						? StringCapability.EnterAlternateCharacterSetMode
+						: StringCapability.ExitAlternateCharacterSetMode,
 					cancellationToken
 				).ConfigureAwait( false );
+				alternateCharacterSetActive = useAlternateCharacterSet;
 			}
 
 			payload.Append( content );
@@ -521,10 +514,12 @@ internal sealed class CursesRefreshEngine {
 			payload,
 			cancellationToken
 		).ConfigureAwait( false );
-		await SetAlternateCharacterSetAsync(
-			enabled: false,
-			cancellationToken
-		).ConfigureAwait( false );
+		if ( alternateCharacterSetActive ) {
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.ExitAlternateCharacterSetMode,
+				cancellationToken
+			).ConfigureAwait( false );
+		}
 	}
 
 	private async ValueTask FlushTextPayloadAsync(
@@ -541,39 +536,6 @@ internal sealed class CursesRefreshEngine {
 			cancellationToken
 		).ConfigureAwait( false );
 		payload.Clear();
-	}
-
-	private async ValueTask SetAlternateCharacterSetAsync(
-		bool enabled,
-		CancellationToken cancellationToken
-	) {
-		cancellationToken.ThrowIfCancellationRequested();
-		if ( alternateCharacterSetActive.HasValue
-			&& alternateCharacterSetActive.Value == enabled ) {
-			return;
-		}
-
-		StringCapability capability = enabled
-			? StringCapability.EnterAlternateCharacterSetMode
-			: StringCapability.ExitAlternateCharacterSetMode;
-		string? value = terminal.GetString( capability );
-		if ( null == value ) {
-			if ( enabled ) {
-				throw new InvalidOperationException(
-					$"Terminal '{terminal.Name}' cannot enter alternate-character-set mode."
-				);
-			}
-
-			alternateCharacterSetActive = false;
-			return;
-		}
-
-		await TerminalCapabilityWriter.WriteAsync(
-			output,
-			value,
-			cancellationToken
-		).ConfigureAwait( false );
-		alternateCharacterSetActive = enabled;
 	}
 
 	private async ValueTask MoveCursorAsync(
@@ -844,7 +806,6 @@ internal sealed class CursesRefreshEngine {
 	private void InvalidateKnownState() {
 		physicalScreen?.Invalidate();
 		currentStyle = null;
-		alternateCharacterSetActive = null;
 		cursorRow = null;
 		cursorColumn = null;
 		Interlocked.Exchange( ref invalidationRequested, 1 );
