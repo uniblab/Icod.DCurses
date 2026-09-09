@@ -13,6 +13,7 @@ public readonly struct CursesCell
 	: IEquatable<CursesCell> {
 	private readonly string? content;
 	private readonly byte displayWidth;
+	private readonly CursesLineGlyph? lineGlyph;
 
 	/// <summary>Initializes a one-column visible or blank logical cell.</summary>
 	/// <remarks>
@@ -30,6 +31,7 @@ public readonly struct CursesCell
 
 		this.content = content;
 		this.displayWidth = 1;
+		this.lineGlyph = null;
 		this.Style = style;
 		this.IsContinuation = false;
 	}
@@ -50,6 +52,21 @@ public readonly struct CursesCell
 
 		this.content = content;
 		this.displayWidth = (byte)displayWidth;
+		this.lineGlyph = null;
+		Style = style;
+		IsContinuation = false;
+	}
+
+	private CursesCell(
+		string content,
+		CursesStyle style,
+		CursesLineGlyph lineGlyph ) {
+		ArgumentNullException.ThrowIfNull( content );
+		ValidateVisibleContent( content );
+
+		this.content = content;
+		this.displayWidth = 1;
+		this.lineGlyph = lineGlyph;
 		Style = style;
 		IsContinuation = false;
 	}
@@ -59,6 +76,7 @@ public readonly struct CursesCell
 		bool isContinuation ) {
 		content = string.Empty;
 		displayWidth = 1;
+		lineGlyph = null;
 		Style = style;
 		IsContinuation = isContinuation;
 	}
@@ -78,6 +96,12 @@ public readonly struct CursesCell
 	public CursesStyle Style {
 		get;
 	}
+
+	/// <summary>Gets the semantic line glyph represented by this cell, when applicable.</summary>
+	public CursesLineGlyph? LineGlyph => lineGlyph;
+
+	/// <summary>Gets whether this cell represents semantic line-drawing content.</summary>
+	public bool IsLineGlyph => lineGlyph.HasValue;
 
 	/// <summary>Gets whether this cell is a continuation column of preceding multi-column content.</summary>
 	public bool IsContinuation {
@@ -107,11 +131,31 @@ public readonly struct CursesCell
 		);
 	}
 
+	/// <summary>Creates a one-column cell carrying semantic line-drawing identity.</summary>
+	/// <param name="glyph">The semantic line glyph.</param>
+	/// <param name="style">The semantic style assigned to the line cell.</param>
+	/// <returns>A semantic line-drawing cell with canonical Unicode content.</returns>
+	public static CursesCell Line(
+		CursesLineGlyph glyph,
+		CursesStyle style = default
+	) {
+		if ( !Enum.IsDefined( glyph ) ) {
+			throw new ArgumentOutOfRangeException( nameof( glyph ) );
+		}
+
+		return new CursesCell(
+			CursesLineGlyphInfo.GetCanonicalContent( glyph ),
+			style,
+			glyph
+		);
+	}
+
 	/// <inheritdoc />
 	public bool Equals( CursesCell other ) {
 		return IsContinuation == other.IsContinuation
 			&& DisplayWidth == other.DisplayWidth
 			&& Style == other.Style
+			&& LineGlyph == other.LineGlyph
 			&& string.Equals(
 				Content,
 				other.Content,
@@ -132,7 +176,8 @@ public readonly struct CursesCell
 			Content,
 			DisplayWidth,
 			Style,
-			IsContinuation
+			IsContinuation,
+			LineGlyph
 		);
 	}
 
