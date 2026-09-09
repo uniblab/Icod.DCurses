@@ -7,7 +7,7 @@
 **Runtime dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** Approved development plan; `0.8.0` stable-source merge gate active; `0.9.0` next
+**Status:** Approved development plan; `0.8.0` stable source validated and awaiting explicit merge; `0.9.0` next
 
 ---
 
@@ -124,7 +124,7 @@ The managed API uses descriptive managed names rather than reproducing native `w
 
 `0.5.0` is complete and published. Its detailed tranche plan is maintained in `Icod.DCurses-0.5.0-Development-Roadmap.md`.
 
-The release introduced large in-memory off-screen cell surfaces which reuse the 0.3/0.4 contracts rather than duplicating them. The accepted design includes:
+The release introduced large in-memory off-screen logical surfaces which reuse the 0.3/0.4 contracts rather than duplicating them. The accepted design includes:
 
 - `CursesPad` as an off-screen logical surface;
 - ordinary `CursesWindow` editing through `ContentWindow`;
@@ -199,7 +199,7 @@ Correctness remains more important than finding a globally minimal escape sequen
 
 # 10. Version 0.8.0 — Production Hardening
 
-`0.8.0` has completed T801 through T808 and has been promoted from the green `0.8.0-rc.1` candidate to stable source. The final stable-source merge gate is active.
+`0.8.0` has completed T801 through T809. The stable source is validated and awaiting explicit merge.
 
 The accepted hardening contract freezes these rules:
 
@@ -217,6 +217,8 @@ The accepted hardening contract freezes these rules:
 The PR runtime gate covers Windows x64/ARM64, Linux x64/ARM64, and macOS x64/ARM64, with `net8.0`, `net9.0`, and `net10.0` under Staging warnings-as-errors plus package/fresh-consumer validation.
 
 The exact `0.8.0-rc.1` head `6247b9dc290089e5db82f83929d07b4b674b8d8b` passed that complete gate.
+
+Stable `0.8.0` source head `533f2cd78b1eecdaad936678f09790955da6308b` passed the same seven-job gate. The final roadmap-record head `9cdcab96d57f2d887d08709693b52de186bfe4fb`, which changes only release documentation, also passed the complete seven-job gate and is the definitive merge candidate.
 
 The detailed plan is maintained in `Icod.DCurses-0.8.0-Development-Roadmap.md`. Implementation and release records are maintained in `docs/T801-T807-Production-Hardening-Implementation.md`, `docs/T808-Hardening-Regret-and-Release-Candidate-Gate.md`, `docs/T809-0.8.0-Stable-Release-Closure.md`, and `docs/Public-API-Baseline-0.8.md`.
 
@@ -320,7 +322,7 @@ Throughout the 1.0 train:
   -> 0.5.0 pads and large surfaces              complete
   -> 0.6.0 rendition / drawing / presentation   complete and published
   -> 0.7.0 refresh and output optimization      complete and published
-  -> 0.8.0 production hardening                 stable source; merge gate active
+  -> 0.8.0 production hardening                 stable source validated; merge pending
   -> 0.9.0 contract freeze / RC                 next
   -> 1.0.0 stable closure
 ```
