@@ -57,6 +57,93 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 	}
 
 	[Fact]
+	public async Task EditorLikeStyleBeforeEditAndRepeatedRetargetingRemainIndependent() {
+		SemanticRecordingOutput output = new();
+		CursesRefreshEngine engine = new(
+			CreateTerminal(),
+			output
+		);
+		CursesScreen screen = new( 24, 3 );
+		CursesWindow window = screen.StandardWindow;
+		CursesCellMetadata stableLink = LinkMetadata( "stable" );
+		CursesStyle bold = new(
+			CursesColor.Default,
+			CursesColor.Default,
+			CursesTextAttributes.Bold
+		);
+		window.Move( 1, 4 );
+		window.Write(
+			"linked",
+			stableLink
+		);
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+		output.Clear();
+
+		window.Move( 1, 4 );
+		window.Write(
+			"linked",
+			bold,
+			stableLink
+		);
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+
+		Assert.Single( output.HyperlinkWrites );
+		Assert.Equal( "stable", output.HyperlinkWrites[ 0 ].Hyperlink.Identifier );
+		Assert.Contains( "<b>", output.Text );
+		Assert.Equal( bold, window.GetCell( 1, 4 ).Style );
+		Assert.Equal( stableLink, window.GetMetadata( 1, 4 ) );
+		output.Clear();
+
+		window.Move( 1, 2 );
+		window.InsertCells( 2 );
+		window.Write( ">>" );
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+
+		Assert.Null( window.GetMetadata( 1, 2 ) );
+		Assert.Null( window.GetMetadata( 1, 3 ) );
+		Assert.Equal( stableLink, window.GetMetadata( 1, 6 ) );
+		Assert.Equal( bold, window.GetCell( 1, 6 ).Style );
+		output.Clear();
+
+		for ( int iteration = 0; iteration < 4; iteration++ ) {
+			CursesCellMetadata replacement = LinkMetadata( $"retarget-{iteration}" );
+			for ( int column = 6; column < 12; column++ ) {
+				window.SetMetadata(
+					1,
+					column,
+					replacement
+				);
+			}
+
+			await engine.RefreshAsync(
+				screen,
+				0,
+				0
+			);
+
+			Assert.Single( output.HyperlinkWrites );
+			Assert.Equal(
+				$"retarget-{iteration}",
+				output.HyperlinkWrites[ 0 ].Hyperlink.Identifier
+			);
+			Assert.Equal( "linked", output.HyperlinkWrites[ 0 ].Text );
+			output.Clear();
+		}
+	}
+
+	[Fact]
 	public async Task PagerLikeManyLinksSettlesToNoOpRefresh() {
 		SemanticRecordingOutput output = new();
 		CursesRefreshEngine engine = new(
@@ -227,6 +314,7 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
 			.SetString( StringCapability.ClearToEndOfLine, "<el>" )
 			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
+			.SetString( StringCapability.EnterBoldMode, "<b>" )
 			.SetString( StringCapability.OriginalColorPair, "<op>" )
 			.Build();
 	}
