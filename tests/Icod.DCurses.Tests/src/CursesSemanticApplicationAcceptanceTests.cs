@@ -1,4 +1,5 @@
 using System.Text;
+using Icod.DCurses.Internal;
 using Icod.DCurses.Terminal;
 using Icod.TermInfo;
 using Xunit;
