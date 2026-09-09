@@ -200,6 +200,7 @@ public sealed class CursesOutputFailureHardeningTests {
 					return Encoding.Latin1.GetString( this.bytes.ToArray() );
 				}
 			}
+		}
 
 		internal void Clear() {
 			lock ( this.sync ) {
