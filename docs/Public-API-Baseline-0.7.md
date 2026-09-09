@@ -1,10 +1,10 @@
 # Icod.DCurses 0.7 Public API Baseline
 
 **Release line:** `0.7.0`  
-**Baseline checkpoint:** release-candidate review  
+**Baseline checkpoint:** stable `0.7.0` source  
 **Stable predecessor:** `0.6.0`  
 **Dependencies:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
-**Status:** T708 regret-review baseline
+**Status:** Frozen stable-source contract; T708 complete; T709 merge gate active
 
 ## Purpose
 
@@ -86,8 +86,8 @@ The package-only fresh consumer also constructs both default and enabled `Curses
 
 ## Regret decision
 
-No 0.7 selector, cost model, operation-plan type, or diagnostics surface should become public before stable release.
+No 0.7 selector, cost model, operation-plan type, or diagnostics surface becomes public in stable `0.7.0`.
 
-The one accepted public option is small, orthogonal, default-safe, already integration-tested for framing order and nested Terminal lease composition, and does not expand the Terminal/TermInfo signature boundary.
+The one accepted public option is small, orthogonal, default-safe, integration-tested for framing order and nested Terminal lease composition, and does not expand the Terminal/TermInfo signature boundary.
 
-T708 may promote this contract to `0.7.0-rc.1` once benchmark/workload, package, documentation, analyzer, and failure-recovery gates are green.
+The exact `0.7.0-rc.1` head passed the Windows/Linux/macOS Staging matrix and canonical package/fresh-consumer gate. The contract has therefore been promoted unchanged to stable `0.7.0` source. No feature/API change may enter during the remaining T709 merge/publication gates.
