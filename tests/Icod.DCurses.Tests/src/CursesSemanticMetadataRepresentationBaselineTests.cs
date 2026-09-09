@@ -9,19 +9,65 @@ namespace Icod.DCurses.Tests;
 public sealed class CursesSemanticMetadataRepresentationBaselineTests {
 	[Fact]
 	public void CandidateCellRepresentationsExposePermanentPerCellCost() {
+		Assert.Equal(
+			8,
+			IntPtr.Size
+		);
+
 		int baselineSize = Unsafe.SizeOf<CursesCell>();
 		int referenceCandidateSize = Unsafe.SizeOf<CellWithMetadataReference>();
 		int tokenCandidateSize = Unsafe.SizeOf<CellWithMetadataToken>();
 
-		Assert.True( 0 < baselineSize );
-		Assert.True( baselineSize < referenceCandidateSize );
-		Assert.True( baselineSize <= tokenCandidateSize );
+		Assert.Equal(
+			72,
+			baselineSize
+		);
+		Assert.Equal(
+			80,
+			referenceCandidateSize
+		);
+		Assert.Equal(
+			80,
+			tokenCandidateSize
+		);
 
-		long largePadCellCount = 2_048L * 256L;
+		const long LargePadCellCount = 2_048L * 256L;
 		long referenceCandidateOverhead =
-			( referenceCandidateSize - baselineSize ) * largePadCellCount;
+			( referenceCandidateSize - baselineSize ) * LargePadCellCount;
 
-		Assert.True( 0 < referenceCandidateOverhead );
+		Assert.Equal(
+			4L * 1024L * 1024L,
+			referenceCandidateOverhead
+		);
+	}
+
+	[Fact]
+	public void RowSparseReferencePlaneScalesWithSemanticRows() {
+		const int Rows = 2_048;
+		const int Columns = 256;
+		const int LinkedRows = 10;
+
+		long topLevelRowReferences = (long)Rows * IntPtr.Size;
+		long linkedRowReferences = (long)LinkedRows * Columns * IntPtr.Size;
+		long sparseReferencePayload = topLevelRowReferences + linkedRowReferences;
+		long denseReferencePayload = (long)Rows * Columns * IntPtr.Size;
+
+		Assert.Equal(
+			16L * 1024L,
+			topLevelRowReferences
+		);
+		Assert.Equal(
+			20L * 1024L,
+			linkedRowReferences
+		);
+		Assert.Equal(
+			36L * 1024L,
+			sparseReferencePayload
+		);
+		Assert.Equal(
+			4L * 1024L * 1024L,
+			denseReferencePayload
+		);
 	}
 
 	[Fact]
