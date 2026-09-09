@@ -22,10 +22,23 @@ public sealed partial class CursesSession {
 	public async ValueTask<CursesLifecycleEvent> ReadLifecycleEventAsync(
 		CancellationToken cancellationToken = default
 	) {
-		TerminalLifecycleEvent terminalEvent = await this.terminalSession.ReadLifecycleEventAsync(
-			cancellationToken
-		).ConfigureAwait( false );
-		return this.ConvertLifecycleEvent( terminalEvent );
+		using SessionWaitCancellationScope wait =
+			this.CreateSessionWaitCancellationScope( cancellationToken );
+		try {
+			TerminalLifecycleEvent terminalEvent =
+				await this.terminalSession.ReadLifecycleEventAsync(
+					wait.Token
+				).ConfigureAwait( false );
+			return this.ConvertLifecycleEvent( terminalEvent );
+		} catch ( OperationCanceledException ) when (
+			this.IsDisposalCancellation( cancellationToken )
+		) {
+			throw new ObjectDisposedException( nameof( CursesSession ) );
+		} catch ( OperationCanceledException ) when (
+			cancellationToken.IsCancellationRequested
+		) {
+			throw new OperationCanceledException( cancellationToken );
+		}
 	}
 
 	private CursesLifecycleEvent ConvertLifecycleEvent(

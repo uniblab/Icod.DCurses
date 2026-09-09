@@ -9,38 +9,59 @@ public sealed partial class CursesSession {
 		TerminalSession.DefaultEscapeSequenceTimeout;
 
 	/// <summary>Waits indefinitely for decoded input or lifecycle activity.</summary>
-	public ValueTask<CursesEvent> ReadEventAsync(
+	public async ValueTask<CursesEvent> ReadEventAsync(
 		CancellationToken cancellationToken = default
 	) {
-		cancellationToken.ThrowIfCancellationRequested();
-		return this.ConvertTerminalEventAsync(
-			this.terminalSession.ReadEventAsync( cancellationToken ),
-			cancellationToken
-		);
+		using SessionWaitCancellationScope wait =
+			this.CreateSessionWaitCancellationScope( cancellationToken );
+		try {
+			return await this.ConvertTerminalEventAsync(
+				this.terminalSession.ReadEventAsync( wait.Token ),
+				cancellationToken
+			).ConfigureAwait( false );
+		} catch ( OperationCanceledException ) when (
+			this.IsDisposalCancellation( cancellationToken )
+		) {
+			throw new ObjectDisposedException( nameof( CursesSession ) );
+		}
 	}
 
 	/// <summary>Waits for decoded input or lifecycle activity for at most the supplied interval.</summary>
-	public ValueTask<CursesEvent> ReadEventAsync(
+	public async ValueTask<CursesEvent> ReadEventAsync(
 		TimeSpan timeout,
 		CancellationToken cancellationToken = default
 	) {
-		cancellationToken.ThrowIfCancellationRequested();
-		return this.ConvertTerminalEventAsync(
-			this.terminalSession.ReadEventAsync( timeout, cancellationToken ),
-			cancellationToken
-		);
+		using SessionWaitCancellationScope wait =
+			this.CreateSessionWaitCancellationScope( cancellationToken );
+		try {
+			return await this.ConvertTerminalEventAsync(
+				this.terminalSession.ReadEventAsync( timeout, wait.Token ),
+				cancellationToken
+			).ConfigureAwait( false );
+		} catch ( OperationCanceledException ) when (
+			this.IsDisposalCancellation( cancellationToken )
+		) {
+			throw new ObjectDisposedException( nameof( CursesSession ) );
+		}
 	}
 
 	/// <summary>Waits for decoded input or lifecycle activity until the supplied deadline.</summary>
-	public ValueTask<CursesEvent> ReadEventAsync(
+	public async ValueTask<CursesEvent> ReadEventAsync(
 		DateTimeOffset deadline,
 		CancellationToken cancellationToken = default
 	) {
-		cancellationToken.ThrowIfCancellationRequested();
-		return this.ConvertTerminalEventAsync(
-			this.terminalSession.ReadEventAsync( deadline, cancellationToken ),
-			cancellationToken
-		);
+		using SessionWaitCancellationScope wait =
+			this.CreateSessionWaitCancellationScope( cancellationToken );
+		try {
+			return await this.ConvertTerminalEventAsync(
+				this.terminalSession.ReadEventAsync( deadline, wait.Token ),
+				cancellationToken
+			).ConfigureAwait( false );
+		} catch ( OperationCanceledException ) when (
+			this.IsDisposalCancellation( cancellationToken )
+		) {
+			throw new ObjectDisposedException( nameof( CursesSession ) );
+		}
 	}
 
 	private async ValueTask<CursesEvent> ConvertTerminalEventAsync(
