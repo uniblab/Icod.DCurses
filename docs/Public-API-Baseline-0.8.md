@@ -4,7 +4,7 @@
 **Stable predecessor:** `0.7.0`  
 **Dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
 **Public API delta:** none  
-**Status:** `0.8.0-rc.1` freeze candidate
+**Status:** stable 0.8 source baseline
 
 ## Purpose
 
@@ -63,4 +63,6 @@ Package-only validation remains required.
 
 No new public surface is justified by T801-T807. The hardening machinery is valuable precisely because it strengthens the existing contract without making synchronization primitives, failure-injection infrastructure, or implementation scheduling permanent consumer obligations.
 
-The pre-RC hardening implementation head `015b028167337cfacdd39f9a38550548644f6059` passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation. The final baseline becomes stable only after the exact `0.8.0-rc.1` and later stable `0.8.0` heads pass the same gate.
+The pre-RC hardening implementation head `015b028167337cfacdd39f9a38550548644f6059` passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation. Exact release-candidate head `6247b9dc290089e5db82f83929d07b4b674b8d8b` passed the same gate.
+
+This baseline is frozen for stable `0.8.0`; only the final stable-source matrix remains before merge eligibility.
