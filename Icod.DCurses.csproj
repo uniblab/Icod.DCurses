@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.7.0-alpha.5</Version>
+		<Version>0.7.0-alpha.6</Version>
 		<AssemblyVersion>0.7.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.7.0-alpha.5</PackageVersion>
+		<PackageVersion>0.7.0-alpha.6</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.7.0-alpha.5 completes T705 physical insert/delete-character optimization. DCurses now recognizes exact row-local shifts that can be reproduced by advertised ich/ich1 or dch/dch1 capabilities, selects the cheapest safely expanded form, and requires a strict byte win over the nonblank payload that the fallback renderer would necessarily rewrite. Optimization requires a fully known physical row, default active rendition for inserted or vacated blanks, default-styled blank insertion/fill cells, and a shifted region free of wide-cell and semantic line-glyph ambiguity. Successful shifts update retained physical row knowledge exactly; output failure invalidates the retained image and retries through the ordinary renderer. The release retains T704 cost-aware erase selection, T703 cursor-motion selection, and T702 opt-in synchronized refresh framing. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.7.0-alpha.6 completes T706 physical line-shift and scroll-region optimization. DCurses now recognizes exact full-row vertical shifts from retained physical state and can select advertised il/il1, dl/dl1, forward/reverse scroll, or their parameterized forms when the resulting screen is provably equivalent and the complete operation is a strict encoded-byte win over direct repaint. Interior regions may use TermInfo change-scroll-region framing only when the final full-width screen diff proves that region exactly; the full scrolling region is restored before the refresh transaction completes, including best-effort restoration after output failure or cancellation, with simultaneous operation and restoration failures both preserved. Whole-row movement preserves complete wide-cell and semantic-line footprints, affected-line counts flow through TermInfo padding semantics, and partial-width window edits remain on the ordinary renderer. The release retains T705 character-shift, T704 erase, T703 cursor-motion, and T702 synchronized-output optimizations. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
