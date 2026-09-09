@@ -1,5 +1,7 @@
 namespace Icod.DCurses;
 
+using Icod.DCurses.Internal;
+
 /// <summary>Window-to-window rectangular composition operations.</summary>
 public sealed partial class CursesWindow {
 	/// <summary>Copies a source rectangle into a destination window, including blank cells.</summary>
@@ -11,8 +13,10 @@ public sealed partial class CursesWindow {
 	/// <param name="destinationRow">The zero-based destination row.</param>
 	/// <param name="destinationColumn">The zero-based destination column.</param>
 	/// <remarks>
-	/// Source cells are snapshotted before any destination mutation, so overlapping source/destination
-	/// rectangles are deterministic. Source and destination cursor positions are preserved.
+	/// Source cells and semantic metadata are snapshotted before any destination mutation, so overlapping
+	/// source/destination rectangles are deterministic. Source blanks are copied destructively, including
+	/// any semantic metadata associated with those coordinates. Source and destination cursor positions
+	/// are preserved.
 	/// </remarks>
 	public void CopyRectangleTo(
 		CursesWindow destination,
@@ -44,8 +48,10 @@ public sealed partial class CursesWindow {
 	/// <param name="destinationRow">The zero-based destination row.</param>
 	/// <param name="destinationColumn">The zero-based destination column.</param>
 	/// <remarks>
-	/// Ordinary source blank cells are transparent. Two-column continuation cells remain structural parts
-	/// of their leading cell. Source cells are snapshotted before destination mutation, and both cursors are preserved.
+	/// Ordinary source blank cells are transparent and therefore do not replace destination cells or
+	/// semantic metadata. Two-column continuation cells remain structural parts of their leading cell.
+	/// Source cells and semantic metadata are snapshotted before destination mutation, and both cursors
+	/// are preserved.
 	/// </remarks>
 	public void OverlayRectangleTo(
 		CursesWindow destination,
@@ -93,19 +99,23 @@ public sealed partial class CursesWindow {
 		);
 
 		CursesCell boundaryBlank = CursesCell.Blank( backgroundCell.Style );
-		CursesCell[][] snapshot = SnapshotCompositionRectangle(
+		CursesLogicalCellState[][] snapshot = SnapshotCompositionRectangle(
 			sourceRow,
 			sourceColumn,
 			rows,
 			columns,
 			boundaryBlank
 		);
-		CursesCell destinationRepairBlank = CursesCell.Blank( destination.backgroundCell.Style );
+		CursesLogicalCellState destinationRepairState = new(
+			CursesCell.Blank( destination.backgroundCell.Style ),
+			null
+		);
 
 		for ( int rowOffset = 0; rowOffset < rows; rowOffset++ ) {
-			CursesCell[] sourceCells = snapshot[ rowOffset ];
+			CursesLogicalCellState[] sourceStates = snapshot[ rowOffset ];
 			for ( int columnOffset = 0; columnOffset < columns; columnOffset++ ) {
-				CursesCell sourceCell = sourceCells[ columnOffset ];
+				CursesLogicalCellState sourceState = sourceStates[ columnOffset ];
+				CursesCell sourceCell = sourceState.Cell;
 				if ( sourceCell.IsContinuation ) {
 					continue;
 				}
@@ -116,60 +126,63 @@ public sealed partial class CursesWindow {
 				int targetRow = destinationRow + rowOffset;
 				int targetColumn = destinationColumn + columnOffset;
 				if ( 2 == sourceCell.DisplayWidth ) {
-					destination.SetCellIfVisible(
+					destination.SetLogicalCellStateIfVisible(
 						targetRow,
 						targetColumn,
-						destinationRepairBlank
+						destinationRepairState
 					);
-					destination.SetCellIfVisible(
+					destination.SetLogicalCellStateIfVisible(
 						targetRow,
 						targetColumn + 1,
-						destinationRepairBlank
+						destinationRepairState
 					);
-					destination.SetCellIfVisible(
+					destination.SetLogicalCellStateIfVisible(
 						targetRow,
 						targetColumn,
-						sourceCell
+						sourceState
 					);
-					destination.SetCellIfVisible(
+					destination.SetLogicalCellStateIfVisible(
 						targetRow,
 						targetColumn + 1,
-						CursesCell.Continuation( sourceCell.Style )
+						new CursesLogicalCellState(
+							CursesCell.Continuation( sourceCell.Style ),
+							sourceState.Metadata
+						)
 					);
 					columnOffset++;
 					continue;
 				}
 
-				destination.SetCellIfVisible(
+				destination.SetLogicalCellStateIfVisible(
 					targetRow,
 					targetColumn,
-					sourceCell
+					sourceState
 				);
 			}
 		}
 	}
 
-	private CursesCell[][] SnapshotCompositionRectangle(
+	private CursesLogicalCellState[][] SnapshotCompositionRectangle(
 		int row,
 		int column,
 		int rows,
 		int columns,
 		CursesCell boundaryBlank
 	) {
-		CursesCell[][] result = new CursesCell[ rows ][];
+		CursesLogicalCellState[][] result = new CursesLogicalCellState[ rows ][];
 		for ( int rowOffset = 0; rowOffset < rows; rowOffset++ ) {
-			CursesCell[] sourceCells = new CursesCell[ columns ];
+			CursesLogicalCellState[] sourceStates = new CursesLogicalCellState[ columns ];
 			for ( int columnOffset = 0; columnOffset < columns; columnOffset++ ) {
-				sourceCells[ columnOffset ] = GetCellOrBackground(
+				sourceStates[ columnOffset ] = SnapshotLogicalCell(
 					row + rowOffset,
 					column + columnOffset
 				);
 			}
 			NormalizeEditingRow(
-				sourceCells,
+				sourceStates,
 				boundaryBlank
 			);
-			result[ rowOffset ] = sourceCells;
+			result[ rowOffset ] = sourceStates;
 		}
 		return result;
 	}
