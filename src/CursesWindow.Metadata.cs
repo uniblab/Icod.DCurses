@@ -1,5 +1,7 @@
 namespace Icod.DCurses;
 
+using Icod.DCurses.Internal;
+
 /// <summary>Semantic-metadata operations for logical windows.</summary>
 public sealed partial class CursesWindow {
 	/// <summary>Gets semantic metadata associated with one window-local coordinate.</summary>
