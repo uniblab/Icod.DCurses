@@ -1,6 +1,6 @@
 # Icod.DCurses
 
-![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.4.0/icod_tui_toolchain.jpg)
+![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.5.0/icod_tui_toolchain.jpg)
 
 `Icod.DCurses` is a managed, cross-platform curses-like terminal UI library for
 .NET.
@@ -10,50 +10,39 @@ remains the immutable terminal-capability authority; `Icod.Terminal` owns the
 live terminal session, host mode, dimensions, lifecycle, input decoding, and
 reversible presentation and input-protocol leases. `Icod.DCurses` owns
 curses-shaped events, virtual screens and windows, pads and viewports, terminal
-cells and styles, rendition policy, and refresh/damage synchronization.
+cells and styles, rendition policy, semantic line drawing, and refresh/damage
+synchronization.
 
 ## Status
 
-`Icod.DCurses 0.4.0` is the current published stable release.
+`Icod.DCurses 0.5.0` is the current published stable release.
 
-Development toward `1.0.0` continues on the `0.5.0` pads and large-surfaces
-line. The source version and package version are now stable `0.5.0`; publication
-remains post-merge until the matching `main` commit passes the Release matrix and
-`v0.5.0` is created.
+Development toward `1.0.0` continues on the `0.6.0` rendition, drawing, and
+presentation line. The active development package is `0.6.0-alpha.2` with
+assembly version `0.6.0.0`.
 
-T501-T503 established the pad backing surface and direct rectangular
-presentation. A `CursesPad` owns a large off-screen logical surface and exposes a
-normal `CursesWindow` through `ContentWindow`, so the stable Unicode, editing,
-composition, drawing, and damage contracts are reused rather than reimplemented.
+The completed 0.6 foundation through T606 adds:
 
-T504 added independently pannable `CursesPadViewport` instances with `SetSource`,
-`PanBy`, and `Present`. One pad may be shown through multiple viewports without a
-global pad scroll position.
+- a complete semantic rendition vocabulary including italic, blink, conceal,
+  and strikeout;
+- a read-only curses-shaped presentation-capabilities view;
+- safe indexed and direct-RGB resolution through `Icod.TermInfo` semantic color
+  APIs;
+- deterministic degradation rather than refresh-time failure for unsupported
+  colors and optional attributes;
+- `ncv`-aware physical style degradation without mutating logical cell style;
+- semantic `CursesLineGlyph` cells;
+- semantic horizontal, vertical, and border drawing overloads;
+- capability-aware ACS, Unicode, and ASCII line presentation.
 
-T505 deliberately reuses `ContentWindow.CreateSubwindow(...)` as the shared
-derived-pad-view contract instead of adding a redundant `CursesSubpad` type.
-T506 adds independent per-viewport `HasVisiblePadChanges` observation. There is
-no public global pad-clean/acknowledge operation, so one viewport cannot hide
-changes from another.
-
-T507 is complete and green on Windows, Linux, macOS, and package-only validation.
-It covers destination resize/reposition, all pad corners, wide-cell boundaries,
-very tall and wide pads, repeated panning, editor-like mutations, and fresh
-package consumption.
-
-T508 is complete. The 0.5 public surface is feature-frozen and machine-guarded;
-per-cell viewport revision tracking is internal and enabled only for pad backing
-surfaces, so ordinary logical screens retain their pre-0.5 memory profile. The
-complete alpha.4 contract passed Windows, Linux, macOS, and canonical
-package/fresh-consumer validation without a public-contract correction.
-
-T509 release-candidate validation is also complete: `0.5.0-rc.1` passed Windows,
-Linux, macOS, and canonical package/fresh-consumer validation without requiring a
-correction. The unchanged contract has been promoted to stable `0.5.0` source
-for one final PR gate before merge.
+T607 is the active acceptance tranche. The package-only consumer and live
+showcase exercise the new presentation surface before T608 freezes the public
+API and package contract.
 
 Earlier stable releases established:
 
+- `0.5.0`: large off-screen pads, independent pannable viewports, derived views,
+  and per-viewport visible-change observation;
 - `0.4.0`: Unicode-safe window geometry, editing, composition, drawing, and
   damage-range operations;
 - `0.3.0`: Unicode 17 terminal-cell semantics and column-safe text helpers;
@@ -74,16 +63,15 @@ The first release line was driven by the requirements of `top`, `slabtop`, and
 managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
-train through `1.0.0`, and `Icod.DCurses-0.5.0-Development-Roadmap.md` for the
-active pad/large-surface tranche. Current 0.5 decisions and gates are recorded
-in:
+train through `1.0.0`, and `Icod.DCurses-0.6.0-Development-Roadmap.md` for the
+active presentation tranche. Current 0.6 decisions are recorded in:
 
-- `docs/T504-Stateful-Pad-Viewport-and-Panning.md`
-- `docs/T505-T506-Derived-Pad-Views-and-Damage.md`
-- `docs/T507-Resize-Clipping-and-Large-Surface-Acceptance.md`
-- `docs/T508-Public-API-Documentation-and-Package-Regret-Gate.md`
-- `docs/T509-0.5.0-Stable-Release-Closure.md`
-- `docs/Public-API-Baseline-0.5.md`
+- `docs/T603-T606-Presentation-Resolution-and-Line-Drawing.md`
+- `docs/Public-API-Baseline-0.6.md` once the T608 freeze gate completes.
+
+The completed 0.5 pad release is recorded in
+`Icod.DCurses-0.5.0-Development-Roadmap.md`, its T504-T509 documents, and
+`docs/Public-API-Baseline-0.5.md`.
 
 The completed 0.4 window-editing release is recorded in
 `Icod.DCurses-0.4.0-Development-Roadmap.md`, its T402-T409 documents, and
@@ -109,7 +97,7 @@ top / slabtop / watch / editors / pagers / other TUIs
                          |
                     Icod.DCurses
        windows / pads / cells / refresh
-         rendition / curses events
+     rendition / drawing / curses events
                          |
                     Icod.Terminal
       session / input / lifecycle / dimensions
@@ -142,7 +130,7 @@ The implementation targets:
 The current published stable package is:
 
 ```text
-dotnet add package Icod.DCurses --version 0.4.0
+dotnet add package Icod.DCurses --version 0.5.0
 ```
 
 ## Quick start
@@ -174,6 +162,81 @@ CursesEvent terminalEvent = await session.ReadEventAsync();
 The session owns the presentation state it enters and restores that state when
 disposed. Applications should consume terminal input and lifecycle activity
 through `CursesSession` rather than adding a parallel terminal reader.
+
+## Rendition and semantic drawing (`0.6`)
+
+Logical styles remain terminal-independent. The physical refresh layer resolves
+them against the selected terminal and degrades unsupported presentation
+features in a controlled way:
+
+```csharp
+CursesPresentationCapabilities presentation =
+    session.PresentationCapabilities;
+
+CursesStyle heading = new(
+    CursesColor.Indexed( 14 ),
+    CursesColor.Default,
+    CursesTextAttributes.Bold
+        | CursesTextAttributes.Italic
+        | CursesTextAttributes.Underline
+);
+
+screen.Write( "Presentation-aware heading", heading );
+
+CursesWindow panel = screen.CreateSubwindow(
+    2,
+    4,
+    8,
+    40
+);
+panel.DrawBorder( heading.WithForeground( CursesColor.Default ) );
+```
+
+The complete semantic attribute vocabulary is:
+
+```text
+Bold
+Dim
+Underline
+Reverse
+Standout
+Italic
+Blink
+Conceal
+Strikeout
+```
+
+`CursesPresentationCapabilities` reports the safe indexed-color range, direct
+RGB support, native attributes, `ncv` color restrictions, alternate-character-
+set support, default-color restoration, and cursor-presentation availability.
+Applications can make ordinary TUI presentation decisions without inspecting
+raw terminfo strings.
+
+Color resolution uses `Icod.TermInfo.TerminalColors`. An indexed request is
+emitted only when it falls inside the safely addressable range. Direct RGB is
+used only when TermInfo advertises a safe direct-color model. Unsafe or
+unsupported color requests degrade to terminal default rather than being wrapped
+or passed to an unsupported selector. Logical `CursesStyle` values stored in
+cells are not changed by this physical degradation.
+
+Semantic line drawing carries intent in `CursesCell` rather than storing terminal
+escape sequences:
+
+```csharp
+CursesCell crossing = CursesCell.Line(
+    CursesLineGlyph.Crossing,
+    heading
+);
+
+screen.DrawHorizontalLine( 12, 4, 30 );
+screen.DrawVerticalLine( 4, 34, 8 );
+```
+
+At refresh time, semantic line cells use the terminal's advertised alternate
+character set when the requested glyph is mapped. Otherwise DCurses uses the
+canonical one-column Unicode box-drawing glyph, with ASCII as the final safe
+fallback. Ordinary text containing characters such as `─` remains ordinary text
+and is never reinterpreted as ACS content.
 
 ## Pads and large surfaces (`0.5`)
 
@@ -251,9 +314,9 @@ source blanks as transparent. Overlapping copies snapshot the source before any
 destination write. Editing and drawing preserve the cursor and retain the 0.3
 wide-cell invariants.
 
-Drawing methods accept caller-supplied one-column cells in 0.4. Capability-aware
-Unicode/alternate-character-set line-glyph selection is intentionally deferred
-to the 0.6 presentation tranche.
+The original drawing methods continue to accept exact caller-supplied one-column
+cells. The 0.6 semantic overloads are additive and do not change the 0.4 exact-
+cell contract.
 
 ## Unicode column helpers (`0.3`)
 
@@ -325,9 +388,11 @@ restore, build, test, pack, and package validation. They also accept
 are run automatically where needed.
 
 Pull-request validation promotes the build to `Staging`. Pushes to `main` and
-release tags use `Release`. Package validation exercises the packed artifact and
-a fresh package-only consumer rather than relying only on the repository project
-references.
+release tags use `Release`. The test project treats Staging analyzer warnings as
+errors, so xUnit and compiler analyzer regressions are caught before merge while
+the library itself retains the normal Staging configuration. Package validation
+exercises the packed artifact and a fresh package-only consumer rather than
+relying only on repository project references.
 
 The Unicode width-data generator is a maintainer tool outside the solution. See
 `tools/unicode-width-generator/README.md`; normal builds do not fetch Unicode
