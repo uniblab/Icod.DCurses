@@ -20,9 +20,13 @@ synchronization.
 
 `Icod.DCurses 0.7.0` is the current published stable release.
 
-The `0.8.0` production-hardening line has completed T801 through T807 and is in
-the T808 release-candidate gate as `0.8.0-rc.1`, retaining assembly version
-`0.8.0.0`. The release deliberately adds no public API; it strengthens lifetime,
+The `0.8.0` production-hardening line has completed T801 through T808 and has
+been promoted unchanged from the green `0.8.0-rc.1` candidate to stable source,
+retaining assembly version `0.8.0.0`. The T809 stable-source merge gate is
+active; merge, post-merge Release validation, tagging, and publication remain
+later explicit steps.
+
+The stable 0.8 source deliberately adds no public API; it strengthens lifetime,
 concurrency, cancellation, lifecycle, failure-recovery, repeated ownership, and
 large-surface/high-frequency behavior around the existing 0.7 contract.
 
@@ -88,11 +92,12 @@ managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
 train through `1.0.0`, and `Icod.DCurses-0.8.0-Development-Roadmap.md` for the
-production-hardening tranche. The 0.8 implementation and gate decisions are
+production-hardening tranche. The 0.8 implementation and release decisions are
 recorded in:
 
 - `docs/T801-T807-Production-Hardening-Implementation.md`
 - `docs/T808-Hardening-Regret-and-Release-Candidate-Gate.md`
+- `docs/T809-0.8.0-Stable-Release-Closure.md`
 - `docs/Public-API-Baseline-0.8.md`.
 
 The completed 0.7 refresh/output release is recorded in
@@ -167,9 +172,9 @@ The current published stable package is:
 dotnet add package Icod.DCurses --version 0.7.0
 ```
 
-`0.8.0-rc.1` is a repository release candidate and is not presented here as a
-published package. Stable `0.8.0` publication remains behind the T808/T809
-source gates, merge, Release-matrix, tag, and publication checks.
+`0.8.0` is the validated stable source on PR #21; it is not presented here as a
+published package until the later merge, Release-matrix, tag, and publication
+gates complete.
 
 ## Quick start
 
