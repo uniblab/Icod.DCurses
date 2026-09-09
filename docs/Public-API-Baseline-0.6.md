@@ -1,10 +1,10 @@
 # Icod.DCurses 0.6 Public API Baseline
 
 **Release line:** `0.6.0`  
-**Baseline checkpoint:** `0.6.0-alpha.2`  
+**Baseline checkpoint:** `0.6.0-rc.1`  
 **Stable predecessor:** `0.5.0`  
 **Dependencies:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
-**Status:** T608 review in progress
+**Status:** Frozen RC contract; T608 complete
 
 ## Purpose
 
@@ -179,17 +179,18 @@ The generated package must compile and execute a fresh consumer that uses:
 - semantic line drawing;
 - `CursesSession.PresentationCapabilities`.
 
-The test project uses warning level 4 with warnings-as-errors in the normal Staging PR configuration. This is specifically intended to prevent analyzer-only failures from first appearing after merge under Release.
+Both the library and test projects use warning level 4 with warnings-as-errors in the normal Staging PR configuration. This intentionally gives the PR build Release-equivalent compiler/analyzer severity without recompiling the solution in a second configuration. Release retains the same warning severity policy.
 
-## Freeze decision pending
+## Freeze decision
 
-T608 remains open until:
+T608 is complete. The frozen `0.6.0-rc.1` contract has passed:
 
-- the exact reflection guard for this public delta is green;
-- Windows/Linux/macOS Staging build/tests are green;
-- package/fresh-consumer validation is green;
-- README and conceptual documentation are synchronized;
-- the public API regret review finds no signature that should change before RC;
-- the Release analyzer behavior has no known gap.
+- exact reflection guards for the public delta;
+- Windows/Linux/macOS Staging build/tests;
+- canonical package/fresh-consumer validation;
+- synchronized README and conceptual documentation;
+- lifecycle/disposal acceptance after rich non-default presentation;
+- warning level 4 / warnings-as-errors for both the library and test projects;
+- dependency-boundary validation with no new Terminal/TermInfo public leakage.
 
-Once those conditions pass, the same contract may be promoted to `0.6.0-rc.1` without another feature addition.
+The regret review found no public signature that should change before stable `0.6.0`. No new feature family may enter during T609 release closure.
