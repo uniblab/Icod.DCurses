@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>1.1.0-alpha.2</Version>
+		<Version>1.1.0-alpha.3</Version>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>1.1.0-alpha.2</PackageVersion>
+		<PackageVersion>1.1.0-alpha.3</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>1.1.0-alpha.2 completes the semantic-metadata representation decision for the first post-1.0 feature line. T1102 retains the stable 72-byte CursesCell representation on the supported 64-bit runtime matrix and selects a lazily allocated row-sparse metadata reference plane instead of imposing a permanent per-cell reference or surface-relative token. The selected model pays reference storage only for rows that actually contain semantic metadata, preserves standalone CursesCell value semantics, and provides deterministic row snapshot/replace mechanics for later editing and composition integration. No public hyperlink or metadata type is added yet; Terminal remains the typed OSC 8 protocol and live-session ownership authority. Dependencies are Icod.Terminal 1.6.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>1.1.0-alpha.3 introduces the first intentional post-1.0 public semantic-content API. T1103 adds immutable CursesHyperlink and CursesCellMetadata values, sparse logical metadata storage, metadata-aware window text/cell writes, and window/virtual-screen metadata inspection and mutation. Semantic metadata remains separate from CursesStyle, ordinary cell replacement removes overwritten semantic metadata, semantic-only changes participate in logical damage/change tracking, and two-column text footprints carry one coherent metadata value. This checkpoint remains logical only: physical OSC 8 rendering is deferred to T1104 and Icod.Terminal remains the typed OSC 8 protocol and live-session ownership authority. T1102's corrected cross-platform memory gate is based on the +8-byte incremental metadata-slot cost rather than one architecture-specific private CursesCell size. Dependencies are Icod.Terminal 1.6.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
