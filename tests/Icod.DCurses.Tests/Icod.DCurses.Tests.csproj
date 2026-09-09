@@ -28,6 +28,12 @@
     <ProjectReference Include="..\..\Icod.DCurses.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\docs\Public-API-Fingerprint-0.9.json"
+          Link="Public-API-Fingerprint-0.9.json"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>2</WarningLevel>
