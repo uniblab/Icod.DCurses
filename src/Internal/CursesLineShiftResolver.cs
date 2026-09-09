@@ -687,6 +687,7 @@ internal sealed class CursesLineShiftResolver {
 			if ( !IsDefaultBlankRow( desired, row ) ) {
 				return false;
 			}
+		}
 		for ( int row = topRow + count; row <= bottomRow; row++ ) {
 			if ( !RowsEqual(
 				desired,
@@ -714,6 +715,7 @@ internal sealed class CursesLineShiftResolver {
 			if ( !IsDefaultBlankRow( desired, row ) ) {
 				return false;
 			}
+		}
 		for ( int row = topRow; row <= bottomRow - count; row++ ) {
 			if ( !RowsEqual(
 				desired,
