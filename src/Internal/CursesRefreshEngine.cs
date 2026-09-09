@@ -1,5 +1,6 @@
 namespace Icod.DCurses.Internal;
 
+using System.Runtime.ExceptionServices;
 using System.Text;
 using Icod.DCurses.Terminal;
 using Icod.TermInfo;
@@ -14,6 +15,7 @@ internal sealed class CursesRefreshEngine {
 	private readonly CursesLinePresentationResolver linePresentationResolver;
 	private readonly CursesCursorMotionResolver cursorMotionResolver;
 	private readonly CursesCharacterShiftResolver characterShiftResolver;
+	private readonly CursesLineShiftResolver lineShiftResolver;
 	private readonly CursesEraseResolver eraseResolver;
 	private readonly SemaphoreSlim refreshGate = new( 1, 1 );
 
@@ -46,6 +48,10 @@ internal sealed class CursesRefreshEngine {
 			)
 		);
 		characterShiftResolver = new CursesCharacterShiftResolver(
+			terminal,
+			costModel
+		);
+		lineShiftResolver = new CursesLineShiftResolver(
 			terminal,
 			costModel
 		);
@@ -215,72 +221,89 @@ internal sealed class CursesRefreshEngine {
 			cursorColumn = null;
 		}
 
-		bool eraseCompletedRefresh = false;
-		for ( int row = 0; row < desired.Rows && !eraseCompletedRefresh; row++ ) {
-			CursesCharacterShiftPlan? characterShift = characterShiftResolver.Resolve(
+		CursesLineShiftPlan? lineShift = lineShiftResolver.Resolve(
+			desired,
+			physicalScreen!,
+			currentStyle,
+			cursorRow,
+			cursorColumn,
+			requestedCursorRow,
+			requestedCursorColumn
+		);
+		if ( lineShift.HasValue ) {
+			await ApplyLineShiftAsync(
 				desired,
-				physicalScreen!,
-				row,
-				currentStyle
-			);
-			if ( characterShift.HasValue ) {
-				await ApplyCharacterShiftAsync(
-					desired,
-					characterShift.Value,
-					cancellationToken
-				).ConfigureAwait( false );
-				continue;
-			}
-
-			int column = 0;
-			while ( column < desired.Columns ) {
-				if ( !NeedsUpdate( desired, row, column ) ) {
-					column++;
-					continue;
-				}
-
-				int start = FindSpanStart(
-					desired,
-					row,
-					column
-				);
-				int end = FindSpanEnd(
-					desired,
-					row,
-					column
-				);
-
-				CursesErasePlan? erasePlan = eraseResolver.Resolve(
+				lineShift.Value,
+				cancellationToken
+			).ConfigureAwait( false );
+		} else {
+			bool eraseCompletedRefresh = false;
+			for ( int row = 0; row < desired.Rows && !eraseCompletedRefresh; row++ ) {
+				CursesCharacterShiftPlan? characterShift = characterShiftResolver.Resolve(
 					desired,
 					physicalScreen!,
 					row,
-					start
+					currentStyle
 				);
-				if ( erasePlan.HasValue ) {
-					await EraseAsync(
+				if ( characterShift.HasValue ) {
+					await ApplyCharacterShiftAsync(
+						desired,
+						characterShift.Value,
+						cancellationToken
+					).ConfigureAwait( false );
+					continue;
+				}
+
+				int column = 0;
+				while ( column < desired.Columns ) {
+					if ( !NeedsUpdate( desired, row, column ) ) {
+						column++;
+						continue;
+					}
+
+					int start = FindSpanStart(
+						desired,
+						row,
+						column
+					);
+					int end = FindSpanEnd(
+						desired,
+						row,
+						column
+					);
+
+					CursesErasePlan? erasePlan = eraseResolver.Resolve(
+						desired,
+						physicalScreen!,
+						row,
+						start
+					);
+					if ( erasePlan.HasValue ) {
+						await EraseAsync(
+							desired,
+							row,
+							start,
+							erasePlan.Value,
+							cancellationToken
+						).ConfigureAwait( false );
+						if ( CursesEraseKind.ClearToEndOfLine == erasePlan.Value.Kind ) {
+							column = desired.Columns;
+							continue;
+						}
+						eraseCompletedRefresh = true;
+						break;
+					}
+
+					await RenderSpanAsync(
 						desired,
 						row,
 						start,
-						erasePlan.Value,
+						end,
+						screen.TextWidthProvider,
 						cancellationToken
 					).ConfigureAwait( false );
-					if ( CursesEraseKind.ClearToEndOfLine == erasePlan.Value.Kind ) {
-						column = desired.Columns;
-						continue;
-					}
-					eraseCompletedRefresh = true;
-					break;
+					column = end + 1;
 				}
-
-				await RenderSpanAsync(
-					desired,
-					row,
-					start,
-					end,
-					screen.TextWidthProvider,
-					cancellationToken
-				).ConfigureAwait( false );
-				column = end + 1;
 			}
 		}
 
@@ -366,6 +389,125 @@ internal sealed class CursesRefreshEngine {
 		}
 
 		return end;
+	}
+
+	private async ValueTask ApplyLineShiftAsync(
+		CursesVirtualScreen desired,
+		CursesLineShiftPlan plan,
+		CancellationToken cancellationToken
+	) {
+		ArgumentNullException.ThrowIfNull( desired );
+		switch ( plan.Operation ) {
+			case CursesLineShiftOperation.InsertLines:
+			case CursesLineShiftOperation.DeleteLines:
+			case CursesLineShiftOperation.ScrollReverse:
+			case CursesLineShiftOperation.ScrollForward:
+				break;
+
+			default:
+				throw new ArgumentOutOfRangeException(
+					nameof( plan ),
+					plan.Operation,
+					"Unknown curses line-shift operation."
+				);
+		}
+
+		if ( !plan.UsesTemporaryScrollRegion ) {
+			await MoveCursorAsync(
+				plan.OperationRow,
+				plan.OperationColumn,
+				cancellationToken
+			).ConfigureAwait( false );
+			await TerminalCapabilityWriter.WriteAsync(
+				output,
+				plan.OperationSequence,
+				plan.OperationAffectedLines,
+				cancellationToken
+			).ConfigureAwait( false );
+
+			for ( int row = plan.TopRow; row <= plan.BottomRow; row++ ) {
+				MarkPhysicalRange(
+					desired,
+					row,
+					0,
+					desired.Columns
+				);
+			}
+			cursorRow = plan.CursorAfterRow;
+			cursorColumn = plan.CursorAfterColumn;
+			return;
+		}
+
+		if ( null == plan.SetRegionSequence
+			|| null == plan.RestoreRegionSequence ) {
+			throw new InvalidOperationException(
+				"A temporary scrolling-region line shift must provide setup and restoration sequences."
+			);
+		}
+
+		Exception? operationFailure = null;
+		cursorRow = null;
+		cursorColumn = null;
+		try {
+			await TerminalCapabilityWriter.WriteAsync(
+				output,
+				plan.SetRegionSequence,
+				plan.SetRegionAffectedLines,
+				cancellationToken
+			).ConfigureAwait( false );
+			await MoveCursorAsync(
+				plan.OperationRow,
+				plan.OperationColumn,
+				cancellationToken
+			).ConfigureAwait( false );
+			await TerminalCapabilityWriter.WriteAsync(
+				output,
+				plan.OperationSequence,
+				plan.OperationAffectedLines,
+				cancellationToken
+			).ConfigureAwait( false );
+		} catch ( Exception exception ) {
+			operationFailure = exception;
+		}
+
+		Exception? restorationFailure = null;
+		cursorRow = null;
+		cursorColumn = null;
+		try {
+			await TerminalCapabilityWriter.WriteAsync(
+				output,
+				plan.RestoreRegionSequence,
+				plan.RestoreRegionAffectedLines,
+				CancellationToken.None
+			).ConfigureAwait( false );
+		} catch ( Exception exception ) {
+			restorationFailure = exception;
+		}
+		cursorRow = null;
+		cursorColumn = null;
+
+		if ( null != operationFailure && null != restorationFailure ) {
+			throw new AggregateException(
+				"Curses line-shift output failed and scrolling-region restoration also reported an error.",
+				operationFailure,
+				restorationFailure
+			);
+		}
+		if ( null != operationFailure ) {
+			ExceptionDispatchInfo.Capture( operationFailure ).Throw();
+		}
+		if ( null != restorationFailure ) {
+			ExceptionDispatchInfo.Capture( restorationFailure ).Throw();
+		}
+
+		for ( int row = plan.TopRow; row <= plan.BottomRow; row++ ) {
+			MarkPhysicalRange(
+				desired,
+				row,
+				0,
+				desired.Columns
+			);
+		}
 	}
 
 	private async ValueTask ApplyCharacterShiftAsync(
