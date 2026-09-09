@@ -12,6 +12,8 @@ internal sealed class CursesRefreshEngine {
 
 	private readonly TerminalDescription terminal;
 	private readonly ITerminalOutput output;
+	private readonly CursesPresentationResolver presentationResolver;
+	private readonly CursesLinePresentationResolver linePresentationResolver;
 	private readonly SemaphoreSlim refreshGate = new( 1, 1 );
 
 	private CursesPhysicalScreenState? physicalScreen;
@@ -25,12 +27,15 @@ internal sealed class CursesRefreshEngine {
 	/// <param name="output">The terminal output service.</param>
 	internal CursesRefreshEngine(
 		TerminalDescription terminal,
-		ITerminalOutput output ) {
+		ITerminalOutput output
+	) {
 		ArgumentNullException.ThrowIfNull( terminal );
 		ArgumentNullException.ThrowIfNull( output );
 
 		this.terminal = terminal;
 		this.output = output;
+		presentationResolver = new CursesPresentationResolver( terminal );
+		linePresentationResolver = new CursesLinePresentationResolver( terminal );
 	}
 
 	/// <summary>Requests complete physical-screen invalidation at the next refresh boundary.</summary>
@@ -46,7 +51,8 @@ internal sealed class CursesRefreshEngine {
 	internal async ValueTask WriteControlAsync(
 		string capability,
 		bool invalidatePhysicalScreen,
-		CancellationToken cancellationToken = default ) {
+		CancellationToken cancellationToken = default
+	) {
 		ArgumentNullException.ThrowIfNull( capability );
 		cancellationToken.ThrowIfCancellationRequested();
 
@@ -80,7 +86,8 @@ internal sealed class CursesRefreshEngine {
 	internal async ValueTask SetCursorPositionAsync(
 		int row,
 		int column,
-		CancellationToken cancellationToken = default ) {
+		CancellationToken cancellationToken = default
+	) {
 		if ( 0 > row ) {
 			throw new ArgumentOutOfRangeException( nameof( row ) );
 		}
@@ -96,9 +103,7 @@ internal sealed class CursesRefreshEngine {
 				column,
 				cancellationToken
 			).ConfigureAwait( false );
-			await output.FlushAsync(
-				cancellationToken
-			).ConfigureAwait( false );
+			await output.FlushAsync( cancellationToken ).ConfigureAwait( false );
 		} catch {
 			InvalidateKnownState();
 			throw;
@@ -111,14 +116,22 @@ internal sealed class CursesRefreshEngine {
 	/// <param name="cancellationToken">Cancellation for the reset operation.</param>
 	/// <returns>A value task representing rendition restoration.</returns>
 	internal async ValueTask ResetRenditionAsync(
-		CancellationToken cancellationToken = default ) {
+		CancellationToken cancellationToken = default
+	) {
 		cancellationToken.ThrowIfCancellationRequested();
 		await refreshGate.WaitAsync( cancellationToken ).ConfigureAwait( false );
 		try {
-			await WriteCapabilityIfPresentAsync(
-				StringCapability.ExitAttributeMode,
-				cancellationToken
-			).ConfigureAwait( false );
+			if ( currentStyle.HasValue ) {
+				await ResetAttributesAsync(
+					currentStyle.Value.Attributes,
+					cancellationToken
+				).ConfigureAwait( false );
+			} else {
+				await WriteCapabilityIfPresentAsync(
+					StringCapability.ExitAttributeMode,
+					cancellationToken
+				).ConfigureAwait( false );
+			}
 			await WriteCapabilityIfPresentAsync(
 				StringCapability.OriginalColorPair,
 				cancellationToken
@@ -143,7 +156,8 @@ internal sealed class CursesRefreshEngine {
 		CursesScreen screen,
 		int requestedCursorRow,
 		int requestedCursorColumn,
-		CancellationToken cancellationToken = default ) {
+		CancellationToken cancellationToken = default
+	) {
 		ArgumentNullException.ThrowIfNull( screen );
 		ValidateCursor(
 			screen,
@@ -172,7 +186,8 @@ internal sealed class CursesRefreshEngine {
 		CursesScreen screen,
 		int requestedCursorRow,
 		int requestedCursorColumn,
-		CancellationToken cancellationToken ) {
+		CancellationToken cancellationToken
+	) {
 		CursesVirtualScreen desired = screen.VirtualScreen;
 		EnsurePhysicalScreen( desired );
 
@@ -218,6 +233,7 @@ internal sealed class CursesRefreshEngine {
 					row,
 					start,
 					end,
+					screen.TextWidthProvider,
 					cancellationToken
 				).ConfigureAwait( false );
 				column = end + 1;
@@ -254,7 +270,8 @@ internal sealed class CursesRefreshEngine {
 	private bool NeedsUpdate(
 		CursesVirtualScreen desired,
 		int row,
-		int column ) {
+		int column
+	) {
 		if ( desired.IsDirty( row, column ) ) {
 			return true;
 		}
@@ -262,7 +279,8 @@ internal sealed class CursesRefreshEngine {
 		if ( !physicalScreen!.TryGetCell(
 			row,
 			column,
-			out CursesCell physicalCell ) ) {
+			out CursesCell physicalCell
+		) ) {
 			return true;
 		}
 
@@ -272,7 +290,8 @@ internal sealed class CursesRefreshEngine {
 	private int FindSpanStart(
 		CursesVirtualScreen desired,
 		int row,
-		int column ) {
+		int column
+	) {
 		int start = column;
 		while ( desired[ row, start ].IsContinuation ) {
 			if ( 0 == start ) {
@@ -289,7 +308,8 @@ internal sealed class CursesRefreshEngine {
 	private int FindSpanEnd(
 		CursesVirtualScreen desired,
 		int row,
-		int column ) {
+		int column
+	) {
 		int end = column;
 		while ( end + 1 < desired.Columns
 			&& NeedsUpdate( desired, row, end + 1 ) ) {
@@ -307,7 +327,8 @@ internal sealed class CursesRefreshEngine {
 	private bool CanEraseToEndOfLine(
 		CursesVirtualScreen desired,
 		int row,
-		int startColumn ) {
+		int startColumn
+	) {
 		if ( desired.Columns - startColumn < MinimumEraseToEndColumns
 			|| null == terminal.GetString( StringCapability.ClearToEndOfLine ) ) {
 			return false;
@@ -327,7 +348,8 @@ internal sealed class CursesRefreshEngine {
 		CursesVirtualScreen desired,
 		int row,
 		int startColumn,
-		CancellationToken cancellationToken ) {
+		CancellationToken cancellationToken
+	) {
 		await MoveCursorAsync(
 			row,
 			startColumn,
@@ -364,7 +386,10 @@ internal sealed class CursesRefreshEngine {
 		int row,
 		int start,
 		int end,
-		CancellationToken cancellationToken ) {
+		ICursesTextWidthProvider textWidthProvider,
+		CancellationToken cancellationToken
+	) {
+		ArgumentNullException.ThrowIfNull( textWidthProvider );
 		await MoveCursorAsync(
 			row,
 			start,
@@ -386,6 +411,7 @@ internal sealed class CursesRefreshEngine {
 				segmentStart,
 				segmentEnd,
 				style,
+				textWidthProvider,
 				cancellationToken
 			).ConfigureAwait( false );
 			segmentStart = segmentEnd + 1;
@@ -398,32 +424,23 @@ internal sealed class CursesRefreshEngine {
 		int start,
 		int end,
 		CursesStyle style,
-		CancellationToken cancellationToken ) {
+		ICursesTextWidthProvider textWidthProvider,
+		CancellationToken cancellationToken
+	) {
+		ArgumentNullException.ThrowIfNull( textWidthProvider );
 		await ApplyStyleAsync(
 			style,
 			cancellationToken
 		).ConfigureAwait( false );
 
-		StringBuilder payload = new();
-		for ( int column = start; column <= end; column++ ) {
-			CursesCell cell = desired[ row, column ];
-			if ( cell.IsContinuation ) {
-				continue;
-			}
-
-			payload.Append(
-				cell.IsBlank
-					? " "
-					: cell.Content
-			);
-		}
-
-		if ( 0 < payload.Length ) {
-			await WriteTextAsync(
-				payload.ToString(),
-				cancellationToken
-			).ConfigureAwait( false );
-		}
+		await RenderCellContentAsync(
+			desired,
+			row,
+			start,
+			end,
+			textWidthProvider,
+			cancellationToken
+		).ConfigureAwait( false );
 
 		for ( int column = start; column <= end; column++ ) {
 			physicalScreen!.SetCell(
@@ -442,10 +459,90 @@ internal sealed class CursesRefreshEngine {
 		}
 	}
 
+	private async ValueTask RenderCellContentAsync(
+		CursesVirtualScreen desired,
+		int row,
+		int start,
+		int end,
+		ICursesTextWidthProvider textWidthProvider,
+		CancellationToken cancellationToken
+	) {
+		ArgumentNullException.ThrowIfNull( desired );
+		ArgumentNullException.ThrowIfNull( textWidthProvider );
+
+		StringBuilder payload = new();
+		bool alternateCharacterSetActive = false;
+		for ( int column = start; column <= end; column++ ) {
+			CursesCell cell = desired[ row, column ];
+			if ( cell.IsContinuation ) {
+				continue;
+			}
+
+			bool useAlternateCharacterSet = false;
+			string content;
+			if ( cell.IsBlank ) {
+				content = " ";
+			} else if ( cell.LineGlyph.HasValue ) {
+				CursesPhysicalLineGlyph resolved = linePresentationResolver.Resolve(
+					cell.LineGlyph.Value,
+					textWidthProvider
+				);
+				content = resolved.Content;
+				useAlternateCharacterSet = resolved.UsesAlternateCharacterSet;
+			} else {
+				content = cell.Content;
+			}
+
+			if ( useAlternateCharacterSet != alternateCharacterSetActive ) {
+				await FlushTextPayloadAsync(
+					payload,
+					cancellationToken
+				).ConfigureAwait( false );
+				await WriteCapabilityIfPresentAsync(
+					useAlternateCharacterSet
+						? StringCapability.EnterAlternateCharacterSetMode
+						: StringCapability.ExitAlternateCharacterSetMode,
+					cancellationToken
+				).ConfigureAwait( false );
+				alternateCharacterSetActive = useAlternateCharacterSet;
+			}
+
+			payload.Append( content );
+		}
+
+		await FlushTextPayloadAsync(
+			payload,
+			cancellationToken
+		).ConfigureAwait( false );
+		if ( alternateCharacterSetActive ) {
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.ExitAlternateCharacterSetMode,
+				cancellationToken
+			).ConfigureAwait( false );
+		}
+	}
+
+	private async ValueTask FlushTextPayloadAsync(
+		StringBuilder payload,
+		CancellationToken cancellationToken
+	) {
+		ArgumentNullException.ThrowIfNull( payload );
+		if ( 0 == payload.Length ) {
+			return;
+		}
+
+		await WriteTextAsync(
+			payload.ToString(),
+			cancellationToken
+		).ConfigureAwait( false );
+		payload.Clear();
+	}
+
 	private async ValueTask MoveCursorAsync(
 		int row,
 		int column,
-		CancellationToken cancellationToken ) {
+		CancellationToken cancellationToken
+	) {
 		if ( cursorRow == row && cursorColumn == column ) {
 			return;
 		}
@@ -472,16 +569,25 @@ internal sealed class CursesRefreshEngine {
 	}
 
 	private async ValueTask ApplyStyleAsync(
-		CursesStyle style,
-		CancellationToken cancellationToken ) {
+		CursesStyle requested,
+		CancellationToken cancellationToken
+	) {
+		CursesStyle style = presentationResolver.Resolve( requested );
 		if ( currentStyle.HasValue && currentStyle.Value == style ) {
 			return;
 		}
 
-		await WriteCapabilityIfPresentAsync(
-			StringCapability.ExitAttributeMode,
-			cancellationToken
-		).ConfigureAwait( false );
+		if ( currentStyle.HasValue ) {
+			await ResetAttributesAsync(
+				currentStyle.Value.Attributes,
+				cancellationToken
+			).ConfigureAwait( false );
+		} else {
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.ExitAttributeMode,
+				cancellationToken
+			).ConfigureAwait( false );
+		}
 		await WriteCapabilityIfPresentAsync(
 			StringCapability.OriginalColorPair,
 			cancellationToken
@@ -518,6 +624,30 @@ internal sealed class CursesRefreshEngine {
 				cancellationToken
 			).ConfigureAwait( false );
 		}
+		if ( 0 != ( attributes & CursesTextAttributes.Italic ) ) {
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.EnterItalicMode,
+				cancellationToken
+			).ConfigureAwait( false );
+		}
+		if ( 0 != ( attributes & CursesTextAttributes.Blink ) ) {
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.EnterBlinkMode,
+				cancellationToken
+			).ConfigureAwait( false );
+		}
+		if ( 0 != ( attributes & CursesTextAttributes.Conceal ) ) {
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.EnterInvisibleMode,
+				cancellationToken
+			).ConfigureAwait( false );
+		}
+		if ( 0 != ( attributes & CursesTextAttributes.Strikeout ) ) {
+			await WriteExtendedCapabilityIfPresentAsync(
+				"smxx",
+				cancellationToken
+			).ConfigureAwait( false );
+		}
 
 		await ApplyColorAsync(
 			style.Foreground,
@@ -536,7 +666,8 @@ internal sealed class CursesRefreshEngine {
 	private async ValueTask ApplyColorAsync(
 		CursesColor color,
 		bool foreground,
-		CancellationToken cancellationToken ) {
+		CancellationToken cancellationToken
+	) {
 		switch ( color.Kind ) {
 			case CursesColorKind.Default:
 				return;
@@ -546,17 +677,35 @@ internal sealed class CursesRefreshEngine {
 					?? throw new InvalidOperationException(
 						"An indexed curses color does not contain an index."
 					);
-				await ApplyIndexedColorAsync(
-					index,
-					foreground,
+				string indexedCapability = foreground
+					? TerminalColors.ExpandForeground( terminal, index )
+					: TerminalColors.ExpandBackground( terminal, index );
+				await TerminalCapabilityWriter.WriteAsync(
+					output,
+					indexedCapability,
 					cancellationToken
 				).ConfigureAwait( false );
 				return;
 
 			case CursesColorKind.Rgb:
-				await ApplyRgbColorAsync(
-					color,
-					foreground,
+				if ( !color.Red.HasValue
+					|| !color.Green.HasValue
+					|| !color.Blue.HasValue ) {
+					throw new InvalidOperationException(
+						"An RGB curses color does not contain all three components."
+					);
+				}
+				TerminalRgbColor rgb = new(
+					color.Red.Value,
+					color.Green.Value,
+					color.Blue.Value
+				);
+				string rgbCapability = foreground
+					? TerminalColors.ExpandForeground( terminal, rgb )
+					: TerminalColors.ExpandBackground( terminal, rgb );
+				await TerminalCapabilityWriter.WriteAsync(
+					output,
+					rgbCapability,
 					cancellationToken
 				).ConfigureAwait( false );
 				return;
@@ -570,83 +719,48 @@ internal sealed class CursesRefreshEngine {
 		}
 	}
 
-	private async ValueTask ApplyIndexedColorAsync(
-		int index,
-		bool foreground,
-		CancellationToken cancellationToken ) {
-		StringCapability modern = foreground
-			? StringCapability.SetForegroundColor
-			: StringCapability.SetBackgroundColor
-		;
-		StringCapability legacy = foreground
-			? StringCapability.SetLegacyForegroundColor
-			: StringCapability.SetLegacyBackgroundColor
-		;
-		StringCapability? selected = null != terminal.GetString( modern )
-			? modern
-			: null != terminal.GetString( legacy )
-				? legacy
-				: null
-		;
-
-		if ( !selected.HasValue ) {
-			throw new NotSupportedException(
-				$"Terminal '{terminal.Name}' does not provide indexed color selection."
-			);
+	private async ValueTask ResetAttributesAsync(
+		CursesTextAttributes attributes,
+		CancellationToken cancellationToken
+	) {
+		if ( null != terminal.GetString( StringCapability.ExitAttributeMode ) ) {
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.ExitAttributeMode,
+				cancellationToken
+			).ConfigureAwait( false );
+			return;
 		}
 
-		string capability = terminal.Expand(
-			selected.Value,
-			index
-		);
-		await TerminalCapabilityWriter.WriteAsync(
-			output,
-			capability,
-			cancellationToken
-		).ConfigureAwait( false );
-	}
-
-	private async ValueTask ApplyRgbColorAsync(
-		CursesColor color,
-		bool foreground,
-		CancellationToken cancellationToken ) {
-		string capabilityName = foreground
-			? "setrgbf"
-			: "setrgbb"
-		;
-
-		if ( !terminal.TryGetExtendedString(
-			capabilityName,
-			out _ ) ) {
-			throw new NotSupportedException(
-				$"Terminal '{terminal.Name}' does not provide extended capability '{capabilityName}'."
-			);
+		if ( 0 != ( attributes & CursesTextAttributes.Underline ) ) {
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.ExitUnderlineMode,
+				cancellationToken
+			).ConfigureAwait( false );
 		}
-
-		if ( !color.Red.HasValue
-			|| !color.Green.HasValue
-			|| !color.Blue.HasValue ) {
-			throw new InvalidOperationException(
-				"An RGB curses color does not contain all three components."
-			);
+		if ( 0 != ( attributes & CursesTextAttributes.Standout ) ) {
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.ExitStandoutMode,
+				cancellationToken
+			).ConfigureAwait( false );
 		}
-
-		string capability = terminal.ExpandExtendedString(
-			capabilityName,
-			(int)color.Red.Value,
-			(int)color.Green.Value,
-			(int)color.Blue.Value
-		);
-		await TerminalCapabilityWriter.WriteAsync(
-			output,
-			capability,
-			cancellationToken
-		).ConfigureAwait( false );
+		if ( 0 != ( attributes & CursesTextAttributes.Italic ) ) {
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.ExitItalicMode,
+				cancellationToken
+			).ConfigureAwait( false );
+		}
+		if ( 0 != ( attributes & CursesTextAttributes.Strikeout ) ) {
+			await WriteExtendedCapabilityIfPresentAsync(
+				"rmxx",
+				cancellationToken
+			).ConfigureAwait( false );
+		}
 	}
 
 	private async ValueTask WriteCapabilityIfPresentAsync(
 		StringCapability capability,
-		CancellationToken cancellationToken ) {
+		CancellationToken cancellationToken
+	) {
 		string? value = terminal.GetString( capability );
 		if ( null == value ) {
 			return;
@@ -659,9 +773,29 @@ internal sealed class CursesRefreshEngine {
 		).ConfigureAwait( false );
 	}
 
+	private async ValueTask WriteExtendedCapabilityIfPresentAsync(
+		string capabilityName,
+		CancellationToken cancellationToken
+	) {
+		ArgumentException.ThrowIfNullOrWhiteSpace( capabilityName );
+		if ( !terminal.TryGetExtendedString(
+			capabilityName,
+			out string? value
+		) || null == value ) {
+			return;
+		}
+
+		await TerminalCapabilityWriter.WriteAsync(
+			output,
+			value,
+			cancellationToken
+		).ConfigureAwait( false );
+	}
+
 	private async ValueTask WriteTextAsync(
 		string text,
-		CancellationToken cancellationToken ) {
+		CancellationToken cancellationToken
+	) {
 		ArgumentNullException.ThrowIfNull( text );
 		await output.WriteTextAsync(
 			text,
@@ -680,7 +814,8 @@ internal sealed class CursesRefreshEngine {
 	private static void ValidateCursor(
 		CursesScreen screen,
 		int row,
-		int column ) {
+		int column
+	) {
 		ArgumentNullException.ThrowIfNull( screen );
 		if ( row < 0 || row >= screen.Rows ) {
 			throw new ArgumentOutOfRangeException( nameof( row ) );

@@ -28,6 +28,58 @@ public sealed class CursesTerminalIntegrationTests {
 	}
 
 	[Fact]
+	public async Task DisposalRestoresDefaultsAfterRichPresentation() {
+		RecordingOutput output = new();
+		TerminalSession terminalSession = await OpenTerminalSessionAsync(
+			output,
+			new EmptyInput(),
+			CreateRenditionTerminal()
+		);
+		CursesSession session = await CursesSession.OpenAsync(
+			terminalSession,
+			NoPresentationOptions()
+		);
+
+		CursesTextAttributes attributes =
+			CursesTextAttributes.Bold
+			| CursesTextAttributes.Dim
+			| CursesTextAttributes.Underline
+			| CursesTextAttributes.Reverse
+			| CursesTextAttributes.Standout
+			| CursesTextAttributes.Italic
+			| CursesTextAttributes.Blink
+			| CursesTextAttributes.Conceal
+			| CursesTextAttributes.Strikeout;
+		session.StandardScreen.Write(
+			"X",
+			new CursesStyle(
+				CursesColor.Indexed( 2 ),
+				CursesColor.Indexed( 1 ),
+				attributes
+			)
+		);
+		await session.RefreshAsync();
+
+		Assert.Contains( "<bold>", output.Text );
+		Assert.Contains( "<dim>", output.Text );
+		Assert.Contains( "<underline>", output.Text );
+		Assert.Contains( "<reverse>", output.Text );
+		Assert.Contains( "<standout>", output.Text );
+		Assert.Contains( "<italic>", output.Text );
+		Assert.Contains( "<blink>", output.Text );
+		Assert.Contains( "<conceal>", output.Text );
+		Assert.Contains( "<strikeout>", output.Text );
+		Assert.Contains( "<fg:2>", output.Text );
+		Assert.Contains( "<bg:1>", output.Text );
+
+		output.Clear();
+		await session.DisposeAsync();
+
+		Assert.Contains( "<sgr0>", output.Text );
+		Assert.Contains( "<op>", output.Text );
+	}
+
+	[Fact]
 	public async Task TerminalInputIsMappedIntoCursesEventFacade() {
 		RecordingOutput output = new();
 		TerminalSession terminalSession = await OpenTerminalSessionAsync(
@@ -150,10 +202,22 @@ public sealed class CursesTerminalIntegrationTests {
 
 	private static TerminalDescription CreateRenditionTerminal() {
 		return new TerminalDescriptionBuilder( "rendition-test" )
+			.SetNumber( NumericCapability.Colors, 8 )
 			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
 			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
 			.SetString( StringCapability.OriginalColorPair, "<op>" )
 			.SetString( StringCapability.EnterBoldMode, "<bold>" )
+			.SetString( StringCapability.EnterDimMode, "<dim>" )
+			.SetString( StringCapability.EnterUnderlineMode, "<underline>" )
+			.SetString( StringCapability.EnterReverseMode, "<reverse>" )
+			.SetString( StringCapability.EnterStandoutMode, "<standout>" )
+			.SetString( StringCapability.EnterItalicMode, "<italic>" )
+			.SetString( StringCapability.EnterBlinkMode, "<blink>" )
+			.SetString( StringCapability.EnterInvisibleMode, "<conceal>" )
+			.SetString( StringCapability.SetForegroundColor, "<fg:%p1%d>" )
+			.SetString( StringCapability.SetBackgroundColor, "<bg:%p1%d>" )
+			.SetExtendedString( "smxx", "<strikeout>" )
+			.SetExtendedString( "rmxx", "</strikeout>" )
 			.Build();
 	}
 

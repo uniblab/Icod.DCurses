@@ -11,6 +11,8 @@ string[] spinnerFrames = [
 await using CursesSession session = await CursesSession.OpenAsync();
 
 CursesWindow screen = session.StandardScreen;
+CursesPresentationCapabilities presentationCapabilities =
+	session.PresentationCapabilities;
 CursesStyle titleStyle = new(
 	CursesColor.Default,
 	CursesColor.Default,
@@ -18,7 +20,7 @@ CursesStyle titleStyle = new(
 );
 
 int spinnerIndex = 0;
-int markerRow = 12;
+int markerRow = 18;
 int markerColumn = 2;
 CursesCursorVisibility cursorVisibility = CursesCursorVisibility.Hidden;
 string status = "Ready.";
@@ -35,6 +37,7 @@ while ( running ) {
 	DrawShowcase(
 		screen,
 		titleStyle,
+		presentationCapabilities,
 		spinnerFrames[ spinnerIndex ],
 		markerRow,
 		markerColumn,
@@ -175,11 +178,13 @@ return 0;
 static void DrawShowcase(
 	CursesWindow screen,
 	CursesStyle titleStyle,
+	CursesPresentationCapabilities presentationCapabilities,
 	string spinner,
 	int markerRow,
 	int markerColumn,
 	CursesCursorVisibility cursorVisibility,
-	string status ) {
+	string status
+) {
 	ArgumentNullException.ThrowIfNull( screen );
 	ArgumentNullException.ThrowIfNull( spinner );
 	ArgumentNullException.ThrowIfNull( status );
@@ -225,19 +230,37 @@ static void DrawShowcase(
 	);
 	WriteLine(
 		screen,
-		8,
-		"Arrows move @ | B alert | C cursor | I invalidate"
+		7,
+		$"Presentation: indexed {presentationCapabilities.IndexedColorCount} | RGB {presentationCapabilities.SupportsDirectRgb} | ACS {presentationCapabilities.SupportsAlternateCharacterSet} | default-color restore {presentationCapabilities.SupportsDefaultColorRestoration}"
+	);
+	DrawRenditionSamples(
+		screen,
+		8
 	);
 	WriteLine(
 		screen,
 		9,
-		"Space immediate refresh | Q or Escape exit"
+		$"Native attrs: {presentationCapabilities.SupportedAttributes} | color-restricted: {presentationCapabilities.ColorRestrictedAttributes}"
 	);
 	WriteLine(
 		screen,
 		10,
-		$"Requested cursor visibility: {cursorVisibility}"
+		"Arrows move @ | B alert | C cursor | I invalidate"
 	);
+	WriteLine(
+		screen,
+		11,
+		"Space immediate refresh | Q or Escape exit"
+	);
+	WriteLine(
+		screen,
+		12,
+		$"Cursor request: {cursorVisibility} | hidden {presentationCapabilities.SupportsCursorHidden} | normal {presentationCapabilities.SupportsCursorNormal} | very-visible {presentationCapabilities.SupportsCursorVeryVisible}"
+	);
+
+	if ( HasPresentationBox( screen ) ) {
+		DrawPresentationBox( screen );
+	}
 
 	if ( HasMarkerArea( screen ) ) {
 		screen.Move(
@@ -248,7 +271,7 @@ static void DrawShowcase(
 	} else {
 		WriteLine(
 			screen,
-			12,
+			13,
 			"Enlarge the terminal to display the movable marker."
 		);
 	}
@@ -260,11 +283,90 @@ static void DrawShowcase(
 	);
 }
 
+static void DrawRenditionSamples(
+	CursesWindow screen,
+	int row
+) {
+	ArgumentNullException.ThrowIfNull( screen );
+	if ( row < 0 || row >= screen.Rows ) {
+		return;
+	}
+
+	( string Label, CursesTextAttributes Attribute )[] samples = [
+		( " Bold ", CursesTextAttributes.Bold ),
+		( " Dim ", CursesTextAttributes.Dim ),
+		( " Under ", CursesTextAttributes.Underline ),
+		( " Rev ", CursesTextAttributes.Reverse ),
+		( " Stand ", CursesTextAttributes.Standout ),
+		( " Italic ", CursesTextAttributes.Italic ),
+		( " Blink ", CursesTextAttributes.Blink ),
+		( " Conceal ", CursesTextAttributes.Conceal ),
+		( " Strike ", CursesTextAttributes.Strikeout )
+	];
+
+	int column = 0;
+	foreach ( ( string label, CursesTextAttributes attribute ) in samples ) {
+		if ( column >= screen.Columns ) {
+			return;
+		}
+
+		string visible = CursesText.TruncateToColumns(
+			label,
+			screen.Columns - column
+		);
+		if ( 0 == visible.Length ) {
+			return;
+		}
+
+		screen.Move(
+			row,
+			column
+		);
+		screen.Write(
+			visible,
+			new CursesStyle(
+				CursesColor.Default,
+				CursesColor.Default,
+				attribute
+			)
+		);
+		column += CursesText.MeasureColumns( visible );
+	}
+}
+
+static void DrawPresentationBox( CursesWindow screen ) {
+	ArgumentNullException.ThrowIfNull( screen );
+	int columns = Math.Min(
+		screen.Columns,
+		38
+	);
+	CursesWindow box = screen.CreateSubwindow(
+		14,
+		0,
+		3,
+		columns
+	);
+	box.WrapMode = CursesWrapMode.Clip;
+	box.DrawBorder(
+		new CursesStyle(
+			CursesColor.Default,
+			CursesColor.Default,
+			CursesTextAttributes.Bold
+		)
+	);
+	box.Move(
+		1,
+		2
+	);
+	box.Write( "semantic ACS / Unicode / ASCII border" );
+}
+
 static void WriteLine(
 	CursesWindow screen,
 	int row,
 	string text,
-	CursesStyle style = default ) {
+	CursesStyle style = default
+) {
 	ArgumentNullException.ThrowIfNull( screen );
 	ArgumentNullException.ThrowIfNull( text );
 
@@ -282,17 +384,24 @@ static void WriteLine(
 	);
 }
 
+static bool HasPresentationBox( CursesWindow screen ) {
+	ArgumentNullException.ThrowIfNull( screen );
+	return screen.Rows >= 18
+		&& screen.Columns >= 20;
+}
+
 static bool HasMarkerArea( CursesWindow screen ) {
 	ArgumentNullException.ThrowIfNull( screen );
 
-	return screen.Rows >= 14
+	return screen.Rows >= 20
 		&& 0 < screen.Columns;
 }
 
 static void ClampMarker(
 	CursesWindow screen,
 	ref int row,
-	ref int column ) {
+	ref int column
+) {
 	ArgumentNullException.ThrowIfNull( screen );
 
 	if ( !HasMarkerArea( screen ) ) {
@@ -303,7 +412,7 @@ static void ClampMarker(
 
 	row = Math.Clamp(
 		row,
-		12,
+		18,
 		screen.Rows - 2
 	);
 	column = Math.Clamp(
@@ -314,7 +423,8 @@ static void ClampMarker(
 }
 
 static CursesCursorVisibility NextCursorVisibility(
-	CursesCursorVisibility current ) {
+	CursesCursorVisibility current
+) {
 	return current switch {
 		CursesCursorVisibility.Hidden => CursesCursorVisibility.Normal,
 		CursesCursorVisibility.Normal => CursesCursorVisibility.VeryVisible,

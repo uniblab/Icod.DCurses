@@ -1,12 +1,12 @@
 # Icod.DCurses 1.0.0 Development Roadmap
 
 **Project:** `Icod.DCurses`  
-**Stable baseline:** `0.4.0`  
+**Stable baseline:** `0.5.0`  
 **Development destination:** `1.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** Approved development plan; `0.5.0` active
+**Status:** Approved development plan; `0.6.0` active
 
 ---
 
@@ -121,9 +121,9 @@ The managed API uses descriptive managed names rather than reproducing native `w
 
 # 7. Version 0.5.0 — Pads and Large Surfaces
 
-`0.5.0` is the active development release. Its detailed tranche plan is maintained in `Icod.DCurses-0.5.0-Development-Roadmap.md`.
+`0.5.0` is complete and published. Its detailed tranche plan is maintained in `Icod.DCurses-0.5.0-Development-Roadmap.md`.
 
-The release introduces large in-memory off-screen cell surfaces which reuse the 0.3/0.4 contracts rather than duplicating them. The accepted design includes:
+The release introduced large in-memory off-screen cell surfaces which reuse the 0.3/0.4 contracts rather than duplicating them. The accepted design includes:
 
 - `CursesPad` as an off-screen logical surface;
 - ordinary `CursesWindow` editing through `ContentWindow`;
@@ -135,13 +135,16 @@ The release introduces large in-memory off-screen cell surfaces which reuse the 
 - explicit touch/invalidation propagation without a global pad-clean acknowledgement;
 - strict destination-geometry revalidation after resize;
 - wide-cell-safe source/destination boundary handling;
-- large-surface and repeated-panning acceptance.
+- large-surface and repeated-panning acceptance;
+- pad-only opt-in revision tracking so ordinary logical screens retain their pre-0.5 per-cell memory profile.
 
 Pads do not own terminal sessions, terminal modes, terminal input, physical-screen state, or a second refresh engine.
 
 ---
 
 # 8. Version 0.6.0 — Rendition, Drawing, and Presentation
+
+`0.6.0` is the active development release. Its detailed tranche plan is maintained in `Icod.DCurses-0.6.0-Development-Roadmap.md`.
 
 The stable managed color model already supports terminal-default, indexed, and RGB requests. `0.6.0` SHALL complete the presentation contract around it.
 
@@ -316,8 +319,8 @@ Throughout the 1.0 train:
 0.2.0 Terminal 1.0 input semantic parity        complete
   -> 0.3.0 Unicode / terminal-cell contract     complete
   -> 0.4.0 window editing and composition       complete
-  -> 0.5.0 pads and large surfaces              active
-  -> 0.6.0 rendition / drawing / presentation
+  -> 0.5.0 pads and large surfaces              complete
+  -> 0.6.0 rendition / drawing / presentation   active
   -> 0.7.0 refresh and output optimization
   -> 0.8.0 production hardening
   -> 0.9.0 contract freeze / RC

@@ -21,7 +21,19 @@ public enum CursesTextAttributes {
 	Reverse = 8,
 
 	/// <summary>Standout rendition or the terminal's managed semantic equivalent.</summary>
-	Standout = 16
+	Standout = 16,
+
+	/// <summary>Italic rendition when the terminal can represent it.</summary>
+	Italic = 32,
+
+	/// <summary>Blinking rendition when the terminal can represent it.</summary>
+	Blink = 64,
+
+	/// <summary>Concealed or invisible rendition when the terminal can represent it.</summary>
+	Conceal = 128,
+
+	/// <summary>Strikeout rendition when the terminal can represent it.</summary>
+	Strikeout = 256
 }
 
 /// <summary>
@@ -34,6 +46,10 @@ public readonly record struct CursesStyle {
 		| CursesTextAttributes.Underline
 		| CursesTextAttributes.Reverse
 		| CursesTextAttributes.Standout
+		| CursesTextAttributes.Italic
+		| CursesTextAttributes.Blink
+		| CursesTextAttributes.Conceal
+		| CursesTextAttributes.Strikeout
 	;
 
 	/// <summary>Initializes a cell style.</summary>

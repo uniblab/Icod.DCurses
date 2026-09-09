@@ -37,6 +37,20 @@ public sealed class CursesColorStyleTests {
 	}
 
 	[Fact]
+	public void TextAttributeNumericValuesRemainAppendOnly() {
+		Assert.Equal( 0, (int)CursesTextAttributes.None );
+		Assert.Equal( 1, (int)CursesTextAttributes.Bold );
+		Assert.Equal( 2, (int)CursesTextAttributes.Dim );
+		Assert.Equal( 4, (int)CursesTextAttributes.Underline );
+		Assert.Equal( 8, (int)CursesTextAttributes.Reverse );
+		Assert.Equal( 16, (int)CursesTextAttributes.Standout );
+		Assert.Equal( 32, (int)CursesTextAttributes.Italic );
+		Assert.Equal( 64, (int)CursesTextAttributes.Blink );
+		Assert.Equal( 128, (int)CursesTextAttributes.Conceal );
+		Assert.Equal( 256, (int)CursesTextAttributes.Strikeout );
+	}
+
+	[Fact]
 	public void StyleCombinesColorsAndSemanticAttributes() {
 		CursesStyle style = new(
 			CursesColor.Indexed( 15 ),
@@ -46,6 +60,10 @@ public sealed class CursesColorStyleTests {
 				| CursesTextAttributes.Underline
 				| CursesTextAttributes.Reverse
 				| CursesTextAttributes.Standout
+				| CursesTextAttributes.Italic
+				| CursesTextAttributes.Blink
+				| CursesTextAttributes.Conceal
+				| CursesTextAttributes.Strikeout
 		);
 
 		Assert.Equal( (int?)15, style.Foreground.Index );
@@ -55,6 +73,10 @@ public sealed class CursesColorStyleTests {
 		Assert.True( style.Attributes.HasFlag( CursesTextAttributes.Underline ) );
 		Assert.True( style.Attributes.HasFlag( CursesTextAttributes.Reverse ) );
 		Assert.True( style.Attributes.HasFlag( CursesTextAttributes.Standout ) );
+		Assert.True( style.Attributes.HasFlag( CursesTextAttributes.Italic ) );
+		Assert.True( style.Attributes.HasFlag( CursesTextAttributes.Blink ) );
+		Assert.True( style.Attributes.HasFlag( CursesTextAttributes.Conceal ) );
+		Assert.True( style.Attributes.HasFlag( CursesTextAttributes.Strikeout ) );
 	}
 
 	[Fact]
