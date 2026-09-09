@@ -1,6 +1,6 @@
 # Icod.DCurses
 
-![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.6.0/icod_tui_toolchain.jpg)
+![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.7.0/icod_tui_toolchain.jpg)
 
 [![PR Staging build](https://github.com/uniblab/Icod.DCurses/actions/workflows/pull-request.yaml/badge.svg)](https://github.com/uniblab/Icod.DCurses/actions/workflows/pull-request.yaml)
 [![Main Release validation](https://github.com/uniblab/Icod.DCurses/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/uniblab/Icod.DCurses/actions/workflows/main.yaml)
@@ -18,15 +18,33 @@ synchronization.
 
 ## Status
 
-`Icod.DCurses 0.6.0` is the current published stable release.
+`Icod.DCurses 0.7.0` is the current published stable release.
 
-The `0.7.0` refresh/output optimization contract has completed T701 through
-T709 and has been promoted unchanged from the green `0.7.0-rc.1` candidate to
-stable `0.7.0` source with assembly version `0.7.0.0`. The final stable-source
-PR merge gate is active; publication remains post-merge and post-Release-matrix
-work.
+The `0.8.0` production-hardening line has completed T801 through T807 and is in
+the T808 release-candidate gate as `0.8.0-rc.1`, retaining assembly version
+`0.8.0.0`. The release deliberately adds no public API; it strengthens lifetime,
+concurrency, cancellation, lifecycle, failure-recovery, repeated ownership, and
+large-surface/high-frequency behavior around the existing 0.7 contract.
 
-The 0.7 stable source adds or improves:
+The accepted 0.8 hardening contract includes:
+
+- single-writer logical `CursesScreen`, `CursesWindow`, `CursesPad`, and
+  `CursesPadViewport` mutation unless a member explicitly documents otherwise;
+- one Terminal-owned event consumer waiting concurrently with refresh/output
+  activity without adding a second byte reader;
+- internal serialization of terminal-mutating refresh, presentation, cursor,
+  alert, protocol, suspend, and disposal work;
+- disposal-induced cancellation for pending DCurses input/lifecycle waits while
+  retaining authoritative Terminal restoration;
+- preservation of Terminal decoder state and fragmented input when one caller
+  cancels a DCurses wait;
+- safe retained-screen invalidation and repaint after uncertain/partial output;
+- repeated resize/suspend/resume and rich-input/full-screen ownership cycles;
+- bounded large-pad, large-screen, sparse-refresh, high-frequency, and no-op
+  refresh stress;
+- six-architecture PR validation across Windows, Linux, and macOS x64/ARM64.
+
+The published 0.7 release added or improved:
 
 - opt-in Terminal-owned synchronized-output framing at the complete refresh
   transaction boundary;
@@ -43,25 +61,10 @@ The 0.7 stable source adds or improves:
 - one deliberate public API addition,
   `CursesSessionOptions.UseSynchronizedOutput`, default `false`.
 
-The frozen 0.6 contract established:
-
-- a complete semantic rendition vocabulary including italic, blink, conceal,
-  and strikeout;
-- a read-only curses-shaped presentation-capabilities view;
-- safe indexed and direct-RGB resolution through `Icod.TermInfo` semantic color
-  APIs;
-- deterministic degradation rather than refresh-time failure for unsupported
-  colors and optional attributes;
-- `ncv`-aware physical style degradation without mutating logical cell style;
-- semantic `CursesLineGlyph` cells;
-- semantic horizontal, vertical, and border drawing overloads;
-- capability-aware ACS, Unicode, and ASCII line presentation;
-- session lifecycle/disposal acceptance after rich non-default presentation;
-- warning level 4 and warnings-as-errors for library and tests under Staging, so
-  PR validation exercises Release-equivalent compiler/analyzer severity.
-
 Earlier stable releases established:
 
+- `0.6.0`: complete semantic rendition, presentation-capability observation,
+  semantic line drawing, and capability-aware degradation;
 - `0.5.0`: large off-screen pads, independent pannable viewports, derived views,
   and per-viewport visible-change observation;
 - `0.4.0`: Unicode-safe window geometry, editing, composition, drawing, and
@@ -84,19 +87,17 @@ The first release line was driven by the requirements of `top`, `slabtop`, and
 managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
-train through `1.0.0`, and `Icod.DCurses-0.7.0-Development-Roadmap.md` for the
-refresh/output optimization tranche. The 0.7 decisions and gates are recorded in:
+train through `1.0.0`, and `Icod.DCurses-0.8.0-Development-Roadmap.md` for the
+production-hardening tranche. The 0.8 implementation and gate decisions are
+recorded in:
 
-- `docs/T701-Refresh-Cost-Foundation-and-Baseline.md`
-- `docs/T702-Synchronized-Refresh-Framing.md`
-- `docs/T703-Cursor-Motion-Selection.md`
-- `docs/T704-Cost-Aware-Erase-Selection.md`
-- `docs/T705-Character-Shift-Optimization.md`
-- `docs/T706-Physical-Line-Shift-and-Scroll-Region-Optimization.md`
-- `docs/T707-Rendition-and-Refresh-State-Minimization.md`
-- `docs/T708-Benchmark-API-Package-and-Regret-Gate.md`
-- `docs/T709-0.7.0-Stable-Release-Closure.md`
-- `docs/Public-API-Baseline-0.7.md`.
+- `docs/T801-T807-Production-Hardening-Implementation.md`
+- `docs/T808-Hardening-Regret-and-Release-Candidate-Gate.md`
+- `docs/Public-API-Baseline-0.8.md`.
+
+The completed 0.7 refresh/output release is recorded in
+`Icod.DCurses-0.7.0-Development-Roadmap.md`, its T701-T709 documents, and
+`docs/Public-API-Baseline-0.7.md`.
 
 The completed 0.6 presentation release is recorded in
 `Icod.DCurses-0.6.0-Development-Roadmap.md`, its T603-T609 documents, and
@@ -163,12 +164,12 @@ The implementation targets:
 The current published stable package is:
 
 ```text
-dotnet add package Icod.DCurses --version 0.6.0
+dotnet add package Icod.DCurses --version 0.7.0
 ```
 
-`0.7.0` is the validated stable source on the development PR; it is not presented
-here as a published package until the later merge, Release-matrix, tag, and
-publication gates complete.
+`0.8.0-rc.1` is a repository release candidate and is not presented here as a
+published package. Stable `0.8.0` publication remains behind the T808/T809
+source gates, merge, Release-matrix, tag, and publication checks.
 
 ## Quick start
 
@@ -199,6 +200,45 @@ CursesEvent terminalEvent = await session.ReadEventAsync();
 The session owns the presentation state it enters and restores that state when
 disposed. Applications should consume terminal input and lifecycle activity
 through `CursesSession` rather than adding a parallel terminal reader.
+
+## Production hardening and concurrency (`0.8`)
+
+The 0.8 line freezes a deliberately narrow concurrency model rather than adding
+pervasive locking.
+
+Logical screen/window/pad/view mutation is single-writer. Applications may keep
+one event wait pending while another application path performs refresh/output
+work, but they should not create competing independent event-reader loops over
+one session. Terminal-mutating operations are serialized internally.
+
+Disposal begins a private DCurses lifetime-cancellation path for pending public
+input/lifecycle waits. A wait canceled by its caller remains cancellation; a
+wait unblocked because the session is being disposed surfaces
+`ObjectDisposedException`. This private wait cancellation does not replace or
+cancel Terminal's authoritative decoder read, so fragmented UTF-8 or escape
+input remains preserved for the next valid wait.
+
+If a refresh or control write fails after uncertain partial progress, retained
+physical-screen knowledge is invalidated. A later refresh returns through the
+safe renderer rather than trusting partially emitted state. Existing dual-
+failure rules continue to preserve both primary-operation and restoration
+failures when synchronized-output or temporary terminal-state restoration also
+fails.
+
+The release gate exercises this contract under:
+
+- concurrent input wait and refresh;
+- caller cancellation and disposal during waits;
+- resize storms and repeated suspend/resume;
+- disposal while suspended;
+- partial output and rendition-restoration failures;
+- repeated rich-input/full-screen ownership cycles;
+- large pads and full screens;
+- 1,000 sparse refreshes and repeated no-op refreshes;
+- Windows/Linux/macOS x64 and ARM64.
+
+No public scheduler, lock/token abstraction, diagnostics type, or performance
+statistics API is added by 0.8.
 
 ## Refresh and output optimization (`0.7`)
 
@@ -485,8 +525,10 @@ Pull-request validation promotes the build to `Staging`. Pushes to `main` and
 release tags use `Release`. Both the library and test projects use warning level
 4 with warnings-as-errors under Staging, so ordinary PR validation exercises the
 same compiler/analyzer severity policy that matters to Release without compiling
-the solution twice. Package validation exercises the packed artifact and a fresh
-package-only consumer rather than relying only on repository project references.
+the solution twice. For 0.8, PR runtime validation covers Windows x64/ARM64,
+Linux x64/ARM64, and macOS x64/ARM64. Package validation exercises the packed
+artifact and a fresh package-only consumer rather than relying only on repository
+project references.
 
 The Unicode width-data generator is a maintainer tool outside the solution. See
 `tools/unicode-width-generator/README.md`; normal builds do not fetch Unicode
