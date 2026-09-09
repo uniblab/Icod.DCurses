@@ -5,7 +5,7 @@ so the minimal session lifecycle stays easy to copy without mixing it with the
 interactive and acceptance-focused showcases.
 
 All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the
-repository `Icod.DCurses` project, which in turn uses `Icod.Terminal 1.0.0` and
+repository `Icod.DCurses` project, which in turn uses `Icod.Terminal 1.4.0` and
 `Icod.TermInfo 1.10.0`.
 
 ## Icod.DCurses.Sample
@@ -50,7 +50,7 @@ demonstration rather than a Unicode-conformance test.
 ## Icod.DCurses.Input.Showcase
 
 `Icod.DCurses.Input.Showcase` is the live rich-input inspector for the current
-`Icod.Terminal 1.0.0` / `Icod.TermInfo 1.10.0` baseline. During the `0.2.0`
+`Icod.Terminal 1.4.0` / `Icod.TermInfo 1.10.0` baseline. During the `0.2.0`
 development line it also demonstrates the expanded Terminal 1.0 keyboard
 semantics carried through the curses facade.
 
