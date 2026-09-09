@@ -53,6 +53,66 @@ public sealed class CursesTerminalHyperlinkIntegrationTests {
 	}
 
 	[Fact]
+	public async Task UnsynchronizedRefreshStillUsesTerminalOwnedBoundedHyperlinkFraming() {
+		RecordingTerminalOutput output = new();
+		TerminalSession terminalSession = await TerminalSession.OpenAsync(
+			new TestTerminalControlProvider(),
+			TerminalEndpoint.StandardInput,
+			TerminalEndpoint.StandardOutput,
+			new EndOfInput(),
+			output,
+			new TerminalSessionOptions {
+				TerminalOverride = CreateTerminal(),
+				ConfigureOutput = false,
+				ObserveLifecycleEvents = false
+			}
+		);
+		await using CursesSession session = await CursesSession.OpenAsync(
+			terminalSession,
+			new CursesSessionOptions {
+				UseAlternateScreen = false,
+				EnableKeypad = false,
+				HideCursor = false,
+				UseSynchronizedOutput = false
+			}
+		);
+		output.Clear();
+
+		session.StandardScreen.Write(
+			"link",
+			new CursesCellMetadata(
+				new CursesHyperlink(
+					"https://example.test/docs",
+					"docs"
+				)
+			)
+		);
+		await session.RefreshAsync();
+
+		string text = output.Text;
+		Assert.DoesNotContain( SynchronizedOutputBegin, text );
+		Assert.DoesNotContain( SynchronizedOutputEnd, text );
+		int hyperlinkBegin = text.IndexOf(
+			HyperlinkBegin,
+			StringComparison.Ordinal
+		);
+		int payload = text.IndexOf(
+			"link",
+			hyperlinkBegin + HyperlinkBegin.Length,
+			StringComparison.Ordinal
+		);
+		int hyperlinkEnd = text.IndexOf(
+			HyperlinkEnd,
+			payload + 4,
+			StringComparison.Ordinal
+		);
+
+		Assert.True( 0 <= hyperlinkBegin );
+		Assert.True( hyperlinkBegin < payload );
+		Assert.True( payload < hyperlinkEnd );
+	}
+
+	[Fact]
 	public async Task SemanticSessionCoexistsWithRichInputResizeLifecycleAndCleanup() {
 		TestTerminalControlProvider provider = new();
 		RecordingTerminalOutput output = new();
