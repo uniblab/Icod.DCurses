@@ -243,13 +243,13 @@ Required behavior:
 - scrolling-region state is restored before the refresh transaction ends;
 - cost must beat direct rewrite for the selected diff.
 
-**Implementation status:** complete in `0.7.0-alpha.6`; final exact-head matrix/package validation pending.
+**Implementation status:** complete in `0.7.0-alpha.6`; exact alpha.6 head green.
 
 The accepted implementation uses an internal exact-transform resolver over retained full-screen state. It compares advertised `il`/`il1`, `dl`/`dl1`, `ind`/`indn`, and `ri`/`rin` forms, allows temporary `csr` only for a provable full-width interior region, includes region setup/restoration and cursor movement in its strict byte-cost gate, preserves complete wide-cell and semantic-line rows, and restores the full scrolling region even after operation failure or cancellation. Simultaneous operation and restoration failures are both retained. Partial-width window edits remain on the ordinary renderer.
 
 Detailed record: `docs/T706-Physical-Line-Shift-and-Scroll-Region-Optimization.md`.
 
-The corrected implementation checkpoint `629a884e9e28d91de3203d5006a2dd8ae49f0c3c` passed Windows, Linux, macOS, and package validation before alpha.6 promotion.
+The exact alpha.6 head `6e6b6f0f5f7d6af378ec5468c1411827551b5090` passed Windows, Linux, macOS, and package/fresh-consumer validation.
 
 **Gate T706:** terminal-style pager/editor scrolling workloads reduce bytes while producing the same final physical screen as the fallback renderer.
 
@@ -269,6 +269,14 @@ Investigation includes:
 - invalidating cached physical style knowledge after any operation whose side effects are not modeled safely.
 
 T707 MAY add internal operation-cost abstractions shared by cursor, erase, and rendition selection if they reduce duplication. Such abstractions remain internal by default.
+
+**Implementation status:** implemented in `0.7.0-alpha.7`; exact alpha.7 validation active.
+
+The accepted transition model retains reset-first behavior for unknown physical rendition, attribute removal, and transitions that return a color channel to terminal default. Known monotonic transitions are now differential: additive attributes emit only newly required selectors, direct non-default color changes emit only changed color selectors, and logical styles that resolve to the same physical style remain no-ops. Output failure continues to invalidate retained physical/rendition/cursor knowledge.
+
+The deterministic T701 bold-cell workload improves from `19 bytes / 4 writes / 1 flush` to `13 bytes / 3 writes / 1 flush` after an established default baseline, a 31.6% byte reduction and one fewer terminal write.
+
+Detailed record: `docs/T707-Rendition-and-Refresh-State-Minimization.md`.
 
 **Gate T707:** style-heavy workloads emit fewer bytes/reset sequences with identical logical and physical results.
 
