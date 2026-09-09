@@ -3,7 +3,7 @@
 **Release line:** `0.7.0`  
 **Baseline checkpoint:** stable `0.7.0` source  
 **Stable predecessor:** `0.6.0`  
-**Dependencies:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
+**Dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
 **Status:** Frozen stable-source contract; T708 complete; T709 merge gate active
 
 ## Purpose
