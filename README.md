@@ -17,13 +17,13 @@ synchronization.
 
 `Icod.DCurses 0.6.0` is the current published stable release.
 
-The `0.7.0` refresh/output optimization contract has completed implementation
-through T707 and the T708 benchmark/API/package/regret gate. The accepted
-contract is promoted to release candidate `0.7.0-rc.1` with assembly version
-`0.7.0.0`. T709 stable-source validation is the remaining pre-merge gate;
-publication remains post-merge and post-Release-matrix work.
+The `0.7.0` refresh/output optimization contract has completed T701 through
+T709 and has been promoted unchanged from the green `0.7.0-rc.1` candidate to
+stable `0.7.0` source with assembly version `0.7.0.0`. The final stable-source
+PR merge gate is active; publication remains post-merge and post-Release-matrix
+work.
 
-The 0.7 release candidate adds or improves:
+The 0.7 stable source adds or improves:
 
 - opt-in Terminal-owned synchronized-output framing at the complete refresh
   transaction boundary;
@@ -82,7 +82,7 @@ managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
 train through `1.0.0`, and `Icod.DCurses-0.7.0-Development-Roadmap.md` for the
-current optimization tranche. Current 0.7 decisions and gates are recorded in:
+refresh/output optimization tranche. The 0.7 decisions and gates are recorded in:
 
 - `docs/T701-Refresh-Cost-Foundation-and-Baseline.md`
 - `docs/T702-Synchronized-Refresh-Framing.md`
@@ -92,6 +92,7 @@ current optimization tranche. Current 0.7 decisions and gates are recorded in:
 - `docs/T706-Physical-Line-Shift-and-Scroll-Region-Optimization.md`
 - `docs/T707-Rendition-and-Refresh-State-Minimization.md`
 - `docs/T708-Benchmark-API-Package-and-Regret-Gate.md`
+- `docs/T709-0.7.0-Stable-Release-Closure.md`
 - `docs/Public-API-Baseline-0.7.md`.
 
 The completed 0.6 presentation release is recorded in
@@ -162,8 +163,9 @@ The current published stable package is:
 dotnet add package Icod.DCurses --version 0.6.0
 ```
 
-`0.7.0-rc.1` is a source/package-validation checkpoint on the development PR;
-it is not presented here as a published stable package.
+`0.7.0` is the validated stable source on the development PR; it is not presented
+here as a published package until the later merge, Release-matrix, tag, and
+publication gates complete.
 
 ## Quick start
 
@@ -238,7 +240,7 @@ unknown retained state, and equal-cost candidates stay on the ordinary path.
 Output failure invalidates retained knowledge so the next refresh returns through
 the safe fallback path.
 
-The deterministic release-gate fixtures currently record:
+The deterministic release-gate fixtures record:
 
 ```text
 T701 established-default -> bold: 19 bytes / 4 writes
