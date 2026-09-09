@@ -28,12 +28,15 @@ A fully interval-based sparse span structure avoids that cost but creates a diff
 
 ## Measured representation baseline
 
-The supported runtime matrix is 64-bit x64/ARM64. `CursesSemanticMetadataRepresentationBaselineTests` freezes the current representation evidence on that matrix:
+The supported runtime matrix is 64-bit x64/ARM64. `CursesSemanticMetadataRepresentationBaselineTests` measures the current runtime layout and freezes the relative representation cost rather than assuming one absolute `CursesCell` size across ABIs.
+
+The observed `CursesCell` size is runtime/architecture dependent. For example, macOS ARM64 reports 64 bytes, while another supported runtime may lay the same managed value out differently. That private implementation layout is not a public ABI promise.
+
+What is stable and relevant to this design decision on the supported 64-bit matrix is the incremental wrapper cost:
 
 ```text
-CursesCell                                   72 bytes
-CursesCell + one metadata object reference  80 bytes
-CursesCell + one int token wrapper           80 bytes
+CursesCell + one metadata object reference  CursesCell size + 8 bytes
+CursesCell + one int token wrapper           CursesCell size + 8 bytes
 ```
 
 For the established large-pad reference:
@@ -50,7 +53,7 @@ one additional eight-byte field costs:
 
 That is paid even when the pad contains zero hyperlinks.
 
-The exact numbers are implementation measurements rather than public ABI promises, but they make the relative cost visible and repeatable on every supported architecture.
+The test therefore asserts the relative eight-byte penalty and the resulting four-megabyte large-pad cost instead of asserting a single absolute private struct size across x64 and ARM64 runtimes.
 
 ## Why an inline metadata reference is rejected
 
@@ -165,7 +168,7 @@ The exact storage choice for continuation coordinates may be either a repeated m
 
 T1102 adds:
 
-- exact supported-runtime representation measurements;
+- supported-runtime relative representation measurements;
 - large-pad overhead calculations;
 - row-sparse storage prototype tests;
 - lazy row allocation/release tests;
@@ -178,8 +181,8 @@ The tranche does not yet add public metadata API or physical OSC 8 rendering.
 
 T1102 is complete when one exact `1.1.0-alpha.2` head passes the normal PR matrix and proves:
 
-1. `CursesCell` remains 72 bytes on the supported 64-bit runtime matrix;
-2. the reference/token comparison remains visible and deterministic;
+1. an unconditional metadata reference or token adds one pointer-sized eight-byte slot per cell on the supported 64-bit matrix;
+2. the resulting permanent overhead is 4 MiB at the established 524,288-cell pad scale;
 3. row-sparse storage allocates only rows containing semantic values;
 4. the storage releases empty rows and the entire plane when cleared;
 5. no public DCurses API delta has entered before T1103;
