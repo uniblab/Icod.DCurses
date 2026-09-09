@@ -22,11 +22,8 @@ public sealed class CursesOptimizationRegretTests {
 
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Equal(
-			( columns + 1 ) * rows + 1,
-			output.ByteCount
-		);
-		Assert.Equal( rows * 2 + 1, output.WriteCount );
+		Assert.Equal( 9661, output.ByteCount );
+		Assert.Equal( 121, output.WriteCount );
 		Assert.Equal( 1, output.FlushCount );
 	}
 
@@ -51,9 +48,9 @@ public sealed class CursesOptimizationRegretTests {
 			await engine.RefreshAsync( screen, 0, 0 );
 		}
 
-		Assert.Equal( iterations * 2, output.ByteCount );
-		Assert.Equal( iterations * 2, output.WriteCount );
-		Assert.Equal( iterations, output.FlushCount );
+		Assert.Equal( 2000, output.ByteCount );
+		Assert.Equal( 2000, output.WriteCount );
+		Assert.Equal( 1000, output.FlushCount );
 	}
 
 	[Fact]
@@ -87,8 +84,9 @@ public sealed class CursesOptimizationRegretTests {
 		await fallbackEngine.RefreshAsync( fallbackScreen, 0, 1 );
 
 		Assert.Equal( 2, optimizedOutput.ByteCount );
-		Assert.True( optimizedOutput.ByteCount < fallbackOutput.ByteCount );
-		Assert.True( optimizedOutput.WriteCount < fallbackOutput.WriteCount );
+		Assert.Equal( 34, fallbackOutput.ByteCount );
+		Assert.Equal( 1, optimizedOutput.WriteCount );
+		Assert.Equal( 3, fallbackOutput.WriteCount );
 		AssertRowsEqual( optimizedScreen, fallbackScreen );
 	}
 
@@ -123,8 +121,9 @@ public sealed class CursesOptimizationRegretTests {
 		await fallbackEngine.RefreshAsync( fallbackScreen, 0, 0 );
 
 		Assert.Equal( 4, optimizedOutput.ByteCount );
-		Assert.True( optimizedOutput.ByteCount < fallbackOutput.ByteCount );
-		Assert.True( optimizedOutput.WriteCount < fallbackOutput.WriteCount );
+		Assert.Equal( 166, fallbackOutput.ByteCount );
+		Assert.Equal( 3, optimizedOutput.WriteCount );
+		Assert.Equal( 11, fallbackOutput.WriteCount );
 		AssertRowsEqual( optimizedScreen, fallbackScreen );
 	}
 
