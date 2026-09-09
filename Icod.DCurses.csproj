@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.7.0-alpha.6</Version>
+		<Version>0.7.0-alpha.7</Version>
 		<AssemblyVersion>0.7.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.7.0-alpha.6</PackageVersion>
+		<PackageVersion>0.7.0-alpha.7</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.7.0-alpha.6 completes T706 physical line-shift and scroll-region optimization. DCurses now recognizes exact full-row vertical shifts from retained physical state and can select advertised il/il1, dl/dl1, forward/reverse scroll, or their parameterized forms when the resulting screen is provably equivalent and the complete operation is a strict encoded-byte win over direct repaint. Interior regions may use TermInfo change-scroll-region framing only when the final full-width screen diff proves that region exactly; the full scrolling region is restored before the refresh transaction completes, including best-effort restoration after output failure or cancellation, with simultaneous operation and restoration failures both preserved. Whole-row movement preserves complete wide-cell and semantic-line footprints, affected-line counts flow through TermInfo padding semantics, and partial-width window edits remain on the ordinary renderer. The release retains T705 character-shift, T704 erase, T703 cursor-motion, and T702 synchronized-output optimizations. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.7.0-alpha.7 completes T707 rendition-transition and retained-state minimization. DCurses now preserves known physical rendition across monotonic style transitions: additive attributes emit only the newly required selectors, non-default color changes emit only changed color selectors, and consecutive logical styles that resolve to the same physical style remain no-ops. Reset-first safety is retained whenever an attribute must be removed or a color channel must return to terminal default; unknown rendition state still begins from the established full reset path. The deterministic T701 bold-cell workload improves from 19 bytes / 4 writes to 13 bytes / 3 writes after an established default baseline. The release retains T706 line/scroll, T705 character-shift, T704 erase, T703 cursor-motion, and T702 synchronized-output optimizations. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
