@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.7.0-alpha.4</Version>
+		<Version>0.7.0-alpha.5</Version>
 		<AssemblyVersion>0.7.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.7.0-alpha.4</PackageVersion>
+		<PackageVersion>0.7.0-alpha.5</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.7.0-alpha.4 completes T704 cost-aware erase selection. DCurses now compares literal default-blank output with advertised clear-to-end-of-line, clear-to-end-of-screen, and whole-screen clear capabilities, requiring a strict encoded-byte win and proving the entire erased logical region is default-styled blank before selecting a broader operation. Retained physical-screen state is updated for exactly the erased cells, whole-screen clear conservatively invalidates cursor-position knowledge, and multi-line erase capabilities carry their affected-line count through TermInfo output semantics. Production cost comparison uses the owning Terminal session's ApplicationEncoding. The release retains T703 cost-aware cursor motion and T702 opt-in synchronized refresh framing. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.7.0-alpha.5 completes T705 physical insert/delete-character optimization. DCurses now recognizes exact row-local shifts that can be reproduced by advertised ich/ich1 or dch/dch1 capabilities, selects the cheapest safely expanded form, and requires a strict byte win over the nonblank payload that the fallback renderer would necessarily rewrite. Optimization requires a fully known physical row, default active rendition for inserted or vacated blanks, default-styled blank insertion/fill cells, and a shifted region free of wide-cell and semantic line-glyph ambiguity. Successful shifts update retained physical row knowledge exactly; output failure invalidates the retained image and retries through the ordinary renderer. The release retains T704 cost-aware erase selection, T703 cursor-motion selection, and T702 opt-in synchronized refresh framing. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
