@@ -10,16 +10,24 @@
 It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 - `Icod.TermInfo` is the immutable terminal-capability authority;
-- `Icod.Terminal` owns the live terminal session, host mode, dimensions, lifecycle, input decoding, presentation leases, and input-protocol leases;
+- `Icod.Terminal` owns the live terminal session, host mode, dimensions, lifecycle, input decoding, semantic terminal protocols, presentation leases, and input-protocol leases;
 - `Icod.DCurses` owns curses-shaped events, logical screens and windows, pads and viewports, terminal cells and styles, semantic drawing, and retained refresh/damage policy.
 
 ## Status
 
-`Icod.DCurses 1.0.0` stable source has been merged into `main`.
+`Icod.DCurses 1.1.0-alpha.1` is the active post-1.0 development checkpoint on PR #25.
 
-PR #24 updates only the direct `Icod.Terminal` dependency from `1.4.0` to `1.5.0`. It does not change `Icod.DCurses` `Version` (`1.0.0`), `PackageVersion` (`1.0.0`), `AssemblyVersion` (`1.0.0.0`), public API, or runtime ownership model.
+The stable 1.0 public contract remains the compatibility floor. T1101 begins semantic-cell-metadata and retained-hyperlink development without adding a public metadata type yet. It freezes the compatible 1.x assembly policy, advances the direct Terminal dependency to 1.6.0, and establishes the representation/memory gate that T1102 must satisfy before public hyperlink APIs are accepted.
 
-The accepted `1.0.0-rc.1` contract was promoted unchanged to stable `1.0.0` package metadata. Exact RC head `1968bae18610e69e56dc8f720bffb099cb58eb24` passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation before stable promotion. The documentation-complete stable-source head `5c17607194b546c6d831be5811d1865a195b970e` passed the same complete gate before merge.
+Current development identity:
+
+```text
+Version         1.1.0-alpha.1
+PackageVersion  1.1.0-alpha.1
+AssemblyVersion 1.0.0.0
+Icod.Terminal   1.6.0
+Icod.TermInfo   1.10.0
+```
 
 The frozen stable public contract contains:
 
@@ -29,22 +37,15 @@ The frozen stable public contract contains:
 sha256 274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
 ```
 
-The 1.0 machine baseline is intentionally identical to the 0.9 freeze. CI regenerates the compiled fingerprint for `net8.0`, `net9.0`, and `net10.0`, and a separate compatibility test requires the 1.0 baseline to match the historical 0.9 baseline exactly.
-
-The current direct dependency baseline is:
-
-- `Icod.Terminal` 1.5.0
-- `Icod.TermInfo` 1.10.0
+No new public DCurses type/member is introduced by T1101. Semantic metadata remains separate from `CursesStyle`, and Terminal remains the OSC 8 hyperlink protocol/ownership authority.
 
 ## Installation
 
-The latest published GitHub release is `0.9.0`. Stable `1.0.0` source has been merged, but `v1.0.0` has not yet been published and is therefore not presented here as an installable stable package.
+The latest published GitHub release remains `0.9.0`. Development packages and merged-but-not-published source are not presented here as the stable installation target.
 
 ```text
 dotnet add package Icod.DCurses --version 0.9.0
 ```
-
-After `v1.0.0` is tagged, published, and verified, this installation example will move to the stable 1.0 package.
 
 ## Architecture
 
@@ -57,7 +58,7 @@ top / slabtop / watch / editors / pagers / other TUIs
                          |
                     Icod.Terminal
       session / input / lifecycle / dimensions
-       presentation / input-protocol leases
+       presentation / semantic protocols
                          |
                     Icod.TermInfo
              terminal capability model
@@ -107,7 +108,7 @@ A `CursesSession` restores the presentation and Terminal-owned state it acquires
 
 ## Stable 1.0 compatibility contract
 
-Stable `1.0.0` source carries forward the exact contract frozen in 0.9 and accepted by the green 1.0 RC gate.
+The post-1.0 release train carries forward the exact contract frozen in 0.9 and accepted by the green 1.0 gates.
 
 The accepted compatibility rules include:
 
@@ -143,6 +144,22 @@ See:
 - `docs/Public-API-Fingerprint-1.0.json`
 - `docs/Public-API-Baseline-1.0.md`
 - `docs/1.0-Stable-Compatibility-and-Migration-Guide.md`
+
+## 1.1 semantic metadata direction
+
+The 1.1 release introduces semantic meaning attached to retained content, beginning with hyperlinks.
+
+The governing separation is:
+
+```text
+visual rendition     -> CursesStyle
+semantic meaning     -> semantic metadata
+wire protocol/state  -> Icod.Terminal
+```
+
+T1102 must choose the semantic storage representation from measured evidence before the public API is accepted. Candidate families include an optional metadata reference per cell, a compact/interned token, and sparse sidecar semantic spans. The existing 2,048 × 256 large-pad workload remains the scale reference for evaluating permanent per-cell cost.
+
+Hyperlink rendering will use Terminal's typed OSC 8 ownership rather than constructing raw OSC 8 sequences inside DCurses.
 
 ## Concurrency and production hardening
 
@@ -297,22 +314,14 @@ The release workflow derives displayed `Icod.Terminal` and `Icod.TermInfo` depen
 
 ## Release documentation
 
-The completed 1.0 release-closure roadmap is:
+Current post-1.0 authorities:
 
-- `Icod.DCurses-1.0.0-Development-Roadmap.md`
+- `Icod.DCurses-Development-Roadmap.md`
+- `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md`
+- `Icod.DCurses-1.1.0-Development-Roadmap.md`
+- `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md`
 
-The 1.0 closure records include:
-
-- `docs/T1001-1.0.0-Release-Closure-Foundation.md`
-- `docs/T1002-1.0-Public-Contract-Carry-Forward.md`
-- `docs/T1003-1.0-Documentation-Package-and-Release-Audit.md`
-- `docs/T1004-1.0.0-RC-Final-Gate.md`
-- `docs/T1005-1.0.0-Stable-Release-Closure.md`
-- `docs/Public-API-Fingerprint-1.0.json`
-- `docs/Public-API-Baseline-1.0.md`
-- `docs/1.0-Stable-Compatibility-and-Migration-Guide.md`
-
-The frozen 0.9 contract and earlier release roadmaps remain historical compatibility records and are not rewritten merely to reflect later dependency or package versions.
+The stable 1.0 closure records remain historical compatibility authorities and are not rewritten merely to reflect later dependency or development versions.
 
 ## Authors
 
