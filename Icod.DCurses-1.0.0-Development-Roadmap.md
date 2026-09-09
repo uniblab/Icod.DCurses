@@ -2,14 +2,13 @@
 
 **Project:** `Icod.DCurses`  
 **Merged source baseline:** `0.9.0`  
-**Published stable baseline:** `0.8.0` until the 0.9 tag/publication gate completes  
-**Development target:** `1.0.0`  
-**Current candidate:** `1.0.0-rc.1`  
+**Published stable baseline:** `0.8.0` until a later tag/publication workflow advances it  
+**Stable source target:** `1.0.0`  
 **Assembly version:** `1.0.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** 1.0 stable-release closure active; T1001/T1002 foundation established
+**Status:** T1001–T1004 complete; T1005 stable-source merge gate active
 
 ---
 
@@ -17,9 +16,9 @@
 
 `Icod.DCurses 1.0.0` is release closure over the contract frozen by `0.9.0`.
 
-The feature-building and pre-1.0 breaking-cleanup window is closed. The purpose of 1.0 development is to prove, document, package, and publish the already-accepted managed contract without introducing a surprise feature family or an incidental compatibility break.
+The feature-building and pre-1.0 breaking-cleanup window is closed. The purpose of 1.0 development is to prove, document, package, and publish the already-accepted managed contract without introducing a surprise feature family or incidental compatibility break.
 
-The exact merged 0.9 `main` commit `2acf166aed9c56c330025ca923c1d7cae712f913` passed the complete repository `Release` workflow across Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation before the 1.0 candidate promotion began.
+The merged 0.9 `main` commit `2acf166aed9c56c330025ca923c1d7cae712f913` passed the complete repository `Release` workflow across Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation before 1.0 candidate work began.
 
 ---
 
@@ -48,7 +47,7 @@ DCurses does not regain responsibilities owned by Terminal or TermInfo. In parti
 
 ## 3. Frozen public contract
 
-The public contract accepted for 1.0 is intentionally identical to the 0.9 freeze:
+The stable public contract is intentionally identical to the 0.9 freeze:
 
 ```text
 sha256:            274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
@@ -58,7 +57,7 @@ contract lines:   309
 
 The fingerprint covers declared public signatures, enum values, generic constraints, parameter order/ref/default metadata, accessor visibility, public fields/constants, and compiled nullability.
 
-`docs/Public-API-Fingerprint-0.9.json` remains the historical pre-1.0 freeze record. `docs/Public-API-Fingerprint-1.0.json` is the stable-target baseline. Tests require the two contracts to remain identical.
+`docs/Public-API-Fingerprint-0.9.json` remains the historical pre-1.0 freeze record. `docs/Public-API-Fingerprint-1.0.json` is the stable baseline. Tests require the two contracts to remain identical.
 
 The intentional lower-layer public type set remains exactly:
 
@@ -70,13 +69,13 @@ Icod.TermInfo.TerminalDescription
 Icod.TermInfo.TerminalSize
 ```
 
-No new Terminal/TermInfo type may enter the public signature surface during 1.0 closure.
+No new Terminal/TermInfo type may enter the public signature surface during stable closure.
 
 ---
 
-## 4. Frozen semantic/lifetime contract
+## 4. Frozen semantic and lifetime contract
 
-Behavioral compatibility which reflection alone cannot express remains guarded by the pre-1.0 semantic and hardening suites.
+Behavioral compatibility which reflection alone cannot express remains guarded by the established semantic and hardening suites.
 
 The stable contract includes:
 
@@ -118,38 +117,38 @@ Historical tranche roadmaps and records remain authoritative for the details of 
 
 ---
 
-## 6. 1.0 closure sequence
+## 6. 1.0 closure sequence and results
 
 ```text
-T1001  post-0.9 merge baseline + 1.0 RC foundation
-  -> T1002  1.0 public API/fingerprint carry-forward
-  -> T1003  documentation/package/release-workflow audit
-  -> T1004  exact 1.0.0-rc.1 full PR gate
-  -> T1005  stable 1.0.0 source promotion and merge gate
+T1001  post-0.9 merge baseline + 1.0 RC foundation      complete
+  -> T1002  1.0 public API/fingerprint carry-forward   complete
+  -> T1003  documentation/package/release audit        complete
+  -> T1004  exact 1.0.0-rc.1 full PR gate             complete
+  -> T1005  stable 1.0.0 source + documentation gate  active
 ```
 
 ### T1001 — post-0.9 baseline and RC foundation
 
-Required result:
+Completed results:
 
-- merged 0.9 source is green under the complete `Release` main workflow;
-- branch/PR is created from that exact merge commit;
-- `Version` / `PackageVersion` become `1.0.0-rc.1`;
-- `AssemblyVersion` becomes `1.0.0.0`;
-- dependencies remain Terminal 1.4.0 / TermInfo 1.10.0;
-- no runtime feature/public API change enters with the version promotion.
+- merged 0.9 source passed the complete `Release` main workflow;
+- branch/PR was created from that exact merge commit;
+- `Version` / `PackageVersion` became `1.0.0-rc.1`;
+- `AssemblyVersion` became `1.0.0.0`;
+- dependencies remained Terminal 1.4.0 / TermInfo 1.10.0;
+- no runtime feature/public API change entered with the version promotion.
 
 Record: `docs/T1001-1.0.0-Release-Closure-Foundation.md`.
 
 ### T1002 — public contract carry-forward
 
-Required result:
+Completed results:
 
-- add the explicit 1.0 machine fingerprint baseline;
-- prove it matches the frozen 0.9 API contract exactly;
-- retain 0.9 semantic/lifetime/dependency tests;
-- preserve historical 0.9 baseline files unchanged;
-- document `AssemblyVersion 1.0.0.0` as the stable major-version identity.
+- added the explicit 1.0 machine fingerprint baseline;
+- proved it matches the frozen 0.9 API contract exactly;
+- retained 0.9 semantic/lifetime/dependency tests;
+- preserved historical 0.9 baseline files unchanged;
+- documented `AssemblyVersion 1.0.0.0` as the stable major-version identity.
 
 Records:
 
@@ -159,27 +158,26 @@ Records:
 
 ### T1003 — documentation/package/release audit
 
-Review current consumer/maintainer surfaces:
+Completed results:
 
-- root README;
-- this roadmap;
-- 1.0 API baseline/fingerprint;
-- migration/compatibility guidance;
-- package release notes;
-- XML documentation generation;
-- package verifier and package-only consumer;
-- samples where they state current ownership/version behavior;
-- Authors/Copyright/License wording;
-- release workflow and dependency-version generation;
-- current prose convention writing `ncurses` as `` `ncurses` ``.
-
-The audit must distinguish latest published package state from merged/validated source and candidate state. Stable 1.0 installation must not be advertised before publication.
+- corrected README state after the 0.9 merge;
+- added stable 1.0 compatibility/migration guidance;
+- reviewed package metadata, XML documentation, symbols, package verifier, and fresh package consumer;
+- retained Authors/Copyright/License wording and the Markdown convention of writing `ncurses` as `` `ncurses` ``;
+- verified release-page dependency versions are derived from project `PackageReference` metadata;
+- found no issue requiring a runtime or public-contract change.
 
 Record: `docs/T1003-1.0-Documentation-Package-and-Release-Audit.md`.
 
-### T1004 — exact RC gate
+### T1004 — exact release-candidate gate
 
-One exact `1.0.0-rc.1` head must pass:
+Exact accepted RC head:
+
+```text
+1968bae18610e69e56dc8f720bffb099cb58eb24
+```
+
+Workflow run `34371426709` (#389) passed:
 
 - Windows x64;
 - Windows ARM64;
@@ -187,29 +185,41 @@ One exact `1.0.0-rc.1` head must pass:
 - Linux ARM64;
 - macOS x64;
 - macOS ARM64;
-- `net8.0`, `net9.0`, and `net10.0` tests under Staging warnings-as-errors;
-- package validation;
-- fresh generated-package consumer;
-- the complete public API/dependency/semantic/hardening suite;
-- representative editor/pager/Unicode/rich-input/lifecycle/ownership/failure/pad/high-frequency acceptance and the `top`, `slabtop`, and `watch` sample builds.
+- package/fresh-consumer validation.
 
-No feature/API expansion is permitted in T1004.
+The complete `net8.0`, `net9.0`, and `net10.0` tests, API/dependency/semantic/hardening suites, representative acceptance workloads, and sample builds remained green.
+
+Record: `docs/T1004-1.0.0-RC-Final-Gate.md`.
 
 ### T1005 — stable 1.0 source closure
 
-After a green exact RC:
+T1005 promotes the accepted RC without changing runtime/public behavior:
 
-- promote unchanged runtime/public behavior to `Version 1.0.0` / `PackageVersion 1.0.0`;
-- retain `AssemblyVersion 1.0.0.0`;
-- freeze final README/API/package/release records;
-- require the exact stable-source PR head to pass the same complete gate;
-- leave merge, post-merge `Release` validation, `v1.0.0` tagging, NuGet.org/GitHub Packages publication, symbol/checksum assets, and GitHub Release creation as explicit later actions.
+```text
+Version         1.0.0
+PackageVersion  1.0.0
+AssemblyVersion 1.0.0.0
+```
+
+The final current-contract documentation is synchronized to stable-source state through:
+
+- root `README.md`;
+- this roadmap;
+- `docs/Public-API-Fingerprint-1.0.json`;
+- `docs/Public-API-Baseline-1.0.md`;
+- `docs/1.0-Stable-Compatibility-and-Migration-Guide.md`;
+- `docs/T1005-1.0.0-Stable-Release-Closure.md`;
+- stable package release notes.
+
+One exact documentation-complete stable-source head must now pass the same complete seven-job gate as T1004. The exact green SHA is recorded in PR metadata after validation so recording the result does not move the tested head.
+
+Merge, post-merge `Release` validation, `v1.0.0` tagging, NuGet.org/GitHub Packages publication, symbols/checksums, and GitHub Release creation remain explicit later actions.
 
 ---
 
 ## 7. Package and release policy
 
-The candidate and stable package continue to target:
+The stable package targets:
 
 ```text
 net8.0
@@ -226,9 +236,11 @@ Icod.TermInfo 1.10.0
 
 PR validation uses `Staging`. Pushes to `main` and release tags use `Release`.
 
-Package verification must continue to validate assembly/package identity, XML documentation, symbols, license/readme/icon/repository metadata, exact dependency groups, and a fresh package-only consumer.
+Package verification continues to validate assembly/package identity, XML documentation, symbols, license/readme/icon/repository metadata, exact dependency groups, and a fresh package-only consumer.
 
-Release-page dependency wording must be derived from the project `PackageReference` values rather than a duplicated hard-coded version string.
+Release-page dependency wording is derived from project `PackageReference` values rather than duplicated hard-coded version strings.
+
+Stable source is not described as a published package until the tag/publication workflow succeeds.
 
 ---
 
@@ -275,10 +287,6 @@ Focused compatibility/widget packages may evolve separately after the stable cor
 ```text
 0.8.0 production hardening         published
 0.9.0 contract freeze              merged; post-merge Release gate green
-1.0.0-rc.1 stable closure          active
-  T1001 foundation                 established
-  T1002 compatibility lock         active
-  T1003 documentation/package audit next
-  T1004 exact RC gate              pending
-  T1005 stable source closure      pending
+1.0.0-rc.1 stable closure          accepted; seven-job gate green
+1.0.0 stable source                promoted; final exact-head gate active
 ```
