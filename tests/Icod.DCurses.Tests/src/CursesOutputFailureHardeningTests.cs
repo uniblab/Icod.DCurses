@@ -24,7 +24,10 @@ public sealed class CursesOutputFailureHardeningTests {
 			NoPresentationOptions()
 		);
 		session.StandardScreen.Write( "XY" );
-		output.FailOnceWhen( value => "XY" == value );
+		output.FailOnceWhen(
+			value => value.Contains( "X", StringComparison.Ordinal )
+				|| value.Contains( "Y", StringComparison.Ordinal )
+		);
 
 		_ = await Assert.ThrowsAsync<IOException>(
 			() => session.RefreshAsync().AsTask()
