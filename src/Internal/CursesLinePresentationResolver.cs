@@ -28,7 +28,7 @@ internal sealed class CursesLinePresentationResolver {
 
 		if ( TryResolveAlternateCharacterSet(
 			glyph,
-			out string? alternateContent
+			out string alternateContent
 		) ) {
 			return new CursesPhysicalLineGlyph(
 				alternateContent,
@@ -52,9 +52,9 @@ internal sealed class CursesLinePresentationResolver {
 
 	private bool TryResolveAlternateCharacterSet(
 		CursesLineGlyph glyph,
-		out string? content
+		out string content
 	) {
-		content = null;
+		content = string.Empty;
 		if ( null == terminal.GetString( StringCapability.EnterAlternateCharacterSetMode )
 			|| null == terminal.GetString( StringCapability.ExitAlternateCharacterSetMode ) ) {
 			return false;
