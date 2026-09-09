@@ -20,7 +20,6 @@ internal readonly record struct CursesErasePlan(
 /// <summary>Selects the cheapest safe advertised erase operation for default-styled blank cells.</summary>
 internal sealed class CursesEraseResolver {
 	private readonly TerminalDescription terminal;
-	private readonly CursesOutputCostModel costModel;
 	private readonly int blankByteCount;
 
 	internal CursesEraseResolver(
@@ -31,8 +30,7 @@ internal sealed class CursesEraseResolver {
 		ArgumentNullException.ThrowIfNull( costModel );
 
 		this.terminal = terminal;
-		this.costModel = costModel;
-		blankByteCount = this.costModel.GetApplicationTextByteCount( " " );
+		blankByteCount = costModel.GetApplicationTextByteCount( " " );
 	}
 
 	internal CursesErasePlan? Resolve(
@@ -69,21 +67,20 @@ internal sealed class CursesEraseResolver {
 		string? eraseLine = this.terminal.GetString(
 			StringCapability.ClearToEndOfLine
 		);
-		int rowFallbackCost = EstimateRowFallbackCost(
+		int rowLiteralCost = EstimateLiteralBlankCost(
 			desired,
 			physicalScreen,
 			row,
-			startColumn,
-			eraseLine
+			startColumn
 		);
 
 		CursesErasePlan? selected = null;
-		int selectedTotalCost = rowFallbackCost;
+		int selectedTotalCost = rowLiteralCost;
 		if ( null != eraseLine ) {
 			int eraseLineCost = CursesOutputCostModel.GetTerminalStringByteCount(
 				eraseLine
 			);
-			if ( eraseLineCost < rowFallbackCost ) {
+			if ( eraseLineCost < rowLiteralCost ) {
 				selected = new CursesErasePlan(
 					CursesEraseKind.ClearToEndOfLine,
 					eraseLine,
@@ -102,12 +99,10 @@ internal sealed class CursesEraseResolver {
 			return selected;
 		}
 
-		int remainingFallbackCost = rowFallbackCost;
-		int remainingAfterCurrentRow = 0;
 		for ( int candidateRow = row + 1; candidateRow < desired.Rows; candidateRow++ ) {
-			remainingAfterCurrentRow = checked(
-				remainingAfterCurrentRow
-				+ EstimateRowFallbackCost(
+			selectedTotalCost = checked(
+				selectedTotalCost
+				+ EstimateBestRowCost(
 					desired,
 					physicalScreen,
 					candidateRow,
@@ -116,12 +111,6 @@ internal sealed class CursesEraseResolver {
 				)
 			);
 		}
-		remainingFallbackCost = checked(
-			remainingFallbackCost + remainingAfterCurrentRow
-		);
-		selectedTotalCost = checked(
-			selectedTotalCost + remainingAfterCurrentRow
-		);
 
 		string? eraseScreen = this.terminal.GetString(
 			StringCapability.ClearToEndOfScreen
@@ -132,8 +121,7 @@ internal sealed class CursesEraseResolver {
 				eraseScreen,
 				affectedLines
 			);
-			if ( eraseScreenCost < selectedTotalCost
-				&& eraseScreenCost < remainingFallbackCost ) {
+			if ( eraseScreenCost < selectedTotalCost ) {
 				selected = new CursesErasePlan(
 					CursesEraseKind.ClearToEndOfScreen,
 					eraseScreen,
@@ -153,8 +141,7 @@ internal sealed class CursesEraseResolver {
 					clearScreen,
 					desired.Rows
 				);
-				if ( clearScreenCost < selectedTotalCost
-					&& clearScreenCost < remainingFallbackCost ) {
+				if ( clearScreenCost < selectedTotalCost ) {
 					selected = new CursesErasePlan(
 						CursesEraseKind.ClearScreen,
 						clearScreen,
@@ -168,12 +155,34 @@ internal sealed class CursesEraseResolver {
 		return selected;
 	}
 
-	private int EstimateRowFallbackCost(
+	private int EstimateBestRowCost(
 		CursesVirtualScreen desired,
 		CursesPhysicalScreenState physicalScreen,
 		int row,
 		int startColumn,
 		string? eraseLine
+	) {
+		int literalCost = EstimateLiteralBlankCost(
+			desired,
+			physicalScreen,
+			row,
+			startColumn
+		);
+		if ( 0 == literalCost || null == eraseLine ) {
+			return literalCost;
+		}
+
+		int eraseLineCost = CursesOutputCostModel.GetTerminalStringByteCount(
+			eraseLine
+		);
+		return Math.Min( literalCost, eraseLineCost );
+	}
+
+	private int EstimateLiteralBlankCost(
+		CursesVirtualScreen desired,
+		CursesPhysicalScreenState physicalScreen,
+		int row,
+		int startColumn
 	) {
 		int changedCellCount = 0;
 		for ( int column = startColumn; column < desired.Columns; column++ ) {
@@ -186,16 +195,7 @@ internal sealed class CursesEraseResolver {
 				changedCellCount++;
 			}
 		}
-
-		int literalCost = checked( changedCellCount * blankByteCount );
-		if ( 0 == literalCost || null == eraseLine ) {
-			return literalCost;
-		}
-
-		int eraseLineCost = CursesOutputCostModel.GetTerminalStringByteCount(
-			eraseLine
-		);
-		return Math.Min( literalCost, eraseLineCost );
+		return checked( changedCellCount * blankByteCount );
 	}
 
 	private static bool IsDefaultBlankTail(
