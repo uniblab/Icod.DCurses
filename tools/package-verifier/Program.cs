@@ -16,7 +16,7 @@ internal static class Program {
 		"net9.0",
 		"net10.0"
 	];
-	private const string TerminalDependencyVersion = "1.0.0";
+	private const string TerminalDependencyVersion = "1.4.0";
 	private const string TermInfoDependencyVersion = "1.10.0";
 
 	public static int Main(
