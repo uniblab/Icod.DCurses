@@ -15,13 +15,13 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 ## Status
 
-`Icod.DCurses 1.0.0` is in stable-release closure on PR #23.
+`Icod.DCurses 1.0.0` is the stable-source candidate on PR #23.
 
-The current candidate is `1.0.0-rc.1` with `AssemblyVersion 1.0.0.0`. It promotes the exact public and semantic contract frozen by merged `0.9.0`; it does not introduce another feature family or a deferred breaking-cleanup pass.
+The accepted `1.0.0-rc.1` contract was promoted unchanged to stable `1.0.0` package metadata with `AssemblyVersion 1.0.0.0`. Exact RC head `1968bae18610e69e56dc8f720bffb099cb58eb24` passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation before stable promotion.
 
-The merged `0.9.0` source baseline passed the complete `Release` matrix on Windows, Linux, and macOS x64/ARM64 plus package/fresh-consumer validation before 1.0 work began.
+The merged `0.9.0` source baseline also passed the complete post-merge `Release` matrix before 1.0 work began.
 
-The proposed stable public contract contains:
+The frozen stable public contract contains:
 
 ```text
 43 exported types
@@ -38,7 +38,7 @@ The direct dependency baseline remains:
 
 ## Installation
 
-The latest published GitHub release remains `0.8.0`. The merged `0.9.0` source and the `1.0.0-rc.1` PR candidate are not presented here as published stable packages until their respective tag/publication workflows complete.
+The latest published GitHub release remains `0.8.0`. The merged `0.9.0` source and stable `1.0.0` PR source are not presented here as published packages until their respective tag/publication workflows complete.
 
 ```text
 dotnet add package Icod.DCurses --version 0.8.0
@@ -107,7 +107,7 @@ A `CursesSession` restores the presentation and Terminal-owned state it acquires
 
 ## Stable 1.0 compatibility contract
 
-The 1.0 release candidate carries forward the exact contract frozen in 0.9.
+Stable `1.0.0` source carries forward the exact contract frozen in 0.9 and accepted by the green 1.0 RC gate.
 
 The accepted compatibility rules include:
 
@@ -306,6 +306,8 @@ The 1.0 closure records include:
 - `docs/T1001-1.0.0-Release-Closure-Foundation.md`
 - `docs/T1002-1.0-Public-Contract-Carry-Forward.md`
 - `docs/T1003-1.0-Documentation-Package-and-Release-Audit.md`
+- `docs/T1004-1.0.0-RC-Final-Gate.md`
+- `docs/T1005-1.0.0-Stable-Release-Closure.md`
 - `docs/Public-API-Fingerprint-1.0.json`
 - `docs/Public-API-Baseline-1.0.md`
 - `docs/1.0-Stable-Compatibility-and-Migration-Guide.md`
