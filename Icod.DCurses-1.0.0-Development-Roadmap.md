@@ -1,24 +1,28 @@
 # Icod.DCurses 1.0.0 Development Roadmap
 
 **Project:** `Icod.DCurses`  
-**Merged source baseline:** `0.9.0`  
-**Published stable baseline:** `0.8.0` until a later tag/publication workflow advances it  
-**Stable source target:** `1.0.0`  
+**Merged stable-source baseline:** `1.0.0` at main commit `686814fe3036484265513d06fe48aec0315912aa`  
+**Published stable baseline:** `0.9.0`  
+**Package version:** `1.0.0`  
 **Assembly version:** `1.0.0.0`  
-**Runtime dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
+**Current runtime dependencies:** `Icod.Terminal 1.5.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** T1001–T1004 complete; T1005 stable-source merge gate active
+**Status:** T1001–T1005 complete and merged; post-closure Terminal 1.5.0 dependency refresh active on PR #24 without a DCurses version bump
 
 ---
 
 ## 1. Purpose
 
-`Icod.DCurses 1.0.0` is release closure over the contract frozen by `0.9.0`.
+`Icod.DCurses 1.0.0` is the stable release closure of the contract frozen by `0.9.0`.
 
-The feature-building and pre-1.0 breaking-cleanup window is closed. The purpose of 1.0 development is to prove, document, package, and publish the already-accepted managed contract without introducing a surprise feature family or incidental compatibility break.
+The feature-building and pre-1.0 breaking-cleanup window is closed. T1001–T1005 proved, documented, packaged, and merged the accepted managed contract without introducing a surprise feature family or incidental compatibility break.
 
 The merged 0.9 `main` commit `2acf166aed9c56c330025ca923c1d7cae712f913` passed the complete repository `Release` workflow across Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation before 1.0 candidate work began.
+
+The documentation-complete stable 1.0 source head `5c17607194b546c6d831be5811d1865a195b970e` passed the complete seven-job PR gate and was merged into `main` as commit `686814fe3036484265513d06fe48aec0315912aa`.
+
+PR #24 is a post-closure dependency refresh from `Icod.Terminal 1.4.0` to `1.5.0`. It deliberately leaves `Version 1.0.0`, `PackageVersion 1.0.0`, `AssemblyVersion 1.0.0.0`, and the frozen DCurses public API unchanged.
 
 ---
 
@@ -69,7 +73,7 @@ Icod.TermInfo.TerminalDescription
 Icod.TermInfo.TerminalSize
 ```
 
-No new Terminal/TermInfo type may enter the public signature surface during stable closure.
+The Terminal 1.5.0 dependency refresh does not add another upstream public type or otherwise change the DCurses public fingerprint.
 
 ---
 
@@ -112,6 +116,7 @@ The stable contract includes:
 | `0.7.0` | Refresh optimization | Synchronized output, cost-aware terminal operations, edit/scroll optimization, deterministic output gates |
 | `0.8.0` | Production hardening | Explicit concurrency/lifetime/failure model, race recovery, stress and ownership acceptance |
 | `0.9.0` | Contract freeze | Machine API fingerprint, semantic/lifetime/dependency/documentation/package freeze |
+| `1.0.0` | Stable release closure | Frozen 0.9 contract promoted to stable assembly/package identity and merged after full RC/stable gates |
 
 Historical tranche roadmaps and records remain authoritative for the details of those releases and are not rewritten to current package versions.
 
@@ -124,7 +129,7 @@ T1001  post-0.9 merge baseline + 1.0 RC foundation      complete
   -> T1002  1.0 public API/fingerprint carry-forward   complete
   -> T1003  documentation/package/release audit        complete
   -> T1004  exact 1.0.0-rc.1 full PR gate             complete
-  -> T1005  stable 1.0.0 source + documentation gate  active
+  -> T1005  stable 1.0.0 source + documentation gate  complete
 ```
 
 ### T1001 — post-0.9 baseline and RC foundation
@@ -135,7 +140,7 @@ Completed results:
 - branch/PR was created from that exact merge commit;
 - `Version` / `PackageVersion` became `1.0.0-rc.1`;
 - `AssemblyVersion` became `1.0.0.0`;
-- dependencies remained Terminal 1.4.0 / TermInfo 1.10.0;
+- dependencies at this historical checkpoint were Terminal 1.4.0 / TermInfo 1.10.0;
 - no runtime feature/public API change entered with the version promotion.
 
 Record: `docs/T1001-1.0.0-Release-Closure-Foundation.md`.
@@ -193,7 +198,7 @@ Record: `docs/T1004-1.0.0-RC-Final-Gate.md`.
 
 ### T1005 — stable 1.0 source closure
 
-T1005 promotes the accepted RC without changing runtime/public behavior:
+Stable identity:
 
 ```text
 Version         1.0.0
@@ -201,25 +206,36 @@ PackageVersion  1.0.0
 AssemblyVersion 1.0.0.0
 ```
 
-The final current-contract documentation is synchronized to stable-source state through:
+Exact documentation-complete stable source head:
+
+```text
+5c17607194b546c6d831be5811d1865a195b970e
+```
+
+Workflow run `34372963625` (#396) passed Windows/Linux/macOS x64/ARM64 plus package/fresh-consumer validation on that exact SHA.
+
+PR #23 then merged the stable source into `main` as commit:
+
+```text
+686814fe3036484265513d06fe48aec0315912aa
+```
+
+Records:
 
 - root `README.md`;
 - this roadmap;
 - `docs/Public-API-Fingerprint-1.0.json`;
 - `docs/Public-API-Baseline-1.0.md`;
 - `docs/1.0-Stable-Compatibility-and-Migration-Guide.md`;
-- `docs/T1005-1.0.0-Stable-Release-Closure.md`;
-- stable package release notes.
+- `docs/T1005-1.0.0-Stable-Release-Closure.md`.
 
-One exact documentation-complete stable-source head must now pass the same complete seven-job gate as T1004. The exact green SHA is recorded in PR metadata after validation so recording the result does not move the tested head.
-
-Merge, post-merge `Release` validation, `v1.0.0` tagging, NuGet.org/GitHub Packages publication, symbols/checksums, and GitHub Release creation remain explicit later actions.
+The later tag/publication step remains separate from the historical T1005 branch gate.
 
 ---
 
-## 7. Package and release policy
+## 7. Current package and release policy
 
-The stable package targets:
+The 1.0 package targets:
 
 ```text
 net8.0
@@ -227,12 +243,14 @@ net9.0
 net10.0
 ```
 
-Direct runtime dependencies remain:
+Current direct runtime dependencies are:
 
 ```text
-Icod.Terminal 1.4.0
+Icod.Terminal 1.5.0
 Icod.TermInfo 1.10.0
 ```
+
+This dependency refresh does not change any DCurses version field.
 
 PR validation uses `Staging`. Pushes to `main` and release tags use `Release`.
 
@@ -240,11 +258,34 @@ Package verification continues to validate assembly/package identity, XML docume
 
 Release-page dependency wording is derived from project `PackageReference` values rather than duplicated hard-coded version strings.
 
-Stable source is not described as a published package until the tag/publication workflow succeeds.
+The latest published GitHub release is `0.9.0`. Stable 1.0 source is not described as a published package until the `v1.0.0` tag/publication workflow succeeds.
 
 ---
 
-## 8. Explicit 1.0 non-goals
+## 8. Post-closure Terminal 1.5.0 dependency refresh
+
+PR #24 updates the direct Terminal dependency only:
+
+```text
+Icod.Terminal 1.4.0 -> 1.5.0
+```
+
+Constraints:
+
+- `Version` remains `1.0.0`;
+- `PackageVersion` remains `1.0.0`;
+- `AssemblyVersion` remains `1.0.0.0`;
+- `Icod.TermInfo` remains `1.10.0`;
+- the 1.0 public API fingerprint remains unchanged;
+- the strict package verifier requires Terminal 1.5.0 in every TFM dependency group;
+- current README, API baseline, migration guide, samples, and package-tool documentation describe the new dependency baseline;
+- T1001–T1005 and earlier tranche records remain unchanged because they document the dependency actually validated at those historical checkpoints.
+
+Initial PR restore/build failure is expected while NuGet.org indexing for `Icod.Terminal 1.5.0` is still propagating. Once the package resolves, the normal six-architecture plus package/fresh-consumer matrix becomes the compatibility signal.
+
+---
+
+## 9. Explicit 1.0 non-goals
 
 The stable core does not require:
 
@@ -267,7 +308,7 @@ Focused compatibility/widget packages may evolve separately after the stable cor
 
 ---
 
-## 9. Release discipline
+## 10. Release discipline
 
 1. No 1.0 public API change is incidental.
 2. A breaking change requires an explicit compatibility decision; it is not ordinary release cleanup.
@@ -282,11 +323,13 @@ Focused compatibility/widget packages may evolve separately after the stable cor
 
 ---
 
-## 10. Immediate status
+## 11. Immediate status
 
 ```text
 0.8.0 production hardening         published
-0.9.0 contract freeze              merged; post-merge Release gate green
+0.9.0 contract freeze              published
 1.0.0-rc.1 stable closure          accepted; seven-job gate green
-1.0.0 stable source                promoted; final exact-head gate active
+1.0.0 stable source                merged into main
+v1.0.0 publication                 pending
+Terminal 1.5.0 dependency refresh  PR #24 active; DCurses version unchanged
 ```

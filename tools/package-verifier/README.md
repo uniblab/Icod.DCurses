@@ -17,11 +17,15 @@ It verifies:
   LGPL license expression, repository, and required license acceptance;
 - the package contains non-empty `LICENSE` and `icod_tui_toolchain.jpg` payloads;
 - each target-framework dependency group contains exactly
-  `Icod.Terminal 1.4.0` and `Icod.TermInfo 1.10.0`;
+  `Icod.Terminal 1.5.0` and `Icod.TermInfo 1.10.0`;
 - dependency assemblies are not accidentally bundled into the primary package;
 - native/runtime and repository-only payloads are absent;
 - the symbol package contains exactly one non-empty portable PDB for each target
   framework.
+
+The dependency checks are intentionally exact. A successful restore alone is not
+sufficient: the generated nuspec must record the current approved direct runtime
+versions for every target framework.
 
 Run after packing:
 
