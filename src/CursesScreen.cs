@@ -81,7 +81,7 @@ public sealed class CursesScreen {
 	/// </summary>
 	/// <param name="columns">The new positive column count.</param>
 	/// <param name="rows">The new positive row count.</param>
-	/// <param name="preserveContents">Whether overlapping logical cells should be retained.</param>
+	/// <param name="preserveContents">Whether overlapping logical cells and semantic metadata should be retained.</param>
 	public void Resize(
 		int columns,
 		int rows,
@@ -110,6 +110,17 @@ public sealed class CursesScreen {
 			for ( int row = 0; row < copyRows; row++ ) {
 				for ( int column = 0; column < copyColumns; column++ ) {
 					replacement[ row, column ] = virtualScreen[ row, column ];
+					CursesCellMetadata? metadata = virtualScreen.GetMetadata(
+						row,
+						column
+					);
+					if ( metadata is not null ) {
+						replacement.SetMetadata(
+							row,
+							column,
+							metadata
+						);
+					}
 				}
 			}
 
