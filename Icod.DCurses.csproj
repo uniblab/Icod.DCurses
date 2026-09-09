@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>1.1.0-alpha.1</Version>
+		<Version>1.1.0-alpha.2</Version>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>1.1.0-alpha.1</PackageVersion>
+		<PackageVersion>1.1.0-alpha.2</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>1.1.0-alpha.1 begins the post-1.0 semantic-content release line. T1101 freezes the stable 1.0 public compatibility floor, retains AssemblyVersion 1.0.0.0 for compatible additive 1.x releases, advances the direct Icod.Terminal dependency to 1.6.0, and establishes the representation/memory measurement gate required before semantic cell metadata and retained hyperlinks become public API. This checkpoint adds no new public DCurses type or member and does not emit OSC 8 directly; Terminal remains the typed hyperlink protocol and live-session ownership authority. Dependencies are Icod.Terminal 1.6.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>1.1.0-alpha.2 completes the semantic-metadata representation decision for the first post-1.0 feature line. T1102 retains the stable 72-byte CursesCell representation on the supported 64-bit runtime matrix and selects a lazily allocated row-sparse metadata reference plane instead of imposing a permanent per-cell reference or surface-relative token. The selected model pays reference storage only for rows that actually contain semantic metadata, preserves standalone CursesCell value semantics, and provides deterministic row snapshot/replace mechanics for later editing and composition integration. No public hyperlink or metadata type is added yet; Terminal remains the typed OSC 8 protocol and live-session ownership authority. Dependencies are Icod.Terminal 1.6.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
