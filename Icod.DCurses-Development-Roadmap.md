@@ -4,13 +4,13 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`  
 **Published stable baseline:** `1.0.0`  
 **Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
-**Current development package:** `1.1.0-alpha.3`  
+**Current development package:** `1.1.0-alpha.4`  
 **Assembly version:** `1.0.0.0`  
 **Current runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Active development target:** `1.1.0` — semantic cell metadata and hyperlinks  
-**Status:** T1101–T1102 complete; T1103 logical/API implementation green and documentation-complete validation active
+**Active development target:** `1.1.0` — semantic cell metadata and retained hyperlinks  
+**Status:** T1101–T1103 complete; T1104 retained hyperlink renderer implemented and under exact-head validation; T1105 next
 
 ---
 
@@ -30,8 +30,8 @@ Current development is organized by stable 1.x release documents rather than by 
 
 | Release | Theme | Status |
 |---|---|---|
-| `1.0.0` | Stable core contract | Published stable baseline |
-| `1.1.0` | Semantic cell metadata and hyperlinks | Active — `1.1.0-alpha.3`; T1103 |
+| `1.0.0` | Stable core contract | Published stable release |
+| `1.1.0` | Semantic cell metadata and hyperlinks | Active — `1.1.0-alpha.4`; T1104 |
 | `1.2.0` | Panels, layers, visibility, and z-order composition | Approved future release |
 | `1.3.0` | Layout and resize primitives | Approved future release |
 | `1.4.0` | Focus, interaction regions, key gestures, hit testing, and pointer semantics | Approved future release |
@@ -49,7 +49,8 @@ Current implementation records are:
 
 - `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md`;
 - `docs/T1102-Semantic-Metadata-Representation-and-Memory-Gate.md`;
-- `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`.
+- `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`;
+- `docs/T1104-Retained-Physical-Hyperlink-Renderer.md`.
 
 ---
 
@@ -78,9 +79,9 @@ The stable boundary remains:
 - `Icod.Terminal` owns the live terminal conversation, raw protocol framing/routing, active evidence, session-owned state, input decoding, and output serialization;
 - `Icod.DCurses` owns higher-level terminal UI semantics, logical composition, cells, windows, pads, retained rendering, and application-facing interaction mechanics.
 
-`Icod.DCurses` must not grow raw OSC/CSI/DCS/APC protocol writers merely because Terminal supports those protocol families. DCurses consumes Terminal semantic operations only where the higher-level curses model adds meaning.
+`Icod.DCurses` must not grow raw OSC/CSI/DCS/APC protocol writers merely because Terminal supports those protocol families. DCurses consumes Terminal semantic operations where the higher-level curses model adds meaning.
 
-Terminal 1.6.0 strengthens the CSI/parser/query foundation and internal pixel-geometry substrate without changing the public contract used by DCurses 1.1. Hyperlink protocol ownership continues through Terminal's existing typed OSC 8 operations.
+Terminal 1.6.0 remains the active dependency floor. Hyperlink rendering uses Terminal's typed OSC 8 operation; DCurses does not construct OSC 8 frames.
 
 ---
 
@@ -103,12 +104,20 @@ Terminal 1.6.0 strengthens the CSI/parser/query foundation and internal pixel-ge
 
 ## Compatibility and version policy
 
-The published stable 1.0 public contract remains the compatibility floor:
+The published 1.0 public contract remains the compatibility floor:
 
 ```text
 sha256:            274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
 exported types:    43
 contract lines:   309
+```
+
+The provisional additive 1.1 contract introduced by T1103 is:
+
+```text
+sha256:            d7fb2040d9cd22ed71e90e788f453c73eb29d681f2cc0f7aaefa805792fab2ea
+exported types:    45
+contract lines:   337
 ```
 
 T1101 ratified this additive 1.x identity policy:
@@ -121,8 +130,8 @@ AssemblyVersion   remains 1.0.0.0 for compatible additive 1.x releases
 The active checkpoint is:
 
 ```text
-Version         1.1.0-alpha.3
-PackageVersion  1.1.0-alpha.3
+Version         1.1.0-alpha.4
+PackageVersion  1.1.0-alpha.4
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -132,55 +141,57 @@ A future breaking compatibility decision may revisit assembly identity explicitl
 
 ---
 
-## T1102 representation decision
+## Semantic metadata representation
 
-T1102 rejects a permanent metadata reference inside every `CursesCell` and rejects a surface-relative token.
-
-The portable 64-bit measurement frozen by the gate is the **incremental cost**, not one architecture-specific private `CursesCell` size:
-
-```text
-cell + metadata-reference wrapper overhead   +8 bytes per cell
-cell + int-token wrapper overhead             +8 bytes per cell
-```
+T1102 rejected a permanent metadata reference inside every `CursesCell` and rejected a surface-relative token. The portable measurement that matters is the incremental cost: both a metadata-reference wrapper and the tested token wrapper add one eight-byte slot per logical cell on the supported 64-bit matrix.
 
 At the established 2,048 × 256 large-pad scale, one unconditional eight-byte slot adds exactly 4 MiB even when metadata is unused.
 
-T1102 therefore selects a lazily allocated row-sparse reference plane:
+The accepted row-sparse reference plane therefore provides:
 
 - no semantic plane allocation for an ordinary surface with no metadata;
-- top-level row references allocated only after the first semantic value;
-- per-row reference storage allocated only for rows that contain semantic values;
-- row storage released when its last semantic value is removed;
+- per-row reference storage only for rows that contain semantic values;
+- row storage release when its last semantic value disappears;
 - O(1) coordinate lookup;
 - deterministic row snapshot/replace support for editing algorithms;
-- `CursesCell` remains a standalone context-free public value.
+- unchanged, standalone `CursesCell` value semantics.
 
 The internal foundation is `CursesSparseCellPlane<T>`.
 
 ---
 
-## T1103 logical semantic contract
+## T1103 public semantic contract
 
-T1103 introduces the first intentional additive public API after 1.0:
+T1103 introduced exactly two new public semantic types:
 
-```text
-CursesHyperlink
-CursesCellMetadata
-```
+- `CursesHyperlink`;
+- `CursesCellMetadata`.
 
-along with metadata-aware logical write/inspection/mutation operations on `CursesWindow` and `CursesVirtualScreen`.
+`CursesVirtualScreen` and `CursesWindow` expose coordinate metadata inspection/mutation, and `CursesWindow` exposes metadata-aware text/cell writes. Two-column text elements carry one coherent metadata value across leader and continuation coordinates. Ordinary replacement removes overwritten semantic metadata even when the visible cell value is unchanged.
 
-The provisional compiled 1.1 development contract is:
+The provisional current compiled API is guarded by `docs/Public-API-Fingerprint-1.1.json`. Historical 0.9/1.0 baselines remain unchanged.
 
-```text
-sha256:            d7fb2040d9cd22ed71e90e788f453c73eb29d681f2cc0f7aaefa805792fab2ea
-exported types:    45
-contract lines:   337
-```
+T1103's documentation-complete head `d520adf79bf6a74bfbb09e1b2ecc4082a3cce960` passed workflow #474 (`34405314146`) on all six runtime architectures plus package validation.
 
-`docs/Public-API-Fingerprint-1.1.json` is a development baseline and may still change deliberately before T1108. The stable 0.9/1.0 fingerprint files remain untouched historical/stable authorities.
+---
 
-T1103 remains logical only: physical OSC 8 rendering begins in T1104.
+## T1104 retained physical hyperlink rendering
+
+T1104 extends retained physical knowledge to include semantic metadata. A semantic-only difference is therefore a refresh difference even when glyph and style are identical.
+
+The renderer:
+
+- splits changed style runs further by semantic metadata identity;
+- coalesces adjacent cells with equal hyperlink metadata into one linked payload;
+- delegates each linked payload to Terminal's bounded `WriteHyperlinkAsync(...)` operation;
+- remains hyperlink-neutral between bounded linked runs;
+- invalidates physical metadata together with physical cell knowledge after uncertain output;
+- supports two-column linked elements without emitting the continuation as text;
+- composes with optional synchronized output through Terminal's existing ownership model.
+
+Until T1105/T1107 prove semantic behavior for terminal-native structural operations, line-shift, character-shift, erase, and scroll shortcuts are conservatively bypassed whenever desired or retained physical semantic metadata exists.
+
+The current alpha.4 exact-head gate is rerunning only Windows ARM64 after an infrastructure-only `actions/setup-dotnet` CLR crash. All repository-executing jobs on the same head were green.
 
 ---
 
@@ -189,16 +200,14 @@ T1103 remains logical only: physical OSC 8 rendering begins in T1104.
 ```text
 T1101  contract/reference/version-policy freeze             complete
   -> T1102  semantic metadata representation + memory gate  complete
-  -> T1103  hyperlink value/public write/read contract      implementation green; docs gate active
-  -> T1104  retained physical hyperlink renderer            next
-  -> T1105  editing/copy/overlay/pad propagation
+  -> T1103  hyperlink value/public write/read contract      complete
+  -> T1104  retained physical hyperlink renderer            implemented; exact-head gate
+  -> T1105  editing/copy/overlay/pad propagation            next
   -> T1106  lifecycle/failure/cancellation hardening
   -> T1107  application/performance/allocation acceptance
   -> T1108  API/package/documentation/regret gate
   -> T1109  RC and stable 1.1.0 closure
 ```
-
-The code/API checkpoint `b2c1e7c18c1de929e705f119794d7eb5f6d6073b` passed workflow #469 (`34403872794`) on all six runtime architectures plus package validation. One documentation-synchronized alpha.3 head must pass the same gate before T1103 is complete.
 
 ---
 
@@ -212,9 +221,10 @@ Current authorities:
 - `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md`;
 - `docs/T1102-Semantic-Metadata-Representation-and-Memory-Gate.md`;
 - `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`;
-- `docs/Public-API-Fingerprint-1.1.json` — provisional 1.1 development fingerprint.
+- `docs/T1104-Retained-Physical-Hyperlink-Renderer.md`;
+- `docs/Public-API-Fingerprint-1.1.json`.
 
-Published stable 1.0 closure authority:
+Published 1.0 compatibility authority:
 
 - `Icod.DCurses-1.0.0-Development-Roadmap.md`;
 - `docs/Public-API-Fingerprint-1.0.json`;
