@@ -44,6 +44,7 @@ public sealed partial class CursesSession {
 		try {
 			await synchronizedOutput.DisposeAsync().ConfigureAwait( false );
 		} catch ( Exception synchronizationFailure ) {
+			this.InvalidatePhysicalScreen();
 			if ( refreshFailure is not null ) {
 				throw new AggregateException(
 					"Curses refresh failed and synchronized-output restoration also reported an error.",
