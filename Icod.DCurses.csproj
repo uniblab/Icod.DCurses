@@ -22,7 +22,7 @@
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.7.0 completes the refresh and output optimization release. DCurses adds opt-in Terminal-owned synchronized-output framing; deterministic cost-aware cursor-motion and erase selection; exact physical insert/delete-character and insert/delete-line/scroll-region optimization with conservative retained-screen and failure-recovery gates; and differential rendition transitions that preserve reset-first safety whenever state must be normalized. The accepted public delta is limited to CursesSessionOptions.UseSynchronizedOutput, default false; cost models, selectors, operation plans, retained physical state, and measurement infrastructure remain internal. Deterministic release-gate fixtures include a 19-to-13-byte styled-cell improvement, a 2-vs-34-byte editor insertion, a 4-vs-166-byte pager deletion, a 160x60 full repaint, and 1,000 repeated small refreshes. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.7.0 completes the refresh and output optimization release. DCurses adds opt-in Terminal-owned synchronized-output framing; deterministic cost-aware cursor-motion and erase selection; exact physical insert/delete-character and insert/delete-line/scroll-region optimization with conservative retained-screen and failure-recovery gates; and differential rendition transitions that preserve reset-first safety whenever state must be normalized. The accepted public delta is limited to CursesSessionOptions.UseSynchronizedOutput, default false; cost models, selectors, operation plans, retained physical state, and measurement infrastructure remain internal. Deterministic release-gate fixtures include a 19-to-13-byte styled-cell improvement, a 2-vs-34-byte editor insertion, a 4-vs-166-byte pager deletion, a 160x60 full repaint, and 1,000 repeated small refreshes. Dependencies remain Icod.Terminal 1.4.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -95,7 +95,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Icod.Terminal" Version="1.0.0" />
+		<PackageReference Include="Icod.Terminal" Version="1.4.0" />
 		<PackageReference Include="Icod.TermInfo" Version="1.10.0" />
 	</ItemGroup>
 </Project>
