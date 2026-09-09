@@ -1,6 +1,6 @@
 # Icod.DCurses
 
-![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.5.0/icod_tui_toolchain.jpg)
+![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.6.0/icod_tui_toolchain.jpg)
 
 `Icod.DCurses` is a managed, cross-platform curses-like terminal UI library for
 .NET.
@@ -15,14 +15,32 @@ synchronization.
 
 ## Status
 
-`Icod.DCurses 0.5.0` is the current published stable release.
+`Icod.DCurses 0.6.0` is the current published stable release.
 
-The `0.6.0` rendition, drawing, and presentation contract has completed its
-release-candidate gate and has been promoted unchanged to stable `0.6.0` source
-with assembly version `0.6.0.0`. T609's final stable-source PR merge gate is
-active; publication remains post-merge and post-Release-matrix validation.
+The `0.7.0` refresh/output optimization contract has completed implementation
+through T707 and the T708 benchmark/API/package/regret gate. The accepted
+contract is promoted to release candidate `0.7.0-rc.1` with assembly version
+`0.7.0.0`. T709 stable-source validation is the remaining pre-merge gate;
+publication remains post-merge and post-Release-matrix work.
 
-The frozen 0.6 contract adds:
+The 0.7 release candidate adds or improves:
+
+- opt-in Terminal-owned synchronized-output framing at the complete refresh
+  transaction boundary;
+- deterministic cost-aware absolute/relative cursor-motion selection;
+- cost-aware literal blank, clear-to-end-of-line, clear-to-end-of-screen, and
+  whole-screen erase selection;
+- exact physical insert/delete-character optimization for safe row-local shifts;
+- exact physical insert/delete-line and forward/reverse scrolling optimization,
+  including temporary full-width scrolling regions with failure-safe restoration;
+- differential retained-rendition transitions that avoid redundant reset/reapply
+  work while preserving reset-first safety when state must be normalized;
+- deterministic byte/write release gates, including optimized-vs-fallback editor
+  and pager workloads;
+- one deliberate public API addition,
+  `CursesSessionOptions.UseSynchronizedOutput`, default `false`.
+
+The frozen 0.6 contract established:
 
 - a complete semantic rendition vocabulary including italic, blink, conceal,
   and strikeout;
@@ -63,13 +81,22 @@ The first release line was driven by the requirements of `top`, `slabtop`, and
 managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
-train through `1.0.0`, and `Icod.DCurses-0.6.0-Development-Roadmap.md` for the
-presentation tranche. Current 0.6 decisions and gates are recorded in:
+train through `1.0.0`, and `Icod.DCurses-0.7.0-Development-Roadmap.md` for the
+current optimization tranche. Current 0.7 decisions and gates are recorded in:
 
-- `docs/T603-T606-Presentation-Resolution-and-Line-Drawing.md`
-- `docs/T607-T608-Presentation-Acceptance-and-Freeze.md`
-- `docs/T609-0.6.0-Stable-Release-Closure.md`
-- `docs/Public-API-Baseline-0.6.md`.
+- `docs/T701-Refresh-Cost-Foundation-and-Baseline.md`
+- `docs/T702-Synchronized-Refresh-Framing.md`
+- `docs/T703-Cursor-Motion-Selection.md`
+- `docs/T704-Cost-Aware-Erase-Selection.md`
+- `docs/T705-Character-Shift-Optimization.md`
+- `docs/T706-Physical-Line-Shift-and-Scroll-Region-Optimization.md`
+- `docs/T707-Rendition-and-Refresh-State-Minimization.md`
+- `docs/T708-Benchmark-API-Package-and-Regret-Gate.md`
+- `docs/Public-API-Baseline-0.7.md`.
+
+The completed 0.6 presentation release is recorded in
+`Icod.DCurses-0.6.0-Development-Roadmap.md`, its T603-T609 documents, and
+`docs/Public-API-Baseline-0.6.md`.
 
 The completed 0.5 pad release is recorded in
 `Icod.DCurses-0.5.0-Development-Roadmap.md`, its T504-T509 documents, and
@@ -132,8 +159,11 @@ The implementation targets:
 The current published stable package is:
 
 ```text
-dotnet add package Icod.DCurses --version 0.5.0
+dotnet add package Icod.DCurses --version 0.6.0
 ```
+
+`0.7.0-rc.1` is a source/package-validation checkpoint on the development PR;
+it is not presented here as a published stable package.
 
 ## Quick start
 
@@ -164,6 +194,63 @@ CursesEvent terminalEvent = await session.ReadEventAsync();
 The session owns the presentation state it enters and restores that state when
 disposed. Applications should consume terminal input and lifecycle activity
 through `CursesSession` rather than adding a parallel terminal reader.
+
+## Refresh and output optimization (`0.7`)
+
+The retained logical/physical screen model remains authoritative. DCurses may
+select a cheaper physical terminal operation only when the current TermInfo
+description advertises the required capabilities, the retained state proves the
+operation produces the same final screen, and the concrete emitted-byte cost is
+a strict win. Otherwise the ordinary renderer is used.
+
+Applications that prefer synchronized presentation can opt in at the curses
+session boundary:
+
+```csharp
+await using CursesSession session = await CursesSession.OpenAsync(
+    new CursesSessionOptions {
+        UseSynchronizedOutput = true
+    }
+);
+```
+
+This asks `Icod.Terminal` to frame each complete `RefreshAsync()` transaction
+using its synchronized-output lease. The option defaults to `false`: one
+unnested begin/end pair adds 16 protocol bytes, so framing can be a net cost for
+small or high-frequency updates. DCurses does not infer support from a terminal
+name and does not construct private mode 2026 sequences itself.
+
+The other 0.7 optimizations are internal. Depending on the advertised TermInfo
+capabilities and the exact diff, the refresh engine can choose:
+
+- shorter safe absolute/relative cursor movement;
+- literal blanks versus `el`, `ed`, or whole-screen clear;
+- `ich`/`dch` for exact row-local character shifts;
+- `il`/`dl` or forward/reverse scroll for exact full-row shifts;
+- temporary `csr` regions for exact full-width interior vertical shifts, always
+  restored before the refresh transaction finishes;
+- incremental style transitions when a known physical style only gains
+  attributes or changes non-default colors.
+
+Safety preconditions are deliberately conservative. Ambiguous wide-cell
+character shifts, partial-width scroll ownership, non-default erase regions,
+unknown retained state, and equal-cost candidates stay on the ordinary path.
+Output failure invalidates retained knowledge so the next refresh returns through
+the safe fallback path.
+
+The deterministic release-gate fixtures currently record:
+
+```text
+T701 established-default -> bold: 19 bytes / 4 writes
+T707 established-default -> bold: 13 bytes / 3 writes
+editor two-column insertion:       2 optimized vs 34 fallback bytes
+pager one-line deletion:            4 optimized vs 166 fallback bytes
+160 x 60 full repaint:           9661 bytes / 121 writes / 1 flush
+1000 one-cell updates:           2000 bytes / 2000 writes / 1000 flushes
+```
+
+These are synthetic maintainer fixtures used to make optimization decisions
+repeatable; they are not universal performance claims for all terminals.
 
 ## Rendition and semantic drawing (`0.6`)
 
