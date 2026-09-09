@@ -837,23 +837,99 @@ internal sealed class CursesRefreshEngine {
 			return;
 		}
 
-		if ( currentStyle.HasValue ) {
-			await ResetAttributesAsync(
-				currentStyle.Value.Attributes,
-				cancellationToken
-			).ConfigureAwait( false );
-		} else {
+		if ( !currentStyle.HasValue ) {
 			await WriteCapabilityIfPresentAsync(
 				StringCapability.ExitAttributeMode,
 				cancellationToken
 			).ConfigureAwait( false );
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.OriginalColorPair,
+				cancellationToken
+			).ConfigureAwait( false );
+			await ApplyAttributesAsync(
+				style.Attributes,
+				cancellationToken
+			).ConfigureAwait( false );
+			await ApplyColorAsync(
+				style.Foreground,
+				foreground: true,
+				cancellationToken
+			).ConfigureAwait( false );
+			await ApplyColorAsync(
+				style.Background,
+				foreground: false,
+				cancellationToken
+			).ConfigureAwait( false );
+			currentStyle = style;
+			return;
 		}
-		await WriteCapabilityIfPresentAsync(
-			StringCapability.OriginalColorPair,
-			cancellationToken
-		).ConfigureAwait( false );
 
-		CursesTextAttributes attributes = style.Attributes;
+		CursesStyle current = currentStyle.Value;
+		CursesTextAttributes removedAttributes = current.Attributes
+			& ~style.Attributes;
+		bool returnsForegroundToDefault = !current.Foreground.IsDefault
+			&& style.Foreground.IsDefault;
+		bool returnsBackgroundToDefault = !current.Background.IsDefault
+			&& style.Background.IsDefault;
+		bool requiresReset = CursesTextAttributes.None != removedAttributes
+			|| returnsForegroundToDefault
+			|| returnsBackgroundToDefault;
+
+		if ( requiresReset ) {
+			if ( CursesTextAttributes.None != removedAttributes ) {
+				await ResetAttributesAsync(
+					current.Attributes,
+					cancellationToken
+				).ConfigureAwait( false );
+			}
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.OriginalColorPair,
+				cancellationToken
+			).ConfigureAwait( false );
+			await ApplyAttributesAsync(
+				style.Attributes,
+				cancellationToken
+			).ConfigureAwait( false );
+			await ApplyColorAsync(
+				style.Foreground,
+				foreground: true,
+				cancellationToken
+			).ConfigureAwait( false );
+			await ApplyColorAsync(
+				style.Background,
+				foreground: false,
+				cancellationToken
+			).ConfigureAwait( false );
+		} else {
+			CursesTextAttributes addedAttributes = style.Attributes
+				& ~current.Attributes;
+			await ApplyAttributesAsync(
+				addedAttributes,
+				cancellationToken
+			).ConfigureAwait( false );
+			if ( current.Foreground != style.Foreground ) {
+				await ApplyColorAsync(
+					style.Foreground,
+					foreground: true,
+					cancellationToken
+				).ConfigureAwait( false );
+			}
+			if ( current.Background != style.Background ) {
+				await ApplyColorAsync(
+					style.Background,
+					foreground: false,
+					cancellationToken
+				).ConfigureAwait( false );
+			}
+		}
+
+		currentStyle = style;
+	}
+
+	private async ValueTask ApplyAttributesAsync(
+		CursesTextAttributes attributes,
+		CancellationToken cancellationToken
+	) {
 		if ( 0 != ( attributes & CursesTextAttributes.Bold ) ) {
 			await WriteCapabilityIfPresentAsync(
 				StringCapability.EnterBoldMode,
@@ -908,19 +984,6 @@ internal sealed class CursesRefreshEngine {
 				cancellationToken
 			).ConfigureAwait( false );
 		}
-
-		await ApplyColorAsync(
-			style.Foreground,
-			foreground: true,
-			cancellationToken
-		).ConfigureAwait( false );
-		await ApplyColorAsync(
-			style.Background,
-			foreground: false,
-			cancellationToken
-		).ConfigureAwait( false );
-
-		currentStyle = style;
 	}
 
 	private async ValueTask ApplyColorAsync(
