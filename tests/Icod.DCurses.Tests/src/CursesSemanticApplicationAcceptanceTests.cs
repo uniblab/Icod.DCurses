@@ -181,6 +181,87 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 	}
 
 	[Fact]
+	public void PagerLikeViewportMovementLineEditingAndScrollingPreserveLinkIdentity() {
+		CursesPad pad = new(
+			40,
+			30
+		);
+		for ( int row = 0; row < pad.Rows; row++ ) {
+			pad.ContentWindow.Move( row, 0 );
+			pad.ContentWindow.Write( $"item-{row:D2} " );
+			pad.ContentWindow.Write(
+				"docs",
+				LinkMetadata( $"row-{row:D2}" )
+			);
+		}
+		CursesScreen screen = new(
+			20,
+			5
+		);
+		CursesPadViewport viewport = pad.CreateViewport(
+			screen.StandardWindow,
+			5,
+			0,
+			5,
+			20,
+			0,
+			0
+		);
+
+		viewport.Present();
+		Assert.Equal(
+			"row-05",
+			screen.StandardWindow.GetMetadata( 0, 8 )!.Hyperlink!.Identifier
+		);
+
+		viewport.SetSource(
+			10,
+			0
+		);
+		viewport.Present();
+		Assert.Equal(
+			"row-10",
+			screen.StandardWindow.GetMetadata( 0, 8 )!.Hyperlink!.Identifier
+		);
+
+		pad.ContentWindow.Move( 9, 0 );
+		pad.ContentWindow.InsertLines();
+		viewport.SetSource(
+			11,
+			0
+		);
+		viewport.Present();
+		Assert.Equal(
+			"row-10",
+			screen.StandardWindow.GetMetadata( 0, 8 )!.Hyperlink!.Identifier
+		);
+
+		pad.ContentWindow.Move( 9, 0 );
+		pad.ContentWindow.DeleteLines();
+		viewport.SetSource(
+			10,
+			0
+		);
+		viewport.Present();
+		Assert.Equal(
+			"row-10",
+			screen.StandardWindow.GetMetadata( 0, 8 )!.Hyperlink!.Identifier
+		);
+
+		pad.ContentWindow.ScrollUp();
+		viewport.SetSource(
+			9,
+			0
+		);
+		viewport.Present();
+		Assert.Equal(
+			"row-10",
+			screen.StandardWindow.GetMetadata( 0, 8 )!.Hyperlink!.Identifier
+		);
+		Assert.False( viewport.HasVisiblePadChanges );
+	}
+
+	[Fact]
 	public void ReferenceLargePadPreservesSparseAndDenseSemanticRowsAcrossViewports() {
 		const int Rows = 2_048;
 		const int Columns = 256;
