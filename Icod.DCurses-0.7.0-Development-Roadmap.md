@@ -6,7 +6,7 @@
 **Dependency baseline:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Release theme:** Refresh and output optimization  
-**Status:** Active
+**Status:** Stable `0.7.0` source promoted; T709 merge gate active
 
 ---
 
@@ -93,7 +93,7 @@ T701  0.7 package/version and refresh-cost instrumentation foundation
   -> T709  stable 0.7.0 closure
 ```
 
-Meaningful contract checkpoints SHOULD advance the prerelease version while retaining `AssemblyVersion 0.7.0.0`.
+T701 through T708 are complete. T709 has promoted the green release candidate to stable `0.7.0` source while retaining `AssemblyVersion 0.7.0.0`; the stable-source merge gate remains active.
 
 ---
 
@@ -125,7 +125,7 @@ Required baseline scenarios include:
 
 The deterministic measurement layer SHOULD count encoded output bytes at the DCurses terminal-output seam rather than estimating from character count.
 
-**Gate T701:** Staging build/tests/package validation are green, baseline byte counts are machine-testable, and no public API is added merely for instrumentation.
+**Gate T701:** complete and green.
 
 ---
 
@@ -133,192 +133,117 @@ The deterministic measurement layer SHOULD count encoded output bytes at the DCu
 
 T702 SHALL integrate or deliberately expose composition with `TerminalSession.AcquireSynchronizedOutputAsync(...)` around complete DCurses refresh transactions.
 
-Required review:
+The accepted policy exposes `CursesSessionOptions.UseSynchronizedOutput`, default `false`, and delegates physical synchronized-output framing to `Icod.Terminal`. One unnested begin/end pair costs 16 protocol bytes, so automatic framing is not forced on every refresh.
 
-- begin frame precedes all physical refresh payload;
-- end frame follows payload and final cursor placement;
-- final synchronized-output lease release flushes according to Terminal ownership semantics;
-- nested external Terminal synchronized-output leases remain valid;
-- refresh cancellation and output exceptions do not leak DCurses-owned logical framing state;
-- suspend/resume/disposal ordering remains correct;
-- unsupported terminals continue receiving ordinary refresh payload even if they ignore mode 2026;
-- no terminal-name capability inference is added;
-- byte overhead is measured for small and large refreshes.
-
-If automatic framing is not always desirable, any public opt-in policy SHALL be curses-shaped and minimal. The stable `RefreshAsync()` call remains the transaction boundary.
-
-**Gate T702:** synchronized framing is correctly ordered and lifecycle-safe, and the accepted policy is justified by measured cost rather than assumption.
+**Gate T702:** complete and green.
 
 ---
 
 # 6. T703 — Cursor-Motion Selection
 
-T703 SHALL compare safe cursor-motion candidates before emitting a move.
+T703 compares safe advertised cursor-motion candidates by concrete expanded byte cost, with equal-cost ties and unsafe/unknown cursor state retaining the established absolute path.
 
-Candidate TermInfo operations include, where available and safely expandable:
-
-- absolute cursor address;
-- row-address + column-address composition;
-- horizontal absolute positioning;
-- carriage return where semantically exact;
-- single/multiple relative left/right/up/down motion;
-- next/previous line movement where exact.
-
-Required behavior:
-
-- candidates are constructed only from advertised capabilities;
-- expanded byte length is the primary initial cost metric;
-- equal-cost ties favor the established absolute path;
-- cursor knowledge is updated only after successful emission;
-- line-wrap ambiguity cannot make a nominally shorter motion unsafe;
-- the final requested cursor position is unchanged.
-
-**Gate T703:** deterministic tests prove that shorter safe cursor motion is selected and that the old absolute path remains the fallback.
+**Gate T703:** complete and green at the alpha.3 checkpoint.
 
 ---
 
 # 7. T704 — Erase Operation Selection
 
-T704 SHALL expand the existing clear-to-end-of-line optimization into a cost-aware erase selector.
+T704 selects among literal blanks, clear-to-end-of-line, clear-to-end-of-screen, and whole-screen clear only when the complete affected logical region is safely default-styled blank and the selected capability is a strict byte win.
 
-Candidate operations include:
-
-- writing literal blanks;
-- clear-to-end-of-line;
-- clear-to-end-of-screen;
-- whole-screen clear/erase where logical preconditions permit it.
-
-The selector SHALL consider:
-
-- style/default-background requirements;
-- whether erased cells are logically blank and default-styled;
-- physical-screen state consequences;
-- cursor-position consequences;
-- expanded capability length versus literal output length;
-- terminals lacking one or more erase capabilities.
-
-Whole-screen erase SHALL NOT be used when it would erase logical content that must immediately be rewritten at greater or unknown cost without a measured win.
-
-**Gate T704:** erase selection reduces bytes in representative blanking workloads without weakening cell/style correctness.
+**Gate T704:** complete and green at the alpha.4 checkpoint.
 
 ---
 
 # 8. T705 — Insert/Delete Character Optimization
 
-T705 SHALL investigate terminal character insertion/deletion as a physical optimization for row-local shifts already represented correctly in the logical screen.
+T705 recognizes exact row-local physical insert/delete transformations, rejects wide/semantic-line ambiguity in shifted ranges, requires default inserted/vacated blanks and known default rendition, and retains ordinary rendering as fallback.
 
-Required preconditions include:
-
-- a deterministic row-local diff that can be represented as insertion/deletion plus a smaller tail repair;
-- advertised and safely expandable insert/delete-character capabilities;
-- preservation of wide-cell leader/continuation footprints;
-- no use across ambiguous wide-glyph boundaries;
-- style/rendition state remains correct for inserted cells;
-- emitted-byte cost is lower than rewriting the changed row span.
-
-The logical editing APIs remain unchanged. This tranche optimizes only physical refresh of their resulting state.
-
-**Gate T705:** editor-like insert/delete workloads show deterministic byte savings with exact final physical-screen equivalence.
+**Gate T705:** complete and green at the alpha.5 checkpoint.
 
 ---
 
 # 9. T706 — Insert/Delete Line and Scroll-Region Optimization
 
-T706 SHALL investigate line-oriented physical operations for vertical shifts.
+T706 recognizes exact whole-row transformations and selects advertised `il`/`il1`, `dl`/`dl1`, `ind`/`indn`, and `ri`/`rin` operations when they are a strict total byte win. Temporary `csr` is restricted to provable full-width interior regions and is restored even after operation failure or cancellation; simultaneous operation/restoration failures are both preserved.
 
-Candidate operations include:
-
-- insert line;
-- delete line;
-- forward/reverse scroll;
-- temporary scrolling-region selection where safe and beneficial.
-
-Required behavior:
-
-- only complete rows/regions are transformed physically;
-- the retained physical-screen model is updated by the same logical transformation;
-- nested windows do not imply terminal scroll-region ownership—the optimization operates on final screen state only;
-- wide-cell row footprints remain valid;
-- cursor and rendition side effects are normalized;
-- scrolling-region state is restored before the refresh transaction ends;
-- cost must beat direct rewrite for the selected diff.
-
-**Implementation status:** complete in `0.7.0-alpha.6`; exact alpha.6 head green.
-
-The accepted implementation uses an internal exact-transform resolver over retained full-screen state. It compares advertised `il`/`il1`, `dl`/`dl1`, `ind`/`indn`, and `ri`/`rin` forms, allows temporary `csr` only for a provable full-width interior region, includes region setup/restoration and cursor movement in its strict byte-cost gate, preserves complete wide-cell and semantic-line rows, and restores the full scrolling region even after operation failure or cancellation. Simultaneous operation and restoration failures are both retained. Partial-width window edits remain on the ordinary renderer.
+Complete wide-cell and semantic-line rows may move because the transformation is row-granular. Partial-width window edits never claim terminal scroll-region ownership.
 
 Detailed record: `docs/T706-Physical-Line-Shift-and-Scroll-Region-Optimization.md`.
 
-The exact alpha.6 head `6e6b6f0f5f7d6af378ec5468c1411827551b5090` passed Windows, Linux, macOS, and package/fresh-consumer validation.
-
-**Gate T706:** terminal-style pager/editor scrolling workloads reduce bytes while producing the same final physical screen as the fallback renderer.
+**Gate T706:** complete; exact alpha.6 head `6e6b6f0f5f7d6af378ec5468c1411827551b5090` passed Windows, Linux, macOS, and package/fresh-consumer validation.
 
 ---
 
 # 10. T707 — Rendition and Refresh-State Minimization
 
-T707 SHALL reduce redundant presentation transitions without weakening the reset-first correctness model frozen in 0.6.
+T707 reduces redundant presentation transitions without weakening reset-first correctness.
 
-Investigation includes:
-
-- avoiding reset/reapply when consecutive logical styles resolve to the same physical style;
-- retaining known physical rendition across spans where safe;
-- reducing redundant default-color restoration;
-- preserving ACS enter/exit grouping;
-- coordinating cursor movement with current rendition where capabilities have side effects;
-- invalidating cached physical style knowledge after any operation whose side effects are not modeled safely.
-
-T707 MAY add internal operation-cost abstractions shared by cursor, erase, and rendition selection if they reduce duplication. Such abstractions remain internal by default.
-
-**Implementation status:** implemented in `0.7.0-alpha.7`; exact alpha.7 validation active.
-
-The accepted transition model retains reset-first behavior for unknown physical rendition, attribute removal, and transitions that return a color channel to terminal default. Known monotonic transitions are now differential: additive attributes emit only newly required selectors, direct non-default color changes emit only changed color selectors, and logical styles that resolve to the same physical style remain no-ops. Output failure continues to invalidate retained physical/rendition/cursor knowledge.
+The accepted transition model retains reset-first behavior for unknown physical rendition, attribute removal, and transitions that return a color channel to terminal default. Known monotonic transitions are differential: additive attributes emit only newly required selectors, direct non-default color changes emit only changed color selectors, and logical styles that resolve to the same physical style remain no-ops. Output failure continues to invalidate retained physical/rendition/cursor knowledge.
 
 The deterministic T701 bold-cell workload improves from `19 bytes / 4 writes / 1 flush` to `13 bytes / 3 writes / 1 flush` after an established default baseline, a 31.6% byte reduction and one fewer terminal write.
 
 Detailed record: `docs/T707-Rendition-and-Refresh-State-Minimization.md`.
 
-**Gate T707:** style-heavy workloads emit fewer bytes/reset sequences with identical logical and physical results.
+**Gate T707:** complete and accepted into the green T708/rc.1 candidate.
 
 ---
 
 # 11. T708 — Benchmark, API, Package, and Optimization-Regret Gate
 
-Before stable `0.7.0`:
+T708 is complete. The accepted optimization set is measurable, documented, failure-safe, package-consumable, and contains no unjustified public surface.
 
-- compare representative 0.7 workloads against recorded T701 baselines;
-- record emitted-byte deltas for small updates, full repaint, editor shifts, pager scrolling, and style-heavy screens;
-- run high-frequency and large-screen benchmark workloads;
-- inspect allocation volume and elapsed time for regressions;
-- verify every optimization has a deterministic fallback test;
-- verify failure/invalidation behavior returns to a safe retained-screen state;
-- review any new public synchronized-output option or diagnostics type and remove it if not justified;
-- machine-guard accepted public API additions, if any;
-- update README/showcase/package-only consumers;
-- verify warning level 4 / warnings-as-errors remains green in Staging and Release;
-- verify no new Terminal/TermInfo public leakage;
-- ensure optimization tests do not depend on wall-clock timing for correctness.
+Deterministic release-gate fixtures include:
 
-A measured optimization MAY be rejected if its complexity or failure-state burden outweighs its demonstrated benefit.
+```text
+T701 established-default -> bold: 19 bytes / 4 writes
+T707 established-default -> bold: 13 bytes / 3 writes
+editor two-column insertion:       2 optimized vs 34 fallback bytes
+pager one-line deletion:            4 optimized vs 166 fallback bytes
+160 x 60 full repaint:           9661 bytes / 121 writes / 1 flush
+1000 one-cell updates:           2000 bytes / 2000 writes / 1000 flushes
+```
 
-**Gate T708:** the accepted optimization set is measurable, documented, failure-safe, package-consumable, and has no unjustified public surface.
+Correctness gates use deterministic bytes, writes, final-screen equivalence, and failure recovery rather than wall-clock timing. Elapsed time and allocation remain observational benchmark concerns.
+
+The public regret review accepts exactly one 0.7 addition: `CursesSessionOptions.UseSynchronizedOutput`, default `false`. All cost models, candidate resolvers, operation plans, retained physical state, and measurement infrastructure remain internal. `PublicRefreshOptimizationApiContractTests`, the dependency-boundary tests, and the package-only consumer machine-guard that decision.
+
+Detailed record: `docs/T708-Benchmark-API-Package-and-Regret-Gate.md`. Public contract: `docs/Public-API-Baseline-0.7.md`.
+
+The exact `0.7.0-rc.1` head `637cd6151251f9c247045ee671c12236208d5988` passed Windows, Linux, macOS, and package/fresh-consumer validation.
+
+**Gate T708:** complete.
 
 ---
 
 # 12. T709 — Stable 0.7.0 Closure
 
-T709 is release closure only.
+T709 is release closure only. No runtime feature or public API change is permitted.
 
-Required work:
+The green `0.7.0-rc.1` contract has been promoted unchanged to:
 
-- promote a green release candidate to `0.7.0`;
-- retain `AssemblyVersion 0.7.0.0`;
-- freeze a 0.7 optimization/contract record;
-- run one definitive stable-source PR matrix/package gate;
-- merge only a green stable source head;
-- require the exact merged `main` commit to pass the full Release x64/ARM64 matrix;
-- create `v0.7.0` only after that exact main commit is green;
-- verify NuGet.org, GitHub Packages, symbols, checksums, and GitHub Release assets.
+```text
+Version         0.7.0
+PackageVersion  0.7.0
+AssemblyVersion 0.7.0.0
+```
+
+The stable optimization/public contract is frozen in:
+
+- `docs/T701-Refresh-Cost-Foundation-and-Baseline.md` through `docs/T708-Benchmark-API-Package-and-Regret-Gate.md`;
+- `docs/Public-API-Baseline-0.7.md`;
+- `docs/T709-0.7.0-Stable-Release-Closure.md`.
+
+The remaining T709 work is the stable-source merge gate and, after a later explicit merge, the post-merge Release/tag/publication gates:
+
+1. require the exact stable-source PR head to pass Windows/Linux/macOS Staging build/tests and package/fresh-consumer validation;
+2. leave that validated branch untouched except for PR metadata;
+3. merge only that exact green head;
+4. require the exact merged `main` commit to pass the full Release x64/ARM64 matrix;
+5. create `v0.7.0` only after that exact main commit is green;
+6. verify NuGet.org, GitHub Packages, symbols, checksums, and GitHub Release assets.
+
+This branch does not perform the merge or any post-merge publication step.
 
 ---
 
