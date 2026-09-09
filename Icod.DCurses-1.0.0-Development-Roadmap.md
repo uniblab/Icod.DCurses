@@ -2,12 +2,12 @@
 
 **Project:** `Icod.DCurses`  
 **Published stable baseline:** `0.7.0`  
-**Validated candidate source:** `0.8.0-rc.1`  
+**Validated stable source:** `0.8.0`  
 **Development destination:** `1.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** Approved development plan; `0.8.0` production-hardening RC gate active; `0.9.0` next after stable closure
+**Status:** Approved development plan; `0.8.0` stable-source merge gate active; `0.9.0` next
 
 ---
 
@@ -199,7 +199,7 @@ Correctness remains more important than finding a globally minimal escape sequen
 
 # 10. Version 0.8.0 — Production Hardening
 
-`0.8.0` has completed T801 through T807 implementation and is in the T808 release-candidate gate.
+`0.8.0` has completed T801 through T808 and has been promoted from the green `0.8.0-rc.1` candidate to stable source. The final stable-source merge gate is active.
 
 The accepted hardening contract freezes these rules:
 
@@ -214,9 +214,11 @@ The accepted hardening contract freezes these rules:
 - large pads, large screens, sparse refresh, high-frequency refresh, and no-op refresh are exercised under bounded deterministic stress;
 - hardening machinery remains private/test-only and adds no public API.
 
-The PR runtime gate now covers Windows x64/ARM64, Linux x64/ARM64, and macOS x64/ARM64, with `net8.0`, `net9.0`, and `net10.0` under Staging warnings-as-errors plus package/fresh-consumer validation.
+The PR runtime gate covers Windows x64/ARM64, Linux x64/ARM64, and macOS x64/ARM64, with `net8.0`, `net9.0`, and `net10.0` under Staging warnings-as-errors plus package/fresh-consumer validation.
 
-The detailed plan is maintained in `Icod.DCurses-0.8.0-Development-Roadmap.md`. Implementation and regret records are maintained in `docs/T801-T807-Production-Hardening-Implementation.md`, `docs/T808-Hardening-Regret-and-Release-Candidate-Gate.md`, and `docs/Public-API-Baseline-0.8.md`.
+The exact `0.8.0-rc.1` head `6247b9dc290089e5db82f83929d07b4b674b8d8b` passed that complete gate.
+
+The detailed plan is maintained in `Icod.DCurses-0.8.0-Development-Roadmap.md`. Implementation and release records are maintained in `docs/T801-T807-Production-Hardening-Implementation.md`, `docs/T808-Hardening-Regret-and-Release-Candidate-Gate.md`, `docs/T809-0.8.0-Stable-Release-Closure.md`, and `docs/Public-API-Baseline-0.8.md`.
 
 ---
 
@@ -318,7 +320,7 @@ Throughout the 1.0 train:
   -> 0.5.0 pads and large surfaces              complete
   -> 0.6.0 rendition / drawing / presentation   complete and published
   -> 0.7.0 refresh and output optimization      complete and published
-  -> 0.8.0 production hardening                 RC gate active
-  -> 0.9.0 contract freeze / RC                 next after 0.8 stable closure
+  -> 0.8.0 production hardening                 stable source; merge gate active
+  -> 0.9.0 contract freeze / RC                 next
   -> 1.0.0 stable closure
 ```
