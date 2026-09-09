@@ -2,39 +2,47 @@
 
 **Project:** `Icod.DCurses`  
 **Release line:** `1.1.0`  
-**Stable source baseline:** merged `1.0.0`  
-**Planning baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
-**Current dependency floor:** `Icod.Terminal 1.5.0`; `Icod.TermInfo 1.10.0`  
+**Stable compatibility floor:** `1.0.0`  
+**Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
+**Development checkpoint:** `1.1.0-alpha.1`  
+**Assembly version:** `1.0.0.0`  
+**Runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Theme:** semantic cell metadata and retained hyperlinks  
-**Planning status:** approved; implementation not yet started  
-**Planning-PR version rule:** keep `Version 1.0.0`, `PackageVersion 1.0.0`, and `AssemblyVersion 1.0.0.0` unchanged
+**Status:** T1101 staged for validation; T1102 representation/memory gate next
 
 ---
 
 ## 1. Release objective
 
-`Icod.DCurses 1.1.0` introduces the first post-1.0 additive semantic-content feature: non-visual metadata attached to retained terminal content, beginning with hyperlinks.
+`Icod.DCurses 1.1.0` is the first additive release after the stable 1.0 contract. It adds non-visual semantic information to retained terminal content, beginning with hyperlinks.
 
-The release must prove that semantic metadata is a first-class part of logical screen composition without conflating it with visual style, without duplicating Terminal protocol ownership, and without imposing an unjustified memory/allocation cost on ordinary screens and large pads.
-
-The core invariant is:
+The governing separation is:
 
 ```text
 what a cell looks like       -> CursesStyle
 what a cell means            -> semantic metadata
-how that meaning reaches
-physical terminal protocols  -> Icod.Terminal
+how terminal protocols emit
+that meaning                 -> Icod.Terminal
 ```
 
-Hyperlinks are the first semantic metadata kind because Terminal already provides a typed, session-owned OSC 8 implementation with scoped nesting and lifecycle behavior.
+Hyperlinks are the first semantic metadata kind because Terminal already provides reviewed, typed, session-owned OSC 8 operations with nesting, lifecycle replay, output serialization, and cleanup.
+
+The release must add that semantic capability without:
+
+- turning `CursesStyle` into an untyped bag of meaning;
+- constructing raw OSC 8 inside DCurses;
+- exposing Terminal hyperlink leases through the curses API;
+- weakening Unicode/wide-cell/editing/pad invariants;
+- creating a second terminal input or output-serialization domain;
+- imposing an unjustified permanent memory cost on ordinary cells and large pads.
 
 ---
 
-## 2. Stable 1.0 compatibility floor
+## 2. Stable compatibility floor
 
-The 1.0 compiled public contract remains the starting compatibility floor:
+The frozen 1.0 compiled API remains the compatibility floor:
 
 ```text
 sha256:            274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
@@ -42,56 +50,55 @@ exported types:    43
 contract lines:   309
 ```
 
-Version 1.1 is additive by default.
+Version 1.1 is additive by default. No existing type/member is removed, renamed, repurposed, or assigned a different enum value merely to accommodate metadata.
 
-No existing public type/member is removed, renamed, repurposed, or assigned a different enum value merely to make semantic metadata easier to implement.
-
-The existing public `CursesStyle` contract remains presentation-only:
+T1101 also ratifies the compatible 1.x assembly policy:
 
 ```text
-foreground
-background
-text attributes
+NuGet/package version  advances through compatible 1.x releases
+AssemblyVersion        remains 1.0.0.0
 ```
 
-A hyperlink URI is not a color/rendition attribute and must not be placed inside `CursesStyle`.
+A breaking compatibility decision may revisit assembly identity explicitly; it must never drift incidentally.
 
 ---
 
 ## 3. Terminal ownership boundary
 
-Terminal's existing typed hyperlink API is the protocol authority:
+The active dependency floor is Terminal 1.6.0.
+
+Terminal 1.6 strengthens its complete CSI/parser/query and internal pixel-geometry foundation without adding a new public surface that changes the 1.1 design. Hyperlinks continue to rely on the already-stable typed OSC 8 operations:
 
 ```text
 TerminalSession.AcquireHyperlinkAsync(...)
 TerminalSession.WriteHyperlinkAsync(...)
 ```
 
-DCurses may compose those operations internally, but it must not:
+DCurses may compose these operations internally, but it must not:
 
-- construct raw OSC 8 sequences;
-- introduce an independent hyperlink protocol parser/writer;
-- expose `TerminalHyperlinkLease` as part of the public curses abstraction;
-- infer hyperlink capability from terminal brand or `TERM` alone;
-- create a second terminal output-ordering domain;
-- create a second live input reader.
+- emit raw OSC 8 framing;
+- introduce an independent OSC parser/writer;
+- expose `TerminalHyperlinkLease` publicly;
+- infer protocol support from terminal brand or `TERM` alone;
+- create a second live terminal reader;
+- bypass Terminal's output ordering and lifecycle ownership.
 
-DCurses owns the retained semantic intent. Terminal owns the wire protocol, live-session state, nesting, suspend/resume replay, and final cleanup.
+DCurses owns retained semantic intent. Terminal owns the wire protocol and live terminal state.
 
 ---
 
-## 4. Semantic metadata representation problem
+## 4. Semantic metadata representation gate
 
-Before a public API is frozen, 1.1 must choose a representation that remains practical for large retained surfaces.
+The storage model is deliberately **not** frozen before T1102.
 
-Candidate models include:
+Candidate families include:
 
 ### A. Optional immutable metadata reference per cell
 
 ```text
 CursesCell
     content
-    width/continuation
+    display width / continuation
     style
     line glyph
     optional metadata reference
@@ -99,54 +106,74 @@ CursesCell
 
 Advantages:
 
-- direct semantic equality;
-- natural copy/edit/pad behavior;
-- easy public inspection;
-- one metadata object can be shared by every cell in a span.
+- direct equality and inspection;
+- natural edit/copy/pad semantics;
+- metadata objects can be shared across many cells.
 
 Risk:
 
-- one additional reference-sized field on every cell can materially increase large-pad memory even when almost no cells carry metadata.
+- a reference-sized field is paid by every ordinary cell even when metadata is absent.
 
-### B. Surface-owned interned semantic token
+### B. Surface-owned interned metadata token
 
-Cells carry a compact token which resolves through a screen/pad-owned semantic table.
+Cells carry a compact token resolved through a screen/pad-owned table.
 
 Advantages:
 
-- smaller per-cell footprint than a managed reference in some layouts;
-- strong sharing/interning.
+- potentially smaller per-cell cost;
+- efficient sharing/interning.
 
 Risks:
 
-- cross-surface copying requires remapping;
-- standalone `CursesCell` value semantics become less obvious;
-- token lifetime/ownership can leak implementation details into the public contract.
+- cross-surface copy/remapping complexity;
+- harder standalone `CursesCell` value semantics;
+- token lifetime must not leak into public API.
 
 ### C. Sparse sidecar semantic spans
 
-Semantic metadata is stored separately from the ordinary cell array.
+Semantic information is stored separately from the ordinary cell array.
 
 Advantages:
 
-- essentially no ordinary-cell memory tax;
-- naturally sparse for hyperlink-heavy-but-not-every-cell workloads.
+- effectively zero permanent ordinary-cell cost;
+- good fit for sparse links.
 
 Risks:
 
-- every edit/insert/delete/scroll/copy/overlay/resize operation must update span topology;
-- random cell inspection becomes more expensive/complex;
-- wide-cell repair and partial clipping require careful synchronization between cell and semantic structures.
+- every edit/scroll/resize/copy operation must maintain span topology;
+- random cell inspection and wide-cell repair become more complex.
 
-T1102 must measure and choose among these (or a better equivalent) before the public semantic-cell API is accepted.
+T1102 may select another design if it is demonstrably better, but the decision must explain memory, equality, copying, editing, inspection, wide-cell behavior, and future extensibility.
 
 ---
 
-## 5. Candidate public API direction — not frozen
+## 5. Memory and scale contract
 
-The desired conceptual surface is intentionally small.
+The existing large-pad reference is:
 
-Candidate concepts include:
+```text
+2048 × 256 = 524,288 logical cells
+```
+
+T1101 introduces `CursesSemanticMetadataRepresentationBaselineTests`, which compares the real `CursesCell` representation with test-only cell-plus-reference and cell-plus-token candidates.
+
+The measurement scaffold does not freeze a byte count as public API. It exists so T1102 must account for the multiplicative cost of each candidate at real retained-surface scale.
+
+T1102/T1107 must also preserve or explain behavior for:
+
+- 160×60 ordinary full-screen repaint;
+- 1,000 sparse ordinary updates;
+- repeated no-op refresh;
+- large pads with no metadata;
+- large pads with sparse links;
+- one large linked run versus many distinct links;
+- mixed link/style/Unicode transitions.
+
+---
+
+## 6. Candidate public API direction — not frozen
+
+The intended semantic concepts are small and typed. Candidate names include:
 
 ```text
 CursesHyperlink
@@ -155,412 +182,276 @@ CursesCell.Metadata
 metadata-aware CursesWindow write operations
 ```
 
-The exact names, struct/class choices, and overload shape are not frozen by this roadmap.
-
-A likely semantic model is:
+A likely conceptual model is:
 
 ```text
 CursesHyperlink
-    Uri
-    optional Identifier
+    absolute URI/string target
+    optional identifier
 
 CursesCellMetadata
-    optional Hyperlink
+    optional hyperlink
 ```
 
-with immutable reusable values.
+The exact class/struct choices, equality semantics, overloads, nullability, and names remain T1102/T1103 decisions.
 
-The public design should allow applications to:
+The release should **not** introduce:
 
-- create hyperlink semantics without referencing Terminal types;
-- write a text span with one hyperlink meaning;
-- inspect semantic metadata from logical content where appropriate;
-- reuse one immutable metadata value across many cells/spans;
-- copy/overlay/edit content without manually reconstructing hyperlink state.
-
-The release should avoid a broad generic dictionary-of-arbitrary-metadata API unless a concrete stable use case requires one. 1.1 should establish an extensible semantic model without turning cells into untyped property bags.
+- a generic `Dictionary<string, object>` metadata bag;
+- arbitrary protocol payloads;
+- browser/navigation behavior;
+- Terminal protocol types in ordinary public signatures.
 
 ---
 
-## 6. URI and identifier contract
+## 7. Hyperlink value rules
 
-DCurses hyperlink semantics should align with the reviewed Terminal contract rather than inventing a second incompatible grammar.
+DCurses should align with Terminal's reviewed hyperlink contract:
 
-The design gate should preserve these principles:
-
-- hyperlink target is non-empty;
+- target is non-empty;
 - target is absolute;
-- caller supplies the already URI-encoded target when using the string-oriented API;
-- optional identifier is bounded and compatible with Terminal's allowed OSC 8 identifier grammar;
-- DCurses never dereferences, opens, activates, downloads, or otherwise follows the target;
-- successful output means the semantic protocol was emitted through Terminal, not that a terminal displayed or allowed activation of the link.
+- a string-oriented API accepts an already URI-encoded target;
+- optional identifier follows Terminal's bounded OSC 8 identifier rules;
+- DCurses never dereferences, opens, downloads, activates, or follows the target;
+- successful refresh means the semantic protocol was emitted through Terminal, not that the terminal displayed or permitted activation of the link.
 
-If a `System.Uri` overload is considered, it must not silently canonicalize or re-encode a target differently from the string contract. A string-first API may therefore remain preferable.
+A `System.Uri` convenience overload is acceptable only if it does not silently canonicalize or re-encode targets in a way that diverges from the string contract.
 
 ---
 
-## 7. Retained physical semantic state
+## 8. Retained physical semantic state
 
-Hyperlink semantics must participate in retained refresh planning.
-
-The physical renderer needs enough retained knowledge to distinguish:
+The physical renderer must distinguish at least:
 
 ```text
 same cells / same style / same hyperlink
 same cells / same style / different hyperlink
 same cells / different style / same hyperlink
-unknown hyperlink physical state
+unknown physical hyperlink state
 ```
 
-The renderer should group adjacent equivalent hyperlink runs rather than emitting a begin/end pair per cell.
+Adjacent equivalent links should be emitted as semantic runs, not one begin/end transaction per cell.
 
-A conceptual output transaction may look like:
+A conceptual transaction is:
 
 ```text
 move cursor
 set rendition
 open hyperlink A
-write several adjacent cells
-change rendition while hyperlink A remains active
-write more linked cells
-close/replace hyperlink A
-write unlinked cells
+write linked run
+change rendition while link A remains active
+write more linked content
+close or replace hyperlink A
+write unlinked content
 ```
 
-The actual sequencing must compose with Terminal's session-owned hyperlink manager and DCurses' existing terminal-activity and synchronized-output boundaries.
+The actual implementation must use Terminal's typed hyperlink ownership and compose with DCurses' terminal-activity gate and optional synchronized-output lease.
 
 No raw OSC 8 bytes belong in the refresh engine.
 
 ---
 
-## 8. Editing and composition invariants
+## 9. Editing and composition invariants
 
-Semantic metadata must move with logical content wherever content moves.
+Semantic metadata must move with content wherever content moves.
 
-Version 1.1 must cover at least:
+Coverage must include:
 
-- ordinary text write/overwrite;
+- write/overwrite;
 - clear/erase/fill;
 - insert/delete cells;
 - insert/delete lines;
 - scroll operations;
-- resize and clipped-wide-cell repair;
+- resize;
+- wide-cell clipping and repair;
 - copy rectangle;
 - overlay rectangle;
-- windows and nested subwindows;
+- windows/subwindows;
 - pads;
 - multiple independent pad viewports;
-- damage/touch/invalidation behavior.
+- damage/touch/invalidation.
 
-For wide text:
+For a wide text element, the leading cell and continuation footprint represent one semantic unit. Destruction or clipping of that element must remove/repair semantic metadata coherently.
 
-- the leading cell and continuation footprint represent one semantic text element;
-- an edit that destroys/replaces the wide element must remove its semantic metadata coherently;
-- clipping must never leave a hyperlink semantic fragment attached to an invalid continuation footprint.
-
-Blank/transparency behavior must be explicitly defined for copy/overlay just as content/style behavior already is.
+Copy/overlay blank/transparency behavior must be explicitly specified rather than inferred.
 
 ---
 
-## 9. Failure, lifecycle, and cancellation rules
+## 10. Lifecycle, cancellation, and failure rules
 
-Hyperlink integration must preserve the 0.8/1.0 hardening model.
+The 1.0 hardening model remains authoritative.
 
-The release must test:
+Required failure coverage includes:
 
-- failure while opening hyperlink state;
-- failure after hyperlink begin but before content completion;
-- failure while closing/restoring hyperlink state;
-- simultaneous refresh failure and hyperlink restoration failure;
-- cancellation before semantic output begins;
-- cancellation after a physical semantic transition is committed;
-- `Invalidate()` while a hyperlink was believed active;
-- suspend/resume while logical hyperlink content remains visible;
-- disposal while physical hyperlink state may be active/unknown;
-- later safe refresh after uncertain physical semantic state.
+- hyperlink begin failure;
+- content failure after begin;
+- hyperlink close/restoration failure;
+- primary refresh plus restoration failure;
+- cancellation before semantic output commit;
+- cancellation after a semantic transition is committed;
+- `Invalidate()` while hyperlink state was believed active;
+- suspend/resume with visible linked content;
+- disposal with active or uncertain physical hyperlink state;
+- later safe repaint after uncertainty.
 
-Terminal remains authoritative for session-owned hyperlink cleanup. DCurses remains responsible for invalidating/recovering its own retained physical knowledge.
-
-A failed semantic transition must never leave the renderer trusting an unproven hyperlink state.
-
----
-
-## 10. Performance and allocation contract
-
-Hyperlink support must not make ordinary non-hyperlinked workloads materially worse without evidence and an explicit tradeoff decision.
-
-At minimum, T1102/T1107 should measure:
-
-- default blank/ordinary cell size implications of the selected representation;
-- 160×60 ordinary full-screen repaint with no metadata;
-- 1,000 sparse ordinary updates with no metadata;
-- repeated no-op refresh with no metadata;
-- a large approximately 0.5M-cell pad with no metadata;
-- a large pad with sparse hyperlink spans;
-- a full row of one hyperlink versus many distinct hyperlinks;
-- mixed style transitions inside one hyperlink span;
-- repeated hyperlink/unlinked transitions.
-
-Correctness gates should remain deterministic. Allocation and elapsed-time results may be observational unless a stable deterministic threshold can be justified.
-
-At least one gate should prove adjacent linked text is coalesced into semantic runs rather than one Terminal hyperlink transaction per cell.
+Terminal owns final protocol cleanup. DCurses owns conservative invalidation of retained physical knowledge.
 
 ---
 
 ## 11. Application-shaped acceptance
 
-Representative acceptance workloads should include:
-
 ### Editor-like content
 
-A file/document view containing:
-
-- ordinary text;
-- file/URL hyperlinks;
-- mixed linked/unlinked spans;
-- selections/styles independent of hyperlink meaning;
-- insertion/deletion before and inside linked spans;
-- wide Unicode inside linked text.
+Exercise ordinary text, multiple links, selections/styles independent of link meaning, edits before/inside linked spans, and wide Unicode within linked content.
 
 ### Pager/help content
 
-A help page with multiple links, scrolling, line deletion/insertion, and viewport changes.
+Exercise multiple links, scrolling, insertion/deletion, and viewport changes.
 
 ### Large pad
 
-Sparse hyperlinks on a large logical document presented through independently panned viewports.
+Exercise sparse links in a large logical document through independently panned viewports.
 
-### Full-screen interactive session
+### Full-screen Terminal-backed session
 
-At least one real Terminal-backed acceptance should combine:
+Combine linked text with rich input, synchronized output on/off, resize, suspend/resume where supported, repeated refresh, and deterministic disposal/restoration.
 
-- linked text;
-- rich input;
-- synchronized output enabled and disabled;
-- resize;
-- suspend/resume where supported;
-- repeated refresh;
-- deterministic disposal/restoration.
-
-The acceptance must prove DCurses adds semantic-retained behavior rather than merely calling `TerminalSession.WriteHyperlinkAsync(...)` in a sample.
+The acceptance must prove retained semantic integration, not merely call `TerminalSession.WriteHyperlinkAsync(...)` from a sample.
 
 ---
 
 ## 12. Development sequence
 
 ```text
-T1101  contract/reference/version-policy freeze
-  -> T1102  semantic metadata representation + memory gate
+T1101  contract/reference/version-policy freeze             staged
+  -> T1102  semantic metadata representation + memory gate  next
   -> T1103  hyperlink value/public write/read contract
-  -> T1104  retained physical hyperlink renderer + Terminal composition
-  -> T1105  editing/copy/overlay/pad/viewports semantic propagation
-  -> T1106  lifecycle/failure/cancellation/recovery hardening
-  -> T1107  application-shaped performance/allocation acceptance
+  -> T1104  retained physical hyperlink renderer
+  -> T1105  editing/copy/overlay/pad/viewports propagation
+  -> T1106  lifecycle/failure/cancellation/recovery
+  -> T1107  application/performance/allocation acceptance
   -> T1108  public API/package/documentation/regret gate
   -> T1109  RC and stable 1.1.0 closure
 ```
 
 ---
 
-## 13. T1101 — contract, reference, and release-policy freeze
+## 13. T1101 — contract, reference, and version-policy freeze
 
-### Objectives
+### Decisions
 
-- confirm the stable 1.0 API fingerprint and semantic compatibility floor;
-- review Terminal's current hyperlink ownership contract and package version dependency;
-- freeze the rule that DCurses never emits OSC 8 directly;
-- decide the 1.1 package/assembly versioning policy;
-- define semantic-metadata invariants before adding public types;
-- establish benchmark/memory baselines for current `CursesCell`, screens, and pads;
-- create the first 1.1 permanent design record.
+- first implementation checkpoint is `1.1.0-alpha.1`;
+- `AssemblyVersion` remains `1.0.0.0` for compatible additive 1.x releases;
+- direct Terminal dependency advances to `1.6.0`;
+- TermInfo remains `1.10.0`;
+- stable 1.0 public API remains the compatibility floor;
+- no new public semantic metadata type enters T1101;
+- DCurses never emits raw OSC 8;
+- metadata remains separate from `CursesStyle`;
+- representation selection is deferred to measured T1102 evidence.
 
-### Version checkpoint
+Permanent record:
 
-This planning PR does **not** change package/version metadata.
+- `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md`
 
-When implementation begins, the recommended first checkpoint is:
+### Exit gate
 
-```text
-Version         1.1.0-alpha.1
-PackageVersion  1.1.0-alpha.1
-AssemblyVersion 1.0.0.0   (recommended; must be explicitly ratified)
-```
+The exact T1101 checkpoint must pass the normal PR matrix with:
 
-### Exit criteria
-
-No public metadata type is accepted until the representation/memory questions for T1102 are explicit and testable.
+- package version `1.1.0-alpha.1`;
+- assembly version `1.0.0.0`;
+- exact Terminal 1.6.0 / TermInfo 1.10.0 package dependencies;
+- unchanged 1.0 public API fingerprint;
+- representation-baseline tests green.
 
 ---
 
-## 14. T1102 — semantic metadata representation and memory gate
+## 14. T1102 — representation and memory gate
 
 ### Objectives
 
-- prototype the viable metadata storage models;
-- measure ordinary-cell and large-pad consequences;
+- prototype viable storage approaches;
+- measure cell and large-pad consequences;
 - choose one representation;
-- define immutable/default equality semantics;
-- prove no per-cell heap allocation occurs for ordinary cells;
-- prove metadata sharing/interning behavior if applicable;
-- define wide-cell leader/continuation metadata invariants;
-- define how standalone `CursesCell` inspection represents semantics.
+- define default/equality/hash semantics;
+- prove ordinary cells do not cause per-cell heap allocation;
+- define metadata sharing/interning if used;
+- define wide-cell leader/continuation semantics;
+- define standalone cell inspection and cross-surface copying.
 
-### Exit criteria
+### Exit gate
 
-The selected design must have a clear explanation for:
-
-- memory cost;
-- equality/hash behavior;
-- copy across surfaces;
-- editing/scroll behavior;
-- public inspectability;
-- future semantic extensibility.
+No public hyperlink/metadata API is accepted until the chosen representation has an explicit memory and composition rationale.
 
 ---
 
-## 15. T1103 — hyperlink value and public content contract
+## 15. T1103 — public hyperlink/content contract
 
 ### Objectives
 
-- add the minimal public semantic metadata/hyperlink types;
-- validate URI/identifier inputs consistently with Terminal's reviewed contract;
-- add metadata-aware text-writing operations;
-- expose logical metadata inspection without leaking Terminal types;
-- add XML documentation and focused unit tests;
-- capture the intentional public API delta but do not yet declare stable release freeze.
-
-### Non-goals
-
-- generic raw OSC 8 writer;
-- public Terminal hyperlink lease;
-- browser/URI activation;
-- terminal-brand support inference;
-- arbitrary metadata dictionaries.
+- add the minimal public hyperlink/metadata value types;
+- add metadata-aware write/inspection operations;
+- align target/identifier validation with Terminal;
+- avoid Terminal types in ordinary public signatures;
+- add XML documentation and focused tests;
+- capture, but do not yet permanently freeze, the intentional public API delta.
 
 ---
 
-## 16. T1104 — retained physical hyperlink rendering
+## 16. T1104 — retained hyperlink renderer
 
 ### Objectives
 
-- add retained physical hyperlink knowledge;
-- coalesce adjacent equivalent hyperlink spans;
-- compose hyperlink transitions with cursor/rendition output;
-- use Terminal's typed hyperlink ownership rather than raw output;
-- audit deadlock/order interactions among DCurses terminal activity, Terminal semantic output serialization, synchronized-output leases, and hyperlink leases;
-- invalidate physical semantic state after uncertain output;
-- add deterministic emitted-operation tests.
-
-### Exit criteria
-
-A no-change linked refresh emits no redundant hyperlink transition, while a semantic-only hyperlink change updates the terminal even if visible glyph/style content is unchanged.
+- add retained physical semantic knowledge;
+- update on semantic-only changes even when glyph/style is unchanged;
+- coalesce adjacent equivalent hyperlink runs;
+- compose with rendition/cursor/synchronized-output behavior;
+- use Terminal's typed ownership only;
+- audit lock/ordering interactions;
+- invalidate after uncertain semantic output.
 
 ---
 
-## 17. T1105 — editing, composition, pads, and viewports
+## 17. T1105 — editing, copy/overlay, pads and viewports
 
-### Objectives
-
-Prove semantic metadata survives or is removed correctly through every content-transforming operation used by the stable core.
-
-Required tests cover:
-
-- overwrite;
-- insert/delete cells;
-- insert/delete lines;
-- scrolling;
-- clear/erase;
-- copy/overlay;
-- resize;
-- wide-cell clipping/repair;
-- windows/subwindows;
-- pads and multiple viewports.
-
-### Exit criteria
-
-No edit may leave stale hyperlink semantics behind after the associated logical content is gone.
+Prove semantic metadata is preserved or removed correctly through every content-transforming operation in the stable core, including wide-cell repair and multiple pad viewports.
 
 ---
 
-## 18. T1106 — lifecycle, failure, cancellation, and recovery
+## 18. T1106 — lifecycle/failure/cancellation hardening
 
-### Objectives
-
-- failure-inject hyperlink begin/content/end transitions;
-- preserve independently meaningful primary/restoration failures;
-- prove later safe repaint after semantic-state uncertainty;
-- prove suspend/resume composition with Terminal-owned hyperlink state;
-- prove disposal remains authoritative;
-- prove caller cancellation does not leave ghost logical/physical hyperlink ownership;
-- keep retained physical state conservative after any ambiguous failure.
-
-### Exit criteria
-
-The established 1.0 restoration/hardening guarantees remain intact with hyperlink semantics active.
+Failure-inject begin/content/end transitions, preserve dual failures, prove later recovery, and retain authoritative Terminal restoration through suspend/resume and disposal.
 
 ---
 
-## 19. T1107 — acceptance, performance, and allocation pressure
+## 19. T1107 — acceptance/performance/allocation
 
-### Objectives
-
-- run editor-like linked-content acceptance;
-- run pager/help scrolling acceptance;
-- run large-pad sparse-link acceptance;
-- run high-frequency/no-op/sparse ordinary refresh regressions;
-- measure ordinary-cell/large-pad memory impact;
-- prove hyperlink run coalescing;
-- exercise mixed hyperlink/style/Unicode/wide-cell content;
-- exercise synchronized-output composition.
-
-### Exit criteria
-
-No significant ordinary-workload regression remains unexplained, and linked workloads demonstrate semantic-run output rather than per-cell protocol churn.
+Run editor, pager/help, large-pad, no-op/high-frequency, synchronized-output, mixed-style, Unicode, and linked-run-coalescing workloads. Significant ordinary-workload regressions must be explained before release continuation.
 
 ---
 
-## 20. T1108 — public API, package, documentation, and regret gate
+## 20. T1108 — API/package/documentation/regret gate
 
-### Objectives
-
-- regenerate the compiled public API fingerprint for `net8.0`, `net9.0`, and `net10.0`;
-- review every intentional public addition for naming, nullability, equality, validation, and future extensibility regret;
-- verify no new Terminal/TermInfo type leaked into the public signature boundary without explicit approval;
-- add fresh NuGet-only consumer coverage for the new hyperlink/metadata API;
-- verify XML documentation for every new public member;
-- update README, samples, current roadmap index, compatibility/migration guidance, and package release notes;
+- regenerate compiled API fingerprints for net8/net9/net10;
+- review naming/nullability/equality/validation/future-extensibility regret;
+- verify no accidental upstream Terminal/TermInfo type leakage;
+- add fresh NuGet-only consumer coverage;
+- verify XML documentation;
+- update README/samples/roadmaps/migration guidance/release notes;
 - perform a documentation audit before RC promotion.
 
-### Exit criteria
-
-The public delta is intentional, minimal, documented, package-consumable, and stable enough for the 1.1 compatibility commitment.
-
 ---
 
-## 21. T1109 — release candidate and stable 1.1.0 closure
-
-### Candidate sequence
+## 21. T1109 — RC and stable closure
 
 1. promote the accepted contract to `1.1.0-rc.1`;
 2. run Windows/Linux/macOS x64/ARM64 plus package/fresh-consumer validation on one exact RC SHA;
-3. correct only release-blocking findings;
-4. promote the unchanged accepted contract to stable `1.1.0`;
+3. correct release blockers only;
+4. promote the unchanged contract to stable `1.1.0`;
 5. perform the final documentation/status audit;
-6. run the same exact stable-source gate;
-7. record the final tested SHA in PR metadata without moving the branch;
+6. rerun the complete exact stable-source gate;
+7. record the tested SHA in PR metadata without moving the branch;
 8. leave merge/tag/publication as explicit later actions.
-
-### Stable release gate
-
-Stable 1.1 must pass:
-
-- Windows x64;
-- Windows ARM64;
-- Linux x64;
-- Linux ARM64;
-- macOS x64;
-- macOS ARM64;
-- exact package/symbol/XML/dependency/fresh-consumer validation.
 
 ---
 
@@ -570,18 +461,17 @@ Version 1.1 does not require:
 
 - panels/layers/z-order — planned for 1.2;
 - layout managers — planned for 1.3;
-- focus/key-binding/hit-test infrastructure — planned for 1.4;
-- Sixel;
-- Kitty Graphics;
+- focus/key binding/hit testing — planned for 1.4;
+- Sixel or Kitty Graphics;
 - generic raster APIs;
-- terminal pixel-geometry public API unless required by an accepted 1.1 feature (not expected);
+- public pixel-geometry API;
 - widget controls;
 - native `ncurses` ABI/source compatibility;
 - generic raw OSC/CSI/DCS/APC writers;
-- notification/shell-integration wrappers which add no curses-level meaning.
+- notification or shell-integration wrappers that add no curses-level meaning.
 
 ---
 
 ## 23. Definition of success
 
-`Icod.DCurses 1.1.0` succeeds when semantic meaning can be attached to retained screen content and preserved through the full curses composition/editing/lifecycle model, with OSC 8 handled entirely by Terminal's typed ownership layer, while ordinary unlinked workloads retain the performance and memory characteristics expected from the stable 1.0 core.
+`Icod.DCurses 1.1.0` succeeds when semantic meaning can be attached to retained screen content, preserved through the complete curses editing/composition/lifecycle model, and emitted through Terminal's typed OSC 8 ownership layer—while ordinary unlinked workloads retain the memory, allocation, and refresh characteristics expected from the stable 1.0 core.
