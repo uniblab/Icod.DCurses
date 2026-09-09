@@ -5,13 +5,13 @@
 **Merged stable-source baseline:** `1.0.0`  
 **Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
 **Latest published release at 1.1 start:** `0.9.0`  
-**Current development package:** `1.1.0-alpha.1`  
+**Current development package:** `1.1.0-alpha.2`  
 **Assembly version:** `1.0.0.0`  
 **Current runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.1.0` — semantic cell metadata and hyperlinks  
-**Status:** T1101 implementation checkpoint active; T1102 representation/memory gate next
+**Status:** T1101 accepted foundation; T1102 row-sparse representation checkpoint staged for validation
 
 ---
 
@@ -32,7 +32,7 @@ Current development is organized by stable 1.x release documents rather than by 
 | Release | Theme | Status |
 |---|---|---|
 | `1.0.0` | Stable core contract | Merged; publication remains separate |
-| `1.1.0` | Semantic cell metadata and hyperlinks | Active — `1.1.0-alpha.1`; T1101 |
+| `1.1.0` | Semantic cell metadata and hyperlinks | Active — `1.1.0-alpha.2`; T1102 |
 | `1.2.0` | Panels, layers, visibility, and z-order composition | Approved future release |
 | `1.3.0` | Layout and resize primitives | Approved future release |
 | `1.4.0` | Focus, interaction regions, key gestures, hit testing, and pointer semantics | Approved future release |
@@ -46,9 +46,10 @@ The detailed active 1.1 plan is:
 
 - `Icod.DCurses-1.1.0-Development-Roadmap.md`
 
-The first implementation record is:
+Current implementation records are:
 
-- `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md`
+- `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md`;
+- `docs/T1102-Semantic-Metadata-Representation-and-Memory-Gate.md`.
 
 ---
 
@@ -79,7 +80,7 @@ The stable boundary remains:
 
 `Icod.DCurses` must not grow raw OSC/CSI/DCS/APC protocol writers merely because Terminal supports those protocol families. DCurses should consume Terminal semantic operations where the higher-level curses model adds meaning.
 
-Terminal 1.6.0 strengthens the CSI/parser/query foundation and internal pixel-geometry substrate without adding a new public surface. DCurses 1.1 therefore consumes it as a dependency-floor improvement while continuing to use Terminal's existing typed OSC 8 hyperlink ownership API.
+Terminal 1.6.0 strengthens the CSI/parser/query foundation and internal pixel-geometry substrate without adding a new public surface. DCurses 1.1 consumes it as a dependency-floor improvement while continuing to use Terminal's existing typed OSC 8 hyperlink ownership API.
 
 ---
 
@@ -110,18 +111,18 @@ exported types:    43
 contract lines:   309
 ```
 
-T1101 ratifies this additive 1.x identity policy:
+T1101 ratified this additive 1.x identity policy:
 
 ```text
 Package version   advances normally through compatible 1.x releases
 AssemblyVersion   remains 1.0.0.0 for compatible additive 1.x releases
 ```
 
-The first 1.1 checkpoint is:
+The active checkpoint is:
 
 ```text
-Version         1.1.0-alpha.1
-PackageVersion  1.1.0-alpha.1
+Version         1.1.0-alpha.2
+PackageVersion  1.1.0-alpha.2
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -131,12 +132,40 @@ A future breaking compatibility decision may revisit assembly identity explicitl
 
 ---
 
+## T1102 representation decision
+
+The representation gate rejects a permanent metadata reference inside every `CursesCell` and rejects a surface-relative token.
+
+On the supported 64-bit runtime matrix, the measured test baseline is:
+
+```text
+CursesCell                                   72 bytes
+CursesCell + metadata reference              80 bytes
+CursesCell + int token wrapper               80 bytes
+```
+
+At the established 2,048 × 256 large-pad scale, one unconditional eight-byte field adds 4 MiB even when metadata is unused.
+
+T1102 instead selects a lazily allocated row-sparse reference plane:
+
+- no semantic plane allocation for an ordinary surface with no metadata;
+- top-level row references allocated only after the first semantic value;
+- per-row reference storage allocated only for rows that contain semantic values;
+- row storage released when its last semantic value is removed;
+- O(1) coordinate lookup;
+- deterministic row snapshot/replace support for editing algorithms;
+- `CursesCell` remains a standalone context-free public value.
+
+The internal foundation is `CursesSparseCellPlane<T>`.
+
+---
+
 ## Active 1.1 sequence
 
 ```text
-T1101  contract/reference/version-policy freeze             active
-  -> T1102  semantic metadata representation + memory gate  next
-  -> T1103  hyperlink value/public write/read contract
+T1101  contract/reference/version-policy freeze             complete
+  -> T1102  semantic metadata representation + memory gate  staged
+  -> T1103  hyperlink value/public write/read contract      next after green T1102
   -> T1104  retained physical hyperlink renderer
   -> T1105  editing/copy/overlay/pad propagation
   -> T1106  lifecycle/failure/cancellation hardening
@@ -145,7 +174,7 @@ T1101  contract/reference/version-policy freeze             active
   -> T1109  RC and stable 1.1.0 closure
 ```
 
-T1101 introduces no new public semantic API. The representation decision remains deliberately open until T1102 measures the permanent memory/equality/composition costs of the viable storage models.
+No public semantic metadata type has entered yet. T1103 is the first intentional public API tranche.
 
 ---
 
@@ -156,7 +185,8 @@ Current authorities:
 - `Icod.DCurses-Development-Roadmap.md` — this current index;
 - `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md` — approved post-1.0 release train;
 - `Icod.DCurses-1.1.0-Development-Roadmap.md` — active detailed 1.1 implementation plan;
-- `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md` — first 1.1 implementation record.
+- `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md`;
+- `docs/T1102-Semantic-Metadata-Representation-and-Memory-Gate.md`.
 
 Stable 1.0 closure authority:
 
