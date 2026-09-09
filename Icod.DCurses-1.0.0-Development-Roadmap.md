@@ -1,13 +1,13 @@
 # Icod.DCurses 1.0.0 Development Roadmap
 
 **Project:** `Icod.DCurses`  
-**Published stable baseline:** `0.6.0`  
-**Validated stable source:** `0.7.0`  
+**Published stable baseline:** `0.7.0`  
+**Validated candidate source:** `0.8.0-rc.1`  
 **Development destination:** `1.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** Approved development plan; `0.7.0` stable-source merge gate active; `0.8.0` next
+**Status:** Approved development plan; `0.8.0` production-hardening RC gate active; `0.9.0` next after stable closure
 
 ---
 
@@ -164,7 +164,7 @@ The release completed the managed presentation contract with:
 
 # 9. Version 0.7.0 — Refresh and Output Optimization
 
-`0.7.0` has completed feature, regret, release-candidate, and stable-source promotion work. The stable source is awaiting the final PR merge gate; publication remains post-merge.
+`0.7.0` is complete and published.
 
 The accepted release optimizes the retained logical/physical screen model without weakening its correctness:
 
@@ -199,30 +199,24 @@ Correctness remains more important than finding a globally minimal escape sequen
 
 # 10. Version 0.8.0 — Production Hardening
 
-`0.8.0` SHALL turn the feature-complete pre-1.0 library into a production-grade runtime component.
+`0.8.0` has completed T801 through T807 implementation and is in the T808 release-candidate gate.
 
-The release SHALL explicitly freeze the concurrency model. The default design preference is:
+The accepted hardening contract freezes these rules:
 
-- logical screen/window/pad mutation is single-writer unless documented otherwise;
-- session input/output/refresh ownership is internally serialized where needed;
-- the library does not add pervasive locks to every cell mutation merely to claim transparent thread safety.
+- logical screen/window/pad/viewport mutation is single-writer unless explicitly documented otherwise;
+- one Terminal-owned event consumer may wait concurrently with refresh/output activity;
+- terminal-mutating session activity is internally serialized;
+- pending DCurses event/lifecycle waits are unblocked by disposal without discarding Terminal decoder state;
+- caller cancellation remains distinguishable from disposal;
+- output uncertainty invalidates retained physical knowledge so later refresh returns through the safe renderer;
+- resize/suspend/resume and rich-input ownership are stress-tested under repeated cycles;
+- repeated entry/exit restores Terminal and protocol ownership deterministically;
+- large pads, large screens, sparse refresh, high-frequency refresh, and no-op refresh are exercised under bounded deterministic stress;
+- hardening machinery remains private/test-only and adds no public API.
 
-Hardening coverage SHALL include:
+The PR runtime gate now covers Windows x64/ARM64, Linux x64/ARM64, and macOS x64/ARM64, with `net8.0`, `net9.0`, and `net10.0` under Staging warnings-as-errors plus package/fresh-consumer validation.
 
-- resize storms;
-- input concurrent with refresh;
-- cancellation during reads and refresh;
-- disposal during pending waits;
-- repeated session entry/exit;
-- rich-input leases during suspend/resume;
-- partial writes and output failure;
-- disconnect and end-of-input;
-- lifecycle registration failure;
-- large pads and large screens;
-- high-frequency refresh;
-- allocation pressure;
-- deterministic restoration after exceptions;
-- x64/ARM64 validation on the supported Windows/Linux/macOS matrix.
+The detailed plan is maintained in `Icod.DCurses-0.8.0-Development-Roadmap.md`. Implementation and regret records are maintained in `docs/T801-T807-Production-Hardening-Implementation.md`, `docs/T808-Hardening-Regret-and-Release-Candidate-Gate.md`, and `docs/Public-API-Baseline-0.8.md`.
 
 ---
 
@@ -323,8 +317,8 @@ Throughout the 1.0 train:
   -> 0.4.0 window editing and composition       complete
   -> 0.5.0 pads and large surfaces              complete
   -> 0.6.0 rendition / drawing / presentation   complete and published
-  -> 0.7.0 refresh and output optimization      stable source; merge gate active
-  -> 0.8.0 production hardening                 next
-  -> 0.9.0 contract freeze / RC
+  -> 0.7.0 refresh and output optimization      complete and published
+  -> 0.8.0 production hardening                 RC gate active
+  -> 0.9.0 contract freeze / RC                 next after 0.8 stable closure
   -> 1.0.0 stable closure
 ```
