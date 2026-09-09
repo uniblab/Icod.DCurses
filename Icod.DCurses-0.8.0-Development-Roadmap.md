@@ -7,7 +7,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Release theme:** Production hardening  
-**Status:** T801-T808 complete; T809 stable-source merge gate active
+**Status:** T801-T809 complete; exact stable source validated and awaiting explicit merge
 
 ---
 
@@ -47,7 +47,7 @@ T801  package/version + hardening/concurrency contract foundation         comple
   -> T806  repeated session entry/exit and Terminal 1.4 ownership soak    complete
   -> T807  large pads/screens + high-frequency/allocation-pressure stress complete
   -> T808  x64/ARM64, package, API, documentation, and regret gate        complete
-  -> T809  stable 0.8.0 closure                                           active
+  -> T809  stable 0.8.0 closure                                           complete
 ```
 
 ---
@@ -64,7 +64,7 @@ T801 SHALL:
 - document the single-writer logical-surface rule and session-level concurrency model;
 - establish deterministic stress/failure helpers without adding public diagnostics APIs.
 
-**Gate T801:** roadmap/version/contract foundation builds and packages cleanly.
+**Gate T801:** satisfied.
 
 ---
 
@@ -81,7 +81,7 @@ Required behavior:
 - disposal still waits for in-flight terminal-mutating activity and performs restoration exactly once;
 - no second byte reader or cancellation path may discard a fragmented Terminal input sequence.
 
-**Gate T802:** deterministic tests cover caller cancellation, disposal during pending waits, repeated disposal, and post-disposal calls.
+**Gate T802:** satisfied.
 
 ---
 
@@ -97,7 +97,7 @@ T803 SHALL prove that the supported concurrency pattern works repeatedly:
 
 Tests SHALL use deterministic in-memory Terminal transports and bounded loops; they SHALL NOT depend on wall-clock sleeps when a controllable signal can be used.
 
-**Gate T803:** repeated concurrent input/refresh/cancellation tests pass under `net8.0`, `net9.0`, and `net10.0`.
+**Gate T803:** satisfied.
 
 ---
 
@@ -117,7 +117,7 @@ Coverage SHALL include:
 
 The acceptance model SHOULD align with the downstream DCurses hardening soak already maintained by `Icod.Terminal 1.4.0`.
 
-**Gate T804:** lifecycle/rich-input stress tests demonstrate deterministic handoff and restoration.
+**Gate T804:** satisfied.
 
 ---
 
@@ -139,7 +139,7 @@ Coverage SHALL include:
 
 DCurses SHALL preserve all independently meaningful failures, using aggregate exceptions where the existing contract already requires dual-failure preservation.
 
-**Gate T805:** every injected uncertainty invalidates retained physical knowledge and disposal remains authoritative.
+**Gate T805:** satisfied. The failure-injection harness is intentionally chunk-agnostic and does not require application text to be coalesced into a particular `WriteAsync(...)` call.
 
 ---
 
@@ -158,7 +158,7 @@ Each cycle SHALL verify:
 
 The test SHALL be bounded and deterministic, suitable for ordinary CI.
 
-**Gate T806:** repeated cycles complete without leaked state, duplicate cleanup, or ownership-order violation.
+**Gate T806:** satisfied.
 
 ---
 
@@ -179,7 +179,7 @@ Required workloads:
 
 Correctness gates SHALL use deterministic final-screen equivalence, bounded retained state, byte/write counts where stable, and absence of unbounded growth. Wall-clock time and GC allocation measurements MAY be recorded as observations but SHALL NOT be brittle pass/fail thresholds unless a repeatable regression bound is demonstrated.
 
-**Gate T807:** all scale/stress workloads complete with stable semantics and no unbounded retained-state growth.
+**Gate T807:** satisfied.
 
 ---
 
@@ -209,8 +209,6 @@ The formal RC record is maintained in `docs/T808-Hardening-Regret-and-Release-Ca
 
 # 12. T809 — Stable 0.8.0 Closure
 
-T809 is release closure only.
-
 The accepted release candidate has been promoted unchanged to:
 
 ```text
@@ -221,13 +219,19 @@ AssemblyVersion 0.8.0.0
 
 The stable closure record is maintained in `docs/T809-0.8.0-Stable-Release-Closure.md`.
 
-Remaining gate:
+Exact stable-source head `533f2cd78b1eecdaad936678f09790955da6308b` passed:
 
-- require the exact stable-source PR head to pass the same six-architecture runtime matrix and package/fresh-consumer validation;
-- once green, leave that head untouched except for PR metadata;
-- merge, post-merge Release validation, `v0.8.0` tagging, and publication remain explicit later actions.
+- Windows x64;
+- Windows ARM64;
+- Linux x64;
+- Linux ARM64;
+- macOS x64;
+- macOS ARM64;
+- package/fresh-consumer validation.
 
-No new feature family or public API may enter T809.
+**Gate T809:** satisfied.
+
+The validated branch SHALL now remain untouched except for PR metadata. The next permitted source-history action is an explicit merge of exact green head `533f2cd78b1eecdaad936678f09790955da6308b` into `main`. After merge, require the exact `main` merge commit to pass the full Release matrix before `v0.8.0` tagging/publication.
 
 ---
 
