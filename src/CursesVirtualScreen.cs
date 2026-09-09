@@ -219,12 +219,16 @@ public sealed class CursesVirtualScreen {
 	/// <summary>Fills every logical coordinate with the same cell value.</summary>
 	/// <param name="cell">The cell value copied to every coordinate.</param>
 	public void Fill( CursesCell cell ) {
+		bool removedSemanticMetadata = semanticMetadata is not null;
 		semanticMetadata = null;
 		for ( int offset = 0; offset < cells.Length; offset++ ) {
 			SetCellRaw(
 				offset,
 				cell
 			);
+		}
+		if ( removedSemanticMetadata ) {
+			Invalidate();
 		}
 	}
 
