@@ -17,10 +17,10 @@ synchronization.
 
 `Icod.DCurses 0.5.0` is the current published stable release.
 
-Development toward `1.0.0` continues on the `0.6.0` rendition, drawing, and
-presentation line. T601 through T608 are complete and the frozen release-candidate
-package is `0.6.0-rc.1` with assembly version `0.6.0.0`. T609 release closure is
-active; no new presentation feature family will enter before stable `0.6.0`.
+The `0.6.0` rendition, drawing, and presentation contract has completed its
+release-candidate gate and has been promoted unchanged to stable `0.6.0` source
+with assembly version `0.6.0.0`. T609's final stable-source PR merge gate is
+active; publication remains post-merge and post-Release-matrix validation.
 
 The frozen 0.6 contract adds:
 
@@ -64,10 +64,11 @@ managed TUI contract.
 
 See `Icod.DCurses-1.0.0-Development-Roadmap.md` for the authoritative release
 train through `1.0.0`, and `Icod.DCurses-0.6.0-Development-Roadmap.md` for the
-active presentation tranche. Current 0.6 decisions and gates are recorded in:
+presentation tranche. Current 0.6 decisions and gates are recorded in:
 
 - `docs/T603-T606-Presentation-Resolution-and-Line-Drawing.md`
 - `docs/T607-T608-Presentation-Acceptance-and-Freeze.md`
+- `docs/T609-0.6.0-Stable-Release-Closure.md`
 - `docs/Public-API-Baseline-0.6.md`.
 
 The completed 0.5 pad release is recorded in
