@@ -23,10 +23,17 @@ public sealed class CursesOutputFailureHardeningTests {
 			terminalSession,
 			NoPresentationOptions()
 		);
-		session.StandardScreen.Write( "XY" );
+		session.StandardScreen.Write( "X" );
+		session.StandardScreen.Write(
+			"Y",
+			new CursesStyle(
+				CursesColor.Default,
+				CursesColor.Default,
+				CursesTextAttributes.Bold
+			)
+		);
 		output.FailOnceWhen(
-			value => value.Contains( "X", StringComparison.Ordinal )
-				|| value.Contains( "Y", StringComparison.Ordinal )
+			value => "<bold>" == value
 		);
 
 		_ = await Assert.ThrowsAsync<IOException>(
@@ -37,7 +44,9 @@ public sealed class CursesOutputFailureHardeningTests {
 		await session.RefreshAsync();
 
 		Assert.Contains( "<cup:0,0>", output.Text );
-		Assert.Contains( "XY", output.Text );
+		Assert.Contains( "X", output.Text );
+		Assert.Contains( "<bold>", output.Text );
+		Assert.Contains( "Y", output.Text );
 	}
 
 	[Fact]
