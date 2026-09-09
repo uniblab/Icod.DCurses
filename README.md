@@ -71,7 +71,7 @@ Earlier stable releases established:
 
 The dependency baseline remains:
 
-- `Icod.Terminal` 1.0.0
+- `Icod.Terminal` 1.4.0
 - `Icod.TermInfo` 1.10.0
 
 The retired DCurses backend, native mode, lifecycle-source, input-decoder, and
