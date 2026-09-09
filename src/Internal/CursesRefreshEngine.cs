@@ -13,6 +13,7 @@ internal sealed class CursesRefreshEngine {
 	private readonly CursesPresentationResolver presentationResolver;
 	private readonly CursesLinePresentationResolver linePresentationResolver;
 	private readonly CursesCursorMotionResolver cursorMotionResolver;
+	private readonly CursesCharacterShiftResolver characterShiftResolver;
 	private readonly CursesEraseResolver eraseResolver;
 	private readonly SemaphoreSlim refreshGate = new( 1, 1 );
 
@@ -43,6 +44,10 @@ internal sealed class CursesRefreshEngine {
 			applicationEncoding ?? new UTF8Encoding(
 				encoderShouldEmitUTF8Identifier: false
 			)
+		);
+		characterShiftResolver = new CursesCharacterShiftResolver(
+			terminal,
+			costModel
 		);
 		eraseResolver = new CursesEraseResolver(
 			terminal,
@@ -212,6 +217,21 @@ internal sealed class CursesRefreshEngine {
 
 		bool eraseCompletedRefresh = false;
 		for ( int row = 0; row < desired.Rows && !eraseCompletedRefresh; row++ ) {
+			CursesCharacterShiftPlan? characterShift = characterShiftResolver.Resolve(
+				desired,
+				physicalScreen!,
+				row,
+				currentStyle
+			);
+			if ( characterShift.HasValue ) {
+				await ApplyCharacterShiftAsync(
+					desired,
+					characterShift.Value,
+					cancellationToken
+				).ConfigureAwait( false );
+				continue;
+			}
+
 			int column = 0;
 			while ( column < desired.Columns ) {
 				if ( !NeedsUpdate( desired, row, column ) ) {
@@ -346,6 +366,46 @@ internal sealed class CursesRefreshEngine {
 		}
 
 		return end;
+	}
+
+	private async ValueTask ApplyCharacterShiftAsync(
+		CursesVirtualScreen desired,
+		CursesCharacterShiftPlan plan,
+		CancellationToken cancellationToken
+	) {
+		ArgumentNullException.ThrowIfNull( desired );
+		switch ( plan.Kind ) {
+			case CursesCharacterShiftKind.Insert:
+			case CursesCharacterShiftKind.Delete:
+				break;
+
+			default:
+				throw new ArgumentOutOfRangeException(
+					nameof( plan ),
+					plan.Kind,
+					"Unknown curses character-shift operation."
+				);
+		}
+
+		await MoveCursorAsync(
+			plan.Row,
+			plan.Column,
+			cancellationToken
+		).ConfigureAwait( false );
+		await TerminalCapabilityWriter.WriteAsync(
+			output,
+			plan.Sequence,
+			cancellationToken
+		).ConfigureAwait( false );
+
+		MarkPhysicalRange(
+			desired,
+			plan.Row,
+			0,
+			desired.Columns
+		);
+		cursorRow = plan.Row;
+		cursorColumn = plan.Column;
 	}
 
 	private async ValueTask EraseAsync(
