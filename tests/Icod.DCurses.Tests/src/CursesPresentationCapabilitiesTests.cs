@@ -25,6 +25,17 @@ public sealed class CursesPresentationCapabilitiesTests {
 	}
 
 	[Fact]
+	public void Sgr0WithoutOriginalColorPairDoesNotClaimDefaultColorRestoration() {
+		TerminalDescription terminal = new TerminalDescriptionBuilder( "sgr0-only" )
+			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
+			.Build();
+		CursesPresentationCapabilities capabilities =
+			CursesPresentationCapabilities.Create( terminal );
+
+		Assert.False( capabilities.SupportsDefaultColorRestoration );
+	}
+
+	[Fact]
 	public void AnsiReportsIndexedColorAndNativeAttributeSubset() {
 		CursesPresentationCapabilities capabilities =
 			CursesPresentationCapabilities.Create( TerminalProfiles.Ansi );
