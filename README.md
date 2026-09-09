@@ -11,25 +11,27 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 - `Icod.TermInfo` is the immutable terminal-capability authority;
 - `Icod.Terminal` owns the live terminal session, host mode, dimensions, lifecycle, input decoding, semantic terminal protocols, presentation leases, and input-protocol leases;
-- `Icod.DCurses` owns curses-shaped events, logical screens and windows, pads and viewports, terminal cells and styles, semantic drawing, and retained refresh/damage policy.
+- `Icod.DCurses` owns curses-shaped events, logical screens and windows, pads and viewports, terminal cells and styles, semantic drawing/content, and retained refresh/damage policy.
 
 ## Status
 
-`Icod.DCurses 1.1.0-alpha.2` is the active post-1.0 development checkpoint on PR #25.
+`Icod.DCurses 1.0.0` is the current published stable release.
 
-T1101 froze the stable 1.0 compatibility floor, retained `AssemblyVersion 1.0.0.0` for compatible additive 1.x releases, and advanced the direct Terminal dependency to 1.6.0. T1102 selects a lazily allocated row-sparse metadata reference plane so ordinary non-semantic surfaces do not pay a permanent per-cell metadata reference cost.
+`Icod.DCurses 1.1.0-alpha.3` is the active post-1.0 development checkpoint on PR #25.
+
+T1101 froze the stable 1.0 compatibility floor, retained `AssemblyVersion 1.0.0.0` for compatible additive 1.x releases, and advanced the direct Terminal dependency to 1.6.0. T1102 selected a lazily allocated row-sparse metadata reference plane so ordinary non-semantic surfaces do not pay a permanent per-cell metadata slot. T1103 introduces the first additive public semantic-content API while keeping physical OSC 8 rendering deferred to T1104.
 
 Current development identity:
 
 ```text
-Version         1.1.0-alpha.2
-PackageVersion  1.1.0-alpha.2
+Version         1.1.0-alpha.3
+PackageVersion  1.1.0-alpha.3
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
 ```
 
-The frozen stable public contract contains:
+Stable 1.0 compatibility floor:
 
 ```text
 43 exported types
@@ -37,15 +39,25 @@ The frozen stable public contract contains:
 sha256 274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
 ```
 
-No new public DCurses type/member has entered through T1102. Semantic metadata remains separate from `CursesStyle`, `CursesCell` keeps its stable standalone value representation, and Terminal remains the OSC 8 hyperlink protocol/ownership authority.
+Current provisional 1.1 development contract:
+
+```text
+45 exported types
+337 canonical declared contract lines
+sha256 d7fb2040d9cd22ed71e90e788f453c73eb29d681f2cc0f7aaefa805792fab2ea
+```
+
+The two intentional new exported types are `CursesHyperlink` and `CursesCellMetadata`.
 
 ## Installation
 
-The latest published GitHub release remains `0.9.0`. Development packages and merged-but-not-published source are not presented here as the stable installation target.
+The current published stable release is `1.0.0`:
 
 ```text
-dotnet add package Icod.DCurses --version 0.9.0
+dotnet add package Icod.DCurses --version 1.0.0
 ```
+
+Development packages are not presented here as the stable installation target.
 
 ## Architecture
 
@@ -54,7 +66,7 @@ top / slabtop / watch / editors / pagers / other TUIs
                          |
                     Icod.DCurses
        windows / pads / cells / refresh
-     rendition / drawing / curses events
+   rendition / semantic content / events
                          |
                     Icod.Terminal
       session / input / lifecycle / dimensions
@@ -108,7 +120,7 @@ A `CursesSession` restores the presentation and Terminal-owned state it acquires
 
 ## Stable 1.0 compatibility contract
 
-The post-1.0 release train carries forward the exact contract frozen in 0.9 and accepted by the green 1.0 gates.
+The post-1.0 release train carries forward the contract frozen in 0.9 and published as 1.0.0.
 
 The accepted compatibility rules include:
 
@@ -127,7 +139,7 @@ The accepted compatibility rules include:
 - independently meaningful primary/restoration failures remain observable;
 - Terminal remains the authoritative owner of host-state restoration.
 
-The only lower-layer type definitions intentionally visible in the public DCurses contract are:
+The only lower-layer type definitions intentionally visible in the stable DCurses contract are:
 
 ```text
 Icod.Terminal.TerminalSession
@@ -145,7 +157,7 @@ See:
 - `docs/Public-API-Baseline-1.0.md`
 - `docs/1.0-Stable-Compatibility-and-Migration-Guide.md`
 
-## 1.1 semantic metadata direction
+## 1.1 semantic metadata and hyperlinks
 
 The 1.1 release introduces semantic meaning attached to retained content, beginning with hyperlinks.
 
@@ -153,24 +165,60 @@ The governing separation is:
 
 ```text
 visual rendition     -> CursesStyle
-semantic meaning     -> semantic metadata
+semantic meaning     -> CursesCellMetadata / CursesHyperlink
 wire protocol/state  -> Icod.Terminal
 ```
 
-T1102 measured the current supported-runtime representation at 72 bytes for `CursesCell` and 80 bytes for simple cell-plus-reference/token candidates. An unconditional eight-byte field would add 4 MiB to the established 2,048 × 256 pad even when metadata is unused.
+### Sparse representation
 
-The selected model is therefore a row-sparse metadata reference plane:
+T1102 measured the portable incremental cost of adding a metadata/token slot rather than assuming one private `CursesCell` size across architectures:
 
-- no semantic row storage until metadata is actually used;
-- only rows containing metadata allocate reference arrays;
-- empty rows and the entire plane are released when their last semantic value disappears;
-- coordinate lookup remains O(1);
-- row snapshot/replace mechanics compose with the existing editing model;
-- `CursesCell` remains context-free and independently copyable.
+```text
+cell + metadata-reference wrapper overhead   +8 bytes per cell
+cell + int-token wrapper overhead             +8 bytes per cell
+```
 
-T1103 will define the minimal public immutable hyperlink/metadata value contract on top of this internal storage model.
+At the established 2,048 × 256 pad scale, one unconditional extra eight-byte slot would add exactly 4 MiB even when metadata is unused.
 
-Hyperlink rendering will use Terminal's typed OSC 8 ownership rather than constructing raw OSC 8 sequences inside DCurses.
+The selected row-sparse metadata reference plane therefore provides:
+
+- no semantic plane allocation until metadata is actually used;
+- per-row reference allocation only for rows containing metadata;
+- release of empty rows and eventually the complete plane;
+- O(1) coordinate lookup;
+- row snapshot/replace mechanics that can compose with the existing editing model;
+- unchanged, context-free `CursesCell` values.
+
+### Logical public contract
+
+T1103 adds immutable semantic values:
+
+```csharp
+CursesCellMetadata metadata = new(
+    new CursesHyperlink(
+        "https://example.test/docs",
+        "docs"
+    )
+);
+
+screen.Write(
+    "documentation",
+    metadata
+);
+```
+
+Metadata can also be inspected or changed at window/virtual-screen coordinates through `GetMetadata(...)` and `SetMetadata(...)`.
+
+Two-column text elements carry one coherent metadata value across the leader/continuation footprint. Ordinary unannotated replacement clears overwritten semantic metadata even if the glyph/style value is otherwise unchanged. Metadata-only changes participate in logical damage tracking.
+
+`CursesHyperlink` follows Terminal-compatible target/identifier rules while remaining a DCurses-native type. DCurses never dereferences or activates hyperlink targets.
+
+T1103 is still a **logical-only** checkpoint. Physical hyperlink rendering begins in T1104 and will use Terminal's typed OSC 8 ownership rather than constructing raw OSC 8 sequences inside DCurses.
+
+Development fingerprint:
+
+- `docs/Public-API-Fingerprint-1.1.json`
+- `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`
 
 ## Concurrency and production hardening
 
@@ -262,6 +310,8 @@ await session.RefreshAsync();
 
 Multiple viewports may observe one pad independently. Pads and viewports do not own terminal sessions or physical refresh state.
 
+Full semantic propagation through editing, copy/overlay, pads, and viewports is a T1105 requirement; callers should not infer that future contract from the alpha.3 logical foundation alone.
+
 ## Window editing and composition
 
 Windows are shared logical views. Editing, copying, overlay, drawing, and damage operations preserve the Unicode/wide-cell contract.
@@ -332,8 +382,10 @@ Current post-1.0 authorities:
 - `Icod.DCurses-1.1.0-Development-Roadmap.md`
 - `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md`
 - `docs/T1102-Semantic-Metadata-Representation-and-Memory-Gate.md`
+- `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`
+- `docs/Public-API-Fingerprint-1.1.json`
 
-The stable 1.0 closure records remain historical compatibility authorities and are not rewritten merely to reflect later dependency or development versions.
+The published 1.0 closure records remain stable compatibility authorities and are not rewritten merely to reflect later development versions.
 
 ## Authors
 
