@@ -2,7 +2,7 @@
 
 **Release line:** `0.9.0`  
 **Purpose:** prove the frozen contract under production-shaped managed TUI workloads without importing application policy into DCurses  
-**Status:** acceptance set defined; full matrix required before T908
+**Status:** accepted; exact pre-RC head passed the complete PR matrix
 
 ## Acceptance philosophy
 
@@ -125,8 +125,16 @@ They keep process-observation/application policy outside DCurses.
 
 The ordinary package gate runs the deterministic non-interactive path.
 
-## T907 gate
+## Accepted T907 result
 
-Before T908 promotion, the complete repository test suite and package-only consumer must pass for `net8.0`, `net9.0`, and `net10.0` on the PR matrix. T908 then requires the same accepted workload set on Windows x64/ARM64, Linux x64/ARM64, and macOS x64/ARM64 plus package validation.
+Exact pre-RC head:
 
-No T907 result justifies a new public feature family. A discovered compatibility defect is fixed within the existing contract where possible; any unavoidable public correction must return through the T901-T905 fingerprint/regret/migration process before RC promotion.
+```text
+1011c7db06632137c4ca268d496e2f561040addb
+```
+
+passed the complete PR matrix on Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation.
+
+The same accepted workload set then remained part of the green `0.9.0-rc.1` T908 matrix.
+
+No T907 result required a public API change, retained-state workaround, or application-specific policy in DCurses.
