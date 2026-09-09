@@ -8,6 +8,26 @@ All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the
 repository `Icod.DCurses` project, which in turn uses `Icod.Terminal 1.4.0` and
 `Icod.TermInfo 1.10.0`.
 
+## 0.8 concurrency and lifetime contract
+
+The samples follow the production-hardening ownership model frozen for 0.8:
+
+- logical `CursesScreen`, `CursesWindow`, `CursesPad`, and `CursesPadViewport`
+  mutation is single-writer unless an API explicitly documents otherwise;
+- one `CursesSession` event wait may coexist with refresh/output activity;
+- applications should not create competing independent `ReadEventAsync(...)`
+  and `ReadLifecycleEventAsync(...)` reader loops over the same session;
+- terminal-mutating presentation, protocol, refresh, cursor, alert, suspend, and
+  disposal activity remains serialized by DCurses/Terminal;
+- disposing a `CursesSession` prevents new terminal activity and unblocks
+  pending DCurses input/lifecycle waits while Terminal remains responsible for
+  authoritative terminal restoration;
+- canceling one public input wait does not discard Terminal's underlying decoder
+  state or a fragmented input sequence.
+
+The samples therefore use one ordinary application event loop and do not add a
+second byte reader, per-cell locking, or a private terminal scheduler.
+
 ## Icod.DCurses.Sample
 
 `Icod.DCurses.Sample` is the minimal quick-start demonstration. It opens a
