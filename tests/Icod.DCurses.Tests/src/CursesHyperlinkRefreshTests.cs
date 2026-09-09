@@ -263,6 +263,83 @@ public sealed class CursesHyperlinkRefreshTests {
 		Assert.Single( output.HyperlinkWrites );
 	}
 
+	[Fact]
+	public async Task SemanticPresenceSuppressesCharacterShiftOptimizationUntilTerminalEquivalenceIsPortable() {
+		SemanticRecordingOutput output = new();
+		CursesRefreshEngine engine = new(
+			CreateTerminal(),
+			output
+		);
+		CursesScreen screen = new( 8, 1 );
+		CursesWindow window = screen.StandardWindow;
+		CursesCellMetadata metadata = LinkMetadata( "character-shift" );
+		window.Write(
+			"ABCDEFGH",
+			metadata
+		);
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+		output.Clear();
+
+		window.Move( 0, 1 );
+		window.InsertCells( 2 );
+		await engine.RefreshAsync(
+			screen,
+			0,
+			1
+		);
+
+		Assert.DoesNotContain( "<ich:2>", output.Text );
+		Assert.Null( window.GetMetadata( 0, 1 ) );
+		Assert.Null( window.GetMetadata( 0, 2 ) );
+		Assert.Equal( metadata, window.GetMetadata( 0, 3 ) );
+		Assert.NotEmpty( output.HyperlinkWrites );
+	}
+
+	[Fact]
+	public async Task SemanticPresenceSuppressesLineShiftOptimizationUntilTerminalEquivalenceIsPortable() {
+		SemanticRecordingOutput output = new();
+		CursesRefreshEngine engine = new(
+			CreateTerminal(),
+			output
+		);
+		CursesScreen screen = new( 8, 4 );
+		CursesWindow window = screen.StandardWindow;
+		CursesCellMetadata moving = LinkMetadata( "line-shift" );
+		window.Move( 0, 0 );
+		window.Write( "AAAAAA" );
+		window.Move( 1, 0 );
+		window.Write( "BBBBBB" );
+		window.Move( 2, 0 );
+		window.Write(
+			"CCCCCC",
+			moving
+		);
+		window.Move( 3, 0 );
+		window.Write( "DDDDDD" );
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+		output.Clear();
+
+		window.Move( 1, 0 );
+		window.DeleteLines();
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+
+		Assert.DoesNotContain( "<dl:1>", output.Text );
+		Assert.Equal( moving, window.GetMetadata( 1, 0 ) );
+		Assert.NotEmpty( output.HyperlinkWrites );
+	}
+
 	private static CursesCellMetadata LinkMetadata( string identifier ) {
 		ArgumentNullException.ThrowIfNull( identifier );
 		return new CursesCellMetadata(
@@ -277,6 +354,8 @@ public sealed class CursesHyperlinkRefreshTests {
 		return new TerminalDescriptionBuilder( "hyperlink-refresh" )
 			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
 			.SetString( StringCapability.ClearToEndOfLine, "<el>" )
+			.SetString( StringCapability.InsertCharacters, "<ich:%p1%d>" )
+			.SetString( StringCapability.DeleteLines, "<dl:%p1%d>" )
 			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
 			.SetString( StringCapability.OriginalColorPair, "<op>" )
 			.Build();
