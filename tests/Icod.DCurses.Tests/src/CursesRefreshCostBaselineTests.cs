@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Icod.DCurses.Tests;
 
-/// <summary>Records deterministic pre-optimization refresh byte baselines for the 0.7 release line.</summary>
+/// <summary>Records deterministic refresh byte baselines and accepted 0.7 optimization deltas.</summary>
 public sealed class CursesRefreshCostBaselineTests {
 	[Fact]
 	public async Task CleanRefreshAfterBaselineEmitsNoBytes() {
@@ -99,7 +99,7 @@ public sealed class CursesRefreshCostBaselineTests {
 	}
 
 	[Fact]
-	public async Task BoldCellResetFirstBaselineEmitsNineteenBytes() {
+	public async Task BoldCellT707TransitionImprovesNineteenByteT701Baseline() {
 		MeasuringOutput output = new();
 		CursesRefreshEngine engine = new(
 			CreateRenditionTerminal(),
@@ -129,8 +129,8 @@ public sealed class CursesRefreshCostBaselineTests {
 			0
 		);
 
-		Assert.Equal( 19, output.ByteCount );
-		Assert.Equal( 4, output.WriteCount );
+		Assert.Equal( 13, output.ByteCount );
+		Assert.Equal( 3, output.WriteCount );
 		Assert.Equal( 1, output.FlushCount );
 	}
 
