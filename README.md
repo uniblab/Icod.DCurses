@@ -17,15 +17,15 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 `Icod.DCurses 1.0.0` is the current published stable release.
 
-`Icod.DCurses 1.1.0-alpha.3` is the active post-1.0 development checkpoint on PR #25.
+`Icod.DCurses 1.1.0-alpha.4` is the active post-1.0 development checkpoint on PR #25.
 
-T1101 froze the stable 1.0 compatibility floor, retained `AssemblyVersion 1.0.0.0` for compatible additive 1.x releases, and advanced the direct Terminal dependency to 1.6.0. T1102 selected a lazily allocated row-sparse metadata reference plane so ordinary non-semantic surfaces do not pay a permanent per-cell metadata slot. T1103 introduces the first additive public semantic-content API while keeping physical OSC 8 rendering deferred to T1104.
+T1101 froze the stable 1.0 compatibility floor, retained `AssemblyVersion 1.0.0.0` for compatible additive 1.x releases, and advanced the direct Terminal dependency to 1.6.0. T1102 selected a lazily allocated row-sparse metadata reference plane. T1103 introduced the first additive public semantic-content API. T1104 now renders retained hyperlinks physically through Terminal's typed bounded OSC 8 ownership while preserving DCurses' retained damage model.
 
 Current development identity:
 
 ```text
-Version         1.1.0-alpha.3
-PackageVersion  1.1.0-alpha.3
+Version         1.1.0-alpha.4
+PackageVersion  1.1.0-alpha.4
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -47,7 +47,7 @@ Current provisional 1.1 development contract:
 sha256 d7fb2040d9cd22ed71e90e788f453c73eb29d681f2cc0f7aaefa805792fab2ea
 ```
 
-The two intentional new exported types are `CursesHyperlink` and `CursesCellMetadata`.
+The two intentional new exported types are `CursesHyperlink` and `CursesCellMetadata`. T1104 adds no further public API.
 
 ## Installation
 
@@ -213,12 +213,23 @@ Two-column text elements carry one coherent metadata value across the leader/con
 
 `CursesHyperlink` follows Terminal-compatible target/identifier rules while remaining a DCurses-native type. DCurses never dereferences or activates hyperlink targets.
 
-T1103 is still a **logical-only** checkpoint. Physical hyperlink rendering begins in T1104 and will use Terminal's typed OSC 8 ownership rather than constructing raw OSC 8 sequences inside DCurses.
+### Retained physical hyperlink rendering
 
-Development fingerprint:
+T1104 compares retained physical metadata independently of glyph/style equality. A hyperlink change therefore repaints even when the visible cell is unchanged, while an unchanged linked second refresh emits no repeated hyperlink payload.
+
+Adjacent cells with equal style and metadata are coalesced into one semantic text run. Each linked payload is sent through `TerminalSession.WriteHyperlinkAsync(...)`; DCurses does not construct OSC 8 begin/end frames and does not hold a long-lived Terminal hyperlink lease across unrelated refresh output.
+
+If a link is removed while the cell value remains unchanged, the cell is rewritten as ordinary unlinked text. Physical invalidation clears retained cell and semantic knowledge so later refresh repaints linked content safely.
+
+Until T1105/T1107 prove equivalent semantic behavior for terminal-native editing operations, erase, character-shift, and line-shift/scrolling shortcuts are conservatively disabled whenever desired or retained physical semantic metadata exists.
+
+An actual synchronized `TerminalSession`/`CursesSession` integration test verifies that Terminal emits canonical OSC 8 begin/text/end inside the synchronized-output bracket without deadlock.
+
+See:
 
 - `docs/Public-API-Fingerprint-1.1.json`
 - `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`
+- `docs/T1104-Retained-Physical-Hyperlink-Renderer.md`
 
 ## Concurrency and production hardening
 
@@ -250,7 +261,7 @@ await using CursesSession session = await CursesSession.OpenAsync(
 
 `UseSynchronizedOutput` defaults to `false`. DCurses delegates synchronized-output ownership to `Icod.Terminal`; it does not infer support from a terminal name or construct private mode sequences itself.
 
-Internal refresh optimization can select safe cursor motion, erase operations, character/line insertion and deletion, full-width scrolling, temporary scroll regions, and differential rendition transitions. Correctness and recoverability take precedence over minimizing every possible escape stream.
+Internal refresh optimization can select safe cursor motion, erase operations, character/line insertion and deletion, full-width scrolling, temporary scroll regions, and differential rendition transitions. Correctness and recoverability take precedence over minimizing every possible escape stream. Semantic content currently selects conservative direct rewriting for transformations whose hyperlink behavior is not yet proven.
 
 Representative deterministic maintainer fixtures include:
 
@@ -310,7 +321,7 @@ await session.RefreshAsync();
 
 Multiple viewports may observe one pad independently. Pads and viewports do not own terminal sessions or physical refresh state.
 
-Full semantic propagation through editing, copy/overlay, pads, and viewports is a T1105 requirement; callers should not infer that future contract from the alpha.3 logical foundation alone.
+Full semantic propagation through editing, copy/overlay, pads, and viewports is a T1105 requirement; callers should not infer that future contract from the alpha.4 renderer foundation alone.
 
 ## Window editing and composition
 
@@ -383,6 +394,7 @@ Current post-1.0 authorities:
 - `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md`
 - `docs/T1102-Semantic-Metadata-Representation-and-Memory-Gate.md`
 - `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`
+- `docs/T1104-Retained-Physical-Hyperlink-Renderer.md`
 - `docs/Public-API-Fingerprint-1.1.json`
 
 The published 1.0 closure records remain stable compatibility authorities and are not rewritten merely to reflect later development versions.
