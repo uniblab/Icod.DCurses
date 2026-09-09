@@ -44,6 +44,7 @@ internal sealed class TerminalSessionCursesOutput
 	: ITerminalOutput,
 	  ITerminalHyperlinkOutput {
 	private readonly TerminalSession session;
+	private Exception? semanticOutputFailure;
 
 	internal TerminalSessionCursesOutput(
 		TerminalSession session
@@ -57,6 +58,7 @@ internal sealed class TerminalSessionCursesOutput
 		CancellationToken cancellationToken = default
 	) {
 		ArgumentNullException.ThrowIfNull( value );
+		ThrowIfSemanticOutputIsUncertain();
 		return this.session.WriteTextAsync( value, cancellationToken );
 	}
 
@@ -77,24 +79,52 @@ internal sealed class TerminalSessionCursesOutput
 		);
 	}
 
-	public ValueTask WriteHyperlinkTextAsync(
+	public async ValueTask WriteHyperlinkTextAsync(
 		string value,
 		CursesHyperlink hyperlink,
 		CancellationToken cancellationToken = default
 	) {
 		ArgumentNullException.ThrowIfNull( value );
 		ArgumentNullException.ThrowIfNull( hyperlink );
-		return this.session.WriteHyperlinkAsync(
-			value,
-			hyperlink.Uri,
-			hyperlink.Identifier,
-			cancellationToken
-		);
+		ThrowIfSemanticOutputIsUncertain();
+
+		try {
+			await this.session.WriteHyperlinkAsync(
+				value,
+				hyperlink.Uri,
+				hyperlink.Identifier,
+				cancellationToken
+			).ConfigureAwait( false );
+		} catch ( OperationCanceledException ) when (
+			cancellationToken.IsCancellationRequested
+		) {
+			throw;
+		} catch ( Exception exception ) {
+			_ = Interlocked.CompareExchange(
+				ref this.semanticOutputFailure,
+				exception,
+				null
+			);
+			throw;
+		}
 	}
 
 	public ValueTask FlushAsync(
 		CancellationToken cancellationToken = default
 	) {
 		return this.session.Output.FlushAsync( cancellationToken );
+	}
+
+	private void ThrowIfSemanticOutputIsUncertain() {
+		Exception? failure = Volatile.Read( ref this.semanticOutputFailure );
+		if ( failure is null ) {
+			return;
+		}
+
+		throw new InvalidOperationException(
+			"A prior Terminal hyperlink operation failed and may still require Terminal-owned cleanup. "
+				+ "Dispose the owning CursesSession before emitting further application text.",
+			failure
+		);
 	}
 }
