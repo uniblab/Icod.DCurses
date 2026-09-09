@@ -3,7 +3,7 @@
 **Project:** `Icod.DCurses`  
 **Development line:** `0.7.0`  
 **Stable source baseline:** `0.6.0`  
-**Dependency baseline:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
+**Dependency baseline:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Release theme:** Refresh and output optimization  
 **Status:** Stable `0.7.0` source promoted; T709 merge gate active
