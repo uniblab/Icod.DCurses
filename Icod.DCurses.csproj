@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>1.1.0-alpha.3</Version>
+		<Version>1.1.0-alpha.4</Version>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>1.1.0-alpha.3</PackageVersion>
+		<PackageVersion>1.1.0-alpha.4</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>1.1.0-alpha.3 introduces the first intentional post-1.0 public semantic-content API. T1103 adds immutable CursesHyperlink and CursesCellMetadata values, sparse logical metadata storage, metadata-aware window text/cell writes, and window/virtual-screen metadata inspection and mutation. Semantic metadata remains separate from CursesStyle, ordinary cell replacement removes overwritten semantic metadata, semantic-only changes participate in logical damage/change tracking, and two-column text footprints carry one coherent metadata value. This checkpoint remains logical only: physical OSC 8 rendering is deferred to T1104 and Icod.Terminal remains the typed OSC 8 protocol and live-session ownership authority. T1102's corrected cross-platform memory gate is based on the +8-byte incremental metadata-slot cost rather than one architecture-specific private CursesCell size. Dependencies are Icod.Terminal 1.6.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>1.1.0-alpha.4 adds retained physical hyperlink rendering over the logical semantic-content contract introduced in alpha.3. T1104 retains semantic metadata alongside physical cell knowledge, treats semantic-only changes as refresh work, coalesces adjacent equivalent style/link cells into bounded semantic runs, and delegates each linked text payload to Icod.Terminal 1.6.0 WriteHyperlinkAsync so Terminal remains the canonical OSC 8 framing, serialization, lifecycle, and cleanup authority. DCurses emits no raw OSC 8. Existing line-shift, character-shift, and erase shortcuts are conservatively disabled whenever desired or retained physical semantic metadata exists until T1105 proves metadata propagation semantics for those transforms. Synchronized-output composition is validated through an actual TerminalSession/CursesSession integration path. Dependencies are Icod.Terminal 1.6.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
