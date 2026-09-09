@@ -31,7 +31,7 @@ public sealed class CursesRenditionTransitionTests {
 		Assert.Equal( 1, Count( output.Text, "<op>" ) );
 		Assert.Equal( 1, Count( output.Text, "<bold>" ) );
 		Assert.Equal( 1, Count( output.Text, "<underline>" ) );
-		Assert.Contains( "AB", output.Text );
+		Assert.Contains( "A<underline>B", output.Text );
 	}
 
 	[Fact]
