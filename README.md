@@ -2,6 +2,9 @@
 
 ![Icod TUI Toolchain](https://raw.githubusercontent.com/uniblab/Icod.DCurses/v0.6.0/icod_tui_toolchain.jpg)
 
+[![PR Staging build](https://github.com/uniblab/Icod.DCurses/actions/workflows/pull-request.yaml/badge.svg)](https://github.com/uniblab/Icod.DCurses/actions/workflows/pull-request.yaml)
+[![Main Release validation](https://github.com/uniblab/Icod.DCurses/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/uniblab/Icod.DCurses/actions/workflows/main.yaml)
+
 `Icod.DCurses` is a managed, cross-platform curses-like terminal UI library for
 .NET.
 
