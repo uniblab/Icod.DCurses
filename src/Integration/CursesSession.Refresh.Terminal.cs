@@ -104,7 +104,8 @@ public sealed partial class CursesSession {
 		lock ( this.refreshSync ) {
 			this.refreshEngine ??= new CursesRefreshEngine(
 				this.Terminal,
-				this.refreshOutput
+				this.refreshOutput,
+				this.HostSession.ApplicationEncoding
 			);
 			return this.refreshEngine;
 		}
