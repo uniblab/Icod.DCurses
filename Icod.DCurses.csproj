@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.7.0-alpha.1</Version>
+		<Version>0.7.0-alpha.2</Version>
 		<AssemblyVersion>0.7.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.7.0-alpha.1</PackageVersion>
+		<PackageVersion>0.7.0-alpha.2</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.7.0-alpha.1 begins the refresh and output optimization release line from the stable 0.6.0 presentation contract. The initial tranche establishes deterministic output-cost instrumentation and baseline refresh workloads before adding synchronized-output framing, cost-aware cursor/erase selection, physical insert/delete and scrolling optimizations, and rendition-transition minimization. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.7.0-alpha.2 adds opt-in synchronized refresh framing through Icod.Terminal's DEC private mode 2026 lease while preserving ordinary refresh output by default. The checkpoint also retains the T701 deterministic output-cost model and byte baselines. Synchronized framing is explicitly treated as a visual-atomicity policy rather than a universal byte optimization: it adds a measured 16 protocol bytes plus the Terminal final-release flush per unnested refresh. Nested Terminal leases compose without duplicate physical begin/end frames. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
