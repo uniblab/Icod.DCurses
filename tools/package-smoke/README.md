@@ -5,8 +5,13 @@ reference to the repository library.
 
 Package validation copies the project into a temporary directory, uses an
 isolated NuGet package cache, restores the exact current DCurses version from
-the local artifact directory, and resolves `Icod.Terminal 1.4.0` plus
+the local artifact directory, and resolves `Icod.Terminal 1.5.0` plus
 `Icod.TermInfo 1.10.0` through NuGet.org.
+
+Because those transitive packages are deliberately resolved from NuGet.org rather
+than the repository, a newly published dependency version may temporarily fail
+this smoke gate until NuGet indexing has propagated. Once the dependency resolves,
+the smoke consumer verifies the package as an external consumer would see it.
 
 The ordinary CI execution uses only non-interactive public APIs, so it never
 requires or mutates the runner's real terminal. In addition to the virtual-screen,

@@ -15,11 +15,11 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 ## Status
 
-`Icod.DCurses 1.0.0` is the stable-source candidate on PR #23.
+`Icod.DCurses 1.0.0` stable source has been merged into `main`.
 
-The accepted `1.0.0-rc.1` contract was promoted unchanged to stable `1.0.0` package metadata with `AssemblyVersion 1.0.0.0`. Exact RC head `1968bae18610e69e56dc8f720bffb099cb58eb24` passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation before stable promotion.
+PR #24 updates only the direct `Icod.Terminal` dependency from `1.4.0` to `1.5.0`. It does not change `Icod.DCurses` `Version` (`1.0.0`), `PackageVersion` (`1.0.0`), `AssemblyVersion` (`1.0.0.0`), public API, or runtime ownership model.
 
-The merged `0.9.0` source baseline also passed the complete post-merge `Release` matrix before 1.0 work began.
+The accepted `1.0.0-rc.1` contract was promoted unchanged to stable `1.0.0` package metadata. Exact RC head `1968bae18610e69e56dc8f720bffb099cb58eb24` passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation before stable promotion. The documentation-complete stable-source head `5c17607194b546c6d831be5811d1865a195b970e` passed the same complete gate before merge.
 
 The frozen stable public contract contains:
 
@@ -31,20 +31,20 @@ sha256 274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
 
 The 1.0 machine baseline is intentionally identical to the 0.9 freeze. CI regenerates the compiled fingerprint for `net8.0`, `net9.0`, and `net10.0`, and a separate compatibility test requires the 1.0 baseline to match the historical 0.9 baseline exactly.
 
-The direct dependency baseline remains:
+The current direct dependency baseline is:
 
-- `Icod.Terminal` 1.4.0
+- `Icod.Terminal` 1.5.0
 - `Icod.TermInfo` 1.10.0
 
 ## Installation
 
-The latest published GitHub release remains `0.8.0`. The merged `0.9.0` source and stable `1.0.0` PR source are not presented here as published packages until their respective tag/publication workflows complete.
+The latest published GitHub release is `0.9.0`. Stable `1.0.0` source has been merged, but `v1.0.0` has not yet been published and is therefore not presented here as an installable stable package.
 
 ```text
-dotnet add package Icod.DCurses --version 0.8.0
+dotnet add package Icod.DCurses --version 0.9.0
 ```
 
-After `v1.0.0` is merged, tagged, published, and verified, this installation example will move to the stable 1.0 package.
+After `v1.0.0` is tagged, published, and verified, this installation example will move to the stable 1.0 package.
 
 ## Architecture
 
@@ -297,7 +297,7 @@ The release workflow derives displayed `Icod.Terminal` and `Icod.TermInfo` depen
 
 ## Release documentation
 
-The active release-closure roadmap is:
+The completed 1.0 release-closure roadmap is:
 
 - `Icod.DCurses-1.0.0-Development-Roadmap.md`
 

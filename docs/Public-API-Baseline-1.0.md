@@ -1,10 +1,11 @@
 # Icod.DCurses 1.0 Public API Baseline
 
-**Stable release:** `1.0.0`  
+**Stable source version:** `1.0.0`  
+**Merged main commit:** `686814fe3036484265513d06fe48aec0315912aa`  
 **Accepted release candidate:** `1.0.0-rc.1`  
 **Frozen predecessor contract:** `0.9.0`  
 **Assembly version:** `1.0.0.0`  
-**Dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`
+**Dependencies:** `Icod.Terminal 1.5.0`; `Icod.TermInfo 1.10.0`
 
 ## Purpose
 
@@ -22,7 +23,7 @@ contract lines:   309
 
 The machine fingerprint is canonicalized from compiled assemblies and covers declared public type/member signatures, enum names/values, generic constraints, parameter order/ref-kind/default values, accessor visibility, public fields/constants, and compiled nullable metadata.
 
-The stable 1.0 fingerprint is machine-guarded to remain identical to the historical 0.9 fingerprint. Exact `1.0.0-rc.1` head `1968bae18610e69e56dc8f720bffb099cb58eb24` reproduced and passed this contract on the complete six-architecture plus package/fresh-consumer gate.
+The stable 1.0 fingerprint is machine-guarded to remain identical to the historical 0.9 fingerprint. Exact `1.0.0-rc.1` head `1968bae18610e69e56dc8f720bffb099cb58eb24` reproduced and passed this contract on the complete six-architecture plus package/fresh-consumer gate. Documentation-complete stable source head `5c17607194b546c6d831be5811d1865a195b970e` passed the same complete gate before merge into `main`.
 
 ## Public type families
 
@@ -85,6 +86,8 @@ No additional Terminal/TermInfo type is accepted into the public DCurses signatu
 No public breaking cleanup or feature-family addition is accepted between the frozen 0.9 contract and stable 1.0.
 
 The 1.0 promotion changes package/assembly major-version identity and establishes the stable compatibility commitment. Existing 0.9 source consumers should not require API migration solely because they move to 1.0.
+
+The post-closure dependency refresh from `Icod.Terminal 1.4.0` to `1.5.0` does not alter the DCurses public API fingerprint or DCurses version identity.
 
 ## Machine guards
 
