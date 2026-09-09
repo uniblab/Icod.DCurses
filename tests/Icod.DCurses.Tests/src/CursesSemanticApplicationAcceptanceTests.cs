@@ -1,0 +1,301 @@
+using System.Text;
+using Icod.DCurses.Terminal;
+using Icod.TermInfo;
+using Xunit;
+
+namespace Icod.DCurses.Tests;
+
+/// <summary>Exercises application-shaped semantic workloads for the 1.1 acceptance gate.</summary>
+public sealed class CursesSemanticApplicationAcceptanceTests {
+	[Fact]
+	public async Task EditorLikeMutationCoalescesWideLinkedSpanAfterInsertion() {
+		SemanticRecordingOutput output = new();
+		CursesRefreshEngine engine = new(
+			CreateTerminal(),
+			output
+		);
+		CursesScreen screen = new( 24, 3 );
+		CursesWindow window = screen.StandardWindow;
+		CursesCellMetadata link = LinkMetadata( "editor" );
+		window.Move( 1, 2 );
+		window.Write(
+			"alpha界omega",
+			link
+		);
+
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+		Assert.Single( output.HyperlinkWrites );
+		Assert.Equal( "alpha界omega", output.HyperlinkWrites[ 0 ].Text );
+		output.Clear();
+
+		window.Move( 1, 7 );
+		window.InsertCells();
+		window.Write(
+			"+",
+			link
+		);
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+
+		Assert.NotEmpty( output.HyperlinkWrites );
+		Assert.All(
+			output.HyperlinkWrites,
+			write => Assert.Equal( "editor", write.Hyperlink.Identifier )
+		);
+		Assert.Equal(
+			link,
+			window.GetMetadata( 1, 7 )
+		);
+	}
+
+	[Fact]
+	public async Task PagerLikeManyLinksSettlesToNoOpRefresh() {
+		SemanticRecordingOutput output = new();
+		CursesRefreshEngine engine = new(
+			CreateTerminal(),
+			output
+		);
+		CursesScreen screen = new( 80, 20 );
+		CursesWindow window = screen.StandardWindow;
+
+		for ( int row = 0; row < 16; row++ ) {
+			window.Move( row, 0 );
+			window.Write( "topic " );
+			window.Write(
+				$"link-{row:D2}",
+				LinkMetadata( $"pager-{row:D2}" )
+			);
+		}
+
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+		Assert.Equal( 16, output.HyperlinkWrites.Count );
+		output.Clear();
+
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+
+		Assert.Empty( output.HyperlinkWrites );
+		Assert.Equal( string.Empty, output.Text );
+	}
+
+	[Fact]
+	public void ReferenceLargePadPreservesSparseAndDenseSemanticRowsAcrossViewports() {
+		const int Rows = 2_048;
+		const int Columns = 256;
+		CursesPad pad = new(
+			Columns,
+			Rows
+		);
+		CursesCellMetadata sparse = LinkMetadata( "sparse" );
+		CursesCellMetadata dense = LinkMetadata( "dense" );
+
+		pad.ContentWindow.Move( 17, 41 );
+		pad.ContentWindow.Write(
+			"S",
+			sparse
+		);
+		pad.ContentWindow.Move( 1_777, 0 );
+		pad.ContentWindow.Write(
+			new string( 'D', Columns ),
+			dense
+		);
+
+		CursesScreen firstScreen = new( 32, 4 );
+		CursesScreen secondScreen = new( 32, 4 );
+		CursesPadViewport first = pad.CreateViewport(
+			firstScreen.StandardWindow,
+			16,
+			32,
+			4,
+			32,
+			0,
+			0
+		);
+		CursesPadViewport second = pad.CreateViewport(
+			secondScreen.StandardWindow,
+			1_776,
+			112,
+			4,
+			32,
+			0,
+			0
+		);
+
+		first.Present();
+		second.Present();
+
+		Assert.Equal(
+			sparse,
+			firstScreen.StandardWindow.GetMetadata( 1, 9 )
+		);
+		for ( int column = 0; column < 32; column++ ) {
+			Assert.Equal(
+				dense,
+				secondScreen.StandardWindow.GetMetadata( 1, column )
+			);
+		}
+		Assert.False( first.HasVisiblePadChanges );
+		Assert.False( second.HasVisiblePadChanges );
+	}
+
+	[Fact]
+	public async Task DenseEquivalentLinkedRowUsesOneSemanticTransaction() {
+		SemanticRecordingOutput output = new();
+		CursesRefreshEngine engine = new(
+			CreateTerminal(),
+			output
+		);
+		CursesScreen screen = new( 256, 1 );
+		CursesCellMetadata metadata = LinkMetadata( "dense-row" );
+		screen.StandardWindow.Write(
+			new string( 'x', 256 ),
+			metadata
+		);
+
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+
+		Assert.Single( output.HyperlinkWrites );
+		Assert.Equal( 256, output.HyperlinkWrites[ 0 ].Text.Length );
+		Assert.Equal( "dense-row", output.HyperlinkWrites[ 0 ].Hyperlink.Identifier );
+	}
+
+	[Fact]
+	public async Task ManyDistinctLinksRemainDistinctSemanticTransactions() {
+		SemanticRecordingOutput output = new();
+		CursesRefreshEngine engine = new(
+			CreateTerminal(),
+			output
+		);
+		CursesScreen screen = new( 64, 1 );
+		CursesWindow window = screen.StandardWindow;
+
+		for ( int column = 0; column < 32; column++ ) {
+			window.Move( 0, column );
+			window.Write(
+				"x",
+				LinkMetadata( $"distinct-{column:D2}" )
+			);
+		}
+
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+
+		Assert.Equal( 32, output.HyperlinkWrites.Count );
+		Assert.Equal(
+			32,
+			output.HyperlinkWrites
+				.Select( write => write.Hyperlink.Identifier )
+				.Distinct( StringComparer.Ordinal )
+				.Count()
+		);
+	}
+
+	private static CursesCellMetadata LinkMetadata( string identifier ) {
+		ArgumentNullException.ThrowIfNull( identifier );
+		return new CursesCellMetadata(
+			new CursesHyperlink(
+				"https://example.test/" + identifier,
+				identifier
+			)
+		);
+	}
+
+	private static TerminalDescription CreateTerminal() {
+		return new TerminalDescriptionBuilder( "semantic-application-acceptance" )
+			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
+			.SetString( StringCapability.ClearToEndOfLine, "<el>" )
+			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
+			.SetString( StringCapability.OriginalColorPair, "<op>" )
+			.Build();
+	}
+
+	private sealed class SemanticRecordingOutput
+		: ITerminalOutput,
+		  ITerminalHyperlinkOutput {
+		private readonly StringBuilder text = new();
+		private readonly List<HyperlinkWrite> hyperlinkWrites = [];
+
+		internal IReadOnlyList<HyperlinkWrite> HyperlinkWrites => hyperlinkWrites;
+
+		internal string Text => text.ToString();
+
+		internal void Clear() {
+			text.Clear();
+			hyperlinkWrites.Clear();
+		}
+
+		public ValueTask WriteTextAsync(
+			string value,
+			CancellationToken cancellationToken = default
+		) {
+			ArgumentNullException.ThrowIfNull( value );
+			cancellationToken.ThrowIfCancellationRequested();
+			text.Append( value );
+			return ValueTask.CompletedTask;
+		}
+
+		public ValueTask WriteTerminalStringAsync(
+			string value,
+			int affectedLines = 1,
+			CancellationToken cancellationToken = default
+		) {
+			ArgumentNullException.ThrowIfNull( value );
+			if ( 0 >= affectedLines ) {
+				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
+			}
+			cancellationToken.ThrowIfCancellationRequested();
+			text.Append( value );
+			return ValueTask.CompletedTask;
+		}
+
+		public ValueTask WriteHyperlinkTextAsync(
+			string value,
+			CursesHyperlink hyperlink,
+			CancellationToken cancellationToken = default
+		) {
+			ArgumentNullException.ThrowIfNull( value );
+			ArgumentNullException.ThrowIfNull( hyperlink );
+			cancellationToken.ThrowIfCancellationRequested();
+			hyperlinkWrites.Add(
+				new HyperlinkWrite(
+					value,
+					hyperlink
+				)
+			);
+			return ValueTask.CompletedTask;
+		}
+
+		public ValueTask FlushAsync(
+			CancellationToken cancellationToken = default
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			return ValueTask.CompletedTask;
+		}
+	}
+
+	private sealed record HyperlinkWrite(
+		string Text,
+		CursesHyperlink Hyperlink
+	);
+}
