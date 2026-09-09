@@ -1,7 +1,7 @@
 # Icod.DCurses 1.0 Public API Baseline
 
-**Stable target:** `1.0.0`  
-**Candidate:** `1.0.0-rc.1`  
+**Stable release:** `1.0.0`  
+**Accepted release candidate:** `1.0.0-rc.1`  
 **Frozen predecessor contract:** `0.9.0`  
 **Assembly version:** `1.0.0.0`  
 **Dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`
@@ -10,7 +10,7 @@
 
 This document is the human-readable stable-contract companion to `docs/Public-API-Fingerprint-1.0.json`.
 
-`Icod.DCurses 1.0` intentionally promotes the exact public contract frozen during 0.9. The major-version release is a stability commitment, not a feature-family or breaking-cleanup tranche.
+`Icod.DCurses 1.0` promotes the exact public contract frozen during 0.9. The major-version release is a stability commitment, not a feature-family or breaking-cleanup tranche.
 
 ## Canonical compiled surface
 
@@ -22,7 +22,7 @@ contract lines:   309
 
 The machine fingerprint is canonicalized from compiled assemblies and covers declared public type/member signatures, enum names/values, generic constraints, parameter order/ref-kind/default values, accessor visibility, public fields/constants, and compiled nullable metadata.
 
-The proposed 1.0 fingerprint is machine-guarded to remain identical to the historical 0.9 fingerprint.
+The stable 1.0 fingerprint is machine-guarded to remain identical to the historical 0.9 fingerprint. Exact `1.0.0-rc.1` head `1968bae18610e69e56dc8f720bffb099cb58eb24` reproduced and passed this contract on the complete six-architecture plus package/fresh-consumer gate.
 
 ## Public type families
 
@@ -82,13 +82,13 @@ No additional Terminal/TermInfo type is accepted into the public DCurses signatu
 
 ## Compatibility statement
 
-No public breaking cleanup or feature-family addition is accepted between the frozen 0.9 contract and the proposed 1.0 stable contract.
+No public breaking cleanup or feature-family addition is accepted between the frozen 0.9 contract and stable 1.0.
 
 The 1.0 promotion changes package/assembly major-version identity and establishes the stable compatibility commitment. Existing 0.9 source consumers should not require API migration solely because they move to 1.0.
 
 ## Machine guards
 
-- `PublicApiFingerprintTests` regenerates and verifies the canonical compiled API.
+- `PublicApiFingerprintTests` regenerates and verifies the canonical compiled API against the 1.0 baseline.
 - `PublicStableApiBaselineTests` requires the 1.0 baseline to match the 0.9 freeze.
 - semantic freeze tests protect geometry, Unicode/cell, and related behavioral contracts.
 - lifetime/hardening tests protect cancellation/disposal/restoration/failure behavior.
