@@ -3,14 +3,15 @@
 **Project:** `Icod.DCurses`  
 **Repository:** `https://github.com/uniblab/Icod.DCurses`  
 **Merged stable-source baseline:** `1.0.0`  
-**Current main baseline:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
-**Latest published release:** `0.9.0`  
-**Current package metadata:** `1.0.0`  
-**Current runtime dependencies:** `Icod.Terminal 1.5.0`; `Icod.TermInfo 1.10.0`  
+**Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
+**Latest published release at 1.1 start:** `0.9.0`  
+**Current development package:** `1.1.0-alpha.1`  
+**Assembly version:** `1.0.0.0`  
+**Current runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.1.0` — semantic cell metadata and hyperlinks  
-**Status:** post-1.0 planning and roadmap foundation; this planning PR does not bump the package version
+**Status:** T1101 implementation checkpoint active; T1102 representation/memory gate next
 
 ---
 
@@ -22,7 +23,7 @@ The original long-form roadmap served the project from its initial 0.1 work thro
 
 - `docs/history/Icod.DCurses-Development-Roadmap-through-1.0.md`
 
-Current development is now organized by stable 1.x release documents rather than by continuously rewriting the original pre-1.0 plan.
+Current development is organized by stable 1.x release documents rather than by continuously rewriting the original pre-1.0 plan.
 
 ---
 
@@ -31,7 +32,7 @@ Current development is now organized by stable 1.x release documents rather than
 | Release | Theme | Status |
 |---|---|---|
 | `1.0.0` | Stable core contract | Merged; publication remains separate |
-| `1.1.0` | Semantic cell metadata and hyperlinks | Active planning / next implementation release |
+| `1.1.0` | Semantic cell metadata and hyperlinks | Active — `1.1.0-alpha.1`; T1101 |
 | `1.2.0` | Panels, layers, visibility, and z-order composition | Approved future release |
 | `1.3.0` | Layout and resize primitives | Approved future release |
 | `1.4.0` | Focus, interaction regions, key gestures, hit testing, and pointer semantics | Approved future release |
@@ -44,6 +45,10 @@ The approved 1.1–1.4 release train is documented in:
 The detailed active 1.1 plan is:
 
 - `Icod.DCurses-1.1.0-Development-Roadmap.md`
+
+The first implementation record is:
+
+- `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md`
 
 ---
 
@@ -74,6 +79,8 @@ The stable boundary remains:
 
 `Icod.DCurses` must not grow raw OSC/CSI/DCS/APC protocol writers merely because Terminal supports those protocol families. DCurses should consume Terminal semantic operations where the higher-level curses model adds meaning.
 
+Terminal 1.6.0 strengthens the CSI/parser/query foundation and internal pixel-geometry substrate without adding a new public surface. DCurses 1.1 therefore consumes it as a dependency-floor improvement while continuing to use Terminal's existing typed OSC 8 hyperlink ownership API.
+
 ---
 
 ## Post-1.0 development principles
@@ -93,7 +100,7 @@ The stable boundary remains:
 
 ---
 
-## Stable compatibility floor
+## Stable compatibility and version policy
 
 The 1.0 public contract remains the compatibility floor for the post-1.0 release train:
 
@@ -103,17 +110,42 @@ exported types:    43
 contract lines:   309
 ```
 
-The current `1.0.0` source retains:
+T1101 ratifies this additive 1.x identity policy:
 
 ```text
-Version         1.0.0
-PackageVersion  1.0.0
+Package version   advances normally through compatible 1.x releases
+AssemblyVersion   remains 1.0.0.0 for compatible additive 1.x releases
+```
+
+The first 1.1 checkpoint is:
+
+```text
+Version         1.1.0-alpha.1
+PackageVersion  1.1.0-alpha.1
 AssemblyVersion 1.0.0.0
-Icod.Terminal   1.5.0
+Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
 ```
 
-The 1.1 implementation tranche must make an explicit assembly-versioning decision before its first alpha rather than changing assembly identity incidentally. The recommended policy is to keep `AssemblyVersion 1.0.0.0` through additive 1.x releases while package versions advance normally.
+A future breaking compatibility decision may revisit assembly identity explicitly; it must not change incidentally.
+
+---
+
+## Active 1.1 sequence
+
+```text
+T1101  contract/reference/version-policy freeze             active
+  -> T1102  semantic metadata representation + memory gate  next
+  -> T1103  hyperlink value/public write/read contract
+  -> T1104  retained physical hyperlink renderer
+  -> T1105  editing/copy/overlay/pad propagation
+  -> T1106  lifecycle/failure/cancellation hardening
+  -> T1107  application/performance/allocation acceptance
+  -> T1108  API/package/documentation/regret gate
+  -> T1109  RC and stable 1.1.0 closure
+```
+
+T1101 introduces no new public semantic API. The representation decision remains deliberately open until T1102 measures the permanent memory/equality/composition costs of the viable storage models.
 
 ---
 
@@ -123,7 +155,8 @@ Current authorities:
 
 - `Icod.DCurses-Development-Roadmap.md` — this current index;
 - `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md` — approved post-1.0 release train;
-- `Icod.DCurses-1.1.0-Development-Roadmap.md` — active detailed 1.1 implementation plan.
+- `Icod.DCurses-1.1.0-Development-Roadmap.md` — active detailed 1.1 implementation plan;
+- `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md` — first 1.1 implementation record.
 
 Stable 1.0 closure authority:
 
