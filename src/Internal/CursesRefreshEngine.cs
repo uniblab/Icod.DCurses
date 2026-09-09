@@ -229,7 +229,7 @@ internal sealed class CursesRefreshEngine {
 			? null
 			: lineShiftResolver.Resolve(
 				desired,
-				physicalScreen,
+				physicalScreen!,
 				currentStyle,
 				cursorRow,
 				cursorColumn,
@@ -249,7 +249,7 @@ internal sealed class CursesRefreshEngine {
 					? null
 					: characterShiftResolver.Resolve(
 						desired,
-						physicalScreen,
+						physicalScreen!,
 						row,
 						currentStyle
 					);
@@ -284,7 +284,7 @@ internal sealed class CursesRefreshEngine {
 						? null
 						: eraseResolver.Resolve(
 							desired,
-							physicalScreen,
+							physicalScreen!,
 							row,
 							start
 						);
