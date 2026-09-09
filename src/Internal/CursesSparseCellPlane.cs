@@ -8,7 +8,7 @@ internal sealed class CursesSparseCellPlane<T>
 	where T : class {
 	private readonly int columns;
 	private readonly int rows;
-	private T?[][]? rowValues;
+	private T?[]?[]? rowValues;
 	private int valueCount;
 	private int allocatedRowCount;
 
@@ -86,7 +86,7 @@ internal sealed class CursesSparseCellPlane<T>
 			return;
 		}
 
-		this.rowValues ??= new T?[ this.rows ][];
+		this.rowValues ??= new T?[]?[ this.rows ];
 		T?[]? rowStorage = this.rowValues[ row ];
 		if ( rowStorage is null ) {
 			rowStorage = new T?[ this.columns ];
