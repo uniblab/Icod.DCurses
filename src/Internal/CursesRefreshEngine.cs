@@ -11,6 +11,7 @@ using Icod.TermInfo;
 internal sealed class CursesRefreshEngine {
 	private readonly TerminalDescription terminal;
 	private readonly ITerminalOutput output;
+	private readonly ITerminalHyperlinkOutput? hyperlinkOutput;
 	private readonly CursesPresentationResolver presentationResolver;
 	private readonly CursesLinePresentationResolver linePresentationResolver;
 	private readonly CursesCursorMotionResolver cursorMotionResolver;
@@ -39,6 +40,7 @@ internal sealed class CursesRefreshEngine {
 
 		this.terminal = terminal;
 		this.output = output;
+		this.hyperlinkOutput = output as ITerminalHyperlinkOutput;
 		presentationResolver = new CursesPresentationResolver( terminal );
 		linePresentationResolver = new CursesLinePresentationResolver( terminal );
 		cursorMotionResolver = new CursesCursorMotionResolver( terminal );
@@ -221,15 +223,19 @@ internal sealed class CursesRefreshEngine {
 			cursorColumn = null;
 		}
 
-		CursesLineShiftPlan? lineShift = lineShiftResolver.Resolve(
-			desired,
-			physicalScreen!,
-			currentStyle,
-			cursorRow,
-			cursorColumn,
-			requestedCursorRow,
-			requestedCursorColumn
-		);
+		bool semanticStatePresent = 0 < desired.SemanticMetadataCount
+			|| 0 < physicalScreen!.SemanticMetadataCount;
+		CursesLineShiftPlan? lineShift = semanticStatePresent
+			? null
+			: lineShiftResolver.Resolve(
+				desired,
+				physicalScreen,
+				currentStyle,
+				cursorRow,
+				cursorColumn,
+				requestedCursorRow,
+				requestedCursorColumn
+			);
 		if ( lineShift.HasValue ) {
 			await ApplyLineShiftAsync(
 				desired,
@@ -239,12 +245,14 @@ internal sealed class CursesRefreshEngine {
 		} else {
 			bool eraseCompletedRefresh = false;
 			for ( int row = 0; row < desired.Rows && !eraseCompletedRefresh; row++ ) {
-				CursesCharacterShiftPlan? characterShift = characterShiftResolver.Resolve(
-					desired,
-					physicalScreen!,
-					row,
-					currentStyle
-				);
+				CursesCharacterShiftPlan? characterShift = semanticStatePresent
+					? null
+					: characterShiftResolver.Resolve(
+						desired,
+						physicalScreen,
+						row,
+						currentStyle
+					);
 				if ( characterShift.HasValue ) {
 					await ApplyCharacterShiftAsync(
 						desired,
@@ -272,12 +280,14 @@ internal sealed class CursesRefreshEngine {
 						column
 					);
 
-					CursesErasePlan? erasePlan = eraseResolver.Resolve(
-						desired,
-						physicalScreen!,
-						row,
-						start
-					);
+					CursesErasePlan? erasePlan = semanticStatePresent
+						? null
+						: eraseResolver.Resolve(
+							desired,
+							physicalScreen,
+							row,
+							start
+						);
 					if ( erasePlan.HasValue ) {
 						await EraseAsync(
 							desired,
@@ -351,7 +361,20 @@ internal sealed class CursesRefreshEngine {
 			return true;
 		}
 
-		return physicalCell != desired[ row, column ];
+		if ( physicalCell != desired[ row, column ] ) {
+			return true;
+		}
+
+		return !Equals(
+			physicalScreen.GetMetadata(
+				row,
+				column
+			),
+			desired.GetMetadata(
+				row,
+				column
+			)
+		);
 	}
 
 	private int FindSpanStart(
@@ -641,7 +664,11 @@ internal sealed class CursesRefreshEngine {
 			physicalScreen!.SetCell(
 				row,
 				column,
-				desired[ row, column ]
+				desired[ row, column ],
+				desired.GetMetadata(
+					row,
+					column
+				)
 			);
 		}
 	}
@@ -664,9 +691,20 @@ internal sealed class CursesRefreshEngine {
 		int segmentStart = start;
 		while ( segmentStart <= end ) {
 			CursesStyle style = desired[ row, segmentStart ].Style;
+			CursesCellMetadata? metadata = desired.GetMetadata(
+				row,
+				segmentStart
+			);
 			int segmentEnd = segmentStart;
 			while ( segmentEnd + 1 <= end
-				&& desired[ row, segmentEnd + 1 ].Style == style ) {
+				&& desired[ row, segmentEnd + 1 ].Style == style
+				&& Equals(
+					desired.GetMetadata(
+						row,
+						segmentEnd + 1
+					),
+					metadata
+				) ) {
 				segmentEnd++;
 			}
 
@@ -676,6 +714,7 @@ internal sealed class CursesRefreshEngine {
 				segmentStart,
 				segmentEnd,
 				style,
+				metadata,
 				textWidthProvider,
 				cancellationToken
 			).ConfigureAwait( false );
@@ -689,6 +728,7 @@ internal sealed class CursesRefreshEngine {
 		int start,
 		int end,
 		CursesStyle style,
+		CursesCellMetadata? metadata,
 		ICursesTextWidthProvider textWidthProvider,
 		CancellationToken cancellationToken
 	) {
@@ -703,6 +743,7 @@ internal sealed class CursesRefreshEngine {
 			row,
 			start,
 			end,
+			metadata?.Hyperlink,
 			textWidthProvider,
 			cancellationToken
 		).ConfigureAwait( false );
@@ -711,7 +752,11 @@ internal sealed class CursesRefreshEngine {
 			physicalScreen!.SetCell(
 				row,
 				column,
-				desired[ row, column ]
+				desired[ row, column ],
+				desired.GetMetadata(
+					row,
+					column
+				)
 			);
 		}
 
@@ -729,6 +774,7 @@ internal sealed class CursesRefreshEngine {
 		int row,
 		int start,
 		int end,
+		CursesHyperlink? hyperlink,
 		ICursesTextWidthProvider textWidthProvider,
 		CancellationToken cancellationToken
 	) {
@@ -761,6 +807,7 @@ internal sealed class CursesRefreshEngine {
 			if ( useAlternateCharacterSet != alternateCharacterSetActive ) {
 				await FlushTextPayloadAsync(
 					payload,
+					hyperlink,
 					cancellationToken
 				).ConfigureAwait( false );
 				await WriteCapabilityIfPresentAsync(
@@ -777,6 +824,7 @@ internal sealed class CursesRefreshEngine {
 
 		await FlushTextPayloadAsync(
 			payload,
+			hyperlink,
 			cancellationToken
 		).ConfigureAwait( false );
 		if ( alternateCharacterSetActive ) {
@@ -789,6 +837,7 @@ internal sealed class CursesRefreshEngine {
 
 	private async ValueTask FlushTextPayloadAsync(
 		StringBuilder payload,
+		CursesHyperlink? hyperlink,
 		CancellationToken cancellationToken
 	) {
 		ArgumentNullException.ThrowIfNull( payload );
@@ -796,10 +845,19 @@ internal sealed class CursesRefreshEngine {
 			return;
 		}
 
-		await WriteTextAsync(
-			payload.ToString(),
-			cancellationToken
-		).ConfigureAwait( false );
+		string text = payload.ToString();
+		if ( hyperlink is null ) {
+			await WriteTextAsync(
+				text,
+				cancellationToken
+			).ConfigureAwait( false );
+		} else {
+			await WriteHyperlinkTextAsync(
+				text,
+				hyperlink,
+				cancellationToken
+			).ConfigureAwait( false );
+		}
 		payload.Clear();
 	}
 
@@ -1122,6 +1180,24 @@ internal sealed class CursesRefreshEngine {
 		ArgumentNullException.ThrowIfNull( text );
 		await output.WriteTextAsync(
 			text,
+			cancellationToken
+		).ConfigureAwait( false );
+	}
+
+	private async ValueTask WriteHyperlinkTextAsync(
+		string text,
+		CursesHyperlink hyperlink,
+		CancellationToken cancellationToken
+	) {
+		ArgumentNullException.ThrowIfNull( text );
+		ArgumentNullException.ThrowIfNull( hyperlink );
+		ITerminalHyperlinkOutput semanticOutput = hyperlinkOutput
+			?? throw new InvalidOperationException(
+				"Retained hyperlink rendering requires Terminal-backed semantic hyperlink output."
+			);
+		await semanticOutput.WriteHyperlinkTextAsync(
+			text,
+			hyperlink,
 			cancellationToken
 		).ConfigureAwait( false );
 	}
