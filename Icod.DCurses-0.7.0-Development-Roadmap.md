@@ -249,6 +249,8 @@ The accepted implementation uses an internal exact-transform resolver over retai
 
 Detailed record: `docs/T706-Physical-Line-Shift-and-Scroll-Region-Optimization.md`.
 
+The corrected implementation checkpoint `629a884e9e28d91de3203d5006a2dd8ae49f0c3c` passed Windows, Linux, macOS, and package validation before alpha.6 promotion.
+
 **Gate T706:** terminal-style pager/editor scrolling workloads reduce bytes while producing the same final physical screen as the fallback renderer.
 
 ---
