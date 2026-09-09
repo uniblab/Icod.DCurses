@@ -84,7 +84,7 @@ public sealed class CursesRefreshEngineTerminalTests {
 	}
 
 	[Fact]
-	public async Task TrailingDefaultBlanksUseEraseToEndOfLine() {
+	public async Task TrailingDefaultBlanksUseEraseToEndOfLineWhenCheaper() {
 		RecordingOutput output = new();
 		CursesRefreshEngine engine = new( CreateTerminal(), output );
 		CursesScreen screen = new( 6, 1 );
@@ -94,12 +94,12 @@ public sealed class CursesRefreshEngineTerminalTests {
 		await engine.RefreshAsync( screen, 0, 0 );
 		output.Clear();
 
-		for ( int column = 3; column < screen.Columns; column++ ) {
+		for ( int column = 1; column < screen.Columns; column++ ) {
 			screen.VirtualScreen[ 0, column ] = CursesCell.Blank();
 		}
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Contains( "<cup:0,3>", output.Text );
+		Assert.Contains( "<cup:0,1>", output.Text );
 		Assert.Contains( "<el>", output.Text );
 	}
 

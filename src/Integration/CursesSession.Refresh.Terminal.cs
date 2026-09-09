@@ -1,6 +1,8 @@
 namespace Icod.DCurses;
 
+using System.Runtime.ExceptionServices;
 using Icod.DCurses.Internal;
+using Icod.Terminal;
 
 /// <summary>Physical-screen synchronization over Terminal-backed output.</summary>
 public sealed partial class CursesSession {
@@ -19,14 +21,42 @@ public sealed partial class CursesSession {
 			cancellationToken
 		).ConfigureAwait( false );
 
-		_ = this.SynchronizeDimensions();
-		CursesScreen currentScreen = this.Screen;
-		await this.GetRefreshEngine().RefreshAsync(
-			currentScreen,
-			currentScreen.StandardWindow.CursorRow,
-			currentScreen.StandardWindow.CursorColumn,
-			cancellationToken
-		).ConfigureAwait( false );
+		if ( !this.Options.UseSynchronizedOutput ) {
+			await this.RefreshCoreAsync(
+				cancellationToken
+			).ConfigureAwait( false );
+			return;
+		}
+
+		TerminalSynchronizedOutputLease synchronizedOutput =
+			await this.HostSession.AcquireSynchronizedOutputAsync(
+				cancellationToken
+			).ConfigureAwait( false );
+		Exception? refreshFailure = null;
+		try {
+			await this.RefreshCoreAsync(
+				cancellationToken
+			).ConfigureAwait( false );
+		} catch ( Exception exception ) {
+			refreshFailure = exception;
+		}
+
+		try {
+			await synchronizedOutput.DisposeAsync().ConfigureAwait( false );
+		} catch ( Exception synchronizationFailure ) {
+			if ( refreshFailure is not null ) {
+				throw new AggregateException(
+					"Curses refresh failed and synchronized-output restoration also reported an error.",
+					refreshFailure,
+					synchronizationFailure
+				);
+			}
+			throw;
+		}
+
+		if ( refreshFailure is not null ) {
+			ExceptionDispatchInfo.Capture( refreshFailure ).Throw();
+		}
 	}
 
 	/// <summary>Invalidates all physical-screen knowledge for the next refresh.</summary>
@@ -39,6 +69,20 @@ public sealed partial class CursesSession {
 		lock ( this.refreshSync ) {
 			this.refreshEngine?.Invalidate();
 		}
+	}
+
+	private async ValueTask RefreshCoreAsync(
+		CancellationToken cancellationToken
+	) {
+		cancellationToken.ThrowIfCancellationRequested();
+		_ = this.SynchronizeDimensions();
+		CursesScreen currentScreen = this.Screen;
+		await this.GetRefreshEngine().RefreshAsync(
+			currentScreen,
+			currentScreen.StandardWindow.CursorRow,
+			currentScreen.StandardWindow.CursorColumn,
+			cancellationToken
+		).ConfigureAwait( false );
 	}
 
 	private async ValueTask ResetRefreshRenditionAsync() {
@@ -60,7 +104,8 @@ public sealed partial class CursesSession {
 		lock ( this.refreshSync ) {
 			this.refreshEngine ??= new CursesRefreshEngine(
 				this.Terminal,
-				this.refreshOutput
+				this.refreshOutput,
+				this.HostSession.ApplicationEncoding
 			);
 			return this.refreshEngine;
 		}

@@ -7,6 +7,9 @@ namespace Icod.DCurses.Tests;
 
 /// <summary>Verifies the active DCurses-to-Icod.Terminal integration boundary.</summary>
 public sealed class CursesTerminalIntegrationTests {
+	private const string SynchronizedOutputBegin = "\u001b[?2026h";
+	private const string SynchronizedOutputEnd = "\u001b[?2026l";
+
 	[Fact]
 	public async Task PresentationStateIsOwnedByTerminalLeases() {
 		RecordingOutput output = new();
@@ -77,6 +80,113 @@ public sealed class CursesTerminalIntegrationTests {
 
 		Assert.Contains( "<sgr0>", output.Text );
 		Assert.Contains( "<op>", output.Text );
+	}
+
+	[Fact]
+	public async Task SynchronizedOutputIsDisabledByDefault() {
+		RecordingOutput output = new();
+		TerminalSession terminalSession = await OpenTerminalSessionAsync(
+			output,
+			new EmptyInput(),
+			CreateRenditionTerminal()
+		);
+		await using CursesSession session = await CursesSession.OpenAsync(
+			terminalSession,
+			NoPresentationOptions()
+		);
+		session.StandardScreen.Write( "X" );
+		output.Clear();
+
+		await session.RefreshAsync();
+
+		Assert.DoesNotContain( SynchronizedOutputBegin, output.Text );
+		Assert.DoesNotContain( SynchronizedOutputEnd, output.Text );
+		Assert.Equal( 1, output.FlushCount );
+	}
+
+	[Fact]
+	public async Task SynchronizedOutputFramesCompleteRefreshWhenEnabled() {
+		RecordingOutput output = new();
+		TerminalSession terminalSession = await OpenTerminalSessionAsync(
+			output,
+			new EmptyInput(),
+			CreateRenditionTerminal()
+		);
+		await using CursesSession session = await CursesSession.OpenAsync(
+			terminalSession,
+			SynchronizedOutputOptions()
+		);
+		session.StandardScreen.Write( "X" );
+		output.Clear();
+
+		await session.RefreshAsync();
+
+		int beginIndex = output.Text.IndexOf(
+			SynchronizedOutputBegin,
+			StringComparison.Ordinal
+		);
+		int payloadIndex = output.Text.IndexOf(
+			"X",
+			StringComparison.Ordinal
+		);
+		int endIndex = output.Text.IndexOf(
+			SynchronizedOutputEnd,
+			StringComparison.Ordinal
+		);
+		Assert.True( 0 <= beginIndex );
+		Assert.True( beginIndex < payloadIndex );
+		Assert.True( payloadIndex < endIndex );
+		Assert.Equal(
+			1,
+			CountOccurrences( output.Text, SynchronizedOutputBegin )
+		);
+		Assert.Equal(
+			1,
+			CountOccurrences( output.Text, SynchronizedOutputEnd )
+		);
+		Assert.Equal(
+			16,
+			Encoding.ASCII.GetByteCount(
+				SynchronizedOutputBegin + SynchronizedOutputEnd
+			)
+		);
+		Assert.Equal( 2, output.FlushCount );
+	}
+
+	[Fact]
+	public async Task SynchronizedOutputComposesWithOuterTerminalLease() {
+		RecordingOutput output = new();
+		TerminalSession terminalSession = await OpenTerminalSessionAsync(
+			output,
+			new EmptyInput(),
+			CreateRenditionTerminal()
+		);
+		await using CursesSession session = await CursesSession.OpenAsync(
+			terminalSession,
+			SynchronizedOutputOptions()
+		);
+		session.StandardScreen.Write( "X" );
+		output.Clear();
+		TerminalSynchronizedOutputLease outer =
+			await terminalSession.AcquireSynchronizedOutputAsync();
+
+		await session.RefreshAsync();
+
+		Assert.Equal(
+			1,
+			CountOccurrences( output.Text, SynchronizedOutputBegin )
+		);
+		Assert.Equal(
+			0,
+			CountOccurrences( output.Text, SynchronizedOutputEnd )
+		);
+
+		await outer.DisposeAsync();
+
+		Assert.Equal(
+			1,
+			CountOccurrences( output.Text, SynchronizedOutputEnd )
+		);
 	}
 
 	[Fact]
@@ -163,6 +273,39 @@ public sealed class CursesTerminalIntegrationTests {
 			EnableKeypad = false,
 			HideCursor = false
 		};
+	}
+
+	private static CursesSessionOptions SynchronizedOutputOptions() {
+		return new CursesSessionOptions {
+			UseAlternateScreen = false,
+			EnableKeypad = false,
+			HideCursor = false,
+			UseSynchronizedOutput = true
+		};
+	}
+
+	private static int CountOccurrences(
+		string source,
+		string value
+	) {
+		ArgumentNullException.ThrowIfNull( source );
+		ArgumentException.ThrowIfNullOrEmpty( value );
+
+		int count = 0;
+		int offset = 0;
+		while ( true ) {
+			int match = source.IndexOf(
+				value,
+				offset,
+				StringComparison.Ordinal
+			);
+			if ( 0 > match ) {
+				return count;
+			}
+
+			count++;
+			offset = match + value.Length;
+		}
 	}
 
 	private static ValueTask<TerminalSession> OpenTerminalSessionAsync(
@@ -263,8 +406,14 @@ public sealed class CursesTerminalIntegrationTests {
 
 		internal string Text => Encoding.UTF8.GetString( this.bytes.ToArray() );
 
+		internal int FlushCount {
+			get;
+			private set;
+		}
+
 		internal void Clear() {
 			this.bytes.Clear();
+			this.FlushCount = 0;
 		}
 
 		public ValueTask WriteAsync(
@@ -280,6 +429,7 @@ public sealed class CursesTerminalIntegrationTests {
 			CancellationToken cancellationToken = default
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
+			this.FlushCount = checked( this.FlushCount + 1 );
 			return ValueTask.CompletedTask;
 		}
 	}

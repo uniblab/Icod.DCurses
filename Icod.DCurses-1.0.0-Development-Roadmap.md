@@ -1,12 +1,13 @@
 # Icod.DCurses 1.0.0 Development Roadmap
 
 **Project:** `Icod.DCurses`  
-**Stable baseline:** `0.5.0`  
+**Published stable baseline:** `0.6.0`  
+**Validated stable source:** `0.7.0`  
 **Development destination:** `1.0.0`  
-**Runtime dependencies:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
+**Runtime dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** Approved development plan; `0.6.0` active
+**Status:** Approved development plan; `0.7.0` stable-source merge gate active; `0.8.0` next
 
 ---
 
@@ -144,54 +145,55 @@ Pads do not own terminal sessions, terminal modes, terminal input, physical-scre
 
 # 8. Version 0.6.0 — Rendition, Drawing, and Presentation
 
-`0.6.0` is the active development release. Its detailed tranche plan is maintained in `Icod.DCurses-0.6.0-Development-Roadmap.md`.
+`0.6.0` is complete and published. Its detailed tranche plan is maintained in `Icod.DCurses-0.6.0-Development-Roadmap.md`.
 
-The stable managed color model already supports terminal-default, indexed, and RGB requests. `0.6.0` SHALL complete the presentation contract around it.
-
-Candidate scope:
+The release completed the managed presentation contract with:
 
 - capability-aware indexed-color range handling;
 - direct RGB/truecolor degradation policy;
 - default foreground/background restoration;
-- bold/intensity interaction;
-- dim;
-- italic where available;
-- underline;
-- reverse;
-- standout;
-- blink where available;
-- conceal/invisible where available;
-- strikeout where available;
-- semantic line-drawing vocabulary;
-- corners, tees, crossings, horizontal and vertical line primitives;
-- Unicode or terminal alternate-character-set fallback policy;
-- cursor presentation semantics beyond simple visibility where justified;
-- a small read-only curses presentation-capabilities view if ordinary TUI decisions otherwise require direct TermInfo inspection.
-
-A historical color-pair facade MAY be added for compatibility, but color pairs SHALL NOT replace the semantic foreground/background model as the primary API.
+- complete bold, dim, italic, underline, reverse, standout, blink, conceal, and strikeout semantics where safely available;
+- `ncv`-aware physical degradation without mutating logical style;
+- a read-only `CursesPresentationCapabilities` view;
+- semantic line-drawing cells and window drawing overloads;
+- ACS, Unicode, and ASCII physical line-glyph fallback;
+- lifecycle/disposal restoration acceptance after rich presentation;
+- warning level 4 and warnings-as-errors under Staging and Release.
 
 ---
 
 # 9. Version 0.7.0 — Refresh and Output Optimization
 
-The current refresh design already separates desired logical state from retained physical-screen knowledge. `0.7.0` SHALL optimize that model without weakening its correctness.
+`0.7.0` has completed feature, regret, release-candidate, and stable-source promotion work. The stable source is awaiting the final PR merge gate; publication remains post-merge.
 
-Required investigation includes:
+The accepted release optimizes the retained logical/physical screen model without weakening its correctness:
 
-- integrating Terminal synchronized-output framing around refresh batches when available;
-- measuring emitted bytes as well as elapsed time and allocation volume;
-- relative cursor motion versus absolute addressing where capability/cost data makes the choice worthwhile;
-- insert/delete-character optimization;
-- insert/delete-line optimization;
-- scroll-region optimization;
-- clear-to-end-of-screen and whole-screen erase optimization;
-- minimizing unnecessary rendition resets;
-- preserving correct state after partial writes or failed refreshes;
-- large-screen and high-frequency refresh benchmarks.
+- opt-in Terminal-owned synchronized-output framing through `CursesSessionOptions.UseSynchronizedOutput`, default `false`;
+- deterministic cost-aware cursor-motion selection;
+- deterministic cost-aware erase selection;
+- exact physical insert/delete-character optimization;
+- exact physical insert/delete-line and forward/reverse scrolling optimization;
+- temporary full-width scroll-region optimization with failure-safe restoration;
+- differential retained-rendition transitions that preserve reset-first safety;
+- deterministic byte/write/fallback/failure-recovery gates;
+- package-only validation of the sole 0.7 public addition.
 
-Correctness SHALL remain more important than finding a globally minimal escape sequence stream.
+The release keeps cost models, candidate resolvers, operation plans, retained physical state, and refresh measurement infrastructure internal. It does not introduce a public diagnostics/statistics surface.
 
-The primary managed batching boundary remains `RefreshAsync()` unless concrete consumer evidence proves a separate native-style `noutrefresh`/`doupdate` contract is beneficial.
+Representative deterministic maintainer fixtures include:
+
+```text
+T701 established-default -> bold: 19 bytes / 4 writes
+T707 established-default -> bold: 13 bytes / 3 writes
+editor two-column insertion:       2 optimized vs 34 fallback bytes
+pager one-line deletion:            4 optimized vs 166 fallback bytes
+160 x 60 full repaint:           9661 bytes / 121 writes / 1 flush
+1000 one-cell updates:           2000 bytes / 2000 writes / 1000 flushes
+```
+
+The detailed plan and freeze record are maintained in `Icod.DCurses-0.7.0-Development-Roadmap.md`, `docs/T701-Refresh-Cost-Foundation-and-Baseline.md` through `docs/T709-0.7.0-Stable-Release-Closure.md`, and `docs/Public-API-Baseline-0.7.md`.
+
+Correctness remains more important than finding a globally minimal escape sequence stream. The primary managed batching boundary remains `RefreshAsync()`.
 
 ---
 
@@ -320,9 +322,9 @@ Throughout the 1.0 train:
   -> 0.3.0 Unicode / terminal-cell contract     complete
   -> 0.4.0 window editing and composition       complete
   -> 0.5.0 pads and large surfaces              complete
-  -> 0.6.0 rendition / drawing / presentation   active
-  -> 0.7.0 refresh and output optimization
-  -> 0.8.0 production hardening
+  -> 0.6.0 rendition / drawing / presentation   complete and published
+  -> 0.7.0 refresh and output optimization      stable source; merge gate active
+  -> 0.8.0 production hardening                 next
   -> 0.9.0 contract freeze / RC
   -> 1.0.0 stable closure
 ```

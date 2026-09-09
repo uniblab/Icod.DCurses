@@ -1,5 +1,6 @@
 namespace Icod.DCurses.Internal;
 
+using System.Runtime.ExceptionServices;
 using System.Text;
 using Icod.DCurses.Terminal;
 using Icod.TermInfo;
@@ -8,12 +9,14 @@ using Icod.TermInfo;
 /// Synchronizes one desired logical screen with the last physical-screen image known to DCurses.
 /// </summary>
 internal sealed class CursesRefreshEngine {
-	private const int MinimumEraseToEndColumns = 3;
-
 	private readonly TerminalDescription terminal;
 	private readonly ITerminalOutput output;
 	private readonly CursesPresentationResolver presentationResolver;
 	private readonly CursesLinePresentationResolver linePresentationResolver;
+	private readonly CursesCursorMotionResolver cursorMotionResolver;
+	private readonly CursesCharacterShiftResolver characterShiftResolver;
+	private readonly CursesLineShiftResolver lineShiftResolver;
+	private readonly CursesEraseResolver eraseResolver;
 	private readonly SemaphoreSlim refreshGate = new( 1, 1 );
 
 	private CursesPhysicalScreenState? physicalScreen;
@@ -25,9 +28,11 @@ internal sealed class CursesRefreshEngine {
 	/// <summary>Initializes a physical refresh engine for one terminal and output service.</summary>
 	/// <param name="terminal">The active terminal capability description.</param>
 	/// <param name="output">The terminal output service.</param>
+	/// <param name="applicationEncoding">The application-text encoding used for deterministic byte cost.</param>
 	internal CursesRefreshEngine(
 		TerminalDescription terminal,
-		ITerminalOutput output
+		ITerminalOutput output,
+		Encoding? applicationEncoding = null
 	) {
 		ArgumentNullException.ThrowIfNull( terminal );
 		ArgumentNullException.ThrowIfNull( output );
@@ -36,6 +41,24 @@ internal sealed class CursesRefreshEngine {
 		this.output = output;
 		presentationResolver = new CursesPresentationResolver( terminal );
 		linePresentationResolver = new CursesLinePresentationResolver( terminal );
+		cursorMotionResolver = new CursesCursorMotionResolver( terminal );
+		CursesOutputCostModel costModel = new(
+			applicationEncoding ?? new UTF8Encoding(
+				encoderShouldEmitUTF8Identifier: false
+			)
+		);
+		characterShiftResolver = new CursesCharacterShiftResolver(
+			terminal,
+			costModel
+		);
+		lineShiftResolver = new CursesLineShiftResolver(
+			terminal,
+			costModel
+		);
+		eraseResolver = new CursesEraseResolver(
+			terminal,
+			costModel
+		);
 	}
 
 	/// <summary>Requests complete physical-screen invalidation at the next refresh boundary.</summary>
@@ -198,45 +221,89 @@ internal sealed class CursesRefreshEngine {
 			cursorColumn = null;
 		}
 
-		for ( int row = 0; row < desired.Rows; row++ ) {
-			int column = 0;
-			while ( column < desired.Columns ) {
-				if ( !NeedsUpdate( desired, row, column ) ) {
-					column++;
+		CursesLineShiftPlan? lineShift = lineShiftResolver.Resolve(
+			desired,
+			physicalScreen!,
+			currentStyle,
+			cursorRow,
+			cursorColumn,
+			requestedCursorRow,
+			requestedCursorColumn
+		);
+		if ( lineShift.HasValue ) {
+			await ApplyLineShiftAsync(
+				desired,
+				lineShift.Value,
+				cancellationToken
+			).ConfigureAwait( false );
+		} else {
+			bool eraseCompletedRefresh = false;
+			for ( int row = 0; row < desired.Rows && !eraseCompletedRefresh; row++ ) {
+				CursesCharacterShiftPlan? characterShift = characterShiftResolver.Resolve(
+					desired,
+					physicalScreen!,
+					row,
+					currentStyle
+				);
+				if ( characterShift.HasValue ) {
+					await ApplyCharacterShiftAsync(
+						desired,
+						characterShift.Value,
+						cancellationToken
+					).ConfigureAwait( false );
 					continue;
 				}
 
-				int start = FindSpanStart(
-					desired,
-					row,
-					column
-				);
-				int end = FindSpanEnd(
-					desired,
-					row,
-					column
-				);
+				int column = 0;
+				while ( column < desired.Columns ) {
+					if ( !NeedsUpdate( desired, row, column ) ) {
+						column++;
+						continue;
+					}
 
-				if ( CanEraseToEndOfLine( desired, row, start ) ) {
-					await EraseToEndOfLineAsync(
+					int start = FindSpanStart(
+						desired,
+						row,
+						column
+					);
+					int end = FindSpanEnd(
+						desired,
+						row,
+						column
+					);
+
+					CursesErasePlan? erasePlan = eraseResolver.Resolve(
+						desired,
+						physicalScreen!,
+						row,
+						start
+					);
+					if ( erasePlan.HasValue ) {
+						await EraseAsync(
+							desired,
+							row,
+							start,
+							erasePlan.Value,
+							cancellationToken
+						).ConfigureAwait( false );
+						if ( CursesEraseKind.ClearToEndOfLine == erasePlan.Value.Kind ) {
+							column = desired.Columns;
+							continue;
+						}
+						eraseCompletedRefresh = true;
+						break;
+					}
+
+					await RenderSpanAsync(
 						desired,
 						row,
 						start,
+						end,
+						screen.TextWidthProvider,
 						cancellationToken
 					).ConfigureAwait( false );
-					column = desired.Columns;
-					continue;
+					column = end + 1;
 				}
-
-				await RenderSpanAsync(
-					desired,
-					row,
-					start,
-					end,
-					screen.TextWidthProvider,
-					cancellationToken
-				).ConfigureAwait( false );
-				column = end + 1;
 			}
 		}
 
@@ -324,61 +391,259 @@ internal sealed class CursesRefreshEngine {
 		return end;
 	}
 
-	private bool CanEraseToEndOfLine(
+	private async ValueTask ApplyLineShiftAsync(
 		CursesVirtualScreen desired,
-		int row,
-		int startColumn
+		CursesLineShiftPlan plan,
+		CancellationToken cancellationToken
 	) {
-		if ( desired.Columns - startColumn < MinimumEraseToEndColumns
-			|| null == terminal.GetString( StringCapability.ClearToEndOfLine ) ) {
-			return false;
+		ArgumentNullException.ThrowIfNull( desired );
+		switch ( plan.Operation ) {
+			case CursesLineShiftOperation.InsertLines:
+			case CursesLineShiftOperation.DeleteLines:
+			case CursesLineShiftOperation.ScrollReverse:
+			case CursesLineShiftOperation.ScrollForward:
+				break;
+
+			default:
+				throw new ArgumentOutOfRangeException(
+					nameof( plan ),
+					plan.Operation,
+					"Unknown curses line-shift operation."
+				);
 		}
 
-		for ( int column = startColumn; column < desired.Columns; column++ ) {
-			CursesCell cell = desired[ row, column ];
-			if ( !cell.IsBlank || !cell.Style.IsDefault ) {
-				return false;
+		if ( !plan.UsesTemporaryScrollRegion ) {
+			await MoveCursorAsync(
+				plan.OperationRow,
+				plan.OperationColumn,
+				cancellationToken
+			).ConfigureAwait( false );
+			await TerminalCapabilityWriter.WriteAsync(
+				output,
+				plan.OperationSequence,
+				plan.OperationAffectedLines,
+				cancellationToken
+			).ConfigureAwait( false );
+
+			for ( int row = plan.TopRow; row <= plan.BottomRow; row++ ) {
+				MarkPhysicalRange(
+					desired,
+					row,
+					0,
+					desired.Columns
+				);
 			}
+			cursorRow = plan.CursorAfterRow;
+			cursorColumn = plan.CursorAfterColumn;
+			return;
 		}
 
-		return true;
+		if ( null == plan.SetRegionSequence
+			|| null == plan.RestoreRegionSequence ) {
+			throw new InvalidOperationException(
+				"A temporary scrolling-region line shift must provide setup and restoration sequences."
+			);
+		}
+
+		Exception? operationFailure = null;
+		cursorRow = null;
+		cursorColumn = null;
+		try {
+			await TerminalCapabilityWriter.WriteAsync(
+				output,
+				plan.SetRegionSequence,
+				plan.SetRegionAffectedLines,
+				cancellationToken
+			).ConfigureAwait( false );
+			await MoveCursorAsync(
+				plan.OperationRow,
+				plan.OperationColumn,
+				cancellationToken
+			).ConfigureAwait( false );
+			await TerminalCapabilityWriter.WriteAsync(
+				output,
+				plan.OperationSequence,
+				plan.OperationAffectedLines,
+				cancellationToken
+			).ConfigureAwait( false );
+		} catch ( Exception exception ) {
+			operationFailure = exception;
+		}
+
+		Exception? restorationFailure = null;
+		cursorRow = null;
+		cursorColumn = null;
+		try {
+			await TerminalCapabilityWriter.WriteAsync(
+				output,
+				plan.RestoreRegionSequence,
+				plan.RestoreRegionAffectedLines,
+				CancellationToken.None
+			).ConfigureAwait( false );
+		} catch ( Exception exception ) {
+			restorationFailure = exception;
+		}
+		cursorRow = null;
+		cursorColumn = null;
+
+		if ( null != operationFailure && null != restorationFailure ) {
+			throw new AggregateException(
+				"Curses line-shift output failed and scrolling-region restoration also reported an error.",
+				operationFailure,
+				restorationFailure
+			);
+		}
+		if ( null != operationFailure ) {
+			ExceptionDispatchInfo.Capture( operationFailure ).Throw();
+		}
+		if ( null != restorationFailure ) {
+			ExceptionDispatchInfo.Capture( restorationFailure ).Throw();
+		}
+
+		for ( int row = plan.TopRow; row <= plan.BottomRow; row++ ) {
+			MarkPhysicalRange(
+				desired,
+				row,
+				0,
+				desired.Columns
+			);
+		}
 	}
 
-	private async ValueTask EraseToEndOfLineAsync(
+	private async ValueTask ApplyCharacterShiftAsync(
+		CursesVirtualScreen desired,
+		CursesCharacterShiftPlan plan,
+		CancellationToken cancellationToken
+	) {
+		ArgumentNullException.ThrowIfNull( desired );
+		switch ( plan.Kind ) {
+			case CursesCharacterShiftKind.Insert:
+			case CursesCharacterShiftKind.Delete:
+				break;
+
+			default:
+				throw new ArgumentOutOfRangeException(
+					nameof( plan ),
+					plan.Kind,
+					"Unknown curses character-shift operation."
+				);
+		}
+
+		await MoveCursorAsync(
+			plan.Row,
+			plan.Column,
+			cancellationToken
+		).ConfigureAwait( false );
+		await TerminalCapabilityWriter.WriteAsync(
+			output,
+			plan.Sequence,
+			cancellationToken
+		).ConfigureAwait( false );
+
+		MarkPhysicalRange(
+			desired,
+			plan.Row,
+			0,
+			desired.Columns
+		);
+		cursorRow = plan.Row;
+		cursorColumn = plan.Column;
+	}
+
+	private async ValueTask EraseAsync(
 		CursesVirtualScreen desired,
 		int row,
 		int startColumn,
+		CursesErasePlan plan,
 		CancellationToken cancellationToken
 	) {
-		await MoveCursorAsync(
-			row,
-			startColumn,
-			cancellationToken
-		).ConfigureAwait( false );
+		ArgumentNullException.ThrowIfNull( desired );
+		if ( CursesEraseKind.ClearScreen != plan.Kind ) {
+			await MoveCursorAsync(
+				row,
+				startColumn,
+				cancellationToken
+			).ConfigureAwait( false );
+		}
 		await ApplyStyleAsync(
 			CursesStyle.Default,
 			cancellationToken
 		).ConfigureAwait( false );
 
-		string capability = terminal.GetRequiredString(
-			StringCapability.ClearToEndOfLine
-		);
 		await TerminalCapabilityWriter.WriteAsync(
 			output,
-			capability,
+			plan.Sequence,
+			plan.AffectedLines,
 			cancellationToken
 		).ConfigureAwait( false );
 
-		for ( int column = startColumn; column < desired.Columns; column++ ) {
+		switch ( plan.Kind ) {
+			case CursesEraseKind.ClearToEndOfLine:
+				MarkPhysicalRange(
+					desired,
+					row,
+					startColumn,
+					desired.Columns
+				);
+				cursorRow = row;
+				cursorColumn = startColumn;
+				break;
+
+			case CursesEraseKind.ClearToEndOfScreen:
+				MarkPhysicalRange(
+					desired,
+					row,
+					startColumn,
+					desired.Columns
+				);
+				for ( int candidateRow = row + 1; candidateRow < desired.Rows; candidateRow++ ) {
+					MarkPhysicalRange(
+						desired,
+						candidateRow,
+						0,
+						desired.Columns
+					);
+				}
+				cursorRow = row;
+				cursorColumn = startColumn;
+				break;
+
+			case CursesEraseKind.ClearScreen:
+				for ( int candidateRow = 0; candidateRow < desired.Rows; candidateRow++ ) {
+					MarkPhysicalRange(
+						desired,
+						candidateRow,
+						0,
+						desired.Columns
+					);
+				}
+				cursorRow = null;
+				cursorColumn = null;
+				break;
+
+			default:
+				throw new ArgumentOutOfRangeException(
+					nameof( plan ),
+					plan.Kind,
+					"Unknown curses erase operation."
+				);
+		}
+	}
+
+	private void MarkPhysicalRange(
+		CursesVirtualScreen desired,
+		int row,
+		int startColumn,
+		int endColumnExclusive
+	) {
+		ArgumentNullException.ThrowIfNull( desired );
+		for ( int column = startColumn; column < endColumnExclusive; column++ ) {
 			physicalScreen!.SetCell(
 				row,
 				column,
 				desired[ row, column ]
 			);
 		}
-
-		cursorRow = row;
-		cursorColumn = startColumn;
 	}
 
 	private async ValueTask RenderSpanAsync(
@@ -547,20 +812,15 @@ internal sealed class CursesRefreshEngine {
 			return;
 		}
 
-		if ( null == terminal.GetString( StringCapability.CursorAddress ) ) {
-			throw new NotSupportedException(
-				$"Terminal '{terminal.Name}' does not provide cursor-addressing capability."
-			);
-		}
-
-		string capability = terminal.Expand(
-			StringCapability.CursorAddress,
+		CursesCursorMotion motion = cursorMotionResolver.Resolve(
+			cursorRow,
+			cursorColumn,
 			row,
 			column
 		);
 		await TerminalCapabilityWriter.WriteAsync(
 			output,
-			capability,
+			motion.Sequence,
 			cancellationToken
 		).ConfigureAwait( false );
 
@@ -577,23 +837,99 @@ internal sealed class CursesRefreshEngine {
 			return;
 		}
 
-		if ( currentStyle.HasValue ) {
-			await ResetAttributesAsync(
-				currentStyle.Value.Attributes,
-				cancellationToken
-			).ConfigureAwait( false );
-		} else {
+		if ( !currentStyle.HasValue ) {
 			await WriteCapabilityIfPresentAsync(
 				StringCapability.ExitAttributeMode,
 				cancellationToken
 			).ConfigureAwait( false );
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.OriginalColorPair,
+				cancellationToken
+			).ConfigureAwait( false );
+			await ApplyAttributesAsync(
+				style.Attributes,
+				cancellationToken
+			).ConfigureAwait( false );
+			await ApplyColorAsync(
+				style.Foreground,
+				foreground: true,
+				cancellationToken
+			).ConfigureAwait( false );
+			await ApplyColorAsync(
+				style.Background,
+				foreground: false,
+				cancellationToken
+			).ConfigureAwait( false );
+			currentStyle = style;
+			return;
 		}
-		await WriteCapabilityIfPresentAsync(
-			StringCapability.OriginalColorPair,
-			cancellationToken
-		).ConfigureAwait( false );
 
-		CursesTextAttributes attributes = style.Attributes;
+		CursesStyle current = currentStyle.Value;
+		CursesTextAttributes removedAttributes = current.Attributes
+			& ~style.Attributes;
+		bool returnsForegroundToDefault = !current.Foreground.IsDefault
+			&& style.Foreground.IsDefault;
+		bool returnsBackgroundToDefault = !current.Background.IsDefault
+			&& style.Background.IsDefault;
+		bool requiresReset = CursesTextAttributes.None != removedAttributes
+			|| returnsForegroundToDefault
+			|| returnsBackgroundToDefault;
+
+		if ( requiresReset ) {
+			if ( CursesTextAttributes.None != removedAttributes ) {
+				await ResetAttributesAsync(
+					current.Attributes,
+					cancellationToken
+				).ConfigureAwait( false );
+			}
+			await WriteCapabilityIfPresentAsync(
+				StringCapability.OriginalColorPair,
+				cancellationToken
+			).ConfigureAwait( false );
+			await ApplyAttributesAsync(
+				style.Attributes,
+				cancellationToken
+			).ConfigureAwait( false );
+			await ApplyColorAsync(
+				style.Foreground,
+				foreground: true,
+				cancellationToken
+			).ConfigureAwait( false );
+			await ApplyColorAsync(
+				style.Background,
+				foreground: false,
+				cancellationToken
+			).ConfigureAwait( false );
+		} else {
+			CursesTextAttributes addedAttributes = style.Attributes
+				& ~current.Attributes;
+			await ApplyAttributesAsync(
+				addedAttributes,
+				cancellationToken
+			).ConfigureAwait( false );
+			if ( current.Foreground != style.Foreground ) {
+				await ApplyColorAsync(
+					style.Foreground,
+					foreground: true,
+					cancellationToken
+				).ConfigureAwait( false );
+			}
+			if ( current.Background != style.Background ) {
+				await ApplyColorAsync(
+					style.Background,
+					foreground: false,
+					cancellationToken
+				).ConfigureAwait( false );
+			}
+		}
+
+		currentStyle = style;
+	}
+
+	private async ValueTask ApplyAttributesAsync(
+		CursesTextAttributes attributes,
+		CancellationToken cancellationToken
+	) {
 		if ( 0 != ( attributes & CursesTextAttributes.Bold ) ) {
 			await WriteCapabilityIfPresentAsync(
 				StringCapability.EnterBoldMode,
@@ -648,19 +984,6 @@ internal sealed class CursesRefreshEngine {
 				cancellationToken
 			).ConfigureAwait( false );
 		}
-
-		await ApplyColorAsync(
-			style.Foreground,
-			foreground: true,
-			cancellationToken
-		).ConfigureAwait( false );
-		await ApplyColorAsync(
-			style.Background,
-			foreground: false,
-			cancellationToken
-		).ConfigureAwait( false );
-
-		currentStyle = style;
 	}
 
 	private async ValueTask ApplyColorAsync(
