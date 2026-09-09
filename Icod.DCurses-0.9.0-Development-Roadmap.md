@@ -1,32 +1,29 @@
 # Icod.DCurses 0.9.0 Development Roadmap
 
 **Project:** `Icod.DCurses`  
-**Development line:** `0.9.0`  
-**Merged source baseline:** `0.8.0`  
-**Published package baseline:** `0.7.0` until the 0.8 tag/publication gate completes  
+**Release line:** `0.9.0`  
+**Published stable predecessor:** `0.8.0`  
 **Dependency baseline:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Release theme:** Contract freeze / release candidate  
-**Initial package checkpoint:** `0.9.0-alpha.1`  
+**Stable package source:** `0.9.0`  
 **Assembly version:** `0.9.0.0`  
-**Status:** T901 active
+**Status:** T901–T908 complete; T909 stable-source/documentation merge gate
 
 ---
 
-## 1. Release Objective
+## 1. Release objective
 
-`Icod.DCurses 0.9.0` SHALL freeze the managed contract intended to become `1.0.0`.
+`Icod.DCurses 0.9.0` freezes the managed contract intended to become `1.0.0`.
 
-No major feature family SHOULD enter after this release begins. The work is primarily a regret, compatibility, documentation, and acceptance pass over the complete `0.8.0` behavior.
+This is not another feature tranche. The release deliberately reviews and machine-guards the complete 0.8-derived public surface, semantic values, ownership rules, geometry, Unicode/cell behavior, exceptions/cancellation, nullable annotations, dependency boundary, package metadata, documentation, and representative application-shaped workloads.
 
-The principal deliverable is not another feature set. It is a deliberately accepted, machine-guarded public contract whose type/member names, enum values, ownership rules, geometry semantics, Unicode/cell semantics, exceptions, cancellation behavior, nullable annotations, dependency boundary, package metadata, and documentation can be carried into `1.0.0` without surprise.
+No public breaking cleanup was accepted. Existing 0.8 source consumers therefore have no planned source migration to 0.9.
 
 ---
 
-## 2. Frozen Architectural Direction
-
-The existing dependency direction remains authoritative:
+## 2. Frozen architecture
 
 ```text
 Applications
@@ -45,260 +42,203 @@ Applications
                  terminal / tty
 ```
 
-`0.9.0` SHALL NOT regain byte-stream decoding, terminal-mode ownership, terminal capability storage, PTY ownership, terminal emulation, or application-specific policy.
+DCurses does not regain raw byte decoding, host-mode ownership, terminal capability storage, PTY ownership, terminal emulation, or application-specific policy.
 
-Any public `Icod.Terminal` or `Icod.TermInfo` type which remains visible after T905 must be explicitly justified as part of the intended 1.x contract.
-
----
-
-## 3. Development Sequence
+The final intentional lower-layer public type set remains exactly:
 
 ```text
-T901  version + contract-freeze foundation and public-surface inventory
-  -> T902  machine-readable public API fingerprint and compatibility guard
-  -> T903  enum/value/geometry/cell semantic freeze
-  -> T904  session/lifetime/ownership/exception/cancellation freeze
-  -> T905  nullable/XML-doc/dependency-boundary regret audit
-  -> T906  conceptual docs, migration guidance, and package-consumer freeze
-  -> T907  representative application-shaped acceptance workloads
-  -> T908  complete API/package/architecture regret and RC gate
-  -> T909  stable 0.9.0 closure
+Icod.Terminal.TerminalSession
+Icod.Terminal.TerminalEndpoint
+Icod.Terminal.TerminalControlResult<T>
+Icod.TermInfo.TerminalDescription
+Icod.TermInfo.TerminalSize
 ```
 
 ---
 
-# 4. T901 — Contract-Freeze Foundation and Inventory
+## 3. Canonical public API freeze
 
-T901 SHALL:
+The accepted compiled public contract is:
 
-- set `<Version>` and `<PackageVersion>` to `0.9.0-alpha.1`;
-- set `<AssemblyVersion>` to `0.9.0.0`;
-- retain `Icod.Terminal 1.4.0` and `Icod.TermInfo 1.10.0`;
-- publish this roadmap;
-- inventory all public types, members, enums, delegates, constructors, properties, events, and methods;
-- identify public surfaces inherited from earlier experimental releases which require a final keep/remove/rename decision;
-- identify public signatures which expose Terminal/TermInfo types;
-- prohibit new public API during T902-T909 unless a concrete 1.0 correctness or usability defect cannot be fixed compatibly.
+```text
+sha256:            274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
+exported types:    43
+contract lines:   309
+```
 
-**Gate T901:** package/version/roadmap foundation builds and packages cleanly and a complete public-surface inventory is available for T902.
+`PublicApiFingerprintTests` produces the same canonical fingerprint for `net8.0`, `net9.0`, and `net10.0` and fails on unreviewed changes to public declared signatures, enum values, generic constraints, parameter/ref/default metadata, fields/constants, accessor visibility, or compiled nullability.
 
----
-
-# 5. T902 — Machine-Readable Public API Fingerprint
-
-T902 SHALL establish a canonical public API fingerprint generated from the compiled `Icod.DCurses` assembly.
-
-The fingerprint SHALL be deterministic across `net8.0`, `net9.0`, and `net10.0` and SHALL include, as applicable:
-
-- public types and nested public types;
-- type kind, base type, implemented public interfaces, generic arity, and public generic constraints;
-- public constructors;
-- public methods, including static/instance distinction, return type, parameter order/type/ref-kind/default values, generic arity, and accessor visibility where relevant;
-- public properties and indexers;
-- public events;
-- public fields and constants;
-- enum underlying type and name/value pairs;
-- nullable metadata where reliably expressible through the compiled contract.
-
-The repository SHALL retain a machine-readable baseline and a human-reviewable canonical representation or hash. CI SHALL fail when the public surface changes without an explicit baseline update.
-
-The fingerprint is a compatibility guard, not a promise that reflection ordering is meaningful; all input SHALL be canonically sorted before comparison.
-
-**Gate T902:** the same accepted fingerprint is produced for every target framework and accidental public changes fail deterministically.
+`PublicDependencyBoundaryTests` independently prevents additional Terminal/TermInfo type leakage.
 
 ---
 
-# 6. T903 — Enum, Value, Geometry, Cell, and Text Semantic Freeze
+## 4. Development sequence and results
 
-T903 SHALL freeze semantic values which source compatibility alone cannot protect.
+```text
+T901  public-surface inventory                         complete
+  -> T902  machine-readable public API fingerprint   complete
+  -> T903  enum/geometry/cell/text semantic freeze   complete
+  -> T904  lifetime/ownership/exception freeze       complete
+  -> T905  nullable/XML/dependency regret audit      complete
+  -> T906  docs/migration/package-consumer freeze    complete
+  -> T907  application-shaped acceptance             complete
+  -> T908  complete regret/package/architecture RC   complete
+  -> T909  stable source + documentation audit       merge gate
+```
 
-Required review and tests include:
+### T901 — inventory and regret foundation
 
-- every public enum numeric value;
-- public flags combinations and reserved/undefined behavior where applicable;
-- row/column ordering and zero-based coordinate semantics;
-- rows/columns versus height/width meaning;
-- rectangle inclusivity/exclusivity and clipping rules;
-- window/subwindow/pad/viewport coordinate spaces;
-- negative/out-of-range argument behavior;
-- wide-cell continuation invariants;
-- Unicode normalization/malformed UTF-16 handling;
-- East Asian Ambiguous-width default and opt-in behavior;
-- semantic line-glyph versus ordinary text behavior;
-- color/default-color and text-attribute value semantics.
+- established `0.9.0-alpha.1` / `AssemblyVersion 0.9.0.0`;
+- inventoried all exported types and public declared members;
+- found no accidental hardening, synchronization, transport, resolver, physical-state, diagnostics, or test type in the public surface;
+- prohibited incidental public changes for the remainder of 0.9.
 
-Where semantics are intentionally not encoded in the API fingerprint, dedicated freeze tests SHALL pin them.
+Record: `docs/T901-Public-Surface-Inventory-and-Regret-Review.md`.
 
-**Gate T903:** semantic-value tests cover all public enums and the principal geometry/cell/text contracts intended for 1.0.
+### T902 — machine-readable fingerprint
 
----
+- added canonical compiled-assembly fingerprinting;
+- froze 43 exported types / 309 canonical contract lines;
+- verified one identical fingerprint across all three target frameworks;
+- stored the machine baseline in `docs/Public-API-Fingerprint-0.9.json`.
 
-# 7. T904 — Session, Lifetime, Ownership, Exception, and Cancellation Freeze
+### T903 — semantic freeze
 
-T904 SHALL deliberately accept the lifetime model hardened in `0.8.0` and freeze its externally observable behavior.
+Dedicated tests pin behavior which reflection cannot fully express:
 
-The review SHALL cover:
+- zero-based row/column coordinates;
+- parent-local subwindow origins;
+- rows/columns dimension semantics;
+- representative range-exception parameter identities;
+- half-open text-column intervals;
+- no two-column glyph splitting;
+- Unicode 17.0.0 width behavior;
+- default narrow and explicit wide East Asian Ambiguous policy;
+- semantic line identity;
+- wide-cell footprint repair across overwrite/resize boundaries.
 
-- session open/dispose ownership;
-- presentation and rich-input lease lifetime;
-- standard-screen lifetime;
-- window/subwindow shared-storage lifetime;
-- pad and viewport lifetime/ownership;
-- suspend/resume interaction;
-- one supported Terminal-owned event consumer concurrent with refresh/output activity;
-- post-disposal behavior;
-- caller cancellation versus disposal-induced cancellation;
-- timeout/deadline behavior;
-- end-of-input/disconnect behavior;
-- exception types for invalid arguments, invalid geometry, unsupported/unavailable capabilities, disposed objects, cancellation, and output/restoration failures;
-- aggregate-exception behavior when independent primary/restoration failures both matter.
+### T904 — lifetime, ownership, exceptions, cancellation
 
-No compatibility-sensitive exception/cancellation behavior may remain accidental after T904.
+The 0.8 hardening model is accepted as the 1.x model:
 
-**Gate T904:** focused tests and conceptual documentation pin the accepted 1.x lifetime and failure contract.
+- logical surfaces are single-writer unless explicitly documented otherwise;
+- one Terminal-owned event consumer may coexist with serialized refresh/output;
+- supplied `TerminalSession` ownership transfers only after successful curses initialization;
+- caller cancellation remains cancellation;
+- disposal-unblocked waits surface `ObjectDisposedException`;
+- repeated disposal shares one restoration operation;
+- uncertain output invalidates retained physical knowledge for safe retry;
+- independent primary/restoration failures remain visible.
 
----
+Record: `docs/T904-Lifetime-Ownership-Exception-and-Cancellation-Freeze.md`.
 
-# 8. T905 — Nullable, XML Documentation, and Dependency-Boundary Regret Audit
+### T905 — nullable/XML/dependency regret audit
 
-T905 SHALL perform a complete public-contract quality audit.
+- nullable reference types remain enabled;
+- compiled nullability participates in the fingerprint;
+- XML documentation remains generated and required in all package TFMs;
+- all five approved Terminal/TermInfo type exposures were reviewed and retained intentionally;
+- no additional upstream public exposure was accepted;
+- no breaking cleanup was deferred to `1.0.0`.
 
-Required checks:
+Record: `docs/T905-Nullable-Documentation-and-Dependency-Regret-Review.md`.
 
-- every public type/member has deliberate nullable annotations;
-- public XML documentation is present and useful for stable consumers;
-- parameter/return/exception semantics are documented where non-obvious;
-- no accidental public helper, implementation type, mutable collection, synchronization primitive, diagnostic object, or test seam remains;
-- public constructors are all intentional;
-- public setters/mutability are all intentional;
-- Terminal/TermInfo public-signature exposure is reviewed member by member;
-- existing dependency-boundary allow-lists are tightened to the final accepted set;
-- no public API is retained merely because removing it would be inconvenient during development if it is clearly unsuitable for 1.x.
+### T906 — documentation, migration, package consumer
 
-If a breaking cleanup is justified, it SHALL occur in T905 or earlier, followed by a deliberate fingerprint update and migration note. No breaking cleanup should be deferred to `1.0.0` closure.
+- added `docs/0.9-Contract-Freeze-and-1.0-Migration-Guide.md`;
+- retained the comprehensive generated-package smoke consumer rather than duplicating it;
+- corrected the GitHub Release workflow so displayed Terminal/TermInfo dependency versions are derived from project `PackageReference` metadata instead of a stale hard-coded value;
+- synchronized the README with the published 0.8 predecessor and 0.9 contract-freeze model.
 
-**Gate T905:** warnings-as-errors, nullable analysis, XML documentation generation, dependency-boundary tests, and the accepted API fingerprint all pass.
+### T907 — representative application acceptance
 
----
+The release gate composes established deterministic coverage for:
 
-# 9. T906 — Documentation, Migration, and Package-Consumer Freeze
+- editor-like and pager-like editing/scrolling;
+- Unicode-heavy and wide-cell boundaries;
+- key/focus/paste/mouse rich input;
+- resize/suspend/resume;
+- cancellation/disposal and ownership cycling;
+- output failure/retry;
+- pads and repeated panning;
+- large-screen, sparse, high-frequency, and no-op refresh;
+- `top`, `slabtop`, and `watch` acceptance sample builds;
+- fresh package-only consumption.
 
-T906 SHALL make the accepted contract understandable without reading implementation source.
+Exact pre-RC head `1011c7db06632137c4ca268d496e2f561040addb` passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package validation.
 
-Documentation SHALL cover:
+Record: `docs/T907-Representative-Application-Acceptance-Gate.md`.
 
-- architectural ownership among DCurses, Terminal, and TermInfo;
-- session creation/disposal and restoration;
-- supported concurrency model and single-writer logical surfaces;
-- input/lifecycle ownership;
-- screen/window/subwindow geometry and lifetime;
-- Unicode/cell-width rules;
-- pads/viewports and panning;
-- presentation/rendition and degradation;
-- refresh/damage semantics and synchronized-output option;
-- exceptions/cancellation/disposal;
-- migration from the pre-1.0 releases, especially any T905 breaking cleanup;
-- explicit non-goals and native-`ncurses` compatibility boundaries.
+### T908 — regret/package/architecture RC gate
 
-A package-only fresh consumer SHALL exercise representative stable API families from the generated `0.9` package, not repository project references.
+`0.9.0-rc.1` introduced no API or runtime behavior change.
 
-**Gate T906:** README, samples, conceptual docs, migration guide, generated package, and fresh consumer all agree with the accepted fingerprint and dependency versions.
+Exact RC head:
 
----
+```text
+67269d0346e31c356414007dc807c82eeebe97aa
+```
 
-# 10. T907 — Representative Application-Shaped Acceptance
+passed the same complete seven-job matrix with the canonical API fingerprint and dependency boundary unchanged.
 
-T907 SHALL run bounded deterministic workloads representative of real downstream TUIs.
+Record: `docs/T908-Contract-Regret-Package-Architecture-and-RC-Gate.md`.
 
-Coverage SHALL include:
+### T909 — stable source and documentation audit
 
-- editor-like cursor movement, insertion/deletion, styled text, Unicode, and scrolling;
-- pager-like large text presentation, line deletion/scroll, resize, and sparse updates;
-- Unicode-heavy grapheme/wide-cell boundaries;
-- rich-input key/focus/paste/mouse semantics where the in-memory Terminal transport can model them deterministically;
-- lifecycle resize/suspend/resume recovery;
-- high-frequency sparse and no-op refresh;
-- pad/viewports under repeated panning;
-- cancellation and disposal during representative waits;
-- output failure followed by safe retry.
+T909 promotes the accepted RC to:
 
-The existing `top`, `slabtop`, and `watch` acceptance samples remain important compatibility indicators. T907 SHALL avoid importing ProcPs policy into DCurses.
+```text
+Version         0.9.0
+PackageVersion  0.9.0
+AssemblyVersion 0.9.0.0
+```
 
-**Gate T907:** representative workloads pass for `net8.0`, `net9.0`, and `net10.0` without API changes or retained-state corruption.
+No runtime/public API behavior changes are permitted.
 
----
+The final documentation audit reviews and corrects current-contract material while leaving historical release records historical. The audit covers:
 
-# 11. T908 — Complete Regret, Package, Architecture, and RC Gate
+- root README status and installation wording;
+- this roadmap;
+- the authoritative 1.0 roadmap;
+- migration guidance after the no-breaking-change T905 result;
+- human-readable and machine API baselines;
+- T907/T908 status wording;
+- package release notes;
+- release-page dependency generation;
+- current `ncurses` prose formatting.
 
-T908 is the final pre-stable regret pass.
+Record: `docs/T909-0.9.0-Stable-Release-Closure-and-Documentation-Audit.md`.
 
-It SHALL verify:
-
-- the accepted API fingerprint and enum/semantic freeze tests;
-- zero unreviewed public API changes after T905;
-- Windows x64 and ARM64;
-- Linux x64 and ARM64;
-- macOS x64 and ARM64;
-- `net8.0`, `net9.0`, and `net10.0`;
-- Staging warnings-as-errors;
-- package identity, license, README, symbols, repository metadata, and exact dependency groups;
-- package-only fresh consumer;
-- conceptual documentation and migration guide;
-- architecture/dependency boundaries;
-- representative T907 workloads;
-- public API regret decision suitable for direct promotion to 1.0 after the subsequent stable closure.
-
-The accepted release-candidate version SHOULD be `0.9.0-rc.1` unless defects require another RC.
-
-**Gate T908:** one exact RC head passes the full six-architecture runtime matrix plus package validation.
+The exact final stable-source head must pass the same Windows/Linux/macOS x64/ARM64 plus package Staging gate. Only that exact green SHA is the 0.9 merge candidate.
 
 ---
 
-# 12. T909 — Stable 0.9.0 Closure
+## 5. Explicit non-goals
 
-T909 is release closure only.
-
-It SHALL:
-
-- promote the accepted RC to `Version 0.9.0` / `PackageVersion 0.9.0` while retaining `AssemblyVersion 0.9.0.0`;
-- freeze the final pre-1.0 public API fingerprint and semantic contracts;
-- synchronize README, package release notes, API baseline, migration/conceptual docs, 0.9 roadmap, and 1.0 roadmap;
-- require the exact stable-source PR head to pass the complete T908 gate;
-- leave merge, post-merge Release validation, tagging, and publication as explicit later actions.
-
-No new feature family or public API may enter T909.
-
----
-
-## 13. Explicit 0.9 Non-Goals
-
-`0.9.0` does not add:
+0.9 does not add:
 
 - native `ncurses` ABI compatibility;
-- exhaustive source-level C curses compatibility;
-- forms, menus, panels, or widget/toolkit frameworks;
+- exhaustive C curses source compatibility;
+- forms, menus, panels, or widget frameworks;
 - declarative UI;
 - terminal emulation or PTY ownership;
-- SSH transport;
-- graphics protocols;
+- SSH transport or graphics protocols;
 - arbitrary child ANSI interpretation;
-- bidirectional or complex-script shaping;
+- bidirectional/complex-script shaping;
 - transparent multi-writer thread safety;
 - a public scheduler/event-loop abstraction;
-- a public performance/diagnostics API without a demonstrated 1.0 requirement.
+- a public performance/diagnostics API without a demonstrated stable-contract need.
 
 ---
 
-## 14. Release Discipline
+## 6. Release discipline
 
-Throughout 0.9:
-
-1. No public API change is considered incidental.
-2. Any accepted public API change requires fingerprint and migration-review updates in the same tranche.
+1. No public API change is incidental.
+2. Public changes require fingerprint, regret, semantic/dependency, and migration review together.
 3. Historical milestone documents remain historical.
 4. Tests remain non-interactive and do not write unsolicited stdout/stderr.
-5. All `if`/`else` bodies use braces.
-6. Public/protected/internal methods validate applicable arguments at entry.
-7. Pull requests validate under Staging; `main`/tags validate under Release.
-8. Package-only validation is mandatory before RC or stable promotion.
-9. `1.0.0` remains release closure, not a place to introduce deferred breaking cleanup.
+5. Pull requests validate under Staging; `main`/tags validate under Release.
+6. Package-only validation is mandatory.
+7. `1.0.0` remains release closure over the accepted 0.9 contract, not a deferred breaking-cleanup tranche.
+
+After the final T909 PR gate, merge, post-merge Release validation, tagging `v0.9.0`, and publication remain explicit later actions.
