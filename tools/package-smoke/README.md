@@ -5,7 +5,7 @@ reference to the repository library.
 
 Package validation copies the project into a temporary directory, uses an
 isolated NuGet package cache, restores the exact current DCurses version from
-the local artifact directory, and resolves `Icod.Terminal 1.0.0` plus
+the local artifact directory, and resolves `Icod.Terminal 1.4.0` plus
 `Icod.TermInfo 1.10.0` through NuGet.org.
 
 The ordinary CI execution uses only non-interactive public APIs, so it never
