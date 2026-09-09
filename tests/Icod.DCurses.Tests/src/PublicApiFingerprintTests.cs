@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Icod.DCurses.Tests;
 
-/// <summary>Freezes the complete public Icod.DCurses assembly contract for 0.9/1.0.</summary>
+/// <summary>Guards the complete current public Icod.DCurses assembly contract.</summary>
 public sealed class PublicApiFingerprintTests {
 	[Fact]
 	public void PublicApiMatchesAcceptedFingerprint() {
@@ -16,7 +16,7 @@ public sealed class PublicApiFingerprintTests {
 		);
 		string baselinePath = Path.Combine(
 			AppContext.BaseDirectory,
-			"Public-API-Fingerprint-0.9.json"
+			"Public-API-Fingerprint-1.1.json"
 		);
 		using JsonDocument document = JsonDocument.Parse(
 			File.ReadAllText( baselinePath )
@@ -78,82 +78,82 @@ public sealed class PublicApiFingerprintTests {
 
 		internal static PublicApiFingerprint Create( Assembly assembly ) {
 			ArgumentNullException.ThrowIfNull( assembly );
-		Type[] exportedTypes = assembly.GetExportedTypes()
-			.OrderBy( static type => FormatType( type ), StringComparer.Ordinal )
-			.ToArray();
-		List<string> lines = [];
-		NullabilityInfoContext nullability = new();
+			Type[] exportedTypes = assembly.GetExportedTypes()
+				.OrderBy( static type => FormatType( type ), StringComparer.Ordinal )
+				.ToArray();
+			List<string> lines = [];
+			NullabilityInfoContext nullability = new();
 
-		foreach ( Type type in exportedTypes ) {
-			AddType( type, lines );
-			if ( type.IsEnum ) {
-				AddEnum( type, lines );
-				continue;
-			}
-
-			foreach ( ConstructorInfo constructor in type.GetConstructors(
-				BindingFlags.Public
-					| BindingFlags.Instance
-					| BindingFlags.DeclaredOnly
-			) ) {
-				lines.Add(
-					$"CTOR|{FormatType( type )}|{FormatParameters( constructor.GetParameters(), nullability )}"
-				);
-			}
-
-			foreach ( FieldInfo field in type.GetFields(
-				BindingFlags.Public
-					| BindingFlags.Instance
-					| BindingFlags.Static
-					| BindingFlags.DeclaredOnly
-			) ) {
-				lines.Add( FormatField( type, field, nullability ) );
-			}
-
-			foreach ( PropertyInfo property in type.GetProperties(
-				BindingFlags.Public
-					| BindingFlags.Instance
-					| BindingFlags.Static
-					| BindingFlags.DeclaredOnly
-			) ) {
-				lines.Add( FormatProperty( type, property, nullability ) );
-			}
-
-			foreach ( EventInfo eventInfo in type.GetEvents(
-				BindingFlags.Public
-					| BindingFlags.Instance
-					| BindingFlags.Static
-					| BindingFlags.DeclaredOnly
-			) ) {
-				lines.Add( FormatEvent( type, eventInfo, nullability ) );
-			}
-
-			foreach ( MethodInfo method in type.GetMethods(
-				BindingFlags.Public
-					| BindingFlags.Instance
-					| BindingFlags.Static
-					| BindingFlags.DeclaredOnly
-			) ) {
-				if ( IsAccessor( method ) ) {
+			foreach ( Type type in exportedTypes ) {
+				AddType( type, lines );
+				if ( type.IsEnum ) {
+					AddEnum( type, lines );
 					continue;
 				}
-				lines.Add( FormatMethod( type, method, nullability ) );
-			}
-		}
 
-		string[] contractLines = lines
-			.OrderBy( static line => line, StringComparer.Ordinal )
-			.ToArray();
-		string canonical = string.Join( "\n", contractLines ) + "\n";
-		string sha256 = Convert.ToHexString(
-			SHA256.HashData( Encoding.UTF8.GetBytes( canonical ) )
-		).ToLowerInvariant();
-		return new PublicApiFingerprint(
-			sha256,
-			exportedTypes.Select( static type => FormatType( type ) ).ToArray(),
-			contractLines
-		);
-	}
+				foreach ( ConstructorInfo constructor in type.GetConstructors(
+					BindingFlags.Public
+						| BindingFlags.Instance
+						| BindingFlags.DeclaredOnly
+				) ) {
+					lines.Add(
+						$"CTOR|{FormatType( type )}|{FormatParameters( constructor.GetParameters(), nullability )}"
+					);
+				}
+
+				foreach ( FieldInfo field in type.GetFields(
+					BindingFlags.Public
+						| BindingFlags.Instance
+						| BindingFlags.Static
+						| BindingFlags.DeclaredOnly
+				) ) {
+					lines.Add( FormatField( type, field, nullability ) );
+				}
+
+				foreach ( PropertyInfo property in type.GetProperties(
+					BindingFlags.Public
+						| BindingFlags.Instance
+						| BindingFlags.Static
+						| BindingFlags.DeclaredOnly
+				) ) {
+					lines.Add( FormatProperty( type, property, nullability ) );
+				}
+
+				foreach ( EventInfo eventInfo in type.GetEvents(
+					BindingFlags.Public
+						| BindingFlags.Instance
+						| BindingFlags.Static
+						| BindingFlags.DeclaredOnly
+				) ) {
+					lines.Add( FormatEvent( type, eventInfo, nullability ) );
+				}
+
+				foreach ( MethodInfo method in type.GetMethods(
+					BindingFlags.Public
+						| BindingFlags.Instance
+						| BindingFlags.Static
+						| BindingFlags.DeclaredOnly
+				) ) {
+					if ( IsAccessor( method ) ) {
+						continue;
+					}
+					lines.Add( FormatMethod( type, method, nullability ) );
+				}
+			}
+
+			string[] contractLines = lines
+				.OrderBy( static line => line, StringComparer.Ordinal )
+				.ToArray();
+			string canonical = string.Join( "\n", contractLines ) + "\n";
+			string sha256 = Convert.ToHexString(
+				SHA256.HashData( Encoding.UTF8.GetBytes( canonical ) )
+			).ToLowerInvariant();
+			return new PublicApiFingerprint(
+				sha256,
+				exportedTypes.Select( static type => FormatType( type ) ).ToArray(),
+				contractLines
+			);
+		}
 
 		private static void AddType(
 			Type type,
