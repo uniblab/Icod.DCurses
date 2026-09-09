@@ -167,7 +167,7 @@ internal sealed class CursesCursorMotionResolver {
 
 	private bool TryExpand(
 		StringCapability capability,
-		int[] parameters,
+		TermInfoParameter[] parameters,
 		out CursesCursorMotion motion
 	) {
 		ArgumentNullException.ThrowIfNull( parameters );
