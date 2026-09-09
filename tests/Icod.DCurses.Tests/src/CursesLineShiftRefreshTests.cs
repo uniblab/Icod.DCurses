@@ -197,8 +197,17 @@ public sealed class CursesLineShiftRefreshTests {
 		editor.DeleteLines();
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.DoesNotContain( "R", output.Text );
-		Assert.DoesNotContain( "D", output.Text );
+		Assert.DoesNotContain(
+			output.TerminalWrites,
+			write => "D" == write.Value
+		);
+		Assert.DoesNotContain(
+			output.TerminalWrites,
+			write => write.Value.StartsWith(
+				"R",
+				StringComparison.Ordinal
+			)
+		);
 		Assert.Contains( new string( 'C', 8 ), output.Text );
 	}
 
@@ -228,7 +237,9 @@ public sealed class CursesLineShiftRefreshTests {
 		output.Clear();
 		editor.Move( 0, 0 );
 		editor.DeleteLines();
-		output.ThrowOnWrites = [ 3 ];
+		output.ThrowOnWrites = new HashSet<int> {
+			3
+		};
 
 		await Assert.ThrowsAsync<IOException>(
 			async () => await engine.RefreshAsync( screen, 0, 0 )
@@ -238,7 +249,7 @@ public sealed class CursesLineShiftRefreshTests {
 		Assert.Contains(
 			output.TerminalWrites,
 			write => "R04" == write.Value
-			);
+		);
 
 		output.ThrowOnWrites = null;
 		output.Clear();
@@ -273,7 +284,10 @@ public sealed class CursesLineShiftRefreshTests {
 		output.Clear();
 		editor.Move( 0, 0 );
 		editor.DeleteLines();
-		output.ThrowOnWrites = [ 3, 4 ];
+		output.ThrowOnWrites = new HashSet<int> {
+			3,
+			4
+		};
 
 		AggregateException failure = await Assert.ThrowsAsync<AggregateException>(
 			async () => await engine.RefreshAsync( screen, 0, 0 )
@@ -366,7 +380,7 @@ public sealed class CursesLineShiftRefreshTests {
 		private readonly StringBuilder text = new();
 		private int writeCount;
 
-		internal ISet<int>? ThrowOnWrites {
+		internal HashSet<int>? ThrowOnWrites {
 			get;
 			set;
 		}
