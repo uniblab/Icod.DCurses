@@ -1,10 +1,10 @@
 # Icod.DCurses 0.6 Public API Baseline
 
 **Release line:** `0.6.0`  
-**Baseline checkpoint:** `0.6.0-rc.1`  
+**Baseline checkpoint:** stable `0.6.0` source  
 **Stable predecessor:** `0.5.0`  
 **Dependencies:** `Icod.Terminal 1.0.0`; `Icod.TermInfo 1.10.0`  
-**Status:** Frozen RC contract; T608 complete
+**Status:** Frozen stable-source contract; T608 complete
 
 ## Purpose
 
@@ -183,7 +183,9 @@ Both the library and test projects use warning level 4 with warnings-as-errors i
 
 ## Freeze decision
 
-T608 is complete. The frozen `0.6.0-rc.1` contract has passed:
+T608 is complete. The frozen public contract passed the `0.6.0-rc.1` gate unchanged and has been promoted to stable `0.6.0` source.
+
+The accepted contract has passed:
 
 - exact reflection guards for the public delta;
 - Windows/Linux/macOS Staging build/tests;
@@ -193,4 +195,4 @@ T608 is complete. The frozen `0.6.0-rc.1` contract has passed:
 - warning level 4 / warnings-as-errors for both the library and test projects;
 - dependency-boundary validation with no new Terminal/TermInfo public leakage.
 
-The regret review found no public signature that should change before stable `0.6.0`. No new feature family may enter during T609 release closure.
+The regret review found no public signature that should change before stable `0.6.0`. No new feature family may enter during the remaining T609 merge/publication gates.
