@@ -2,6 +2,27 @@ namespace Icod.DCurses;
 
 /// <summary>Window-local geometric line and border drawing operations.</summary>
 public sealed partial class CursesWindow {
+	/// <summary>Draws one horizontal semantic line using the default style.</summary>
+	/// <param name="row">The zero-based local row.</param>
+	/// <param name="column">The zero-based first local column.</param>
+	/// <param name="length">The positive number of columns to draw.</param>
+	/// <remarks>
+	/// The logical cells retain <see cref="CursesLineGlyph.Horizontal"/> identity so terminal presentation
+	/// may select ACS, Unicode, or ASCII without rewriting the logical screen. The cursor is preserved.
+	/// </remarks>
+	public void DrawHorizontalLine(
+		int row,
+		int column,
+		int length
+	) {
+		DrawHorizontalLine(
+			row,
+			column,
+			length,
+			CursesCell.Line( CursesLineGlyph.Horizontal )
+		);
+	}
+
 	/// <summary>Draws one horizontal line using a one-column logical cell.</summary>
 	/// <param name="row">The zero-based local row.</param>
 	/// <param name="column">The zero-based first local column.</param>
@@ -29,6 +50,27 @@ public sealed partial class CursesWindow {
 			1,
 			length,
 			cell
+		);
+	}
+
+	/// <summary>Draws one vertical semantic line using the default style.</summary>
+	/// <param name="row">The zero-based first local row.</param>
+	/// <param name="column">The zero-based local column.</param>
+	/// <param name="length">The positive number of rows to draw.</param>
+	/// <remarks>
+	/// The logical cells retain <see cref="CursesLineGlyph.Vertical"/> identity so terminal presentation
+	/// may select ACS, Unicode, or ASCII without rewriting the logical screen. The cursor is preserved.
+	/// </remarks>
+	public void DrawVerticalLine(
+		int row,
+		int column,
+		int length
+	) {
+		DrawVerticalLine(
+			row,
+			column,
+			length,
+			CursesCell.Line( CursesLineGlyph.Vertical )
 		);
 	}
 
@@ -62,6 +104,29 @@ public sealed partial class CursesWindow {
 		);
 	}
 
+	/// <summary>Draws a semantic single-line border around the complete window using the default style.</summary>
+	/// <remarks>The cursor is preserved.</remarks>
+	public void DrawBorder() {
+		DrawBorder( CursesStyle.Default );
+	}
+
+	/// <summary>Draws a semantic single-line border around the complete window.</summary>
+	/// <param name="style">The semantic style assigned to every border cell.</param>
+	/// <remarks>
+	/// The window must be at least two rows by two columns. Each logical border cell retains its semantic
+	/// line-junction identity so physical presentation may select ACS, Unicode, or ASCII. The cursor is preserved.
+	/// </remarks>
+	public void DrawBorder( CursesStyle style ) {
+		DrawBorder(
+			CursesCell.Line( CursesLineGlyph.Horizontal, style ),
+			CursesCell.Line( CursesLineGlyph.Vertical, style ),
+			CursesCell.Line( CursesLineGlyph.UpperLeftCorner, style ),
+			CursesCell.Line( CursesLineGlyph.UpperRightCorner, style ),
+			CursesCell.Line( CursesLineGlyph.LowerLeftCorner, style ),
+			CursesCell.Line( CursesLineGlyph.LowerRightCorner, style )
+		);
+	}
+
 	/// <summary>Draws a box-shaped border around the complete window.</summary>
 	/// <param name="horizontal">The one-column cell used for top and bottom edges.</param>
 	/// <param name="vertical">The one-column cell used for left and right edges.</param>
@@ -70,9 +135,9 @@ public sealed partial class CursesWindow {
 	/// <param name="bottomLeft">The lower-left corner cell.</param>
 	/// <param name="bottomRight">The lower-right corner cell.</param>
 	/// <remarks>
-	/// The window must be at least two rows by two columns. The cursor is preserved. Glyph selection is
-	/// deliberately caller-owned in 0.4; capability-aware semantic line-drawing policy remains deferred to
-	/// the 0.6 presentation tranche.
+	/// The window must be at least two rows by two columns. The cursor is preserved. This overload remains
+	/// the exact caller-supplied-cell path; use the semantic overloads when the terminal presentation layer
+	/// should select a line representation.
 	/// </remarks>
 	public void DrawBorder(
 		CursesCell horizontal,
