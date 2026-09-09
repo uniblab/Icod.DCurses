@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.7.0-alpha.3</Version>
+		<Version>0.7.0-alpha.4</Version>
 		<AssemblyVersion>0.7.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.7.0-alpha.3</PackageVersion>
+		<PackageVersion>0.7.0-alpha.4</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.7.0-alpha.3 completes T703 cursor-motion selection by integrating the internal deterministic byte-cost resolver into the physical refresh engine. DCurses now selects the shortest safe advertised cursor movement when physical cursor state is known, while retaining absolute cursor addressing on equal cost and as the established fallback. Unknown or wrap-ambiguous cursor state continues to restrict candidate selection to motions that are safe from unknown position. The release retains the T701 output-cost baselines and T702 opt-in synchronized refresh framing. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.7.0-alpha.4 completes T704 cost-aware erase selection. DCurses now compares literal default-blank output with advertised clear-to-end-of-line, clear-to-end-of-screen, and whole-screen clear capabilities, requiring a strict encoded-byte win and proving the entire erased logical region is default-styled blank before selecting a broader operation. Retained physical-screen state is updated for exactly the erased cells, whole-screen clear conservatively invalidates cursor-position knowledge, and multi-line erase capabilities carry their affected-line count through TermInfo output semantics. Production cost comparison uses the owning Terminal session's ApplicationEncoding. The release retains T703 cost-aware cursor motion and T702 opt-in synchronized refresh framing. Dependencies remain Icod.Terminal 1.0.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
