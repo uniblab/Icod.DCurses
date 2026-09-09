@@ -4,13 +4,13 @@
 **Release line:** `1.1.0`  
 **Stable compatibility floor:** `1.0.0`  
 **Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
-**Development checkpoint:** `1.1.0-alpha.1`  
+**Development checkpoint:** `1.1.0-alpha.3`  
 **Assembly version:** `1.0.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Theme:** semantic cell metadata and retained hyperlinks  
-**Status:** T1101 staged for validation; T1102 representation/memory gate next
+**Status:** T1101–T1102 complete; T1103 code/API checkpoint green, documentation-complete alpha.3 gate active
 
 ---
 
@@ -52,7 +52,7 @@ contract lines:   309
 
 Version 1.1 is additive by default. No existing type/member is removed, renamed, repurposed, or assigned a different enum value merely to accommodate metadata.
 
-T1101 also ratifies the compatible 1.x assembly policy:
+T1101 ratified the compatible 1.x assembly policy:
 
 ```text
 NuGet/package version  advances through compatible 1.x releases
@@ -67,7 +67,7 @@ A breaking compatibility decision may revisit assembly identity explicitly; it m
 
 The active dependency floor is Terminal 1.6.0.
 
-Terminal 1.6 strengthens its complete CSI/parser/query and internal pixel-geometry foundation without adding a new public surface that changes the 1.1 design. Hyperlinks continue to rely on the already-stable typed OSC 8 operations:
+Terminal 1.6 strengthens its complete CSI/parser/query and internal pixel-geometry foundation without changing the public contract required by the 1.1 hyperlink design. Hyperlinks continue to rely on the already-stable typed OSC 8 operations:
 
 ```text
 TerminalSession.AcquireHyperlinkAsync(...)
@@ -87,79 +87,63 @@ DCurses owns retained semantic intent. Terminal owns the wire protocol and live 
 
 ---
 
-## 4. Semantic metadata representation gate
+## 4. Semantic metadata representation — T1102 accepted
 
-The storage model is deliberately **not** frozen before T1102.
+T1102 rejected both an unconditional metadata field in every `CursesCell` and a surface-relative metadata token.
 
-Candidate families include:
-
-### A. Optional immutable metadata reference per cell
+The supported x64/ARM64 matrix does not promise one private `CursesCell` size. The portable measurement is the incremental slot cost:
 
 ```text
-CursesCell
-    content
-    display width / continuation
-    style
-    line glyph
-    optional metadata reference
+cell + metadata-reference wrapper overhead   +8 bytes per cell
+cell + int-token wrapper overhead             +8 bytes per cell
 ```
 
-Advantages:
-
-- direct equality and inspection;
-- natural edit/copy/pad semantics;
-- metadata objects can be shared across many cells.
-
-Risk:
-
-- a reference-sized field is paid by every ordinary cell even when metadata is absent.
-
-### B. Surface-owned interned metadata token
-
-Cells carry a compact token resolved through a screen/pad-owned table.
-
-Advantages:
-
-- potentially smaller per-cell cost;
-- efficient sharing/interning.
-
-Risks:
-
-- cross-surface copy/remapping complexity;
-- harder standalone `CursesCell` value semantics;
-- token lifetime must not leak into public API.
-
-### C. Sparse sidecar semantic spans
-
-Semantic information is stored separately from the ordinary cell array.
-
-Advantages:
-
-- effectively zero permanent ordinary-cell cost;
-- good fit for sparse links.
-
-Risks:
-
-- every edit/scroll/resize/copy operation must maintain span topology;
-- random cell inspection and wide-cell repair become more complex.
-
-T1102 may select another design if it is demonstrably better, but the decision must explain memory, equality, copying, editing, inspection, wide-cell behavior, and future extensibility.
-
----
-
-## 5. Memory and scale contract
-
-The existing large-pad reference is:
+For the established large-pad reference:
 
 ```text
 2048 × 256 = 524,288 logical cells
 ```
 
-T1101 introduces `CursesSemanticMetadataRepresentationBaselineTests`, which compares the real `CursesCell` representation with test-only cell-plus-reference and cell-plus-token candidates.
+one unconditional extra eight-byte slot costs exactly 4 MiB even when no semantic metadata is present.
 
-The measurement scaffold does not freeze a byte count as public API. It exists so T1102 must account for the multiplicative cost of each candidate at real retained-surface scale.
+The accepted representation is therefore a lazily allocated **row-sparse metadata reference plane**:
 
-T1102/T1107 must also preserve or explain behavior for:
+```text
+CursesVirtualScreen
+    dense CursesCell[]
+    optional semantic plane
+        row 0 -> null
+        row 1 -> CursesCellMetadata?[] only when needed
+        row 2 -> null
+        ...
+```
+
+Properties:
+
+- no semantic plane allocation for an ordinary surface with no metadata;
+- top-level row references allocated only after the first semantic value;
+- per-row reference storage allocated only for rows containing metadata;
+- empty rows and eventually the entire plane are released;
+- O(1) coordinate lookup;
+- detached row snapshot/replace mechanics fit the existing editing model;
+- immutable metadata references may be shared across surfaces;
+- `CursesCell` remains a standalone, context-free public value.
+
+The internal foundation is `CursesSparseCellPlane<T>`.
+
+---
+
+## 5. Memory and scale contract
+
+The existing large-pad reference remains:
+
+```text
+2048 × 256 = 524,288 logical cells
+```
+
+The representation gate freezes the cost shape rather than a public/private ABI size.
+
+T1107 must preserve or explain behavior for:
 
 - 160×60 ordinary full-screen repaint;
 - 1,000 sparse ordinary updates;
@@ -171,31 +155,31 @@ T1102/T1107 must also preserve or explain behavior for:
 
 ---
 
-## 6. Candidate public API direction — not frozen
+## 6. T1103 public API contract
 
-The intended semantic concepts are small and typed. Candidate names include:
+T1103 introduces the minimum DCurses-native semantic surface:
 
 ```text
 CursesHyperlink
 CursesCellMetadata
-CursesCell.Metadata
-metadata-aware CursesWindow write operations
 ```
 
-A likely conceptual model is:
+Logical APIs include:
 
 ```text
-CursesHyperlink
-    absolute URI/string target
-    optional identifier
+CursesVirtualScreen.GetMetadata(...)
+CursesVirtualScreen.SetMetadata(...)
 
-CursesCellMetadata
-    optional hyperlink
+CursesWindow.GetMetadata(...)
+CursesWindow.SetMetadata(...)
+CursesWindow.Write(string, CursesCellMetadata)
+CursesWindow.Write(string, CursesStyle, CursesCellMetadata)
+CursesWindow.WriteCell(CursesCell, CursesCellMetadata)
 ```
 
-The exact class/struct choices, equality semantics, overloads, nullability, and names remain T1102/T1103 decisions.
+`CursesCell` itself remains unchanged. Semantic inspection is surface/window-aware because metadata is owned by the logical surface rather than embedded in detached cell values.
 
-The release should **not** introduce:
+The release does **not** introduce:
 
 - a generic `Dictionary<string, object>` metadata bag;
 - arbitrary protocol payloads;
@@ -206,20 +190,24 @@ The release should **not** introduce:
 
 ## 7. Hyperlink value rules
 
-DCurses should align with Terminal's reviewed hyperlink contract:
+`CursesHyperlink` aligns with Terminal's reviewed hyperlink contract:
 
 - target is non-empty;
 - target is absolute;
-- a string-oriented API accepts an already URI-encoded target;
-- optional identifier follows Terminal's bounded OSC 8 identifier rules;
-- DCurses never dereferences, opens, downloads, activates, or follows the target;
-- successful refresh means the semantic protocol was emitted through Terminal, not that the terminal displayed or permitted activation of the link.
+- string target is already URI-encoded caller data;
+- invalid percent escapes are rejected;
+- percent-escape hex digits canonicalize to uppercase;
+- non-ASCII unescaped URI characters are rejected;
+- target is bounded to Terminal's 2083-byte contract;
+- null/empty identifier canonicalizes to no identifier;
+- non-empty identifier is at most 128 bytes and contains only RFC 3986 unreserved ASCII characters;
+- DCurses never dereferences, opens, downloads, activates, or follows the target.
 
-A `System.Uri` convenience overload is acceptable only if it does not silently canonicalize or re-encode targets in a way that diverges from the string contract.
+Successful refresh will mean that DCurses successfully asked Terminal to emit the semantic state; it will not imply that the terminal displayed or permitted activation of the link.
 
 ---
 
-## 8. Retained physical semantic state
+## 8. Retained physical semantic state — T1104
 
 The physical renderer must distinguish at least:
 
@@ -245,7 +233,7 @@ close or replace hyperlink A
 write unlinked content
 ```
 
-The actual implementation must use Terminal's typed hyperlink ownership and compose with DCurses' terminal-activity gate and optional synchronized-output lease.
+The implementation must use Terminal's typed hyperlink ownership and compose with DCurses' terminal-activity gate and optional synchronized-output lease.
 
 No raw OSC 8 bytes belong in the refresh engine.
 
@@ -273,7 +261,9 @@ Coverage must include:
 
 For a wide text element, the leading cell and continuation footprint represent one semantic unit. Destruction or clipping of that element must remove/repair semantic metadata coherently.
 
-Copy/overlay blank/transparency behavior must be explicitly specified rather than inferred.
+T1103 already freezes the initial wide-footprint rule: assigning metadata through either valid coordinate applies one coherent metadata value across the leader/continuation footprint, and ordinary overwrite clears stale semantic state.
+
+Copy/overlay blank/transparency behavior must still be explicitly specified in T1105 rather than inferred.
 
 ---
 
@@ -323,10 +313,10 @@ The acceptance must prove retained semantic integration, not merely call `Termin
 ## 12. Development sequence
 
 ```text
-T1101  contract/reference/version-policy freeze             staged
-  -> T1102  semantic metadata representation + memory gate  next
-  -> T1103  hyperlink value/public write/read contract
-  -> T1104  retained physical hyperlink renderer
+T1101  contract/reference/version-policy freeze             complete
+  -> T1102  semantic metadata representation + memory gate  complete
+  -> T1103  hyperlink value/public write/read contract      code/API green; docs gate active
+  -> T1104  retained physical hyperlink renderer            next
   -> T1105  editing/copy/overlay/pad/viewports propagation
   -> T1106  lifecycle/failure/cancellation/recovery
   -> T1107  application/performance/allocation acceptance
@@ -354,47 +344,78 @@ Permanent record:
 
 - `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md`
 
-### Exit gate
-
-The exact T1101 checkpoint must pass the normal PR matrix with:
-
-- package version `1.1.0-alpha.1`;
-- assembly version `1.0.0.0`;
-- exact Terminal 1.6.0 / TermInfo 1.10.0 package dependencies;
-- unchanged 1.0 public API fingerprint;
-- representation-baseline tests green.
+**Status:** complete.
 
 ---
 
 ## 14. T1102 — representation and memory gate
 
-### Objectives
+### Accepted decisions
 
-- prototype viable storage approaches;
-- measure cell and large-pad consequences;
-- choose one representation;
-- define default/equality/hash semantics;
-- prove ordinary cells do not cause per-cell heap allocation;
-- define metadata sharing/interning if used;
-- define wide-cell leader/continuation semantics;
-- define standalone cell inspection and cross-surface copying.
+- reject unconditional per-cell metadata reference;
+- reject surface-relative metadata token;
+- select row-sparse reference-plane storage;
+- freeze the portable +8-byte incremental candidate-slot cost instead of one architecture-specific `CursesCell` size;
+- preserve context-free standalone `CursesCell` semantics.
 
-### Exit gate
+Permanent record:
 
-No public hyperlink/metadata API is accepted until the chosen representation has an explicit memory and composition rationale.
+- `docs/T1102-Semantic-Metadata-Representation-and-Memory-Gate.md`
+
+Qualified exact head:
+
+```text
+60fa5e1a0b17e91f7c0e78ee397ff797645471d7
+```
+
+Workflow #456 (`34400518088`) passed all six runtime architectures plus package validation.
+
+**Status:** complete.
 
 ---
 
 ## 15. T1103 — public hyperlink/content contract
 
-### Objectives
+### Implemented
 
-- add the minimal public hyperlink/metadata value types;
-- add metadata-aware write/inspection operations;
-- align target/identifier validation with Terminal;
-- avoid Terminal types in ordinary public signatures;
-- add XML documentation and focused tests;
-- capture, but do not yet permanently freeze, the intentional public API delta.
+- immutable `CursesHyperlink`;
+- immutable `CursesCellMetadata`;
+- Terminal-compatible URI/identifier validation without Terminal public types;
+- sparse logical metadata storage on `CursesVirtualScreen`;
+- metadata-aware window text/cell writes;
+- window and virtual-screen metadata inspection/mutation;
+- semantic-only damage tracking;
+- coherent two-column metadata footprints;
+- ordinary overwrite clears stale metadata;
+- clear/fill semantic removal invalidates even when visible cells are unchanged.
+
+The first compiled public delta was intentionally observed against the stable 1.0 fingerprint. The provisional 1.1 contract is:
+
+```text
+sha256:            d7fb2040d9cd22ed71e90e788f453c73eb29d681f2cc0f7aaefa805792fab2ea
+exported types:    45
+contract lines:   337
+```
+
+Development fingerprint:
+
+- `docs/Public-API-Fingerprint-1.1.json`
+
+Permanent tranche record:
+
+- `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`
+
+Code/API-qualified exact head:
+
+```text
+b2c1e7c18c1de929e705f119794d7eb5f6d6073b
+```
+
+Workflow #469 (`34403872794`) passed all six runtime architectures plus package validation.
+
+### Exit gate
+
+One documentation-synchronized `1.1.0-alpha.3` head must pass the same seven-job matrix. After that T1103 is complete and T1104 may begin.
 
 ---
 
