@@ -14,6 +14,7 @@ internal sealed class CursesRefreshEngine {
 	private readonly ITerminalOutput output;
 	private readonly CursesPresentationResolver presentationResolver;
 	private readonly CursesLinePresentationResolver linePresentationResolver;
+	private readonly CursesCursorMotionResolver cursorMotionResolver;
 	private readonly SemaphoreSlim refreshGate = new( 1, 1 );
 
 	private CursesPhysicalScreenState? physicalScreen;
@@ -36,6 +37,7 @@ internal sealed class CursesRefreshEngine {
 		this.output = output;
 		presentationResolver = new CursesPresentationResolver( terminal );
 		linePresentationResolver = new CursesLinePresentationResolver( terminal );
+		cursorMotionResolver = new CursesCursorMotionResolver( terminal );
 	}
 
 	/// <summary>Requests complete physical-screen invalidation at the next refresh boundary.</summary>
@@ -547,20 +549,15 @@ internal sealed class CursesRefreshEngine {
 			return;
 		}
 
-		if ( null == terminal.GetString( StringCapability.CursorAddress ) ) {
-			throw new NotSupportedException(
-				$"Terminal '{terminal.Name}' does not provide cursor-addressing capability."
-			);
-		}
-
-		string capability = terminal.Expand(
-			StringCapability.CursorAddress,
+		CursesCursorMotion motion = cursorMotionResolver.Resolve(
+			cursorRow,
+			cursorColumn,
 			row,
 			column
 		);
 		await TerminalCapabilityWriter.WriteAsync(
 			output,
-			capability,
+			motion.Sequence,
 			cancellationToken
 		).ConfigureAwait( false );
 
@@ -589,9 +586,9 @@ internal sealed class CursesRefreshEngine {
 			).ConfigureAwait( false );
 		}
 		await WriteCapabilityIfPresentAsync(
-			StringCapability.OriginalColorPair,
-			cancellationToken
-		).ConfigureAwait( false );
+				StringCapability.OriginalColorPair,
+				cancellationToken
+			).ConfigureAwait( false );
 
 		CursesTextAttributes attributes = style.Attributes;
 		if ( 0 != ( attributes & CursesTextAttributes.Bold ) ) {
