@@ -4,7 +4,7 @@
 **Candidate version:** `0.8.0-rc.1`  
 **Assembly version:** `0.8.0.0`  
 **Dependencies:** `Icod.Terminal 1.4.0`; `Icod.TermInfo 1.10.0`  
-**Status:** release-candidate gate active
+**Status:** complete; release candidate accepted
 
 ## Objective
 
@@ -64,7 +64,7 @@ The PR runtime matrix is intentionally expanded to match the release architectur
 
 Each runtime job builds/tests `net8.0`, `net9.0`, and `net10.0` under Staging warnings-as-errors.
 
-Package validation must continue to prove:
+Package validation proves:
 
 - exact package identity/version;
 - exact `Icod.Terminal 1.4.0` and `Icod.TermInfo 1.10.0` dependency groups;
@@ -75,10 +75,16 @@ Package validation must continue to prove:
 
 Exact hardening implementation head `015b028167337cfacdd39f9a38550548644f6059` passed Windows x64, Windows ARM64, Linux x64, Linux ARM64, macOS x64, macOS ARM64, and package/fresh-consumer validation.
 
-This proves the T802–T807 implementation set before version/documentation promotion.
+## Accepted release candidate
 
-## RC gate
+Exact `0.8.0-rc.1` head `6247b9dc290089e5db82f83929d07b4b674b8d8b` passed the complete seven-job gate:
 
-The `0.8.0-rc.1` source is accepted only after the exact candidate head containing package metadata and synchronized documentation passes the same seven-job matrix.
+- Windows x64;
+- Windows ARM64;
+- Linux x64;
+- Linux ARM64;
+- macOS x64;
+- macOS ARM64;
+- package/fresh-consumer validation.
 
-Once that exact candidate is green, T809 may promote the unchanged behavioral/public contract to stable `0.8.0`.
+T808 is therefore complete. T809 may promote this unchanged behavioral/public contract to stable `0.8.0`.
