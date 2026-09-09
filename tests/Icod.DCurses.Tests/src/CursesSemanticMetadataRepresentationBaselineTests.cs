@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Icod.DCurses.Internal;
 using Xunit;
 
 namespace Icod.DCurses.Tests;
@@ -65,6 +66,44 @@ public sealed class CursesSemanticMetadataRepresentationBaselineTests {
 			4L * 1024L * 1024L,
 			denseReferencePayload
 		);
+	}
+
+	[Fact]
+	public void ReferencePadMaterializesOnlySemanticRowsAtAcceptedScale() {
+		const int Rows = 2_048;
+		const int Columns = 256;
+		const int LinkedRows = 10;
+		CursesSparseCellPlane<object> plane = new(
+			Columns,
+			Rows
+		);
+		object marker = new();
+
+		Assert.True( plane.IsEmpty );
+		Assert.Equal( 0, plane.AllocatedRowCount );
+
+		for ( int index = 0; index < LinkedRows; index++ ) {
+			plane.Set(
+				index * 197,
+				index,
+				marker
+			);
+		}
+
+		Assert.Equal( LinkedRows, plane.Count );
+		Assert.Equal( LinkedRows, plane.AllocatedRowCount );
+		long materializedReferenceSlots = Rows
+			+ ( (long)plane.AllocatedRowCount * Columns );
+		Assert.Equal( 4_608L, materializedReferenceSlots );
+		Assert.Equal(
+			36L * 1024L,
+			materializedReferenceSlots * IntPtr.Size
+		);
+
+		plane.Clear();
+
+		Assert.True( plane.IsEmpty );
+		Assert.Equal( 0, plane.AllocatedRowCount );
 	}
 
 	[Fact]
