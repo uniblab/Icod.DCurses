@@ -184,8 +184,7 @@ public readonly record struct CursesPresentationCapabilities {
 			TerminalColorModel.DirectRgb == colors.Model,
 			colors.HasForegroundSelector,
 			colors.HasBackgroundSelector,
-			colors.HasOriginalColorPair
-				|| null != terminal.GetString( StringCapability.ExitAttributeMode ),
+			colors.HasOriginalColorPair,
 			supportedAttributes,
 			colorRestrictedAttributes,
 			supportsAlternateCharacterSet,
