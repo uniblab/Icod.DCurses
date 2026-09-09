@@ -494,7 +494,9 @@ data from the network.
 
 ## Authors
 
-Timothy J. Bruce.
+Inspired by original work from Bill Joy, author of the original `termcap`; Mary Ann (born Mark) Horton, author of `terminfo`; Pavel Curtis, author of `pcurses`; and Zeyd Ben-Halim, Eric S. Raymond, and Thomas Dickey, whose work developed and maintained `libtinfo` and `ncurses`.
+
+Managed .NET implementation by Timothy J. Bruce <uniblab@hotmail.com>.
 
 ## Copyright
 
