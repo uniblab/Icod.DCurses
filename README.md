@@ -15,15 +15,15 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 ## Status
 
-`Icod.DCurses 1.1.0-alpha.1` is the active post-1.0 development checkpoint on PR #25.
+`Icod.DCurses 1.1.0-alpha.2` is the active post-1.0 development checkpoint on PR #25.
 
-The stable 1.0 public contract remains the compatibility floor. T1101 begins semantic-cell-metadata and retained-hyperlink development without adding a public metadata type yet. It freezes the compatible 1.x assembly policy, advances the direct Terminal dependency to 1.6.0, and establishes the representation/memory gate that T1102 must satisfy before public hyperlink APIs are accepted.
+T1101 froze the stable 1.0 compatibility floor, retained `AssemblyVersion 1.0.0.0` for compatible additive 1.x releases, and advanced the direct Terminal dependency to 1.6.0. T1102 selects a lazily allocated row-sparse metadata reference plane so ordinary non-semantic surfaces do not pay a permanent per-cell metadata reference cost.
 
 Current development identity:
 
 ```text
-Version         1.1.0-alpha.1
-PackageVersion  1.1.0-alpha.1
+Version         1.1.0-alpha.2
+PackageVersion  1.1.0-alpha.2
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -37,7 +37,7 @@ The frozen stable public contract contains:
 sha256 274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
 ```
 
-No new public DCurses type/member is introduced by T1101. Semantic metadata remains separate from `CursesStyle`, and Terminal remains the OSC 8 hyperlink protocol/ownership authority.
+No new public DCurses type/member has entered through T1102. Semantic metadata remains separate from `CursesStyle`, `CursesCell` keeps its stable standalone value representation, and Terminal remains the OSC 8 hyperlink protocol/ownership authority.
 
 ## Installation
 
@@ -157,7 +157,18 @@ semantic meaning     -> semantic metadata
 wire protocol/state  -> Icod.Terminal
 ```
 
-T1102 must choose the semantic storage representation from measured evidence before the public API is accepted. Candidate families include an optional metadata reference per cell, a compact/interned token, and sparse sidecar semantic spans. The existing 2,048 × 256 large-pad workload remains the scale reference for evaluating permanent per-cell cost.
+T1102 measured the current supported-runtime representation at 72 bytes for `CursesCell` and 80 bytes for simple cell-plus-reference/token candidates. An unconditional eight-byte field would add 4 MiB to the established 2,048 × 256 pad even when metadata is unused.
+
+The selected model is therefore a row-sparse metadata reference plane:
+
+- no semantic row storage until metadata is actually used;
+- only rows containing metadata allocate reference arrays;
+- empty rows and the entire plane are released when their last semantic value disappears;
+- coordinate lookup remains O(1);
+- row snapshot/replace mechanics compose with the existing editing model;
+- `CursesCell` remains context-free and independently copyable.
+
+T1103 will define the minimal public immutable hyperlink/metadata value contract on top of this internal storage model.
 
 Hyperlink rendering will use Terminal's typed OSC 8 ownership rather than constructing raw OSC 8 sequences inside DCurses.
 
@@ -320,6 +331,7 @@ Current post-1.0 authorities:
 - `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md`
 - `Icod.DCurses-1.1.0-Development-Roadmap.md`
 - `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md`
+- `docs/T1102-Semantic-Metadata-Representation-and-Memory-Gate.md`
 
 The stable 1.0 closure records remain historical compatibility authorities and are not rewritten merely to reflect later dependency or development versions.
 
