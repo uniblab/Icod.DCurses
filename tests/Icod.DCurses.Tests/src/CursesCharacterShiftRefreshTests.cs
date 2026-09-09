@@ -134,11 +134,11 @@ public sealed class CursesCharacterShiftRefreshTests {
 		StringBuilder result = new();
 		for ( int column = 0; column < screen.Columns; column++ ) {
 			CursesCell cell = screen.VirtualScreen[ 0, column ];
-			result.Append(
-				cell.IsBlank
-					? ' '
-					: cell.Content
-			);
+			if ( cell.IsBlank ) {
+				result.Append( ' ' );
+			} else {
+				result.Append( cell.Content );
+			}
 		}
 		return result.ToString();
 	}
