@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>0.9.0-alpha.1</Version>
+		<Version>0.9.0-rc.1</Version>
 		<AssemblyVersion>0.9.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>0.9.0-alpha.1</PackageVersion>
+		<PackageVersion>0.9.0-rc.1</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>0.9.0 is the contract-freeze and release-candidate line for the Icod.DCurses 1.0 managed API. Development begins from the merged 0.8 production-hardening baseline and focuses on public API regret review, machine-readable compatibility fingerprinting, enum and semantic-value stability, coordinate/dimension and lifetime contracts, exception/cancellation semantics, nullable/XML documentation validation, dependency-boundary review, package-only consumer coverage, migration guidance, and representative editor/pager/Unicode/rich-input/lifecycle/high-frequency acceptance. No new major feature family is planned. Dependencies remain Icod.Terminal 1.4.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>0.9.0 is the contract-freeze and release-candidate line for the Icod.DCurses 1.0 managed API. The accepted candidate freezes a machine-readable public API fingerprint of 43 exported types and 309 canonical contract lines; enum values, geometry, Unicode/cell semantics, lifetime, ownership, exception/cancellation behavior, nullable metadata, and the approved Terminal/TermInfo dependency boundary are deliberately reviewed and machine-guarded. The package and conceptual documentation are synchronized with the published 0.8.0 baseline, the release workflow derives dependency versions from project PackageReference metadata, and representative editor, pager, Unicode, rich-input, lifecycle, ownership, failure-recovery, pad, large-screen, high-frequency, no-op, top, slabtop, and watch acceptance remains in the release gate. No new major feature family is introduced. Dependencies remain Icod.Terminal 1.4.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
