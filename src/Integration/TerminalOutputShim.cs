@@ -26,8 +26,23 @@ internal interface ITerminalOutput {
 	);
 }
 
+/// <summary>Optional semantic hyperlink output implemented by Terminal-backed refresh output.</summary>
+internal interface ITerminalHyperlinkOutput {
+	/// <summary>Writes one bounded application-text run through Terminal's typed hyperlink ownership.</summary>
+	/// <param name="value">The application text to write.</param>
+	/// <param name="hyperlink">The terminal-independent hyperlink semantic.</param>
+	/// <param name="cancellationToken">Cancellation observed before Terminal begins hyperlink transmission.</param>
+	ValueTask WriteHyperlinkTextAsync(
+		string value,
+		CursesHyperlink hyperlink,
+		CancellationToken cancellationToken = default
+	);
+}
+
 /// <summary>Routes DCurses refresh output through the canonical Terminal session.</summary>
-internal sealed class TerminalSessionCursesOutput : ITerminalOutput {
+internal sealed class TerminalSessionCursesOutput
+	: ITerminalOutput,
+	  ITerminalHyperlinkOutput {
 	private readonly TerminalSession session;
 
 	internal TerminalSessionCursesOutput(
@@ -58,6 +73,21 @@ internal sealed class TerminalSessionCursesOutput : ITerminalOutput {
 		return this.session.WriteTerminalStringAsync(
 			value,
 			affectedLines,
+			cancellationToken
+		);
+	}
+
+	public ValueTask WriteHyperlinkTextAsync(
+		string value,
+		CursesHyperlink hyperlink,
+		CancellationToken cancellationToken = default
+	) {
+		ArgumentNullException.ThrowIfNull( value );
+		ArgumentNullException.ThrowIfNull( hyperlink );
+		return this.session.WriteHyperlinkAsync(
+			value,
+			hyperlink.Uri,
+			hyperlink.Identifier,
 			cancellationToken
 		);
 	}
