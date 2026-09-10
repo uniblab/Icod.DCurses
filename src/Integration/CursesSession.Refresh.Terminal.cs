@@ -129,7 +129,10 @@ public sealed partial class CursesSession {
 			);
 		}
 
-		CursesScreen projection = this.panelRefreshProjection;
+		CursesScreen projection = this.panelRefreshProjection
+			?? throw new InvalidOperationException(
+				"The panel refresh projection was not initialized."
+			);
 		CursesVirtualScreen destination = projection.VirtualScreen;
 		bool repairOnReplacement = destination.RepairWideFootprintsOnReplacement;
 		destination.RepairWideFootprintsOnReplacement = false;
