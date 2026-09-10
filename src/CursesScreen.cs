@@ -6,6 +6,7 @@ using Icod.DCurses.Internal;
 /// Owns the logical terminal frame and the standard screen window projected over that frame.
 /// </summary>
 public sealed class CursesScreen {
+	private readonly CursesPanelOrder<CursesPanel> panelOrder = new();
 	private CursesVirtualScreen virtualScreen;
 
 	/// <summary>Initializes a logical screen with a standard window covering the complete frame.</summary>
@@ -74,6 +75,42 @@ public sealed class CursesScreen {
 			rows,
 			columns
 		);
+	}
+
+	/// <summary>Creates an independent retained panel positioned over this logical screen.</summary>
+	/// <param name="row">Zero-based screen row of the panel origin.</param>
+	/// <param name="column">Zero-based screen column of the panel origin.</param>
+	/// <param name="rows">The positive panel height.</param>
+	/// <param name="columns">The positive panel width.</param>
+	/// <returns>The new visible panel, initially at the top of the panel order.</returns>
+	/// <remarks>
+	/// Editing the panel's content window does not directly modify this screen's base logical cells.
+	/// Panel projection is performed by the 1.2 logical composition layer.
+	/// </remarks>
+	public CursesPanel CreatePanel(
+		int row,
+		int column,
+		int rows,
+		int columns
+	) {
+		ValidateWindowRectangle(
+			row,
+			column,
+			rows,
+			columns,
+			Rows,
+			Columns
+		);
+
+		CursesPanel panel = new(
+			this,
+			row,
+			column,
+			rows,
+			columns
+		);
+		panelOrder.Add( panel );
+		return panel;
 	}
 
 	/// <summary>
