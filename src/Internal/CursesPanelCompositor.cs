@@ -51,6 +51,70 @@ internal static class CursesPanelCompositor {
 		return result;
 	}
 
+	/// <summary>Resolves one destination coordinate against the base frame and visible panel order.</summary>
+	/// <param name="baseScreen">The destination screen's uncomposed base frame.</param>
+	/// <param name="panels">The complete remembered panel order from bottom to top.</param>
+	/// <param name="row">The zero-based destination row.</param>
+	/// <param name="column">The zero-based destination column.</param>
+	/// <returns>The logical cell and semantic metadata contributed at the coordinate.</returns>
+	internal static CursesLogicalCellState ResolveCell(
+		CursesVirtualScreen baseScreen,
+		CursesPanel[] panels,
+		int row,
+		int column
+	) {
+		ArgumentNullException.ThrowIfNull( baseScreen );
+		ArgumentNullException.ThrowIfNull( panels );
+
+		CursesLogicalCellState result = new(
+			baseScreen.GetCell(
+				row,
+				column
+			),
+			baseScreen.GetMetadata(
+				row,
+				column
+			)
+		);
+		foreach ( CursesPanel panel in panels ) {
+			if ( panel is null ) {
+				throw new ArgumentException(
+					"The panel order contains a null panel.",
+					nameof( panels )
+				);
+			}
+			if ( !panel.IsVisible
+				|| row < panel.Row
+				|| column < panel.Column
+				|| row >= panel.Row + panel.Rows
+				|| column >= panel.Column + panel.Columns ) {
+				continue;
+			}
+
+			int sourceRow = row - panel.Row;
+			int sourceColumn = column - panel.Column;
+			CursesCell cell = panel.VirtualScreen.GetCell(
+				sourceRow,
+				sourceColumn
+			);
+			if ( IsTransparent(
+				panel,
+				cell
+			) ) {
+				continue;
+			}
+
+			result = new CursesLogicalCellState(
+				cell,
+				panel.VirtualScreen.GetMetadata(
+					sourceRow,
+					sourceColumn
+				)
+			);
+		}
+		return result;
+	}
+
 	private static void CopyBaseCells(
 		CursesVirtualScreen source,
 		CursesVirtualScreen destination
