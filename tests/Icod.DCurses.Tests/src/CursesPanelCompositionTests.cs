@@ -181,10 +181,12 @@ public sealed class CursesPanelCompositionTests {
 			2
 		);
 		CursesStyle baseStyle = new(
-			foreground: CursesColor.Indexed( 2 )
+			CursesColor.Indexed( 2 ),
+			CursesColor.Default
 		);
 		CursesStyle panelStyle = new(
-			foreground: CursesColor.Indexed( 4 )
+			CursesColor.Indexed( 4 ),
+			CursesColor.Default
 		);
 		screen.StandardWindow.Move( 0, 1 );
 		screen.StandardWindow.Write(
