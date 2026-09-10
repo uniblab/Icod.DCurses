@@ -31,9 +31,12 @@ second byte reader, per-cell locking, or a private terminal scheduler.
 ## Icod.DCurses.Sample
 
 `Icod.DCurses.Sample` is the minimal quick-start demonstration. It opens a
-`CursesSession`, writes styled content through the standard screen, updates a
-small moving marker through timed event waits, repaints after resize, accepts
-input, and restores terminal state through asynchronous disposal.
+`CursesSession`, writes styled content through the standard screen, demonstrates
+one retained hyperlink through `CursesHyperlink`, `CursesCellMetadata`, and
+`WriteWithMetadata(...)`, updates a small moving marker through timed event waits,
+repaints after resize, accepts input, and restores terminal state through
+asynchronous disposal. Hyperlink framing remains owned by `Icod.Terminal`; the
+sample does not emit OSC 8 directly.
 
 ```text
 dotnet run --project samples/Icod.DCurses.Sample/Icod.DCurses.Sample.csproj
