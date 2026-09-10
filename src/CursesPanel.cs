@@ -9,12 +9,15 @@ using Icod.DCurses.Internal;
 /// Panel content is independent of the destination screen and of other panels. Editing the
 /// <see cref="ContentWindow"/> therefore does not directly modify cells on the destination
 /// <see cref="CursesScreen"/>. Logical composition projects visible panels onto that destination
-/// in deterministic z-order.
+/// in deterministic z-order. Disposing a panel permanently removes it from its owning screen's
+/// composition order; the managed retained content remains readable through previously obtained
+/// references but the disposed panel cannot be manipulated or reattached.
 /// </remarks>
-public sealed class CursesPanel {
+public sealed class CursesPanel : IDisposable {
 	private readonly CursesScreen owner;
 	private readonly CursesPanelSurface surface;
 	private CursesPanelTransparency transparency;
+	private bool disposed;
 
 	/// <summary>Initializes one screen-owned independent retained panel.</summary>
 	/// <param name="owner">The destination logical screen.</param>
@@ -81,6 +84,7 @@ public sealed class CursesPanel {
 	public CursesPanelTransparency Transparency {
 		get => transparency;
 		set {
+			ThrowIfDisposed();
 			if ( value is not CursesPanelTransparency.Opaque
 				and not CursesPanelTransparency.BlankCellsTransparent ) {
 				throw new ArgumentOutOfRangeException( nameof( value ) );
@@ -92,6 +96,7 @@ public sealed class CursesPanel {
 
 	/// <summary>Makes this panel visible without changing its remembered z-order position.</summary>
 	public void Show() {
+		ThrowIfDisposed();
 		if ( IsVisible ) {
 			return;
 		}
@@ -101,6 +106,7 @@ public sealed class CursesPanel {
 
 	/// <summary>Hides this panel while retaining its content, position, and z-order membership.</summary>
 	public void Hide() {
+		ThrowIfDisposed();
 		if ( !IsVisible ) {
 			return;
 		}
@@ -115,6 +121,7 @@ public sealed class CursesPanel {
 		int row,
 		int column
 	) {
+		ThrowIfDisposed();
 		CursesScreen.ValidateWindowRectangle(
 			row,
 			column,
@@ -135,11 +142,13 @@ public sealed class CursesPanel {
 
 	/// <summary>Moves this panel to the top of its owning screen's panel order.</summary>
 	public void MoveToTop() {
+		ThrowIfDisposed();
 		owner.MovePanelToTop( this );
 	}
 
 	/// <summary>Moves this panel to the bottom of its owning screen's panel order.</summary>
 	public void MoveToBottom() {
+		ThrowIfDisposed();
 		owner.MovePanelToBottom( this );
 	}
 
@@ -147,6 +156,7 @@ public sealed class CursesPanel {
 	/// <param name="sibling">The panel which should immediately precede this panel.</param>
 	public void MoveAbove( CursesPanel sibling ) {
 		ArgumentNullException.ThrowIfNull( sibling );
+		ThrowIfDisposed();
 		owner.MovePanelAbove(
 			this,
 			sibling
@@ -157,15 +167,36 @@ public sealed class CursesPanel {
 	/// <param name="sibling">The panel which should immediately follow this panel.</param>
 	public void MoveBelow( CursesPanel sibling ) {
 		ArgumentNullException.ThrowIfNull( sibling );
+		ThrowIfDisposed();
 		owner.MovePanelBelow(
 			this,
 			sibling
 		);
 	}
 
+	/// <summary>Permanently removes this panel from its owning screen's composition order.</summary>
+	public void Dispose() {
+		if ( disposed ) {
+			return;
+		}
+
+		owner.RemovePanel( this );
+		IsVisible = false;
+		disposed = true;
+	}
+
 	/// <summary>Gets the destination screen which owns this panel.</summary>
 	internal CursesScreen Owner => owner;
 
+	/// <summary>Gets whether this panel has been permanently removed from its owning screen.</summary>
+	internal bool IsDisposed => disposed;
+
 	/// <summary>Gets the panel-private virtual screen for logical composition.</summary>
 	internal CursesVirtualScreen VirtualScreen => surface.VirtualScreen;
+
+	private void ThrowIfDisposed() {
+		if ( disposed ) {
+			throw new ObjectDisposedException( nameof( CursesPanel ) );
+		}
+	}
 }
