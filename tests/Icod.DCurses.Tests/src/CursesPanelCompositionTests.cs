@@ -195,7 +195,7 @@ public sealed class CursesPanelCompositionTests {
 		);
 		CursesPanel panel = screen.CreatePanel( 0, 1, 1, 1 );
 		panel.Transparency = CursesPanelTransparency.BlankCellsTransparent;
-		panel.ContentWindow.Clear( panelStyle );
+		panel.ContentWindow.WriteCell( CursesCell.Blank( panelStyle ) );
 
 		CursesVirtualScreen composed = screen.ComposePanels();
 
