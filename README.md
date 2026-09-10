@@ -15,13 +15,13 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 ## Status
 
-`Icod.DCurses 1.2.0-rc.1` is the current release-candidate source in PR #26. T1201–T1209 are complete and qualified; T1210 is validating this unchanged implementation/API as the sole 1.2 release candidate before stable-source promotion.
+`Icod.DCurses 1.2.0` is the current stable-source candidate in PR #26. The sole `1.2.0-rc.1` source passed full exact-head qualification; the unchanged implementation/API has now been promoted to stable source and must pass its own exact-head matrix before any merge or release action.
 
 Current source identity:
 
 ```text
-Version         1.2.0-rc.1
-PackageVersion  1.2.0-rc.1
+Version         1.2.0
+PackageVersion  1.2.0
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.8.1
 Icod.TermInfo   1.10.0
@@ -35,7 +35,7 @@ Accepted 1.1 compatibility floor:
 sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
 ```
 
-Accepted 1.2 candidate contract:
+Accepted 1.2 contract:
 
 ```text
 47 exported types
@@ -53,7 +53,7 @@ Install the current package selected by your normal NuGet policy:
 dotnet add package Icod.DCurses
 ```
 
-The RC identity described here is the source identity being qualified in PR #26. Merge, tag, GitHub Release creation, and NuGet publication are separate explicit release actions.
+This README describes the source candidate in PR #26. Merge, tag, GitHub Release creation, and NuGet publication are separate explicit release actions.
 
 ## Architecture
 
@@ -144,22 +144,11 @@ overlay.Transparency = CursesPanelTransparency.BlankCellsTransparent;
 overlay.ContentWindow.Write( "overlay" );
 ```
 
-The 1.2 panel contract includes:
+The 1.2 panel contract includes independent retained content, show/hide with remembered z-order, movement and relative ordering, clipping, opaque/blank-transparent composition, Unicode width-two and semantic-metadata coherence, damage-bounded recomposition, live session refresh/lifecycle integration, and deterministic one-way `Dispose()` removal.
 
-- independent retained content edited through ordinary `CursesWindow` APIs;
-- `Show()` / `Hide()` with remembered z-order;
-- `MoveTo(...)`, `MoveToTop()`, `MoveToBottom()`, `MoveAbove(...)`, and `MoveBelow(...)`;
-- deterministic bottom-to-top logical composition;
-- screen-edge clipping without mutating panel content;
-- opaque and blank-transparent composition;
-- Unicode width-two footprint repair and semantic-metadata coherence;
-- damage-bounded incremental recomposition;
-- live `CursesSession.RefreshAsync()` integration across resize and suspend/resume;
-- deterministic one-way `Dispose()` removal for transient panels.
+Disposal removes a transient panel from its owning screen so repeatedly-created popups/dialogs are not retained for the screen lifetime. A disposed panel cannot be reattached or manipulated.
 
-Disposal removes the panel from its owning screen so repeatedly-created transient popups/dialogs are not retained for the screen lifetime. A disposed panel cannot be reattached or manipulated.
-
-Panel size remains fixed in 1.2. General layout and resize primitives belong to the planned 1.3 release rather than being prematurely frozen into the panel contract.
+Panel size remains fixed in 1.2. General layout and resize primitives belong to the planned 1.3 release.
 
 ## 1.1 semantic metadata and hyperlinks
 
@@ -181,11 +170,9 @@ screen.WriteWithMetadata(
 
 Metadata is retained independently of visible glyph/style equality, follows content through supported editing/composition operations, remains coherent across two-column leader/continuation footprints, and is emitted physically through Terminal-owned semantic hyperlink operations. DCurses does not construct OSC 8 directly.
 
-## Pads and large surfaces
+## Pads, Unicode, and semantic drawing
 
-`CursesPad` is an off-screen logical surface and reuses ordinary `CursesWindow` editing semantics. Multiple viewports may observe one pad independently. Pads and viewports do not own terminal sessions or physical refresh state.
-
-## Unicode and semantic drawing
+`CursesPad` is an off-screen logical surface that reuses ordinary `CursesWindow` editing semantics. Multiple viewports may observe one pad independently.
 
 The built-in width provider is pinned to Unicode 17.0.0. East Asian Ambiguous characters are narrow by default and can be made wide explicitly with `UnicodeCursesTextWidthProvider.WideAmbiguousInstance`.
 
@@ -208,7 +195,7 @@ Local wrappers use Debug configuration. Pull requests use Staging with warnings-
 
 Runtime validation covers Windows/Linux/macOS x64 and ARM64; the library/test matrix covers `net8.0`, `net9.0`, and `net10.0`.
 
-Package validation verifies the generated `.nupkg`/`.snupkg`, package and assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. Package validation does not impose hard-coded sibling dependency versions; restore/build/test establish compatibility.
+Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. Package validation does not impose hard-coded sibling dependency versions.
 
 ## Release documentation
 
