@@ -5,7 +5,7 @@
 **Accepted compatibility floor:** `1.1.0`  
 **Active source package:** `1.2.0`  
 **Assembly version policy:** retain `1.0.0.0` through compatible additive 1.x releases  
-**Current declared runtime dependencies:** `Icod.Terminal 1.8.1`; `Icod.TermInfo 1.10.0`  
+**Current declared runtime dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
 **Planning status:** 1.2 RC qualified; stable-source exact-head qualification active
 
 ---
@@ -23,7 +23,7 @@ The sequence is cumulative: 1.1 adds meaning to retained content; 1.2 composes o
 
 ## Ownership boundary
 
-The current 1.2 source declares `Icod.Terminal 1.8.1` and `Icod.TermInfo 1.10.0`. DCurses consumes Terminal's live-session/input/lifecycle/semantic-output contracts rather than terminal-family protocol details and does not install private protocol writers or a second input owner.
+The current 1.2 source declares `Icod.Terminal 1.9.0` and `Icod.TermInfo 1.10.0`. DCurses consumes Terminal's live-session/input/lifecycle/semantic-output contracts rather than terminal-family protocol details and does not install private protocol writers or a second input owner.
 
 ## 1.1 compatibility floor
 
