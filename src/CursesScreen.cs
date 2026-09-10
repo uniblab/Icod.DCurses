@@ -113,6 +113,9 @@ public sealed class CursesScreen {
 		return panel;
 	}
 
+	/// <summary>Gets whether this screen owns at least one panel without allocating an order snapshot.</summary>
+	internal bool HasPanels => 0 < panelOrder.Count;
+
 	/// <summary>Creates a stable bottom-to-top snapshot of this screen's complete panel order.</summary>
 	/// <returns>A new array containing visible and hidden panels in remembered z-order.</returns>
 	internal CursesPanel[] SnapshotPanelsBottomToTop() {
