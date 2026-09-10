@@ -63,7 +63,7 @@ public sealed partial class CursesWindow {
 	/// <summary>Writes terminal-independent text with semantic metadata using <see cref="CurrentStyle"/>.</summary>
 	/// <param name="text">The text to write.</param>
 	/// <param name="metadata">The semantic metadata applied to written logical content.</param>
-	public void Write(
+	public void WriteWithMetadata(
 		string text,
 		CursesCellMetadata metadata
 	) {
