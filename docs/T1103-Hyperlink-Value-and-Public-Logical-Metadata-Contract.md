@@ -6,7 +6,7 @@
 **Development checkpoint:** `1.1.0-alpha.3`  
 **Assembly version:** `1.0.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
-**Status:** complete; T1108 pre-RC regret review later clarified forward-compatible hyperlink property nullability
+**Status:** complete; T1108 pre-RC regret review later refined convenience naming and forward-compatible hyperlink property nullability
 
 ## Purpose
 
@@ -31,7 +31,7 @@ CursesHyperlink
 CursesCellMetadata
 ```
 
-The logical surface/window API gains metadata inspection/mutation and metadata-aware write operations:
+The logical surface/window API gains metadata inspection/mutation and metadata-aware write operations. The final pre-RC spelling accepted by T1108 is:
 
 ```text
 CursesVirtualScreen.GetMetadata(...)
@@ -39,10 +39,12 @@ CursesVirtualScreen.SetMetadata(...)
 
 CursesWindow.GetMetadata(...)
 CursesWindow.SetMetadata(...)
-CursesWindow.Write(string, CursesCellMetadata)
+CursesWindow.WriteWithMetadata(string, CursesCellMetadata)
 CursesWindow.Write(string, CursesStyle, CursesCellMetadata)
 CursesWindow.WriteCell(CursesCell, CursesCellMetadata)
 ```
+
+T1103 originally prototyped the convenience as `Write(string, CursesCellMetadata)`. T1108 renamed that provisional alpha member to `WriteWithMetadata(...)` because stable 1.0 already exposes `Write(string, CursesStyle)` and the additional overload would make previously valid `Write("text", default)` source ambiguous when recompiled.
 
 No Terminal hyperlink lease or other new Terminal/TermInfo type enters the public DCurses signature set.
 
@@ -70,7 +72,7 @@ DCurses does not activate, dereference, download, resolve, or navigate to hyperl
 
 `CursesCellMetadata` is an immutable reference value. Hyperlink is the first semantic field in 1.1.
 
-The 1.1 constructor requires a non-null `CursesHyperlink` because a metadata object with no semantic fields would be meaningless in this release. The `Hyperlink` property itself is nullable in the pre-RC contract so later additive metadata kinds can construct a `CursesCellMetadata` without requiring a hyperlink and without weakening a previously published non-null return contract. Every `CursesCellMetadata` instance constructible through the 1.1 constructor still has a hyperlink.
+The 1.1 constructor requires a non-null `CursesHyperlink` because a metadata object with no semantic fields would be meaningless in this release. The `Hyperlink` property itself is nullable in the accepted pre-RC contract so later additive metadata kinds can construct a `CursesCellMetadata` without requiring a hyperlink and without weakening a previously published non-null return contract. Every `CursesCellMetadata` instance constructible through the 1.1 constructor still has a hyperlink.
 
 This type is intentionally distinct from `CursesStyle`. A linked cell may change color, boldness, underline, or other rendition without changing hyperlink identity, and a hyperlink may remain unchanged while rendition changes.
 
@@ -151,7 +153,15 @@ Icod.DCurses.CursesCellMetadata
 Icod.DCurses.CursesHyperlink
 ```
 
-`docs/Public-API-Fingerprint-1.1.json` records the current provisional development baseline. T1108 is the designated pre-RC regret gate and may deliberately refine that provisional fingerprint before stable 1.1 freeze.
+T1108 deliberately refined two provisional contract lines while retaining the same type and line counts. The accepted pre-RC 1.1 fingerprint is:
+
+```text
+sha256:            21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
+exported types:    45
+contract lines:   337
+```
+
+`docs/Public-API-Fingerprint-1.1.json` records this accepted pre-RC baseline; `docs/Public-API-Baseline-1.1.md` is its human-readable companion.
 
 Historical/stable fingerprint files remain unchanged:
 
@@ -167,7 +177,10 @@ Two non-design defects were found while qualifying alpha.3:
 1. `CursesWindow.Metadata.cs` initially omitted the `Icod.DCurses.Internal` namespace needed for the existing `CursesUnicodeText` pipeline. The missing import was added; no duplicate Unicode path was introduced.
 2. `Fill(...)`/`Clear()` initially removed the semantic plane before recording semantic-only damage. The operation now invalidates when semantic metadata existed, including visually no-op fills.
 
-T1108 later corrected one provisional API annotation before RC: `CursesCellMetadata.Hyperlink` is nullable for forward-compatible metadata extensibility, while the existing 1.1 constructor continues to require a real hyperlink.
+T1108 later made two deliberate provisional-API corrections before RC:
+
+1. `CursesCellMetadata.Hyperlink` is nullable for forward-compatible metadata extensibility, while the existing 1.1 constructor continues to require a real hyperlink.
+2. The two-argument semantic convenience is `WriteWithMetadata(...)`, avoiding ambiguity with stable `Write(string, CursesStyle)` for callers using a `default` style expression.
 
 ## Code/API checkpoint
 
@@ -187,7 +200,7 @@ Workflow #474 (`34405314146`) passed on that exact SHA across:
 - macOS ARM64;
 - package/fresh-consumer validation.
 
-The T1108 regret review owns any deliberate pre-RC refinement of the provisional 1.1 fingerprint.
+The T1108 regret review owns the accepted pre-RC refinements documented above; the T1103 checkpoint itself remains historical evidence for the original alpha.3 implementation.
 
 ## T1103 non-goals
 
@@ -212,6 +225,6 @@ T1103 is complete because its documentation-synchronized alpha.3 head passed the
 3. semantic-only changes participate in damage tracking;
 4. wide text footprints carry coherent metadata;
 5. ordinary replacement clears overwritten semantics;
-6. the provisional 45-type / 337-line 1.1 fingerprint is enforced subject to the designated T1108 pre-RC regret gate;
+6. the provisional 45-type / 337-line 1.1 fingerprint was enforced and remained explicitly subject to the designated T1108 pre-RC regret gate;
 7. package metadata and documentation agree on Terminal 1.6.0 / TermInfo 1.10.0;
-8. no raw OSC 8 output has entered DCurses.
+8. no raw OSC 8 output entered DCurses.
