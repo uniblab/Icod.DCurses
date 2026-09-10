@@ -19,7 +19,7 @@ public sealed class CursesHyperlinkRefreshTests {
 		CursesScreen screen = new( 6, 1 );
 		CursesCellMetadata metadata = LinkMetadata( "one" );
 
-		screen.StandardWindow.Write(
+		screen.StandardWindow.WriteWithMetadata(
 			"ABC",
 			metadata
 		);
@@ -42,7 +42,7 @@ public sealed class CursesHyperlinkRefreshTests {
 			output
 		);
 		CursesScreen screen = new( 6, 1 );
-		screen.StandardWindow.Write(
+		screen.StandardWindow.WriteWithMetadata(
 			"ABC",
 			LinkMetadata( "one" )
 		);
@@ -72,7 +72,7 @@ public sealed class CursesHyperlinkRefreshTests {
 		);
 		CursesScreen screen = new( 6, 1 );
 		CursesWindow window = screen.StandardWindow;
-		window.Write(
+		window.WriteWithMetadata(
 			"ABC",
 			LinkMetadata( "one" )
 		);
@@ -111,7 +111,7 @@ public sealed class CursesHyperlinkRefreshTests {
 		);
 		CursesScreen screen = new( 6, 1 );
 		CursesWindow window = screen.StandardWindow;
-		window.Write(
+		window.WriteWithMetadata(
 			"ABC",
 			LinkMetadata( "one" )
 		);
@@ -183,7 +183,7 @@ public sealed class CursesHyperlinkRefreshTests {
 		);
 		CursesScreen screen = new( 5, 1 );
 
-		screen.StandardWindow.Write(
+		screen.StandardWindow.WriteWithMetadata(
 			"界",
 			LinkMetadata( "wide" )
 		);
@@ -206,7 +206,7 @@ public sealed class CursesHyperlinkRefreshTests {
 			output
 		);
 		CursesScreen screen = new( 5, 1 );
-		screen.StandardWindow.Write(
+		screen.StandardWindow.WriteWithMetadata(
 			"link",
 			LinkMetadata( "again" )
 		);
@@ -273,7 +273,7 @@ public sealed class CursesHyperlinkRefreshTests {
 		CursesScreen screen = new( 8, 1 );
 		CursesWindow window = screen.StandardWindow;
 		CursesCellMetadata metadata = LinkMetadata( "character-shift" );
-		window.Write(
+		window.WriteWithMetadata(
 			"ABCDEFGH",
 			metadata
 		);
@@ -314,7 +314,7 @@ public sealed class CursesHyperlinkRefreshTests {
 		window.Move( 1, 0 );
 		window.Write( "BBBBBB" );
 		window.Move( 2, 0 );
-		window.Write(
+		window.WriteWithMetadata(
 			"CCCCCC",
 			moving
 		);
