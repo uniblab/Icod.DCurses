@@ -52,7 +52,7 @@ public sealed class CursesSemanticPropagationTests {
 		CursesWindow window = screen.StandardWindow;
 		CursesCellMetadata metadata = LinkMetadata( "lines" );
 		window.Move( 1, 0 );
-		window.Write( "L", metadata );
+		window.WriteWithMetadata( "L", metadata );
 
 		window.Move( 0, 0 );
 		window.InsertLines();
@@ -75,7 +75,7 @@ public sealed class CursesSemanticPropagationTests {
 		CursesWindow window = screen.StandardWindow;
 		CursesCellMetadata metadata = LinkMetadata( "scroll" );
 		window.Move( 2, 1 );
-		window.Write( "S", metadata );
+		window.WriteWithMetadata( "S", metadata );
 
 		window.ScrollUp();
 
@@ -96,7 +96,7 @@ public sealed class CursesSemanticPropagationTests {
 		CursesWindow window = screen.StandardWindow;
 		CursesCellMetadata metadata = LinkMetadata( "wide" );
 		window.Write( "A" );
-		window.Write( "界", metadata );
+		window.WriteWithMetadata( "界", metadata );
 		window.Write( "B" );
 
 		window.Move( 0, 0 );
@@ -156,7 +156,7 @@ public sealed class CursesSemanticPropagationTests {
 			0,
 			sourceMetadata
 		);
-		destination.Write( "D", destinationMetadata );
+		destination.WriteWithMetadata( "D", destinationMetadata );
 
 		source.OverlayRectangleTo(
 			destination,
@@ -206,7 +206,7 @@ public sealed class CursesSemanticPropagationTests {
 		CursesWindow content = pad.ContentWindow;
 		CursesCellMetadata metadata = LinkMetadata( "pad" );
 		content.Move( 1, 2 );
-		content.Write( "P", metadata );
+		content.WriteWithMetadata( "P", metadata );
 		CursesScreen destinationScreen = new( 5, 2 );
 
 		pad.PresentTo(
@@ -265,7 +265,7 @@ public sealed class CursesSemanticPropagationTests {
 		CursesScreen screen = new( 4, 2 );
 		CursesCellMetadata metadata = LinkMetadata( "resize" );
 		screen.StandardWindow.Move( 1, 1 );
-		screen.StandardWindow.Write( "R", metadata );
+		screen.StandardWindow.WriteWithMetadata( "R", metadata );
 
 		screen.Resize(
 			6,
@@ -282,7 +282,7 @@ public sealed class CursesSemanticPropagationTests {
 		CursesScreen screen = new( 4, 1 );
 		CursesCellMetadata metadata = LinkMetadata( "resize-wide" );
 		screen.StandardWindow.Move( 0, 2 );
-		screen.StandardWindow.Write( "界", metadata );
+		screen.StandardWindow.WriteWithMetadata( "界", metadata );
 
 		screen.Resize(
 			3,
