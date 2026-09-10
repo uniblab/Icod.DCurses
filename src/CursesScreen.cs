@@ -113,6 +113,80 @@ public sealed class CursesScreen {
 		return panel;
 	}
 
+	/// <summary>Creates a stable bottom-to-top snapshot of this screen's complete panel order.</summary>
+	/// <returns>A new array containing visible and hidden panels in remembered z-order.</returns>
+	internal CursesPanel[] SnapshotPanelsBottomToTop() {
+		return panelOrder.SnapshotBottomToTop();
+	}
+
+	/// <summary>Moves one owned panel to the top of the remembered panel order.</summary>
+	/// <param name="panel">The owned panel to move.</param>
+	internal void MovePanelToTop( CursesPanel panel ) {
+		ArgumentNullException.ThrowIfNull( panel );
+		ValidateOwnedPanel(
+			panel,
+			nameof( panel )
+		);
+		panelOrder.MoveToTop( panel );
+	}
+
+	/// <summary>Moves one owned panel to the bottom of the remembered panel order.</summary>
+	/// <param name="panel">The owned panel to move.</param>
+	internal void MovePanelToBottom( CursesPanel panel ) {
+		ArgumentNullException.ThrowIfNull( panel );
+		ValidateOwnedPanel(
+			panel,
+			nameof( panel )
+		);
+		panelOrder.MoveToBottom( panel );
+	}
+
+	/// <summary>Moves one owned panel immediately above another owned panel.</summary>
+	/// <param name="panel">The owned panel to move.</param>
+	/// <param name="sibling">The owned sibling which should immediately precede it.</param>
+	internal void MovePanelAbove(
+		CursesPanel panel,
+		CursesPanel sibling
+	) {
+		ArgumentNullException.ThrowIfNull( panel );
+		ArgumentNullException.ThrowIfNull( sibling );
+		ValidateOwnedPanel(
+			panel,
+			nameof( panel )
+		);
+		ValidateOwnedPanel(
+			sibling,
+			nameof( sibling )
+		);
+		panelOrder.MoveAbove(
+			panel,
+			sibling
+		);
+	}
+
+	/// <summary>Moves one owned panel immediately below another owned panel.</summary>
+	/// <param name="panel">The owned panel to move.</param>
+	/// <param name="sibling">The owned sibling which should immediately follow it.</param>
+	internal void MovePanelBelow(
+		CursesPanel panel,
+		CursesPanel sibling
+	) {
+		ArgumentNullException.ThrowIfNull( panel );
+		ArgumentNullException.ThrowIfNull( sibling );
+		ValidateOwnedPanel(
+			panel,
+			nameof( panel )
+		);
+		ValidateOwnedPanel(
+			sibling,
+			nameof( sibling )
+		);
+		panelOrder.MoveBelow(
+			panel,
+			sibling
+		);
+	}
+
 	/// <summary>
 	/// Resizes the logical screen and optionally preserves cells in the overlapping upper-left region.
 	/// </summary>
@@ -220,6 +294,24 @@ public sealed class CursesScreen {
 				nameof( columns ),
 				columns,
 				"The window extends beyond its containing surface."
+			);
+		}
+	}
+
+	private void ValidateOwnedPanel(
+		CursesPanel panel,
+		string parameterName
+	) {
+		ArgumentNullException.ThrowIfNull( panel );
+		ArgumentException.ThrowIfNullOrEmpty( parameterName );
+
+		if ( !ReferenceEquals(
+			panel.Owner,
+			this
+		) ) {
+			throw new ArgumentException(
+				"The panel belongs to another screen.",
+				parameterName
 			);
 		}
 	}
