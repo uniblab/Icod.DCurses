@@ -15,13 +15,13 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 ## Status
 
-The current development source is `Icod.DCurses 1.2.0-alpha.1` in PR #26. Version 1.2 adds independent retained panels/layers while preserving the ordinary `CursesWindow` shared-view contract established by 1.0 and extended additively by 1.1.
+`Icod.DCurses 1.2.0-rc.1` is the current release-candidate source in PR #26. T1201–T1209 are complete and qualified; T1210 is validating this unchanged implementation/API as the sole 1.2 release candidate before stable-source promotion.
 
 Current source identity:
 
 ```text
-Version         1.2.0-alpha.1
-PackageVersion  1.2.0-alpha.1
+Version         1.2.0-rc.1
+PackageVersion  1.2.0-rc.1
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.8.1
 Icod.TermInfo   1.10.0
@@ -35,7 +35,7 @@ Accepted 1.1 compatibility floor:
 sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
 ```
 
-Current 1.2 candidate contract:
+Accepted 1.2 candidate contract:
 
 ```text
 47 exported types
@@ -53,7 +53,7 @@ Install the current package selected by your normal NuGet policy:
 dotnet add package Icod.DCurses
 ```
 
-The `1.2.0-alpha.1` identity described here is the source/development identity of PR #26. Merging, tagging, GitHub Release creation, and NuGet publication are separate explicit release actions.
+The RC identity described here is the source identity being qualified in PR #26. Merge, tag, GitHub Release creation, and NuGet publication are separate explicit release actions.
 
 ## Architecture
 
@@ -181,33 +181,9 @@ screen.WriteWithMetadata(
 
 Metadata is retained independently of visible glyph/style equality, follows content through supported editing/composition operations, remains coherent across two-column leader/continuation footprints, and is emitted physically through Terminal-owned semantic hyperlink operations. DCurses does not construct OSC 8 directly.
 
-See the T1102–T1109 records under `docs/` for the detailed 1.1 representation, lifecycle, performance, API-regret, and stable-closure evidence.
-
 ## Pads and large surfaces
 
-`CursesPad` is an off-screen logical surface and reuses ordinary `CursesWindow` editing semantics.
-
-```csharp
-CursesPad pad = new( 200, 5_000 );
-CursesWindow content = pad.ContentWindow;
-content.Move( 100, 20 );
-content.Write( "A界B — large logical document" );
-
-CursesPadViewport viewport = pad.CreateViewport(
-    session.StandardScreen,
-    padRow: 95,
-    padColumn: 10,
-    rows: 20,
-    columns: 70,
-    destinationRow: 1,
-    destinationColumn: 2
-);
-
-viewport.Present();
-await session.RefreshAsync();
-```
-
-Multiple viewports may observe one pad independently. Pads and viewports do not own terminal sessions or physical refresh state.
+`CursesPad` is an off-screen logical surface and reuses ordinary `CursesWindow` editing semantics. Multiple viewports may observe one pad independently. Pads and viewports do not own terminal sessions or physical refresh state.
 
 ## Unicode and semantic drawing
 
@@ -243,6 +219,7 @@ Current post-1.0 authorities:
 - `Icod.DCurses-1.2.0-Development-Roadmap.md`
 - `docs/T1208-Panel-Application-Performance-and-Allocation-Acceptance.md`
 - `docs/T1209-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/T1210-RC-and-Stable-Closure.md`
 - `docs/Public-API-Fingerprint-1.2.json`
 - `docs/Public-API-Baseline-1.2.md`
 

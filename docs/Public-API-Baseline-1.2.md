@@ -3,9 +3,11 @@
 **Release line:** `1.2.0`  
 **Compatibility floor:** accepted `1.1.0` contract  
 **AssemblyVersion:** `1.0.0.0`  
-**Candidate package identity:** `1.2.0-alpha.1`  
-**Compiler-derived candidate head:** `866497c9d5015f3a149580d67eacefaf7e121aaf`  
-**Qualification workflow:** #600 / `34524054785`  
+**Release-candidate package identity:** `1.2.0-rc.1`  
+**Compiler-derived API head:** `866497c9d5015f3a149580d67eacefaf7e121aaf`  
+**API qualification workflow:** #600 / `34524054785`  
+**T1209 closure head:** `3728bf0e576b32747dd3a628ed5d3eca768ac67f`  
+**T1209 closure workflow:** #603 / `34525966166`  
 
 ## Accepted 1.1 floor
 
@@ -15,7 +17,7 @@
 sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
 ```
 
-## 1.2 candidate contract
+## Accepted 1.2 candidate contract
 
 ```text
 47 exported types
@@ -42,7 +44,7 @@ No accepted 1.1 exported type is removed.
 
 `CursesScreen.CreatePanel(int row, int column, int rows, int columns)` creates one screen-owned independent retained panel. The panel exposes its retained content through `CursesWindow ContentWindow` and exposes destination position, fixed dimensions, visibility, and transparency policy.
 
-The public manipulation surface consists of reversible visibility/ordering/position operations plus deterministic lifetime removal:
+The public manipulation/lifetime surface consists of:
 
 ```text
 Show()
@@ -79,12 +81,8 @@ Opaque is the default. Blank-cell transparency causes ordinary blank panel cells
 
 The lifetime/API regret correction was first exercised at `ed21d00950ff3992628bf825625b62e24d957c49`, where 553 behavioral/compatibility tests passed per target framework and the only failure was the intentionally stale provisional fingerprint.
 
-After updating the machine-readable fingerprint, exact head:
+After updating the machine-readable fingerprint, exact head `866497c9d5015f3a149580d67eacefaf7e121aaf` passed workflow #600 / `34524054785` across all seven jobs.
 
-```text
-866497c9d5015f3a149580d67eacefaf7e121aaf
-```
+The documentation/sample/package-complete T1209 head `3728bf0e576b32747dd3a628ed5d3eca768ac67f` then passed workflow #603 / `34525966166` across all seven jobs. The Linux ARM64 evidence leg reported 554/554 tests on each supported TFM with a zero-warning/zero-error build, and package-only panel consumption passed.
 
-passed workflow #600 / `34524054785` across all seven PR jobs.
-
-This baseline becomes the 1.2 stable public-contract authority only after the later T1210 RC/stable closure preserves the same fingerprint through final exact-head qualification.
+The `1.2.0-rc.1` promotion changes release identity/status documentation only. This baseline becomes the stable 1.2 public-contract authority only if T1210 preserves this fingerprint through RC and final stable-source qualification.

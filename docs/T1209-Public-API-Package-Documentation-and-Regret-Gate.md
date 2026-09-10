@@ -3,16 +3,16 @@
 **Release:** `Icod.DCurses 1.2.0`  
 **Tranche:** T1209  
 **API/lifetime qualified head:** `866497c9d5015f3a149580d67eacefaf7e121aaf`  
-**Workflow:** #600 / `34524054785`  
-**Status:** documentation/sample/package closure in progress  
+**API workflow:** #600 / `34524054785`  
+**Documentation/sample/package closure head:** `3728bf0e576b32747dd3a628ed5d3eca768ac67f`  
+**Closure workflow:** #603 / `34525966166`  
+**Status:** complete  
 
 ## Purpose
 
-T1209 freezes the public 1.2 panel contract only after application/resource acceptance, then audits ownership, source compatibility, nullability, dependency boundaries, package consumption, samples, and current documentation before RC promotion.
+T1209 freezes the public 1.2 panel contract after application/resource acceptance and audits ownership, source compatibility, nullability, dependency boundaries, package consumption, samples, and current documentation before RC promotion.
 
 ## Accepted compatibility floor
-
-The accepted 1.1 contract remains the compatibility floor:
 
 ```text
 45 exported types
@@ -32,11 +32,9 @@ public sealed class CursesPanel : IDisposable
 
 `Dispose()` permanently removes the panel from its owning screen's order. It is idempotent, sets the panel non-visible, and later panel manipulation throws `ObjectDisposedException`. Other panels cannot order themselves relative to a disposed panel. Reattachment and transfer are intentionally outside the 1.2 contract.
 
-A test-only red head `b800fa1de8a1986f2680bab1104dbeb45058a3fb` failed because `Dispose()` and `IDisposable` did not yet exist, giving the intended TDD signal.
+The test-only red head `b800fa1de8a1986f2680bab1104dbeb45058a3fb` failed because `Dispose()` and `IDisposable` did not yet exist. The implemented lifetime head `ed21d00950ff3992628bf825625b62e24d957c49` then passed 553 behavioral/compatibility tests per target framework; the sole remaining failure was the deliberately stale provisional fingerprint.
 
-The implemented lifetime head `ed21d00950ff3992628bf825625b62e24d957c49` built cleanly and passed 553 behavioral/compatibility tests on each target framework; its sole test failure was the deliberately stale provisional API fingerprint.
-
-## Final 1.2 candidate API
+## Accepted 1.2 API
 
 The compiler-derived replacement fingerprint is identical on net8.0, net9.0, and net10.0:
 
@@ -60,23 +58,37 @@ No further public API change was accepted.
 - Ordinary `CursesWindow` shared-view behavior remains unchanged.
 - Panel dimensions remain fixed in 1.2; general layout/resize primitives belong to 1.3.
 - Public panel-stack enumeration is not added without a demonstrated consumer.
-- `MoveTo` continues to require a fully contained destination rectangle, consistent with existing window geometry. Destination resize may subsequently clip a retained panel without mutating its content.
+- `MoveTo` continues to require a fully contained destination rectangle, consistent with existing window geometry; later destination resize may clip retained panel content.
 - `CursesPanelTransparency` remains the small closed policy surface `Opaque` / `BlankCellsTransparent`.
 - The panel API adds no new `Icod.Terminal` or `Icod.TermInfo` public type exposure.
 - `IDisposable` is a BCL lifetime interface and does not change the approved lower-layer dependency boundary.
 
-## Package and sample closure
+## Package, sample, and documentation closure
 
-T1209 extends the fresh NuGet-only consumer with runtime panel-surface validation covering creation, retained content, hide/show, movement, transparency, top/bottom manipulation, `IDisposable`, idempotent disposal, and use-after-dispose rejection.
+The fresh NuGet-only consumer now validates panel creation, retained content, hide/show, movement, transparency, ordering, `IDisposable`, idempotent disposal, and use-after-dispose rejection.
 
-A focused `Icod.DCurses.Panel.Sample` demonstrates the public live-session path: retained base content remains available while a panel is hidden, shown/moved, switched to blank-cell transparency, and finally disposed. The sample uses no internal compositor API and emits no raw Terminal protocol framing.
+`Icod.DCurses.Panel.Sample` demonstrates the public live-session panel path without using internal compositor APIs or raw Terminal protocol framing.
 
-The root README, sample index, current development roadmap, approved 1.1–1.4 release train, dedicated 1.2 roadmap, package release notes, and human-readable 1.2 API baseline are synchronized with the current 1.2 source identity and `Icod.Terminal 1.8.1` / `Icod.TermInfo 1.10.0` declarations.
+The root README, sample index, current development roadmap, 1.1–1.4 release train, dedicated 1.2 roadmap, package release notes, package-smoke documentation, and human-readable 1.2 API baseline were synchronized to the active 1.2 source and `Icod.Terminal 1.8.1` / `Icod.TermInfo 1.10.0` dependency declarations. Historical 1.0/1.1 tranche records remain unchanged as historical evidence.
 
-Historical 1.0/1.1 tranche records remain historical and are not rewritten to pretend their original dependency/version checkpoints were different.
+Exact closure head:
 
-## Closure rule
+```text
+3728bf0e576b32747dd3a628ed5d3eca768ac67f
+workflow #603 / 34525966166
+```
 
-This documentation/sample/package closure produces a new exact head. T1209 is complete only when that exact head passes the full seven-job PR matrix, including package validation and Windows/Linux/macOS x64/ARM64 runtime validation.
+passed package validation and Windows/Linux/macOS x64/ARM64 runtime jobs. The Linux ARM64 leg reported:
 
-After that qualification, T1210 may promote the unchanged source through a release candidate. Merge, tag, GitHub Release creation, and NuGet publication remain explicit later actions.
+```text
+Build: 0 warnings, 0 errors
+net8.0:  554 passed, 0 failed
+net9.0:  554 passed, 0 failed
+net10.0: 554 passed, 0 failed
+```
+
+The focused panel sample built for all three TFMs and package-only panel validation executed successfully.
+
+## Decision
+
+T1209 is complete. The implementation/API is frozen for T1210. RC and stable-source promotion may change only release identity and release-status documentation unless a new blocker is discovered.
