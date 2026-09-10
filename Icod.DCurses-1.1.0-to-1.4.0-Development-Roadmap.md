@@ -3,10 +3,10 @@
 **Project:** `Icod.DCurses`  
 **Scope:** post-1.0 additive core development  
 **Stable compatibility floor:** `1.0.0`  
-**Active development package:** `1.1.0-alpha.8`  
+**Active development package:** `1.1.0-rc.1`  
 **Assembly version policy:** retain `1.0.0.0` through compatible additive 1.x releases  
 **Current runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
-**Planning status:** approved release train; 1.1 T1108 pre-RC contract accepted and alpha.8 exact-head qualification active; T1109 next
+**Planning status:** approved release train; 1.1 T1108 qualified; T1109 release-candidate validation active
 
 ---
 
@@ -90,14 +90,14 @@ Adjacent equivalent links are emitted as semantic runs through Terminal rather t
 
 Terminal-native erase, character-shift, line-shift, and scrolling shortcuts remain disabled when semantic state exists because terminfo does not portably specify how emulator-side OSC 8 associations behave under those physical transformations.
 
-### Accepted pre-RC public contract
+### Public contract
 
-T1108 freezes the 1.1 public surface at exactly two exported types above the stable 1.0 floor:
+T1108 completed the pre-RC regret gate and froze the accepted 1.1 public surface exactly two exported types above the stable 1.0 floor:
 
 - `CursesHyperlink`;
 - `CursesCellMetadata`.
 
-Accepted compiler-derived fingerprint:
+Accepted fingerprint:
 
 ```text
 45 exported types
@@ -105,32 +105,27 @@ Accepted compiler-derived fingerprint:
 sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
 ```
 
-The final semantic window API includes:
+The source-compatible semantic convenience is `WriteWithMetadata(string, CursesCellMetadata)`, avoiding ambiguity with stable 1.0 `Write(string, CursesStyle)` when callers pass `default`. `CursesCellMetadata.Hyperlink` is nullable for future additive metadata kinds while the current constructor remains non-null.
+
+### Release-candidate state
+
+T1108's documentation-complete `1.1.0-alpha.8` head:
 
 ```text
-CursesWindow.GetMetadata(...)
-CursesWindow.SetMetadata(...)
-CursesWindow.WriteWithMetadata(string, CursesCellMetadata)
-CursesWindow.Write(string, CursesStyle, CursesCellMetadata)
-CursesWindow.WriteCell(CursesCell, CursesCellMetadata)
+290508c69ed7e76179f168cc748edf38a4091b76
 ```
 
-The distinct `WriteWithMetadata(...)` name preserves recompilation of the stable 1.0 `Write(string, CursesStyle)` form when callers use `default`. `CursesCellMetadata.Hyperlink` is nullable for future additive semantic kinds while the 1.1 constructor continues to require a real hyperlink.
-
-T1108 also confirms that the fresh NuGet-only consumer exercises the semantic API, the minimal sample demonstrates retained hyperlink output without raw OSC 8, and no additional Terminal/TermInfo type leaks into public signatures.
+passed workflow #543 (`34422961869`) across all seven jobs. T1109 therefore promotes the accepted contract unchanged to `1.1.0-rc.1` and performs release-candidate qualification before stable promotion.
 
 Detailed roadmap:
 
 - `Icod.DCurses-1.1.0-Development-Roadmap.md`
 
-Permanent acceptance/regret records:
+Permanent acceptance/closure records:
 
 - `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
 - `docs/T1108-Public-API-Package-Documentation-and-Regret-Gate.md`
-- `docs/Public-API-Fingerprint-1.1.json`
-- `docs/Public-API-Baseline-1.1.md`
-
-T1109 should promote this accepted contract unchanged unless a release-blocking defect requires an explicit correction before RC.
+- `docs/T1109-RC-and-Stable-Closure.md`
 
 ---
 
@@ -301,7 +296,7 @@ Each 1.x release must satisfy:
 
 1. additive public API by default;
 2. exact compiled public-API fingerprint for every intentional delta;
-3. retained 1.0 signature/enum compatibility and source-compatibility review for additive overloads;
+3. retained 1.0 signature/enum compatibility unless explicitly reconsidered;
 4. no public raw Terminal protocol frames or internal routing types;
 5. no competing terminal input reader;
 6. no private terminal capability database;
@@ -309,11 +304,11 @@ Each 1.x release must satisfy:
 8. compositional editing/copy/overlay/pad/viewports behavior;
 9. conservative failure/cancellation/lifecycle recovery and authoritative Terminal restoration;
 10. measured large-screen/pad memory and allocation impact when data structures change;
-11. fresh NuGet-only consumer validation on `net8.0`, `net9.0`, and `net10.0` including new public feature families;
+11. fresh NuGet-only consumer validation on `net8.0`, `net9.0`, and `net10.0`;
 12. Windows/Linux/macOS x64/ARM64 runtime validation before stable promotion;
 13. package/symbol/XML/dependency/fresh-consumer validation;
 14. README/current-roadmap/API/migration/sample/package documentation audit at stable closure;
-15. historical tranche records remain historical and superseded duplicates are removed or explicitly archived.
+15. historical tranche records remain historical.
 
 ---
 
@@ -322,8 +317,8 @@ Each 1.x release must satisfy:
 The active 1.1 checkpoint is:
 
 ```text
-Version         1.1.0-alpha.8
-PackageVersion  1.1.0-alpha.8
+Version         1.1.0-rc.1
+PackageVersion  1.1.0-rc.1
 AssemblyVersion 1.0.0.0
 ```
 
@@ -333,4 +328,4 @@ Compatible additive 1.x releases retain `AssemblyVersion 1.0.0.0` while package 
 
 ## 11. Immediate next step
 
-Qualify one exact documentation-complete `1.1.0-alpha.8` source head across the seven-job PR matrix. If green, T1108 is complete and T1109 may promote the accepted `21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039` contract unchanged to `1.1.0-rc.1`, followed by the established exact-head RC and stable closure gates.
+Qualify one exact documentation-synchronized `1.1.0-rc.1` source head across the seven-job PR matrix without changing the T1108-accepted API. If green, promote only release identity/notes/status documentation to stable `1.1.0`, then require one final exact stable-source seven-job qualification before any merge, tag, release, or NuGet publication.
