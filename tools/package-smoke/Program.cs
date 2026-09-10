@@ -117,7 +117,7 @@ static void VerifySemanticMetadataSurface() {
 		0,
 		1
 	);
-	window.Write(
+	window.WriteWithMetadata(
 		"docs",
 		metadata
 	);
