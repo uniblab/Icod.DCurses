@@ -4,13 +4,13 @@
 **Release line:** `1.1.0`  
 **Stable compatibility floor:** `1.0.0`  
 **Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
-**Development checkpoint:** `1.1.0-alpha.8`  
+**Development checkpoint:** `1.1.0-rc.1`  
 **Assembly version:** `1.0.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Theme:** semantic cell metadata and retained hyperlinks  
-**Status:** T1101–T1107 complete and qualified; T1108 pre-RC contract/package/documentation regret work complete at implementation level and alpha.8 exact-head qualification active; T1109 next
+**Status:** T1101–T1108 complete and qualified; T1109 release-candidate validation active
 
 ---
 
@@ -49,7 +49,7 @@ exported types:    43
 contract lines:   309
 ```
 
-Accepted pre-RC 1.1 contract after T1108:
+Accepted 1.1 release-candidate contract after T1108:
 
 ```text
 sha256:            21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
@@ -79,8 +79,8 @@ AssemblyVersion   remains 1.0.0.0
 Current identity:
 
 ```text
-Version         1.1.0-alpha.8
-PackageVersion  1.1.0-alpha.8
+Version         1.1.0-rc.1
+PackageVersion  1.1.0-rc.1
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -526,7 +526,7 @@ The minimal `Icod.DCurses.Sample` now demonstrates one retained hyperlink with `
 
 The documentation audit found and removed the superseded `docs/T1103-Hyperlink-and-Public-Semantic-Metadata-Contract.md` implementation-staged draft. `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md` remains the single authoritative T1103 record and is synchronized with the final T1108 API decisions.
 
-The root README, samples README, package release notes, current roadmap index, post-1.0 release-train roadmap, and this detailed 1.1 roadmap are synchronized to alpha.8 and the accepted pre-RC fingerprint.
+The root README, samples README, package release notes, current roadmap index, post-1.0 release-train roadmap, and this detailed 1.1 roadmap were synchronized to alpha.8 and the accepted pre-RC fingerprint before RC promotion.
 
 ### 11.7 XML/package gate
 
@@ -538,24 +538,55 @@ Permanent records:
 - `docs/Public-API-Fingerprint-1.1.json`
 - `docs/Public-API-Baseline-1.1.md`
 
-**Status:** implementation, package, API, sample, and documentation work complete; one documentation-synchronized `1.1.0-alpha.8` exact-head seven-job qualification remains before T1108 closure.
+Documentation-complete qualified alpha.8 head:
+
+```text
+290508c69ed7e76179f168cc748edf38a4091b76
+```
+
+Workflow #543 (`34422961869`) — seven jobs green.
+
+**Status:** complete and qualified.
 
 ---
 
 ## 12. T1109 — RC and stable closure
 
-Once T1108's alpha.8 exact-head gate is green:
+T1109 promotes the T1108-accepted contract unchanged through release-candidate and stable qualification.
 
-1. promote the accepted `21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039` contract unchanged to `1.1.0-rc.1`;
-2. validate one exact RC SHA on all seven jobs;
-3. correct release blockers only;
-4. promote the unchanged accepted contract to stable `1.1.0`;
-5. perform final documentation/status audit;
-6. validate one exact stable-source SHA;
-7. record tested SHA in PR metadata without moving branch where possible;
-8. leave merge/tag/publication as explicit later actions.
+Release-candidate identity:
 
-No new feature family or opportunistic public API should enter T1109.
+```text
+Version         1.1.0-rc.1
+PackageVersion  1.1.0-rc.1
+AssemblyVersion 1.0.0.0
+Icod.Terminal   1.6.0
+Icod.TermInfo   1.10.0
+```
+
+The accepted public fingerprint remains:
+
+```text
+sha256:            21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
+exported types:    45
+contract lines:   337
+```
+
+T1109 rules:
+
+1. no new feature work or opportunistic API changes enter RC;
+2. only demonstrated release blockers may alter implementation before stable promotion;
+3. one exact documentation-synchronized RC SHA must pass all seven jobs;
+4. stable promotion changes only version/package identity, release notes, and current release-status documentation unless a blocker requires reopening the gate;
+5. one exact stable-source SHA must then pass all seven jobs;
+6. the tested stable-source SHA is recorded in PR metadata without subsequently moving the branch;
+7. merge, tag, GitHub Release creation, and NuGet publication remain explicit later actions.
+
+Permanent record:
+
+- `docs/T1109-RC-and-Stable-Closure.md`
+
+**Status:** active; exact `1.1.0-rc.1` qualification pending.
 
 ---
 
@@ -569,8 +600,8 @@ T1101  contract/reference/version-policy freeze             complete
   -> T1105  editing/copy/overlay/pad propagation            complete
   -> T1106  lifecycle/failure/cancellation/recovery         complete
   -> T1107  application/performance/allocation acceptance   complete
-  -> T1108  public API/package/documentation/regret gate    alpha.8 exact-head qualification
-  -> T1109  RC and stable 1.1.0 closure                     next
+  -> T1108  public API/package/documentation/regret gate    complete; alpha.8 qualified
+  -> T1109  RC and stable 1.1.0 closure                     active; rc.1 validation
 ```
 
 ---
