@@ -76,6 +76,79 @@ public sealed class CursesPanel {
 		private set;
 	}
 
+	/// <summary>Makes this panel visible without changing its remembered z-order position.</summary>
+	public void Show() {
+		if ( IsVisible ) {
+			return;
+		}
+
+		IsVisible = true;
+	}
+
+	/// <summary>Hides this panel while retaining its content, position, and z-order membership.</summary>
+	public void Hide() {
+		if ( !IsVisible ) {
+			return;
+		}
+
+		IsVisible = false;
+	}
+
+	/// <summary>Moves this panel to a new destination-screen origin without changing its content or z-order.</summary>
+	/// <param name="row">The new zero-based destination row.</param>
+	/// <param name="column">The new zero-based destination column.</param>
+	public void MoveTo(
+		int row,
+		int column
+	) {
+		CursesScreen.ValidateWindowRectangle(
+			row,
+			column,
+			Rows,
+			Columns,
+			owner.Rows,
+			owner.Columns
+		);
+
+		if ( row == Row
+			&& column == Column ) {
+			return;
+		}
+
+		Row = row;
+		Column = column;
+	}
+
+	/// <summary>Moves this panel to the top of its owning screen's panel order.</summary>
+	public void MoveToTop() {
+		owner.MovePanelToTop( this );
+	}
+
+	/// <summary>Moves this panel to the bottom of its owning screen's panel order.</summary>
+	public void MoveToBottom() {
+		owner.MovePanelToBottom( this );
+	}
+
+	/// <summary>Moves this panel immediately above another panel on the same screen.</summary>
+	/// <param name="sibling">The panel which should immediately precede this panel.</param>
+	public void MoveAbove( CursesPanel sibling ) {
+		ArgumentNullException.ThrowIfNull( sibling );
+		owner.MovePanelAbove(
+			this,
+			sibling
+		);
+	}
+
+	/// <summary>Moves this panel immediately below another panel on the same screen.</summary>
+	/// <param name="sibling">The panel which should immediately follow this panel.</param>
+	public void MoveBelow( CursesPanel sibling ) {
+		ArgumentNullException.ThrowIfNull( sibling );
+		owner.MovePanelBelow(
+			this,
+			sibling
+		);
+	}
+
 	/// <summary>Gets the destination screen which owns this panel.</summary>
 	internal CursesScreen Owner => owner;
 
