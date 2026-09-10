@@ -23,7 +23,7 @@ Current source identity:
 Version         1.2.0
 PackageVersion  1.2.0
 AssemblyVersion 1.0.0.0
-Icod.Terminal   1.8.1
+Icod.Terminal   1.9.0
 Icod.TermInfo   1.10.0
 ```
 
