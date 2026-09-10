@@ -15,7 +15,7 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 ## Status
 
-`Icod.DCurses 1.2.0` is the current stable-source candidate in PR #26. The sole `1.2.0-rc.1` source passed full exact-head qualification; the unchanged implementation/API has now been promoted to stable source and must pass its own exact-head matrix before any merge or release action.
+`Icod.DCurses 1.2.0` is implementation/API/sample/test complete in PR #26. The branch now declares `Icod.Terminal 1.9.0`; exact-head dependency-refresh qualification is pending NuGet indexing of that newly published package. A temporary restore failure during package propagation is expected and is not a reason to add version-specific compatibility checks or fallback package sources.
 
 Current source identity:
 
