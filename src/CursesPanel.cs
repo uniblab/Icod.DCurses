@@ -8,12 +8,13 @@ using Icod.DCurses.Internal;
 /// <remarks>
 /// Panel content is independent of the destination screen and of other panels. Editing the
 /// <see cref="ContentWindow"/> therefore does not directly modify cells on the destination
-/// <see cref="CursesScreen"/>. Later 1.2 composition stages project visible panels onto that
-/// destination in deterministic z-order.
+/// <see cref="CursesScreen"/>. Logical composition projects visible panels onto that destination
+/// in deterministic z-order.
 /// </remarks>
 public sealed class CursesPanel {
 	private readonly CursesScreen owner;
 	private readonly CursesPanelSurface surface;
+	private CursesPanelTransparency transparency;
 
 	/// <summary>Initializes one screen-owned independent retained panel.</summary>
 	/// <param name="owner">The destination logical screen.</param>
@@ -74,6 +75,19 @@ public sealed class CursesPanel {
 	public bool IsVisible {
 		get;
 		private set;
+	}
+
+	/// <summary>Gets or sets how blank cells in this panel participate in logical composition.</summary>
+	public CursesPanelTransparency Transparency {
+		get => transparency;
+		set {
+			if ( value is not CursesPanelTransparency.Opaque
+				and not CursesPanelTransparency.BlankCellsTransparent ) {
+				throw new ArgumentOutOfRangeException( nameof( value ) );
+			}
+
+			transparency = value;
+		}
 	}
 
 	/// <summary>Makes this panel visible without changing its remembered z-order position.</summary>
