@@ -1,6 +1,7 @@
 namespace Icod.DCurses.Tests;
 
 using Icod.DCurses.Internal;
+using Xunit;
 
 public sealed class CursesPanelOrderTests {
 	[Fact]
