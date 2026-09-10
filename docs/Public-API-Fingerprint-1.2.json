@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "release": "1.2.0-alpha.1",
-  "status": "development-baseline-t1203",
-  "sha256": "2d284011e638e18651547a62b8e90b90232591d459d6df3600d7974886fed3d2",
-  "exportedTypeCount": 46,
-  "contractLineCount": 352,
+  "status": "development-baseline-t1204",
+  "sha256": "351dd75ea95d164fa53eeb6701c463c767fbbd346fcb734727daab07f945b747",
+  "exportedTypeCount": 47,
+  "contractLineCount": 355,
   "exportedTypes": [
     "Icod.DCurses.CursesAlertKind",
     "Icod.DCurses.CursesAmbiguousWidthPolicy",
@@ -37,6 +37,7 @@
     "Icod.DCurses.CursesPad",
     "Icod.DCurses.CursesPadViewport",
     "Icod.DCurses.CursesPanel",
+    "Icod.DCurses.CursesPanelTransparency",
     "Icod.DCurses.CursesPasteEvent",
     "Icod.DCurses.CursesPastePhase",
     "Icod.DCurses.CursesPresentationCapabilities",
