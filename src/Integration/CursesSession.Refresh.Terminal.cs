@@ -82,8 +82,7 @@ public sealed partial class CursesSession {
 		cancellationToken.ThrowIfCancellationRequested();
 		_ = this.SynchronizeDimensions();
 		CursesScreen currentScreen = this.Screen;
-		CursesPanel[] panels = currentScreen.SnapshotPanelsBottomToTop();
-		if ( 0 == panels.Length ) {
+		if ( !currentScreen.HasPanels ) {
 			await this.GetRefreshEngine().RefreshAsync(
 				currentScreen,
 				currentScreen.StandardWindow.CursorRow,
