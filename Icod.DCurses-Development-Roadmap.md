@@ -6,7 +6,7 @@
 **1.1 merged baseline commit:** `99aa3a6f95d950e37f729386549dc42817f63bd1`  
 **Current source package:** `1.2.0`  
 **Assembly version:** `1.0.0.0`  
-**Current declared runtime dependencies:** `Icod.Terminal 1.8.1`; `Icod.TermInfo 1.10.0`  
+**Current declared runtime dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.2.0` — panels, retained layers, and z-order composition  
