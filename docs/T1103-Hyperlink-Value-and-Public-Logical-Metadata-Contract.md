@@ -6,7 +6,7 @@
 **Development checkpoint:** `1.1.0-alpha.3`  
 **Assembly version:** `1.0.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
-**Status:** logical/API checkpoint implemented and code-qualified; documentation-complete gate pending
+**Status:** complete; T1108 pre-RC regret review later clarified forward-compatible hyperlink property nullability
 
 ## Purpose
 
@@ -68,7 +68,9 @@ DCurses does not activate, dereference, download, resolve, or navigate to hyperl
 
 ## Semantic metadata value
 
-`CursesCellMetadata` is an immutable reference value. In 1.1 its first semantic field is an optional `CursesHyperlink`.
+`CursesCellMetadata` is an immutable reference value. Hyperlink is the first semantic field in 1.1.
+
+The 1.1 constructor requires a non-null `CursesHyperlink` because a metadata object with no semantic fields would be meaningless in this release. The `Hyperlink` property itself is nullable in the pre-RC contract so later additive metadata kinds can construct a `CursesCellMetadata` without requiring a hyperlink and without weakening a previously published non-null return contract. Every `CursesCellMetadata` instance constructible through the 1.1 constructor still has a hyperlink.
 
 This type is intentionally distinct from `CursesStyle`. A linked cell may change color, boldness, underline, or other rendition without changing hyperlink identity, and a hyperlink may remain unchanged while rendition changes.
 
@@ -134,7 +136,7 @@ A focused regression test freezes that behavior.
 
 The first compiled T1103 run intentionally used the stable 1.0 fingerprint so CI would report the exact additive delta rather than relying on a hand-authored baseline.
 
-The compiler-derived provisional 1.1 development contract is:
+The compiler-derived provisional 1.1 development contract at T1103 was:
 
 ```text
 sha256:            d7fb2040d9cd22ed71e90e788f453c73eb29d681f2cc0f7aaefa805792fab2ea
@@ -149,7 +151,7 @@ Icod.DCurses.CursesCellMetadata
 Icod.DCurses.CursesHyperlink
 ```
 
-`docs/Public-API-Fingerprint-1.1.json` records this provisional development baseline. It is allowed to evolve deliberately before T1108; it is not yet the stable 1.1 freeze.
+`docs/Public-API-Fingerprint-1.1.json` records the current provisional development baseline. T1108 is the designated pre-RC regret gate and may deliberately refine that provisional fingerprint before stable 1.1 freeze.
 
 Historical/stable fingerprint files remain unchanged:
 
@@ -165,15 +167,17 @@ Two non-design defects were found while qualifying alpha.3:
 1. `CursesWindow.Metadata.cs` initially omitted the `Icod.DCurses.Internal` namespace needed for the existing `CursesUnicodeText` pipeline. The missing import was added; no duplicate Unicode path was introduced.
 2. `Fill(...)`/`Clear()` initially removed the semantic plane before recording semantic-only damage. The operation now invalidates when semantic metadata existed, including visually no-op fills.
 
+T1108 later corrected one provisional API annotation before RC: `CursesCellMetadata.Hyperlink` is nullable for forward-compatible metadata extensibility, while the existing 1.1 constructor continues to require a real hyperlink.
+
 ## Code/API checkpoint
 
-Exact head:
+Exact T1103 documentation-complete head:
 
 ```text
-b2c1e7c18c1de929e705f119794d7eb5f6d6073b
+d520adf79bf6a74bfbb09e1b2ecc4082a3cce960
 ```
 
-Workflow #469 (`34403872794`) passed on that exact SHA across:
+Workflow #474 (`34405314146`) passed on that exact SHA across:
 
 - Windows x64;
 - Windows ARM64;
@@ -183,11 +187,11 @@ Workflow #469 (`34403872794`) passed on that exact SHA across:
 - macOS ARM64;
 - package/fresh-consumer validation.
 
-The documentation-complete alpha.3 head must receive the same full gate before T1103 is marked complete and T1104 begins.
+The T1108 regret review owns any deliberate pre-RC refinement of the provisional 1.1 fingerprint.
 
 ## T1103 non-goals
 
-T1103 does not yet implement:
+T1103 did not implement:
 
 - physical OSC 8 output;
 - retained physical hyperlink knowledge;
@@ -197,19 +201,17 @@ T1103 does not yet implement:
 - browser/navigation behavior;
 - raw OSC 8 framing.
 
-Those belong to T1104–T1107.
+Those were completed or reviewed by T1104–T1107.
 
 ## Exit criteria
 
-T1103 is complete when one documentation-synchronized `1.1.0-alpha.3` head passes the normal seven-job PR matrix and proves:
+T1103 is complete because its documentation-synchronized alpha.3 head passed the normal seven-job PR matrix and proved:
 
 1. the new logical semantic API is additive over the 1.0 compatibility floor;
 2. `CursesHyperlink` validation remains Terminal-compatible without exposing Terminal protocol types;
 3. semantic-only changes participate in damage tracking;
 4. wide text footprints carry coherent metadata;
 5. ordinary replacement clears overwritten semantics;
-6. the provisional 45-type / 337-line 1.1 fingerprint is enforced;
+6. the provisional 45-type / 337-line 1.1 fingerprint is enforced subject to the designated T1108 pre-RC regret gate;
 7. package metadata and documentation agree on Terminal 1.6.0 / TermInfo 1.10.0;
 8. no raw OSC 8 output has entered DCurses.
-
-After that, T1104 may add retained physical hyperlink rendering through Terminal's typed hyperlink ownership API.
