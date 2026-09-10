@@ -38,7 +38,7 @@ public sealed class CursesTerminalHyperlinkIntegrationTests {
 		);
 		output.Clear();
 
-		session.StandardScreen.Write(
+		session.StandardScreen.WriteWithMetadata(
 			"link",
 			new CursesCellMetadata(
 				new CursesHyperlink(
@@ -78,7 +78,7 @@ public sealed class CursesTerminalHyperlinkIntegrationTests {
 		);
 		output.Clear();
 
-		session.StandardScreen.Write(
+		session.StandardScreen.WriteWithMetadata(
 			"link",
 			new CursesCellMetadata(
 				new CursesHyperlink(
@@ -150,7 +150,7 @@ public sealed class CursesTerminalHyperlinkIntegrationTests {
 		CursesInputProtocolLease protocolLease = protocolResult.GetRequiredValue();
 		Assert.True( protocolLease.FocusReporting );
 
-		session.StandardScreen.Write(
+		session.StandardScreen.WriteWithMetadata(
 			"link",
 			new CursesCellMetadata(
 				new CursesHyperlink(
