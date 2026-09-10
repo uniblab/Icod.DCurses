@@ -80,4 +80,4 @@ Compatible 1.x releases retain additive API by default, exact compiler-derived f
 
 ## Immediate next step
 
-Wait only for NuGet indexing of `Icod.Terminal 1.9.0`, then require the current PR head to pass the seven-job matrix. No code fallback, version pin, or hard-coded compatibility check should be added merely to work around package-index propagation.
+Wait for NuGet indexing of `Icod.Terminal 1.9.0`, then qualify the exact current PR head across the normal seven-job matrix. No code fallback, version rollback, or hard-coded sibling-version check should be introduced merely to work around package propagation.
