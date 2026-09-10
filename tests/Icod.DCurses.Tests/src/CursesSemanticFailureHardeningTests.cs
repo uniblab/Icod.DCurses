@@ -332,6 +332,7 @@ public sealed class CursesSemanticFailureHardeningTests {
 				lock ( this.sync ) {
 					return Encoding.UTF8.GetString( this.bytes.ToArray() );
 				}
+			}
 		}
 
 		internal void Clear() {
