@@ -203,6 +203,67 @@ public sealed class CursesPanelIncrementalCompositionTests {
 		Assert.Equal( 1, reordered.DirtyCellCount );
 	}
 
+	[Fact]
+	public void VisibleTopmostPanelTouchPropagatesLogicalInvalidation() {
+		CursesScreen screen = new(
+			8,
+			3
+		);
+		CursesPanel panel = screen.CreatePanel( 1, 2, 1, 1 );
+		panel.ContentWindow.Write( "P" );
+		CursesVirtualScreen composed = screen.ComposePanels();
+		composed.MarkClean();
+		panel.VirtualScreen.TouchCell( 0, 0 );
+
+		CursesVirtualScreen touched = screen.ComposePanels();
+
+		Assert.Same( composed, touched );
+		Assert.Equal( "P", touched.GetCell( 1, 2 ).Content );
+		Assert.Equal( 1, touched.DirtyCellCount );
+		Assert.True( touched.IsDirty( 1, 2 ) );
+	}
+
+	[Fact]
+	public void OccludedPanelTouchDoesNotDirtyComposedFrame() {
+		CursesScreen screen = new(
+			8,
+			3
+		);
+		CursesPanel lower = screen.CreatePanel( 1, 2, 1, 1 );
+		CursesPanel upper = screen.CreatePanel( 1, 2, 1, 1 );
+		lower.ContentWindow.Write( "L" );
+		upper.ContentWindow.Write( "U" );
+		CursesVirtualScreen composed = screen.ComposePanels();
+		composed.MarkClean();
+		lower.VirtualScreen.TouchCell( 0, 0 );
+
+		CursesVirtualScreen untouched = screen.ComposePanels();
+
+		Assert.Same( composed, untouched );
+		Assert.Equal( "U", untouched.GetCell( 1, 2 ).Content );
+		Assert.Equal( 0, untouched.DirtyCellCount );
+	}
+
+	[Fact]
+	public void UncoveredBaseTouchPropagatesLogicalInvalidation() {
+		CursesScreen screen = new(
+			8,
+			3
+		);
+		screen.StandardWindow.Move( 1, 2 );
+		screen.StandardWindow.Write( "B" );
+		CursesVirtualScreen composed = screen.ComposePanels();
+		composed.MarkClean();
+		screen.VirtualScreen.TouchCell( 1, 2 );
+
+		CursesVirtualScreen touched = screen.ComposePanels();
+
+		Assert.Same( composed, touched );
+		Assert.Equal( "B", touched.GetCell( 1, 2 ).Content );
+		Assert.Equal( 1, touched.DirtyCellCount );
+		Assert.True( touched.IsDirty( 1, 2 ) );
+	}
+
 	private static string ReadText(
 		CursesVirtualScreen screen,
 		int row,
