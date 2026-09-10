@@ -18,7 +18,7 @@ public sealed class CursesSemanticCancellationHardeningTests {
 		);
 		CursesScreen screen = new( 4, 1 );
 		CursesWindow window = screen.StandardWindow;
-		window.Write(
+		window.WriteWithMetadata(
 			"A",
 			new CursesCellMetadata(
 				new CursesHyperlink(
