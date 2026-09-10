@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Icod.DCurses.Tests;
 
-/// <summary>Freezes the pre-RC extensibility decision for the 1.1 semantic metadata container.</summary>
+/// <summary>Freezes the pre-RC extensibility and source-compatibility decisions for 1.1 semantic metadata.</summary>
 public sealed class PublicSemanticMetadataRegretTests {
 	[Fact]
 	public void HyperlinkPropertyIsNullableForFutureSemanticKinds() {
@@ -28,5 +28,35 @@ public sealed class PublicSemanticMetadataRegretTests {
 		CursesCellMetadata metadata = new( hyperlink );
 
 		Assert.Same( hyperlink, metadata.Hyperlink );
+	}
+
+	[Fact]
+	public void SemanticConvenienceNameDoesNotAmbiguateStableDefaultStyleWrite() {
+		CursesScreen screen = new(
+			8,
+			1
+		);
+		CursesWindow window = screen.StandardWindow;
+
+		window.Write(
+			"plain",
+			default
+		);
+		window.Move(
+			0,
+			0
+		);
+		CursesCellMetadata metadata = new(
+			new CursesHyperlink(
+				"https://example.test/source-compatibility",
+				"source-compatibility"
+			)
+		);
+		window.WriteWithMetadata(
+			"linked",
+			metadata
+		);
+
+		Assert.Equal( metadata, window.GetMetadata( 0, 0 ) );
 	}
 }
