@@ -10,7 +10,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Theme:** panels, independent retained layers, visibility, clipping, and deterministic z-order composition  
-**Status:** T1201–T1209 complete; `1.2.0-rc.1` qualified; T1210 stable-source exact-head qualification active
+**Status:** T1201–T1210 and final sample/test hardening complete; dependency-refresh exact-head qualification pending NuGet indexing of `Icod.Terminal 1.9.0`
 
 ---
 
@@ -82,22 +82,20 @@ Exactly `CursesPanel` and `CursesPanelTransparency` are added over 1.1. `Assembl
 | T1209 API/lifetime | `866497c9d5015f3a149580d67eacefaf7e121aaf` | #600 / `34524054785` | seven jobs green |
 | T1209 closure | `3728bf0e576b32747dd3a628ed5d3eca768ac67f` | #603 / `34525966166` | seven jobs green |
 | T1210 RC | `8c5d329fa195685c0349068ce33a100aaf9eb0a3` | #604 / `34526810086` | seven jobs green |
+| T1210 stable source | `a065ef389b4e5224bd9defeb3f4de0e688e2e08a` | #605 / `34527425232` | seven jobs green |
+| Final sample/test hardening | `93ef832042dac743008a065acb683d3029710f1c` | #607 / `34528856997` | seven jobs green; 560/560 per TFM |
 
-T1209 closure includes the focused public panel sample, package-only runtime panel validation, current docs, and API baseline. Its Linux ARM64 leg reported 554/554 tests per TFM with zero build warnings/errors.
+The current branch then updates only the declared `Icod.Terminal` dependency from `1.8.1` to `1.9.0` and synchronizes current release-facing documentation. No public API or production behavior changed.
 
-The sole `1.2.0-rc.1` release candidate retained the same API and implementation and passed the same full matrix. Its Linux ARM64 evidence leg again reported 554/554 tests per TFM with zero warnings/errors.
+## Dependency-refresh qualification gate
 
-## T1210 stable-source gate
+A temporary restore failure is expected until NuGet indexes `Icod.Terminal 1.9.0`. No fallback package source, hard-coded compatibility check, or dependency rollback should be introduced merely to work around package-index propagation.
 
-The source has been promoted from the qualified RC to `1.2.0` by changing only release/package identity and current status documentation. No behavioral source, test, sample, package-smoke, dependency, AssemblyVersion, or API-fingerprint change is permitted.
-
-The stable-source exact head must pass package candidate validation plus Windows/Linux/macOS x64/ARM64 runtime validation with the fingerprint still exactly:
+Once the package is indexed, the exact dependency-refresh head must pass package candidate validation plus Windows/Linux/macOS x64/ARM64 runtime validation with the fingerprint still exactly:
 
 ```text
 4810ebb088764acedbb94aca84b231677886b9c1a1f920d9a30f960cbe1dfce7
 ```
-
-After that gate, repository-side 1.2 development is complete. The branch must not be moved merely to record its own tested SHA.
 
 ## Explicit non-goals
 
@@ -106,9 +104,9 @@ Version 1.2 does not add widgets, general layout arithmetic, panel resizing, foc
 ## Current sequence
 
 ```text
-T1201–T1209  implementation, acceptance, API/package/docs regret gates  complete
-T1210 RC      1.2.0-rc.1 exact-head qualification                       complete
-T1210 stable  1.2.0 exact-head qualification                            active
+T1201–T1210  implementation, acceptance, API/package/docs and stable closure  complete
+Final hardening sample/test regression tranche                                complete
+Dependency refresh Icod.Terminal 1.8.1 -> 1.9.0                              awaiting exact-head qualification
 ```
 
 Merge, main Release validation, tag, GitHub Release creation, and NuGet publication remain explicit separate actions.
