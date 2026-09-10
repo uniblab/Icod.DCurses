@@ -17,15 +17,15 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 `Icod.DCurses 1.0.0` is the current published stable release.
 
-`Icod.DCurses 1.1.0-alpha.6` is the active post-1.0 development checkpoint on PR #25.
+`Icod.DCurses 1.1.0-alpha.7` is the active post-1.0 development checkpoint on PR #25.
 
-T1101 froze the stable 1.0 compatibility floor, retained `AssemblyVersion 1.0.0.0` for compatible additive 1.x releases, and advanced the direct Terminal dependency to 1.6.0. T1102 selected a lazily allocated row-sparse metadata reference plane. T1103 introduced the additive public semantic-content API. T1104 added retained physical hyperlink rendering through Terminal's typed OSC 8 ownership. T1105 propagated semantic metadata through structural editing/composition/pads/resize. T1106 hardens cancellation, output failure, synchronized-output cleanup, lifecycle replay, and uncertain hyperlink cleanup.
+T1101 froze the stable 1.0 compatibility floor, retained `AssemblyVersion 1.0.0.0` for compatible additive 1.x releases, and advanced the direct Terminal dependency to 1.6.0. T1102 selected a lazily allocated row-sparse metadata reference plane. T1103 introduced the additive public semantic-content API. T1104 added retained physical hyperlink rendering through Terminal's typed OSC 8 ownership. T1105 propagated semantic metadata through structural editing/composition/pads/resize. T1106 hardened cancellation, output failure, synchronized-output cleanup, lifecycle replay, and uncertain hyperlink cleanup. T1107 adds application-shaped editor/pager/large-pad acceptance, Terminal-backed synchronized and unsynchronized semantic sessions, concrete sparse allocation-shape evidence, hyperlink-run coalescing evidence, and the final 1.1 structural-optimization decision.
 
 Current development identity:
 
 ```text
-Version         1.1.0-alpha.6
-PackageVersion  1.1.0-alpha.6
+Version         1.1.0-alpha.7
+PackageVersion  1.1.0-alpha.7
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -47,7 +47,7 @@ Current provisional 1.1 development contract:
 sha256 d7fb2040d9cd22ed71e90e788f453c73eb29d681f2cc0f7aaefa805792fab2ea
 ```
 
-The two intentional new exported types are `CursesHyperlink` and `CursesCellMetadata`. T1104–T1106 add no further public API.
+The two intentional new exported types are `CursesHyperlink` and `CursesCellMetadata`. T1104–T1107 add no further public API.
 
 ## Installation
 
@@ -180,6 +180,8 @@ At the established 2,048 × 256 pad scale, one unconditional extra eight-byte sl
 
 The selected row-sparse metadata plane allocates no per-row metadata storage until needed, releases empty rows, provides O(1) coordinate lookup, composes with row snapshots, and leaves `CursesCell` unchanged.
 
+T1107 binds that representation to the reference scale: the 2,048 top-level row references contribute 16 KiB of deterministic reference payload, and ten populated 256-column rows contribute another 20 KiB, for 36 KiB of reference payload. This deliberately excludes runtime-specific array/object headers from the portable contract.
+
 ### Logical public contract
 
 T1103 adds immutable semantic values:
@@ -241,7 +243,17 @@ Terminal's meaningful hyperlink text + cleanup dual failure remains visible as a
 
 Suspend/resume invalidates retained physical semantic knowledge, so visible linked content is repainted after lifecycle re-entry.
 
-Terminal-native erase, character-shift, line-shift, and scrolling shortcuts remain conservatively disabled while desired or retained physical semantic metadata exists. T1107 will decide whether any can be safely re-enabled with semantic-equivalence evidence.
+### Application, performance, and optimization acceptance
+
+T1107 exercises the semantic implementation in editor-, pager-, and large-pad-shaped workloads rather than only isolated unit examples.
+
+Editor coverage includes linked wide Unicode, style changes that retain hyperlink identity, insertion before and inside linked spans, and repeated semantic-only retargeting. Pager/help coverage includes many links, settled no-op refresh, viewport movement, line insertion/deletion, and scrolling while semantic identity follows the surviving line. The exact 2,048 × 256 reference pad exercises sparse and dense linked rows plus independent viewports.
+
+Equivalent links are coalesced: a dense 256-cell linked row produces one bounded semantic hyperlink write. Intentionally distinct adjacent links remain distinct: 32 different links produce 32 semantic transactions.
+
+Real Terminal-backed tests cover synchronized output both enabled and disabled, one rich-input event wait concurrent with semantic refresh, live resize, suspend/resume, and deterministic input-protocol cleanup.
+
+Terminal-native erase, character-shift, line-shift, and scrolling shortcuts remain conservatively disabled while desired or retained physical semantic metadata exists. The non-semantic cost wins are established, but terminfo does not provide a portable guarantee that those physical transformations preserve emulator-side OSC 8 cell associations. Direct semantic rewriting remains the 1.1 correctness policy.
 
 See:
 
@@ -250,6 +262,7 @@ See:
 - `docs/T1104-Retained-Physical-Hyperlink-Renderer.md`
 - `docs/T1105-Editing-Composition-and-Pad-Semantic-Propagation.md`
 - `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`
+- `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
 
 ## Concurrency and production hardening
 
@@ -281,7 +294,7 @@ await using CursesSession session = await CursesSession.OpenAsync(
 
 `UseSynchronizedOutput` defaults to `false`. DCurses delegates synchronized-output ownership to `Icod.Terminal`; it does not infer support from a terminal name or construct private mode sequences itself.
 
-Internal refresh optimization can select safe cursor motion, erase operations, character/line insertion and deletion, full-width scrolling, temporary scroll regions, and differential rendition transitions. Semantic content currently selects conservative direct rewriting for transformations whose terminal-level hyperlink behavior is not yet proven.
+Internal refresh optimization can select safe cursor motion, erase operations, character/line insertion and deletion, full-width scrolling, temporary scroll regions, and differential rendition transitions for non-semantic content. Semantic state keeps structural terminal shortcuts disabled unless a future portable semantic-equivalence contract proves that the physical operation preserves hyperlink associations.
 
 Representative deterministic maintainer fixtures include:
 
@@ -415,6 +428,7 @@ Current post-1.0 authorities:
 - `docs/T1104-Retained-Physical-Hyperlink-Renderer.md`
 - `docs/T1105-Editing-Composition-and-Pad-Semantic-Propagation.md`
 - `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`
+- `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
 - `docs/Public-API-Fingerprint-1.1.json`
 
 The published 1.0 closure records remain stable compatibility authorities and are not rewritten merely to reflect later development versions.

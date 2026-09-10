@@ -4,13 +4,13 @@
 **Release line:** `1.1.0`  
 **Stable compatibility floor:** `1.0.0`  
 **Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
-**Development checkpoint:** `1.1.0-alpha.6`  
+**Development checkpoint:** `1.1.0-alpha.7`  
 **Assembly version:** `1.0.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Theme:** semantic cell metadata and retained hyperlinks  
-**Status:** T1101–T1106 complete; T1106 documentation-complete alpha.6 qualified at `59232c1e`; T1107 application/performance/allocation acceptance active
+**Status:** T1101–T1107 complete at implementation level; T1107 documentation-complete alpha.7 exact-head gate active; T1108 next
 
 ---
 
@@ -74,8 +74,8 @@ AssemblyVersion   remains 1.0.0.0
 Current identity:
 
 ```text
-Version         1.1.0-alpha.6
-PackageVersion  1.1.0-alpha.6
+Version         1.1.0-alpha.7
+PackageVersion  1.1.0-alpha.7
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -297,8 +297,6 @@ Implementation/focused-test heads:
 8aaeb5f5c188a1a42dd95f4097071e720e83f30e  workflow #502 / 34415923464
 ```
 
-Both passed all seven jobs.
-
 Documentation-complete qualified head:
 
 ```text
@@ -319,65 +317,90 @@ Permanent record:
 
 Terminal-native line-shift, character-shift, erase, and scrolling shortcuts remain disabled while desired or retained physical semantic metadata exists.
 
-T1105 proves logical transformations. T1107 may restore a physical shortcut only when tests prove both semantic equivalence and a strict cost win.
+T1107 closes the question for 1.1: representative non-semantic shortcuts have strict byte wins, but terminfo does not provide portable evidence that emulator-side OSC 8 hyperlink associations are preserved by physical insert/delete/erase/scroll operations. The safe 1.1 policy is therefore to keep the semantic-state gate and direct-rewrite semantic content.
+
+A future shortcut may return only with portable semantic-equivalence evidence; terminal-name heuristics are not sufficient.
 
 ---
 
 ## 10. T1107 — application, performance, allocation, and optimization acceptance
 
-T1107 must exercise application-shaped semantic workloads rather than only unit-sized examples.
+T1107 exercises application-shaped semantic workloads rather than only unit-sized examples.
 
-Required cases:
+### Editor-like acceptance
 
-### Editor-like
+Coverage proves:
 
-- linked and unlinked content;
-- style changes independent of link identity;
-- edits before/inside linked spans;
-- wide Unicode inside links;
-- repeated semantic-only changes.
+- linked and unlinked content coexist;
+- style changes are independent from link identity;
+- edits before and inside linked spans preserve surviving semantic content;
+- wide Unicode remains coherent inside links;
+- repeated semantic-only retargeting damages and repaints otherwise unchanged text.
 
-### Pager/help
+### Pager/help acceptance
 
-- many links;
-- scrolling and line insertion/deletion;
-- viewport movement;
-- settled no-op refresh.
+Coverage proves:
 
-### Large pad
+- many independent links render correctly;
+- settled unchanged linked content produces a no-op payload refresh;
+- viewport movement preserves semantic projection;
+- line insertion/deletion and scrolling move hyperlink identity with surviving logical content.
 
-- 2,048 × 256 reference surface;
-- no-metadata baseline;
+### Large-pad acceptance
+
+The exact 2,048 × 256 reference surface covers:
+
+- the established no-metadata baseline;
 - sparse links;
 - one dense linked row;
 - independent viewports.
 
 ### Full Terminal-backed session
 
-- synchronized output on/off;
-- rich input coexistence;
-- resize and lifecycle transitions;
-- deterministic cleanup.
+Real `TerminalSession` coverage proves:
 
-### Performance/allocation
+- synchronized output enabled: Terminal-owned OSC 8 framing occurs inside mode-2026 ownership;
+- synchronized output disabled: Terminal-owned OSC 8 framing remains correct without mode-2026 sequences;
+- one rich-input wait coexists with semantic refresh;
+- live resize repaints retained linked content at the new geometry;
+- suspend/resume invalidates and replays semantic physical state;
+- protocol cleanup remains deterministic.
 
-- preserve or explain the stable non-semantic baseline;
-- measure sparse semantic-plane allocation shape;
-- prove adjacent equivalent links coalesce rather than generating one OSC transaction per cell;
-- measure many-distinct-link behavior;
-- decide whether any structural terminal shortcut can safely return for semantic content.
+### Performance and allocation evidence
 
-T1107 should not introduce public diagnostics solely to gather acceptance evidence.
+The stable non-semantic deterministic cost fixtures remain unchanged.
 
-Active application-shaped acceptance head:
+At 2,048 × 256, the rejected unconditional eight-byte metadata slot costs 4 MiB. The accepted sparse plane has 16 KiB of top-level row references, and ten populated semantic rows add 20 KiB of row references, for 36 KiB of deterministic reference payload. Empty semantic rows allocate no per-row array and cleared rows are released.
+
+Equivalent links coalesce:
 
 ```text
-ac23d7e920b7f27679b1835b59cdbb3baaaf7708
+256 equivalent linked cells -> 1 bounded semantic hyperlink write
 ```
 
-This first T1107 acceptance layer adds editor-like wide linked mutation, pager-scale many-link/no-op settling, the exact 2,048 × 256 reference pad with sparse and dense semantic rows plus independent viewports, dense-link coalescing, and explicit many-distinct-link transaction behavior. It is additive test coverage only; no public API or production optimization is introduced by this checkpoint.
+Distinct semantics remain distinct:
 
-**Status:** active; seven-job qualification pending for the acceptance head and remaining Terminal-backed/performance evidence under review.
+```text
+32 distinct adjacent links -> 32 bounded semantic hyperlink writes
+```
+
+### Optimization decision
+
+No structural terminal shortcut is restored for semantic state in 1.1. The performance value of the non-semantic shortcut path is already established; the missing requirement is portable semantic equivalence for terminal-maintained OSC 8 associations.
+
+Qualified implementation/acceptance head:
+
+```text
+bc226acf20fc5a8ab88f81d0d2053663d0120288
+```
+
+Workflow #516 (`34419328443`) — seven jobs green.
+
+Permanent record:
+
+- `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
+
+**Status:** implementation/acceptance complete and qualified; documentation-synchronized `1.1.0-alpha.7` exact-head gate active.
 
 ---
 
@@ -394,6 +417,8 @@ Before RC:
 - audit README/samples/roadmaps/release notes;
 - resolve duplicate/stale planning documents if any remain;
 - perform a final public regret review before RC promotion.
+
+**Status:** next after the exact alpha.7 documentation-complete gate.
 
 ---
 
@@ -419,8 +444,8 @@ T1101  contract/reference/version-policy freeze             complete
   -> T1104  retained physical hyperlink renderer            complete
   -> T1105  editing/copy/overlay/pad propagation            complete
   -> T1106  lifecycle/failure/cancellation/recovery         complete
-  -> T1107  application/performance/allocation acceptance   active
-  -> T1108  public API/package/documentation/regret gate
+  -> T1107  application/performance/allocation acceptance   implementation qualified; alpha.7 doc gate
+  -> T1108  public API/package/documentation/regret gate    next
   -> T1109  RC and stable 1.1.0 closure
 ```
 

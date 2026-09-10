@@ -3,10 +3,10 @@
 **Project:** `Icod.DCurses`  
 **Scope:** post-1.0 additive core development  
 **Stable compatibility floor:** `1.0.0`  
-**Active development package:** `1.1.0-alpha.1`  
+**Active development package:** `1.1.0-alpha.7`  
 **Assembly version policy:** retain `1.0.0.0` through compatible additive 1.x releases  
 **Current runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
-**Planning status:** approved release train; 1.1 implementation active
+**Planning status:** approved release train; 1.1 T1107 implementation qualified; T1108 next after alpha.7 documentation gate
 
 ---
 
@@ -63,7 +63,7 @@ Add non-visual semantic information to retained screen content, beginning with h
 
 ### Core requirements
 
-Semantic metadata must participate in:
+Semantic metadata participates in:
 
 - logical equality and inspection;
 - retained physical refresh planning;
@@ -76,23 +76,42 @@ Semantic metadata must participate in:
 
 Hyperlink output composes through Terminal's typed OSC 8 ownership APIs. DCurses does not construct raw OSC 8 and does not expose `TerminalHyperlinkLease` publicly.
 
-### Representation gate
+### Representation result
 
-Before public API freeze, 1.1 must measure and choose among viable storage models such as:
+T1102 selected a lazily allocated row-sparse metadata plane after rejecting unconditional inline reference/token candidates that add eight bytes per logical cell on the supported 64-bit validation matrix. At the 2,048 × 256 reference pad, that rejected shape costs 4 MiB before any semantic content is used.
 
-- optional immutable metadata reference per cell;
-- compact/interned surface-owned token;
-- sparse sidecar semantic spans.
+T1107 binds the accepted sparse shape to application-scale evidence: the top-level 2,048-row reference table contributes 16 KiB of reference payload and ten populated 256-column semantic rows contribute 20 KiB, for 36 KiB of deterministic reference payload.
 
-The selected representation must justify ordinary-cell and large-pad memory cost as well as equality, copying, editing, inspection, wide-cell semantics, and future extensibility.
+### Application and output result
 
-### Outcome
+T1107 proves editor-like wide linked content, style/semantic independence, edits and repeated semantic retargeting; pager/help many-link/no-op behavior plus viewport movement, insertion/deletion and scrolling; the reference large pad with sparse/dense semantic rows and independent viewports; and real Terminal-backed semantic sessions with synchronized output on/off, concurrent rich input, live resize, suspend/resume, and deterministic protocol cleanup.
 
-Applications can associate a stable URI and optional hyperlink identifier with retained logical content. Adjacent equivalent links are rendered as semantic runs through Terminal rather than per-cell protocol churn.
+Adjacent equivalent links are emitted as semantic runs through Terminal rather than per-cell protocol churn. A 256-cell equivalent linked row uses one bounded semantic write; intentionally distinct links remain distinct transactions.
+
+Terminal-native erase, character-shift, line-shift, and scrolling shortcuts remain disabled when semantic state exists because terminfo does not portably specify how emulator-side OSC 8 associations behave under those physical transformations.
+
+### Public contract
+
+The provisional 1.1 public surface remains exactly two exported types above the stable 1.0 floor:
+
+- `CursesHyperlink`;
+- `CursesCellMetadata`.
+
+Current provisional fingerprint:
+
+```text
+45 exported types
+337 canonical declared contract lines
+sha256 d7fb2040d9cd22ed71e90e788f453c73eb29d681f2cc0f7aaefa805792fab2ea
+```
 
 Detailed roadmap:
 
 - `Icod.DCurses-1.1.0-Development-Roadmap.md`
+
+Permanent T1107 acceptance record:
+
+- `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
 
 ---
 
@@ -284,8 +303,8 @@ Each 1.x release must satisfy:
 The active 1.1 checkpoint is:
 
 ```text
-Version         1.1.0-alpha.1
-PackageVersion  1.1.0-alpha.1
+Version         1.1.0-alpha.7
+PackageVersion  1.1.0-alpha.7
 AssemblyVersion 1.0.0.0
 ```
 
@@ -295,4 +314,4 @@ Compatible additive 1.x releases retain `AssemblyVersion 1.0.0.0` while package 
 
 ## 11. Immediate next step
 
-Complete T1101 validation once `Icod.Terminal 1.6.0` is available through NuGet, then proceed to T1102's representation and memory decision before adding public hyperlink/metadata types.
+Qualify the exact documentation-complete `1.1.0-alpha.7` source head across the seven-job PR matrix. Then execute T1108: regenerate and regret-review the public API contract, verify package-only semantic consumption and dependency boundaries, audit XML documentation and current samples/documents, and resolve any release blockers before RC promotion.

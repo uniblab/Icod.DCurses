@@ -4,13 +4,13 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`  
 **Published stable baseline:** `1.0.0`  
 **Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
-**Current development package:** `1.1.0-alpha.6`  
+**Current development package:** `1.1.0-alpha.7`  
 **Assembly version:** `1.0.0.0`  
 **Current runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.1.0` — semantic cell metadata and retained hyperlinks  
-**Status:** T1101–T1105 complete; T1106 failure/lifecycle hardening implemented and under alpha.6 documentation-complete validation; T1107 next
+**Status:** T1101–T1107 complete at implementation level; alpha.7 documentation-complete gate active; T1108 next
 
 ---
 
@@ -31,7 +31,7 @@ Current development is organized by stable 1.x release documents rather than con
 | Release | Theme | Status |
 |---|---|---|
 | `1.0.0` | Stable core contract | Published stable release |
-| `1.1.0` | Semantic cell metadata and hyperlinks | Active — `1.1.0-alpha.6`; T1106 |
+| `1.1.0` | Semantic cell metadata and hyperlinks | Active — `1.1.0-alpha.7`; T1107 documentation gate / T1108 next |
 | `1.2.0` | Panels, layers, visibility, and z-order composition | Approved future release |
 | `1.3.0` | Layout and resize primitives | Approved future release |
 | `1.4.0` | Focus, interaction regions, key gestures, hit testing, and pointer semantics | Approved future release |
@@ -101,8 +101,8 @@ AssemblyVersion   remains 1.0.0.0 for compatible additive 1.x releases
 Active identity:
 
 ```text
-Version         1.1.0-alpha.6
-PackageVersion  1.1.0-alpha.6
+Version         1.1.0-alpha.7
+PackageVersion  1.1.0-alpha.7
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -118,9 +118,10 @@ Icod.TermInfo   1.10.0
 | T1103 | `d520adf79bf6a74bfbb09e1b2ecc4082a3cce960` | #474 / `34405314146` | seven jobs green |
 | T1104 | `242deb76ede3e04a89a90591d8c27216f4efd980` | #485 / `34411626180` | seven jobs green |
 | T1105 | `f35eee81a9660271ba8eb4a930738b1997207cb7` | #497 / `34413294079` | seven jobs green |
-| T1106 implementation | `8aaeb5f5c188a1a42dd95f4097071e720e83f30e` | #502 / `34415923464` | seven jobs green |
+| T1106 | `59232c1eb9da1bd97f8c3ea950c757159f82a15f` | #507 / `34416436456` | seven jobs green |
+| T1107 implementation/acceptance | `bc226acf20fc5a8ab88f81d0d2053663d0120288` | #516 / `34419328443` | seven jobs green |
 
-T1106 still requires one documentation-synchronized alpha.6 exact-head gate before closure.
+The alpha.7 documentation/version synchronization requires its own exact-head seven-job gate before T1107 documentation closure.
 
 ---
 
@@ -130,7 +131,7 @@ Semantic metadata uses a lazily allocated row-sparse reference plane rather than
 
 Both tested inline metadata/token candidates impose an additional eight-byte slot per logical cell on the supported 64-bit matrix. At 2,048 × 256 cells that would add exactly 4 MiB even when semantics are unused.
 
-The accepted model preserves standalone `CursesCell` semantics, sparse row allocation, O(1) lookup, and row snapshot/replace support.
+The sparse representation retains only a top-level row-reference table until semantic rows are populated; individual row arrays are allocated on demand and released when empty.
 
 ---
 
@@ -171,28 +172,11 @@ Destructive copy transfers annotated blanks. Overlay blanks remain fully transpa
 
 ## T1106 — failure, cancellation, lifecycle, and recovery
 
-T1106 distinguishes two Terminal-owned cleanup models.
+A failed synchronized-output release remains retryable because DCurses retains the `TerminalSynchronizedOutputLease`; cleanup is retried before later synchronized refresh or rendition reset.
 
-### Retryable synchronized-output cleanup
+A non-cancellation failure from Terminal's bounded hyperlink operation is treated more conservatively because the internal synthetic hyperlink lease may be retained by Terminal but is not exposed to DCurses. The curses session therefore fails closed for further application text until disposal while Terminal control cleanup and final TerminalSession disposal remain authoritative.
 
-DCurses owns the `TerminalSynchronizedOutputLease` used by a synchronized refresh. If final release fails, DCurses:
-
-- invalidates retained physical state;
-- retains the failed lease;
-- retries that same lease before any later synchronized refresh;
-- retries pending cleanup before rendition reset during lifecycle/disposal;
-- blocks a new refresh body while cleanup continues failing;
-- preserves refresh + restoration dual failures as an aggregate.
-
-### Fail-closed hyperlink uncertainty
-
-Terminal's bounded hyperlink operation may retain an internal synthetic hyperlink lease after a non-cancellation failure, but does not expose that lease to DCurses. DCurses cannot safely classify an arbitrary exception as begin/text/close failure.
-
-Therefore the Terminal-backed curses output latches the first non-cancellation hyperlink failure and refuses later **application text** until `CursesSession` disposal. Terminal control cleanup and flush remain available, and Terminal session disposal remains authoritative for final OSC 8 cleanup.
-
-Caller cancellation reported before hyperlink transmission does not latch this fault. Cancellation after a completed linked run but before the overall refresh completes invalidates the partial retained frame; a later fresh-token refresh repaints safely.
-
-Suspend/resume continues to invalidate retained semantic state for repaint.
+Caller cancellation before hyperlink transmission is non-poisoning. Cancellation after a complete linked run invalidates retained physical state so a later fresh refresh repaints safely. Suspend/resume likewise invalidates retained semantic knowledge.
 
 Permanent record:
 
@@ -200,11 +184,29 @@ Permanent record:
 
 ---
 
+## T1107 — application, performance, allocation, and optimization acceptance
+
+T1107 now provides application-shaped evidence across editor, pager/help, large-pad, and real Terminal-backed session workloads.
+
+Editor coverage includes wide linked Unicode, style changes independent of hyperlink identity, edits before/inside linked content, and repeated semantic-only retargeting. Pager coverage includes many links, no-op settling, viewport movement, line insertion/deletion, and scrolling. The 2,048 × 256 pad covers sparse and dense semantics plus independent viewports.
+
+The sparse reference-plane acceptance shape records 36 KiB of deterministic reference payload for ten populated rows at the reference pad, compared with the rejected 4 MiB unconditional inline-slot cost.
+
+Equivalent semantic cells coalesce to bounded hyperlink runs; 256 equivalent linked cells generate one semantic transaction, while 32 intentionally distinct links remain 32 transactions.
+
+Real Terminal-backed acceptance covers synchronized output on/off, concurrent rich input, live resize, suspend/resume, and deterministic protocol cleanup.
+
+Permanent record:
+
+- `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
+
+---
+
 ## Physical optimization boundary
 
 Terminal-native line-shift, character-shift, erase, and scrolling shortcuts remain bypassed while desired or retained physical semantic metadata exists.
 
-T1105 proves logical propagation; T1107 may re-enable a physical shortcut only with explicit semantic-equivalence evidence and a strict cost win.
+T1107 closes this decision for 1.1. Representative non-semantic shortcuts provide strict cost wins, but terminfo does not guarantee that emulator-side OSC 8 associations follow physical insert/delete/erase/scroll operations. Direct semantic rewriting therefore remains the portable correctness choice.
 
 ---
 
@@ -216,9 +218,9 @@ T1101  contract/reference/version-policy freeze             complete
   -> T1103  hyperlink value/public write/read contract      complete
   -> T1104  retained physical hyperlink renderer            complete
   -> T1105  editing/copy/overlay/pad propagation            complete
-  -> T1106  lifecycle/failure/cancellation hardening        alpha.6 exact-head gate
-  -> T1107  application/performance/allocation acceptance   next
-  -> T1108  API/package/documentation/regret gate
+  -> T1106  lifecycle/failure/cancellation hardening        complete
+  -> T1107  application/performance/allocation acceptance   implementation qualified; alpha.7 doc gate
+  -> T1108  API/package/documentation/regret gate           next
   -> T1109  RC and stable 1.1.0 closure
 ```
 
@@ -235,6 +237,7 @@ T1101  contract/reference/version-policy freeze             complete
 - `docs/T1104-Retained-Physical-Hyperlink-Renderer.md`
 - `docs/T1105-Editing-Composition-and-Pad-Semantic-Propagation.md`
 - `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`
+- `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
 - `docs/Public-API-Fingerprint-1.1.json`
 
 Published 1.0 compatibility documents remain historical/stable authorities and are not rewritten for later development state.
