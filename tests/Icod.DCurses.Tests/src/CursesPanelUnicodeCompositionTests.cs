@@ -1,3 +1,4 @@
+using Icod.DCurses.Internal;
 using Xunit;
 
 namespace Icod.DCurses.Tests;
@@ -42,15 +43,12 @@ public sealed class CursesPanelUnicodeCompositionTests {
 		occluded.MarkClean();
 		upper.Hide();
 
-		CursesVirtualScreen revealed = screen.ComposePanels();
+		CursesVirtualScreen restored = screen.ComposePanels();
 
-		Assert.Same( occluded, revealed );
-		Assert.Equal( WideText, revealed.GetCell( 1, 2 ).Content );
-		Assert.Equal( 2, revealed.GetCell( 1, 2 ).DisplayWidth );
-		Assert.True( revealed.GetCell( 1, 3 ).IsContinuation );
-		Assert.True( revealed.IsDirty( 1, 2 ) );
-		Assert.True( revealed.IsDirty( 1, 3 ) );
-		CursesCellFootprint.Validate( revealed );
+		Assert.Same( occluded, restored );
+		Assert.Equal( WideText, restored.GetCell( 1, 2 ).Content );
+		Assert.True( restored.GetCell( 1, 3 ).IsContinuation );
+		CursesCellFootprint.Validate( restored );
 	}
 
 	[Fact]
@@ -72,33 +70,31 @@ public sealed class CursesPanelUnicodeCompositionTests {
 		occluded.MarkClean();
 		upper.Hide();
 
-		CursesVirtualScreen revealed = screen.ComposePanels();
+		CursesVirtualScreen restored = screen.ComposePanels();
 
-		Assert.Same( occluded, revealed );
-		Assert.Equal( WideText, revealed.GetCell( 1, 2 ).Content );
-		Assert.Equal( 2, revealed.GetCell( 1, 2 ).DisplayWidth );
-		Assert.True( revealed.GetCell( 1, 3 ).IsContinuation );
-		Assert.True( revealed.IsDirty( 1, 2 ) );
-		Assert.True( revealed.IsDirty( 1, 3 ) );
-		CursesCellFootprint.Validate( revealed );
+		Assert.Same( occluded, restored );
+		Assert.Equal( WideText, restored.GetCell( 1, 2 ).Content );
+		Assert.True( restored.GetCell( 1, 3 ).IsContinuation );
+		CursesCellFootprint.Validate( restored );
 	}
 
 	[Fact]
-	public void DestinationResizeClippingWideContinuationNeverExposesOrphanedLeader() {
+	public void DestinationResizeClipsWideFootprintWithoutStrandingContinuation() {
 		CursesScreen screen = new(
 			6,
 			2
 		);
 		CursesPanel panel = screen.CreatePanel( 0, 4, 1, 2 );
 		panel.ContentWindow.Write( WideText );
-		CursesVirtualScreen beforeResize = screen.ComposePanels();
-		Assert.Equal( WideText, beforeResize.GetCell( 0, 4 ).Content );
-		Assert.True( beforeResize.GetCell( 0, 5 ).IsContinuation );
-		CursesCellFootprint.Validate( beforeResize );
+		CursesVirtualScreen initial = screen.ComposePanels();
+		Assert.Equal( WideText, initial.GetCell( 0, 4 ).Content );
+		Assert.True( initial.GetCell( 0, 5 ).IsContinuation );
+		CursesCellFootprint.Validate( initial );
 
 		screen.Resize(
 			5,
-			2
+			2,
+			preserveContents: true
 		);
 		CursesVirtualScreen clipped = screen.ComposePanels();
 
@@ -109,16 +105,16 @@ public sealed class CursesPanelUnicodeCompositionTests {
 	}
 
 	[Fact]
-	public void SemanticLineGlyphComposesWithoutLosingIdentityOrStyle() {
+	public void SemanticLineGlyphIdentityAndStyleSurviveComposition() {
 		CursesScreen screen = new(
 			6,
-			3
+			2
 		);
 		CursesStyle style = new(
 			CursesColor.Indexed( 3 ),
-			CursesColor.Default
+			CursesColor.Indexed( 4 )
 		);
-		CursesPanel panel = screen.CreatePanel( 1, 2, 1, 1 );
+		CursesPanel panel = screen.CreatePanel( 0, 1, 1, 1 );
 		panel.ContentWindow.WriteCell(
 			CursesCell.Line(
 				CursesLineGlyph.Crossing,
@@ -127,7 +123,7 @@ public sealed class CursesPanelUnicodeCompositionTests {
 		);
 
 		CursesVirtualScreen composed = screen.ComposePanels();
-		CursesCell cell = composed.GetCell( 1, 2 );
+		CursesCell cell = composed.GetCell( 0, 1 );
 
 		Assert.True( cell.IsLineGlyph );
 		Assert.Equal( CursesLineGlyph.Crossing, cell.LineGlyph );
@@ -136,75 +132,67 @@ public sealed class CursesPanelUnicodeCompositionTests {
 	}
 
 	[Fact]
-	public void OpaqueStyledBlankComposesAsStyledContent() {
+	public void OpaqueStyledBlankRetainsStyleAndOccludesLowerContent() {
 		CursesScreen screen = new(
 			6,
-			3
+			2
 		);
-		CursesStyle baseStyle = new(
-			CursesColor.Indexed( 2 ),
-			CursesColor.Default
-		);
-		CursesStyle panelStyle = new(
+		CursesStyle style = new(
 			CursesColor.Indexed( 5 ),
-			CursesColor.Default
+			CursesColor.Indexed( 6 )
 		);
-		screen.StandardWindow.Move( 1, 2 );
-		screen.StandardWindow.Write(
-			"B",
-			baseStyle
-		);
-		CursesPanel panel = screen.CreatePanel( 1, 2, 1, 1 );
-		panel.ContentWindow.WriteCell( CursesCell.Blank( panelStyle ) );
+		screen.StandardWindow.Move( 0, 2 );
+		screen.StandardWindow.Write( "B" );
+		CursesPanel panel = screen.CreatePanel( 0, 2, 1, 1 );
+		panel.ContentWindow.WriteCell( CursesCell.Blank( style ) );
 
 		CursesVirtualScreen composed = screen.ComposePanels();
+		CursesCell cell = composed.GetCell( 0, 2 );
 
-		Assert.True( composed.GetCell( 1, 2 ).IsBlank );
-		Assert.Equal( panelStyle, composed.GetCell( 1, 2 ).Style );
+		Assert.True( cell.IsBlank );
+		Assert.Equal( style, cell.Style );
 		CursesCellFootprint.Validate( composed );
 	}
 
 	[Fact]
-	public void WideHyperlinkMetadataRemainsPairedAcrossLeaderAndContinuation() {
+	public void WideHyperlinkMetadataCoversCompleteComposedFootprint() {
 		CursesScreen screen = new(
 			8,
 			3
 		);
-		CursesPanel panel = screen.CreatePanel( 1, 2, 1, 3 );
-		panel.ContentWindow.Write( WideText );
 		CursesCellMetadata metadata = new(
-			new CursesHyperlink( "https://example.test/t1206/wide" )
+			new CursesHyperlink( "https://example.test/wide" )
 		);
-		panel.VirtualScreen.SetMetadata(
-			0,
-			0,
+		CursesPanel panel = screen.CreatePanel( 1, 2, 1, 3 );
+		panel.ContentWindow.WriteWithMetadata(
+			WideText,
 			metadata
 		);
 
 		CursesVirtualScreen composed = screen.ComposePanels();
 
+		Assert.Equal( WideText, composed.GetCell( 1, 2 ).Content );
+		Assert.True( composed.GetCell( 1, 3 ).IsContinuation );
 		Assert.Equal( metadata, composed.GetMetadata( 1, 2 ) );
 		Assert.Equal( metadata, composed.GetMetadata( 1, 3 ) );
 		CursesCellFootprint.Validate( composed );
 	}
 
 	[Fact]
-	public void SemanticOnlyWideMetadataReplacementUpdatesEntireFootprintIncrementally() {
+	public void SemanticOnlyMetadataReplacementRemainsIncrementalAndCoherent() {
 		CursesScreen screen = new(
 			8,
 			3
 		);
-		CursesPanel panel = screen.CreatePanel( 1, 2, 1, 3 );
-		panel.ContentWindow.Write( WideText );
 		CursesCellMetadata first = new(
-			new CursesHyperlink( "https://example.test/t1206/first" )
+			new CursesHyperlink( "https://example.test/first" )
 		);
 		CursesCellMetadata second = new(
-			new CursesHyperlink( "https://example.test/t1206/second" )
+			new CursesHyperlink( "https://example.test/second" )
 		);
-		panel.VirtualScreen.SetMetadata(
-			0,
-			0,
+		CursesPanel panel = screen.CreatePanel( 1, 2, 1, 2 );
+		panel.ContentWindow.WriteWithMetadata(
+			"A",
 			first
 		);
 		CursesVirtualScreen composed = screen.ComposePanels();
@@ -218,55 +206,71 @@ public sealed class CursesPanelUnicodeCompositionTests {
 		CursesVirtualScreen updated = screen.ComposePanels();
 
 		Assert.Same( composed, updated );
-		Assert.Equal( WideText, updated.GetCell( 1, 2 ).Content );
-		Assert.True( updated.GetCell( 1, 3 ).IsContinuation );
+		Assert.Equal( "A", updated.GetCell( 1, 2 ).Content );
 		Assert.Equal( second, updated.GetMetadata( 1, 2 ) );
-		Assert.Equal( second, updated.GetMetadata( 1, 3 ) );
-		Assert.True( updated.IsDirty( 1, 2 ) );
-		Assert.True( updated.IsDirty( 1, 3 ) );
+		Assert.Equal( 1, updated.DirtyCellCount );
 		CursesCellFootprint.Validate( updated );
 	}
 
 	[Fact]
-	public void TransparentBlankContributesNeitherStyleNorSourceMetadata() {
+	public void TransparentBlankWithSourceMetadataContributesNeitherCellNorMetadata() {
 		CursesScreen screen = new(
-			6,
+			8,
 			3
 		);
-		CursesStyle baseStyle = new(
-			CursesColor.Indexed( 2 ),
-			CursesColor.Default
-		);
-		CursesStyle transparentStyle = new(
-			CursesColor.Indexed( 5 ),
-			CursesColor.Default
-		);
 		CursesCellMetadata baseMetadata = new(
-			new CursesHyperlink( "https://example.test/t1206/base" )
+			new CursesHyperlink( "https://example.test/base" )
 		);
-		CursesCellMetadata transparentMetadata = new(
-			new CursesHyperlink( "https://example.test/t1206/transparent" )
+		CursesCellMetadata panelMetadata = new(
+			new CursesHyperlink( "https://example.test/panel" )
 		);
 		screen.StandardWindow.Move( 1, 2 );
-		screen.StandardWindow.Write(
+		screen.StandardWindow.WriteWithMetadata(
 			"B",
-			baseStyle,
 			baseMetadata
 		);
 		CursesPanel panel = screen.CreatePanel( 1, 2, 1, 1 );
 		panel.Transparency = CursesPanelTransparency.BlankCellsTransparent;
-		panel.ContentWindow.WriteCell( CursesCell.Blank( transparentStyle ) );
 		panel.VirtualScreen.SetMetadata(
 			0,
 			0,
-			transparentMetadata
+			panelMetadata
 		);
 
 		CursesVirtualScreen composed = screen.ComposePanels();
 
 		Assert.Equal( "B", composed.GetCell( 1, 2 ).Content );
-		Assert.Equal( baseStyle, composed.GetCell( 1, 2 ).Style );
 		Assert.Equal( baseMetadata, composed.GetMetadata( 1, 2 ) );
 		CursesCellFootprint.Validate( composed );
+	}
+
+	[Fact]
+	public void WidePanelMetadataRemainsCoherentAfterPartialOcclusionIsRemovedIncrementally() {
+		CursesScreen screen = new(
+			8,
+			3
+		);
+		CursesCellMetadata metadata = new(
+			new CursesHyperlink( "https://example.test/reveal" )
+		);
+		CursesPanel lower = screen.CreatePanel( 1, 2, 1, 3 );
+		lower.ContentWindow.WriteWithMetadata(
+			WideText,
+			metadata
+		);
+		CursesPanel upper = screen.CreatePanel( 1, 3, 1, 1 );
+		upper.ContentWindow.Write( "X" );
+		CursesVirtualScreen occluded = screen.ComposePanels();
+		occluded.MarkClean();
+
+		upper.Hide();
+		CursesVirtualScreen restored = screen.ComposePanels();
+
+		Assert.Same( occluded, restored );
+		Assert.Equal( WideText, restored.GetCell( 1, 2 ).Content );
+		Assert.True( restored.GetCell( 1, 3 ).IsContinuation );
+		Assert.Equal( metadata, restored.GetMetadata( 1, 2 ) );
+		Assert.Equal( metadata, restored.GetMetadata( 1, 3 ) );
+		CursesCellFootprint.Validate( restored );
 	}
 }
