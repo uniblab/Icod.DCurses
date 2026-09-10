@@ -64,7 +64,7 @@ public sealed class CursesSemanticMetadataTests {
 		);
 		CursesCellMetadata metadata = LinkMetadata();
 
-		child.Write(
+		child.WriteWithMetadata(
 			"abc",
 			metadata
 		);
@@ -82,7 +82,7 @@ public sealed class CursesSemanticMetadataTests {
 		CursesWindow window = screen.StandardWindow;
 		CursesCellMetadata metadata = LinkMetadata();
 
-		window.Write(
+		window.WriteWithMetadata(
 			"界",
 			metadata
 		);
@@ -115,7 +115,7 @@ public sealed class CursesSemanticMetadataTests {
 		CursesScreen screen = new( 4, 1 );
 		CursesWindow window = screen.StandardWindow;
 		CursesCellMetadata metadata = LinkMetadata();
-		window.Write(
+		window.WriteWithMetadata(
 			"A",
 			metadata
 		);
