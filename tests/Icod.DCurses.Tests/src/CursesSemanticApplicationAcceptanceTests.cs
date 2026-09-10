@@ -19,7 +19,7 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 		CursesWindow window = screen.StandardWindow;
 		CursesCellMetadata link = LinkMetadata( "editor" );
 		window.Move( 1, 2 );
-		window.Write(
+		window.WriteWithMetadata(
 			"alpha界omega",
 			link
 		);
@@ -35,7 +35,7 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 
 		window.Move( 1, 7 );
 		window.InsertCells();
-		window.Write(
+		window.WriteWithMetadata(
 			"+",
 			link
 		);
@@ -72,7 +72,7 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 			CursesTextAttributes.Bold
 		);
 		window.Move( 1, 4 );
-		window.Write(
+		window.WriteWithMetadata(
 			"linked",
 			stableLink
 		);
@@ -156,7 +156,7 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 		for ( int row = 0; row < 16; row++ ) {
 			window.Move( row, 0 );
 			window.Write( "topic " );
-			window.Write(
+			window.WriteWithMetadata(
 				$"link-{row:D2}",
 				LinkMetadata( $"pager-{row:D2}" )
 			);
@@ -189,7 +189,7 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 		for ( int row = 0; row < pad.Rows; row++ ) {
 			pad.ContentWindow.Move( row, 0 );
 			pad.ContentWindow.Write( $"item-{row:D2} " );
-			pad.ContentWindow.Write(
+			pad.ContentWindow.WriteWithMetadata(
 				"docs",
 				LinkMetadata( $"row-{row:D2}" )
 			);
@@ -273,12 +273,12 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 		CursesCellMetadata dense = LinkMetadata( "dense" );
 
 		pad.ContentWindow.Move( 17, 41 );
-		pad.ContentWindow.Write(
+		pad.ContentWindow.WriteWithMetadata(
 			"S",
 			sparse
 		);
 		pad.ContentWindow.Move( 1_777, 0 );
-		pad.ContentWindow.Write(
+		pad.ContentWindow.WriteWithMetadata(
 			new string( 'D', Columns ),
 			dense
 		);
@@ -330,7 +330,7 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 		);
 		CursesScreen screen = new( 256, 1 );
 		CursesCellMetadata metadata = LinkMetadata( "dense-row" );
-		screen.StandardWindow.Write(
+		screen.StandardWindow.WriteWithMetadata(
 			new string( 'x', 256 ),
 			metadata
 		);
@@ -358,7 +358,7 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 
 		for ( int column = 0; column < 32; column++ ) {
 			window.Move( 0, column );
-			window.Write(
+			window.WriteWithMetadata(
 				"x",
 				LinkMetadata( $"distinct-{column:D2}" )
 			);
