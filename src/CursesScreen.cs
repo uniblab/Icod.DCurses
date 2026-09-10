@@ -1,3 +1,24 @@
+/*
+	Icod.DCurses
+	Managed, cross-platform curses-style terminal UI library for .NET.
+	Copyright (C) 2026  Timothy J. Bruce <uniblab@hotmail.com>
+*/
+
+/*
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 namespace Icod.DCurses;
 
 using Icod.DCurses.Internal;
@@ -6,6 +27,7 @@ using Icod.DCurses.Internal;
 /// Owns the logical terminal frame and the standard screen window projected over that frame.
 /// </summary>
 public sealed class CursesScreen {
+	private readonly CursesPanelOrder<CursesPanel> panelOrder = new();
 	private CursesVirtualScreen virtualScreen;
 
 	/// <summary>Initializes a logical screen with a standard window covering the complete frame.</summary>
@@ -73,6 +95,140 @@ public sealed class CursesScreen {
 			column,
 			rows,
 			columns
+		);
+	}
+
+	/// <summary>Creates an independent retained panel positioned over this logical screen.</summary>
+	/// <param name="row">Zero-based screen row of the panel origin.</param>
+	/// <param name="column">Zero-based screen column of the panel origin.</param>
+	/// <param name="rows">The positive panel height.</param>
+	/// <param name="columns">The positive panel width.</param>
+	/// <returns>The new visible panel, initially at the top of the panel order.</returns>
+	/// <remarks>
+	/// Editing the panel's content window does not directly modify this screen's base logical cells.
+	/// Panel projection is performed by the 1.2 logical composition layer.
+	/// </remarks>
+	public CursesPanel CreatePanel(
+		int row,
+		int column,
+		int rows,
+		int columns
+	) {
+		ValidateWindowRectangle(
+			row,
+			column,
+			rows,
+			columns,
+			Rows,
+			Columns
+		);
+
+		CursesPanel panel = new(
+			this,
+			row,
+			column,
+			rows,
+			columns
+		);
+		panelOrder.Add( panel );
+		return panel;
+	}
+
+	/// <summary>Gets whether this screen owns at least one panel without allocating an order snapshot.</summary>
+	internal bool HasPanels => 0 < panelOrder.Count;
+
+	/// <summary>Creates a stable bottom-to-top snapshot of this screen's complete panel order.</summary>
+	/// <returns>A new array containing visible and hidden panels in remembered z-order.</returns>
+	internal CursesPanel[] SnapshotPanelsBottomToTop() {
+		return panelOrder.SnapshotBottomToTop();
+	}
+
+	/// <summary>Permanently removes one owned panel from this screen's composition order.</summary>
+	/// <param name="panel">The owned panel to remove.</param>
+	internal void RemovePanel( CursesPanel panel ) {
+		ArgumentNullException.ThrowIfNull( panel );
+		if ( !ReferenceEquals(
+			panel.Owner,
+			this
+		) ) {
+			throw new ArgumentException(
+				"The panel belongs to another screen.",
+				nameof( panel )
+			);
+		}
+		if ( !panelOrder.Remove( panel ) ) {
+			throw new ArgumentException(
+				"The panel is not attached to this screen.",
+				nameof( panel )
+			);
+		}
+	}
+
+	/// <summary>Moves one owned panel to the top of the remembered panel order.</summary>
+	/// <param name="panel">The owned panel to move.</param>
+	internal void MovePanelToTop( CursesPanel panel ) {
+		ArgumentNullException.ThrowIfNull( panel );
+		ValidateOwnedPanel(
+			panel,
+			nameof( panel )
+		);
+		panelOrder.MoveToTop( panel );
+	}
+
+	/// <summary>Moves one owned panel to the bottom of the remembered panel order.</summary>
+	/// <param name="panel">The owned panel to move.</param>
+	internal void MovePanelToBottom( CursesPanel panel ) {
+		ArgumentNullException.ThrowIfNull( panel );
+		ValidateOwnedPanel(
+			panel,
+			nameof( panel )
+		);
+		panelOrder.MoveToBottom( panel );
+	}
+
+	/// <summary>Moves one owned panel immediately above another owned panel.</summary>
+	/// <param name="panel">The owned panel to move.</param>
+	/// <param name="sibling">The owned sibling which should immediately precede it.</param>
+	internal void MovePanelAbove(
+		CursesPanel panel,
+		CursesPanel sibling
+	) {
+		ArgumentNullException.ThrowIfNull( panel );
+		ArgumentNullException.ThrowIfNull( sibling );
+		ValidateOwnedPanel(
+			panel,
+			nameof( panel )
+		);
+		ValidateOwnedPanel(
+			sibling,
+			nameof( sibling )
+		);
+		panelOrder.MoveAbove(
+			panel,
+			sibling
+		);
+	}
+
+	/// <summary>Moves one owned panel immediately below another owned panel.</summary>
+	/// <param name="panel">The owned panel to move.</param>
+	/// <param name="sibling">The owned sibling which should immediately follow it.</param>
+	internal void MovePanelBelow(
+		CursesPanel panel,
+		CursesPanel sibling
+	) {
+		ArgumentNullException.ThrowIfNull( panel );
+		ArgumentNullException.ThrowIfNull( sibling );
+		ValidateOwnedPanel(
+			panel,
+			nameof( panel )
+		);
+		ValidateOwnedPanel(
+			sibling,
+			nameof( sibling )
+		);
+		panelOrder.MoveBelow(
+			panel,
+			sibling
 		);
 	}
 
@@ -183,6 +339,24 @@ public sealed class CursesScreen {
 				nameof( columns ),
 				columns,
 				"The window extends beyond its containing surface."
+			);
+		}
+	}
+
+	private void ValidateOwnedPanel(
+		CursesPanel panel,
+		string parameterName
+	) {
+		ArgumentNullException.ThrowIfNull( panel );
+		ArgumentException.ThrowIfNullOrEmpty( parameterName );
+
+		if ( !ReferenceEquals(
+			panel.Owner,
+			this
+		) || panel.IsDisposed ) {
+			throw new ArgumentException(
+				"The panel does not belong to this screen's active panel set.",
+				parameterName
 			);
 		}
 	}

@@ -1,3 +1,24 @@
+/*
+	Icod.DCurses.Tests
+	Automated test suite for Icod.DCurses.
+	Copyright (C) 2026  Timothy J. Bruce <uniblab@hotmail.com>
+*/
+
+/*
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 using System.Globalization;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -10,13 +31,13 @@ namespace Icod.DCurses.Tests;
 /// <summary>Guards the complete current public Icod.DCurses assembly contract.</summary>
 public sealed class PublicApiFingerprintTests {
 	[Fact]
-	public void PublicApiMatchesAcceptedFingerprint() {
+	public void PublicApiMatchesCurrentDevelopmentFingerprint() {
 		PublicApiFingerprint actual = PublicApiFingerprint.Create(
 			typeof( CursesSession ).Assembly
 		);
 		string baselinePath = Path.Combine(
 			AppContext.BaseDirectory,
-			"Public-API-Fingerprint-1.1.json"
+			"Public-API-Fingerprint-1.2.json"
 		);
 		using JsonDocument document = JsonDocument.Parse(
 			File.ReadAllText( baselinePath )
@@ -41,6 +62,32 @@ public sealed class PublicApiFingerprintTests {
 		Assert.Equal( expectedExportedTypeCount, actual.ExportedTypes.Length );
 		Assert.Equal( expectedContractLineCount, actual.ContractLines.Length );
 		Assert.Equal( expectedTypes, actual.ExportedTypes );
+	}
+
+	[Fact]
+	public void StableOneOneExportedTypesRemainPresent() {
+		PublicApiFingerprint actual = PublicApiFingerprint.Create(
+			typeof( CursesSession ).Assembly
+		);
+		string baselinePath = Path.Combine(
+			AppContext.BaseDirectory,
+			"Public-API-Fingerprint-1.1.json"
+		);
+		using JsonDocument document = JsonDocument.Parse(
+			File.ReadAllText( baselinePath )
+		);
+		string[] stableTypes = document.RootElement
+			.GetProperty( "exportedTypes" )
+			.EnumerateArray()
+			.Select( static current => current.GetString()! )
+			.ToArray();
+
+		foreach ( string stableType in stableTypes ) {
+			Assert.Contains(
+				stableType,
+				actual.ExportedTypes
+			);
+		}
 	}
 
 	private static string CreateMismatchMessage( PublicApiFingerprint actual ) {
@@ -358,14 +405,13 @@ public sealed class PublicApiFingerprintTests {
 
 		private static bool IsAccessor( MethodInfo method ) {
 			ArgumentNullException.ThrowIfNull( method );
-			if ( !method.IsSpecialName ) {
-				return false;
-			}
-			return method.Name.StartsWith( "get_", StringComparison.Ordinal )
-				|| method.Name.StartsWith( "set_", StringComparison.Ordinal )
-				|| method.Name.StartsWith( "add_", StringComparison.Ordinal )
-				|| method.Name.StartsWith( "remove_", StringComparison.Ordinal )
-			;
+			return method.IsSpecialName
+				&& (
+					method.Name.StartsWith( "get_", StringComparison.Ordinal )
+						|| method.Name.StartsWith( "set_", StringComparison.Ordinal )
+						|| method.Name.StartsWith( "add_", StringComparison.Ordinal )
+						|| method.Name.StartsWith( "remove_", StringComparison.Ordinal )
+				);
 		}
 
 		private static string GetTypeKind( Type type ) {
@@ -376,11 +422,11 @@ public sealed class PublicApiFingerprintTests {
 			if ( type.IsInterface ) {
 				return "interface";
 			}
-			if ( typeof( MulticastDelegate ).IsAssignableFrom( type.BaseType ) ) {
-				return "delegate";
-			}
 			if ( type.IsValueType ) {
 				return "struct";
+			}
+			if ( typeof( MulticastDelegate ).IsAssignableFrom( type.BaseType ) ) {
+				return "delegate";
 			}
 			return "class";
 		}

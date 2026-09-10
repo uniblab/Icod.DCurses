@@ -1,3 +1,24 @@
+/*
+	Icod.DCurses
+	Managed, cross-platform curses-style terminal UI library for .NET.
+	Copyright (C) 2026  Timothy J. Bruce <uniblab@hotmail.com>
+*/
+
+/*
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 namespace Icod.DCurses;
 
 using System.Runtime.ExceptionServices;
@@ -8,6 +29,7 @@ using Icod.Terminal;
 public sealed partial class CursesSession {
 	private readonly object refreshSync = new();
 	private CursesRefreshEngine? refreshEngine;
+	private CursesScreen? panelRefreshProjection;
 	private TerminalSynchronizedOutputLease? pendingSynchronizedOutputCleanup;
 
 	/// <summary>
@@ -81,12 +103,128 @@ public sealed partial class CursesSession {
 		cancellationToken.ThrowIfCancellationRequested();
 		_ = this.SynchronizeDimensions();
 		CursesScreen currentScreen = this.Screen;
-		await this.GetRefreshEngine().RefreshAsync(
+		if ( !currentScreen.HasPanels ) {
+			await this.GetRefreshEngine().RefreshAsync(
+				currentScreen,
+				currentScreen.StandardWindow.CursorRow,
+				currentScreen.StandardWindow.CursorColumn,
+				cancellationToken
+			).ConfigureAwait( false );
+			return;
+		}
+
+		CursesVirtualScreen composed = currentScreen.ComposePanels();
+		CursesScreen projection = this.SynchronizePanelRefreshProjection(
 			currentScreen,
+			composed
+		);
+		await this.GetRefreshEngine().RefreshAsync(
+			projection,
 			currentScreen.StandardWindow.CursorRow,
 			currentScreen.StandardWindow.CursorColumn,
 			cancellationToken
 		).ConfigureAwait( false );
+		composed.MarkClean();
+	}
+
+	private CursesScreen SynchronizePanelRefreshProjection(
+		CursesScreen sourceScreen,
+		CursesVirtualScreen composed
+	) {
+		ArgumentNullException.ThrowIfNull( sourceScreen );
+		ArgumentNullException.ThrowIfNull( composed );
+
+		bool replaceProjection = this.panelRefreshProjection is null
+			|| this.panelRefreshProjection.Columns != composed.Columns
+			|| this.panelRefreshProjection.Rows != composed.Rows
+			|| !ReferenceEquals(
+				this.panelRefreshProjection.TextWidthProvider,
+				sourceScreen.TextWidthProvider
+			);
+		if ( replaceProjection ) {
+			this.panelRefreshProjection = new CursesScreen(
+				composed.Columns,
+				composed.Rows,
+				sourceScreen.TextWidthProvider
+			);
+		}
+
+		CursesScreen projection = this.panelRefreshProjection
+			?? throw new InvalidOperationException(
+				"The panel refresh projection was not initialized."
+			);
+		CursesVirtualScreen destination = projection.VirtualScreen;
+		bool repairOnReplacement = destination.RepairWideFootprintsOnReplacement;
+		destination.RepairWideFootprintsOnReplacement = false;
+		try {
+			for ( int row = 0; row < composed.Rows; row++ ) {
+				for ( int column = 0; column < composed.Columns; column++ ) {
+					if ( !replaceProjection
+						&& !composed.IsDirty(
+							row,
+							column
+						) ) {
+						continue;
+					}
+
+					CursesCell desiredCell = composed.GetCell(
+						row,
+						column
+					);
+					CursesCellMetadata? desiredMetadata = composed.GetMetadata(
+						row,
+						column
+					);
+					CursesCell currentCell = destination.GetCell(
+						row,
+						column
+					);
+					CursesCellMetadata? currentMetadata = destination.GetMetadata(
+						row,
+						column
+					);
+					if ( currentCell == desiredCell
+						&& Equals(
+							currentMetadata,
+							desiredMetadata
+						) ) {
+						if ( composed.IsDirty(
+							row,
+							column
+						) ) {
+							destination.TouchCell(
+								row,
+								column
+							);
+						}
+						continue;
+					}
+
+					if ( currentCell != desiredCell ) {
+						destination.SetCell(
+							row,
+							column,
+							desiredCell
+						);
+					}
+					if ( !Equals(
+						currentMetadata,
+						desiredMetadata
+					) ) {
+						destination.SetMetadata(
+							row,
+							column,
+							desiredMetadata
+						);
+					}
+				}
+			}
+
+			CursesCellFootprint.Repair( destination );
+		} finally {
+			destination.RepairWideFootprintsOnReplacement = repairOnReplacement;
+		}
+		return projection;
 	}
 
 	private async ValueTask ResetRefreshRenditionAsync() {
