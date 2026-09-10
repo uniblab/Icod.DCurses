@@ -17,15 +17,15 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 `Icod.DCurses 1.0.0` is the current published stable release.
 
-`Icod.DCurses 1.1.0-alpha.8` is the active post-1.0 pre-RC checkpoint on PR #25.
+`Icod.DCurses 1.1.0-rc.1` is the active post-1.0 release candidate on PR #25.
 
-T1101 froze the stable 1.0 compatibility floor and compatible 1.x assembly-version policy. T1102 selected a lazily allocated row-sparse metadata reference plane. T1103 introduced the semantic-content API. T1104 added retained physical hyperlink rendering through Terminal's typed OSC 8 ownership. T1105 propagated semantic metadata through editing/composition/pads/resize. T1106 hardened cancellation, output failure, synchronized-output cleanup, lifecycle replay, and uncertain hyperlink cleanup. T1107 completed application/performance/allocation acceptance. T1108 has now performed the pre-RC public API, package, documentation, and regret review, including a source-compatibility correction to the semantic convenience name and a forward-compatible metadata nullability decision.
+T1101 froze the stable 1.0 compatibility floor and version policy. T1102 selected the row-sparse semantic metadata plane. T1103 introduced the logical semantic API. T1104 added retained physical hyperlink rendering through Terminal-owned OSC 8. T1105 propagated semantics through editing/composition/pads/resize. T1106 hardened failure, cancellation, cleanup, and lifecycle replay. T1107 completed application/performance/allocation acceptance. T1108 completed the pre-RC regret gate and froze the accepted 1.1 public contract. T1109 now validates that exact contract as `1.1.0-rc.1` before stable promotion.
 
 Current development identity:
 
 ```text
-Version         1.1.0-alpha.8
-PackageVersion  1.1.0-alpha.8
+Version         1.1.0-rc.1
+PackageVersion  1.1.0-rc.1
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -39,7 +39,7 @@ Stable 1.0 compatibility floor:
 sha256 274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
 ```
 
-Accepted pre-RC 1.1 contract:
+Accepted 1.1 release-candidate contract:
 
 ```text
 45 exported types
@@ -47,17 +47,17 @@ Accepted pre-RC 1.1 contract:
 sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
 ```
 
-The two intentional new exported types are `CursesHyperlink` and `CursesCellMetadata`. No additional Terminal/TermInfo public type is introduced by 1.1.
+The two intentional new exported types are `CursesHyperlink` and `CursesCellMetadata`.
 
 ## Installation
 
-The current published stable release is `1.0.0`:
+The current published stable release remains `1.0.0`:
 
 ```text
 dotnet add package Icod.DCurses --version 1.0.0
 ```
 
-Development packages are not presented here as the stable installation target.
+The release candidate is being validated in PR #25 and is not presented here as the stable installation target.
 
 ## Architecture
 
@@ -120,7 +120,7 @@ A `CursesSession` restores the presentation and Terminal-owned state it acquires
 
 ## Stable 1.0 compatibility contract
 
-The post-1.0 release train carries forward the contract frozen in 0.9 and published as 1.0.0.
+The 1.1 release candidate carries forward the contract frozen in 0.9 and published as 1.0.0.
 
 The accepted compatibility rules include:
 
@@ -184,7 +184,7 @@ T1107 binds that representation to the reference scale: the 2,048 top-level row 
 
 ### Logical public contract
 
-The accepted pre-RC semantic values are immutable DCurses-owned records:
+T1103 introduced immutable semantic values. T1108 froze the source-compatible convenience name before RC:
 
 ```csharp
 CursesCellMetadata metadata = new(
@@ -200,11 +200,21 @@ screen.WriteWithMetadata(
 );
 ```
 
-For an explicit style plus metadata, use `Write(string, CursesStyle, CursesCellMetadata)`. Metadata can also be inspected or changed at window/virtual-screen coordinates through `GetMetadata(...)` and `SetMetadata(...)`.
+The explicit style-bearing semantic form remains:
 
-The `WriteWithMetadata(...)` name is deliberate. Stable 1.0 already exposes `Write(string, CursesStyle)`; adding `Write(string, CursesCellMetadata)` would make previously valid `Write("text", default)` calls ambiguous when recompiled against 1.1.
+```csharp
+screen.Write(
+    "documentation",
+    style,
+    metadata
+);
+```
 
-`CursesCellMetadata.Hyperlink` is nullable in the accepted contract to leave room for future additive semantic kinds, while the current 1.1 constructor still requires a non-null `CursesHyperlink`.
+`WriteWithMetadata(string, CursesCellMetadata)` deliberately avoids adding a second `Write(string, T)` overload beside stable 1.0's `Write(string, CursesStyle)`, so existing source such as `screen.Write("text", default)` remains unambiguous.
+
+`CursesCellMetadata.Hyperlink` is nullable in the RC contract so later additive metadata kinds can be introduced without weakening a published non-null return contract. The current 1.1 constructor still requires a real `CursesHyperlink`.
+
+Metadata can also be inspected or changed at window/virtual-screen coordinates through `GetMetadata(...)` and `SetMetadata(...)`.
 
 Two-column text elements carry one coherent metadata value across the leader/continuation footprint. Ordinary unannotated replacement clears overwritten semantic metadata even if the glyph/style value is otherwise unchanged. Metadata-only changes participate in logical damage tracking.
 
@@ -259,9 +269,17 @@ Real Terminal-backed tests cover synchronized output both enabled and disabled, 
 
 Terminal-native erase, character-shift, line-shift, and scrolling shortcuts remain conservatively disabled while desired or retained physical semantic metadata exists. The non-semantic cost wins are established, but terminfo does not provide a portable guarantee that those physical transformations preserve emulator-side OSC 8 cell associations. Direct semantic rewriting remains the 1.1 correctness policy.
 
-### Pre-RC regret gate
+### Pre-RC public regret gate
 
-T1108 freezes the accepted 1.1 contract at 45 exported types / 337 canonical lines / SHA-256 `21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039` across all three target frameworks. It also extends the NuGet-only smoke consumer through the semantic API, adds a hyperlink to the minimal sample, removes the superseded duplicate T1103 draft, and records the machine/human 1.1 API baselines.
+T1108 regenerated the public API fingerprint on all three target frameworks and accepted one identical contract:
+
+```text
+45 exported types
+337 canonical declared contract lines
+sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
+```
+
+The fresh NuGet-only consumer exercises hyperlink construction, semantic writing, inspection, removal, and reassignment. The minimal executable sample also contains a retained hyperlink example. No new Terminal/TermInfo public type enters the DCurses contract.
 
 See:
 
@@ -421,7 +439,7 @@ or:
 
 Pull requests use Staging with warnings-as-errors. Pushes to `main` and release tags use Release. Runtime validation covers Windows/Linux/macOS x64 and ARM64; the library/test matrix covers `net8.0`, `net9.0`, and `net10.0`.
 
-Package validation verifies the generated `.nupkg`/`.snupkg`, package and assembly identity, exact dependency groups, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh package-only consumer rather than relying only on project references. The package-only consumer now exercises the 1.1 semantic values and metadata operations as well as the stable screen/window/input/Unicode/pad surface.
+Package validation verifies the generated `.nupkg`/`.snupkg`, package and assembly identity, exact dependency groups, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh package-only consumer rather than relying only on project references.
 
 The release workflow derives displayed `Icod.Terminal` and `Icod.TermInfo` dependency versions directly from the project `PackageReference` values so GitHub Release notes cannot silently drift from package metadata.
 
