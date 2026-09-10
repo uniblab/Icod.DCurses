@@ -8,7 +8,7 @@
 **Dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Accepted public contract:** 45 exported types / 337 canonical contract lines  
 **Accepted SHA-256:** `21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039`  
-**Status:** release-candidate validation active
+**Status:** release-candidate exact-head qualification active
 
 ## Purpose
 
@@ -79,15 +79,11 @@ The explicit style-bearing semantic write and `WriteCell` semantic overload rema
 
 The RC must pass exactly the same seven-job Staging matrix used for alpha qualification.
 
-The first documentation-synchronized RC candidate is:
+Several intermediate RC documentation commits may generate workflows while package identity and governing documents are synchronized. Those runs are evidence only and do not define the RC freeze.
 
-```text
-283ab424b4c2ee205cdb648b02c79fb97cf816a6
-```
+The **final documentation-synchronized RC head** is the branch head produced by this record. Its exact SHA and workflow are recorded in PR #25 after qualification without moving the branch. Only that final exact-head seven-job result authorizes stable promotion.
 
-Workflow #545 (`34425673913`) is the exact-head RC qualification run.
-
-No stable version promotion occurs until that workflow is green.
+No stable version promotion occurs until that exact-head workflow is green.
 
 ## Stable promotion rule
 
