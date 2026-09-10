@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "release": "1.2.0-alpha.1",
-  "status": "development-baseline-t1202",
-  "sha256": "1dca85e26ab5a2fd6a915041fa5397663200b4097adc26c56c3ef2e3e8e7fe77",
+  "status": "development-baseline-t1203",
+  "sha256": "2d284011e638e18651547a62b8e90b90232591d459d6df3600d7974886fed3d2",
   "exportedTypeCount": 46,
-  "contractLineCount": 345,
+  "contractLineCount": 352,
   "exportedTypes": [
     "Icod.DCurses.CursesAlertKind",
     "Icod.DCurses.CursesAmbiguousWidthPolicy",
