@@ -6,7 +6,7 @@
 **1.1 merged baseline commit:** `99aa3a6f95d950e37f729386549dc42817f63bd1`  
 **Stable-source package:** `1.2.0`  
 **Assembly version:** `1.0.0.0`  
-**Current declared dependencies:** `Icod.Terminal 1.8.1`; `Icod.TermInfo 1.10.0`  
+**Current declared dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Theme:** panels, independent retained layers, visibility, clipping, and deterministic z-order composition  
