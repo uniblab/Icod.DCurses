@@ -1,40 +1,21 @@
 # Fresh Package Smoke Consumer
 
-This project is intentionally not part of `Icod.DCurses.sln` and has no project
-reference to the repository library.
+This project is intentionally not part of `Icod.DCurses.sln` and has no project reference to the repository library.
 
-Package validation copies the project into a temporary directory, uses an
-isolated NuGet package cache, restores the exact current DCurses version from
-the local artifact directory, and resolves `Icod.Terminal 1.6.0` plus
-`Icod.TermInfo 1.10.0` through NuGet.org.
+Package validation copies the project into a temporary directory, uses an isolated NuGet package cache, restores the exact current DCurses package version from the local artifact directory, and resolves the project-declared `Icod.Terminal 1.8.1` and `Icod.TermInfo 1.10.0` dependencies through NuGet.org.
 
-Because those transitive packages are deliberately resolved from NuGet.org rather
-than the repository, a newly published dependency version may temporarily fail
-this smoke gate until NuGet indexing has propagated. Once the dependency resolves,
-the smoke consumer verifies the package as an external consumer would see it.
+Dependency versions are not duplicated as verifier policy. The package metadata is authoritative; restore/build/run establish whether the generated package is consumable with its declared dependency graph.
 
-The ordinary CI execution uses only non-interactive public APIs, so it never
-requires or mutates the runner's real terminal. In addition to the virtual-screen,
-window, and style surface, the consumer validates the `0.2` semantic-input
-contract from the packed assembly:
+The ordinary CI execution uses only non-interactive public APIs, so it never requires or mutates the runner's real terminal. The consumer validates representative stable surfaces including:
 
-- legacy `CursesKey` and modifier numeric compatibility;
-- `CursesKeyboardReportingMode` and keyboard protocol options;
-- `CursesInputEvent.KeyPhase`;
-- shifted and base-layout character identities;
-- associated key text;
-- representative new keypad/media/unrecognized keys and modifier flags;
-- `CursesInputProtocolLease.KeyboardReportingMode`;
-- the approved transitive Terminal/TermInfo public-type boundary.
+- virtual screens, windows, editing, damage, pads, Unicode-width helpers, presentation, and semantic metadata;
+- modern semantic-input contracts and the approved Terminal/TermInfo public-type boundary;
+- the 1.2 `CursesPanel` creation, retained content, visibility, movement, transparency, ordering, `IDisposable`, idempotent disposal, and use-after-dispose contract.
 
-The same source also contains a real `CursesSession.OpenAsync` interactive path,
-selected only when:
+The same package-only source also contains a real `CursesSession.OpenAsync` interactive path selected only when:
 
 ```text
 ICOD_DCURSES_SMOKE_INTERACTIVE=1
 ```
 
-The package-only consumer targets `net8.0`, `net9.0`, and `net10.0`; each
-framework is executed independently by the validation wrappers. This ensures a
-fresh consumer compiles the public session and semantic-input surface across the
-full supported framework set while keeping automated validation non-interactive.
+The package-only consumer targets `net8.0`, `net9.0`, and `net10.0`; each framework is restored, built, and executed independently by the validation wrappers. This verifies the packed public contract rather than relying only on project-reference compilation.

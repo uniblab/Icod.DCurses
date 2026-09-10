@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+		<AssemblyName>Icod.DCurses.Panel.Sample</AssemblyName>
+		<RootNamespace>Icod.DCurses.Panel.Sample</RootNamespace>
+		<IsPackable>false</IsPackable>
+		<Configurations>Debug;Staging;Release</Configurations>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Icod.DCurses.csproj" />
+	</ItemGroup>
+</Project>

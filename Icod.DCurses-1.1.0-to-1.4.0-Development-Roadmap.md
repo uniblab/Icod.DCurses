@@ -2,11 +2,11 @@
 
 **Project:** `Icod.DCurses`  
 **Scope:** post-1.0 additive core development  
-**Stable compatibility floor:** `1.0.0`  
-**Active source package:** `1.1.0`  
+**Accepted compatibility floor:** `1.1.0`  
+**Active source package:** `1.2.0-alpha.1`  
 **Assembly version policy:** retain `1.0.0.0` through compatible additive 1.x releases  
-**Current runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
-**Planning status:** approved release train; 1.1 RC qualified; stable-source final qualification active
+**Current declared runtime dependencies:** `Icod.Terminal 1.8.1`; `Icod.TermInfo 1.10.0`  
+**Planning status:** approved release train; 1.2 T1201–T1208 qualified; T1209 closure active
 
 ---
 
@@ -14,7 +14,7 @@
 
 The 1.0 release established a stable curses-style terminal UI substrate. The next four minor releases grow that substrate upward into semantic content, composition, layout, and interaction without taking raw terminal-protocol ownership away from `Icod.Terminal` and without prematurely turning the core into a widget toolkit.
 
-The approved release sequence is:
+The approved sequence is:
 
 ```text
 1.1.0  semantic cell metadata + hyperlinks
@@ -23,68 +23,33 @@ The approved release sequence is:
 1.4.0  focus/interaction/key gestures/hit testing/pointer semantics
 ```
 
-The sequence is cumulative: 1.1 adds meaning to retained content; 1.2 composes overlapping retained surfaces; 1.3 makes their geometry manageable; 1.4 routes semantic input to those logical regions.
-
----
+The sequence is cumulative: 1.1 adds meaning to retained content; 1.2 composes overlapping retained surfaces; 1.3 makes their geometry manageable; 1.4 routes semantic input to logical regions.
 
 ## 2. Terminal relationship
 
-The current DCurses development floor is Terminal 1.6.0.
+The current 1.2 branch declares `Icod.Terminal 1.8.1` and `Icod.TermInfo 1.10.0`.
 
-Terminal 1.5 established normalized control-family framing, capability/evidence state, semantic backend registration, and deterministic routing. Terminal 1.6 consolidates complete CSI grammar and adds internal terminal/cell pixel-geometry infrastructure without adding a new public surface.
+DCurses depends on Terminal's semantic session/input/lifecycle/output contracts rather than on terminal-family protocol details. Terminal may continue evolving independently so long as its consumed API remains compatible; DCurses package validation therefore does not hard-code approved sibling dependency versions.
 
-Terminal's graphics roadmap continues with:
-
-```text
-Terminal 1.7  DCS foundation + Sixel + common raw raster model
-Terminal 1.8  APC foundation + Kitty Graphics + raster backend routing
-```
-
-This establishes the desired future layering:
+The architectural boundary remains:
 
 ```text
-DCurses semantic raster placement
+DCurses semantic UI concepts
             |
             v
-Terminal common raster operation
-       /                \
-   Sixel/DCS        Kitty Graphics/APC
+Terminal live terminal semantics
+            |
+            v
+TermInfo immutable capability descriptions
 ```
 
-Therefore DCurses does not introduce `DrawSixel(...)`, `DrawKittyImage(...)`, a private graphics capability probe, or raw DCS/APC emission while Terminal is building the common semantic layer intended to own those details.
-
----
+DCurses does not introduce private OSC/CSI/DCS/APC emitters, terminal-family capability probes, or a second live input/lifecycle owner.
 
 ## 3. Release 1.1.0 — semantic cell metadata and hyperlinks
 
-### Goal
+Version 1.1 established semantic metadata attached to retained content, beginning with hyperlinks, while keeping `CursesStyle` exclusively visual.
 
-Add non-visual semantic information to retained screen content, beginning with hyperlinks, while keeping `CursesStyle` exclusively concerned with visual rendition.
-
-### Core requirements and result
-
-Semantic metadata participates in logical equality/inspection, retained physical refresh planning, editing/scrolling, copy/overlay, windows/subwindows, pads/viewports, resize/clipping/wide-cell repair, lifecycle invalidation, and safe output recovery.
-
-Hyperlink output composes through Terminal's typed OSC 8 ownership APIs. DCurses does not construct raw OSC 8 and does not expose `TerminalHyperlinkLease` publicly.
-
-T1102 selected a lazily allocated row-sparse metadata plane after rejecting unconditional inline reference/token candidates that add eight bytes per logical cell on the supported 64-bit validation matrix. At the 2,048 × 256 reference pad, that rejected shape costs 4 MiB before any semantic content is used.
-
-T1107 binds the accepted sparse shape to application-scale evidence: the top-level 2,048-row reference table contributes 16 KiB of reference payload and ten populated 256-column semantic rows contribute 20 KiB, for 36 KiB of deterministic reference payload.
-
-Application acceptance covers editor-like wide linked content, style/semantic independence, edits and repeated semantic retargeting; pager/help many-link/no-op behavior plus viewport movement, insertion/deletion and scrolling; the reference large pad with sparse/dense semantic rows and independent viewports; and real Terminal-backed semantic sessions with synchronized output on/off, concurrent rich input, live resize, suspend/resume, and deterministic protocol cleanup.
-
-Adjacent equivalent links are emitted as semantic runs through Terminal rather than per-cell protocol churn. A 256-cell equivalent linked row uses one bounded semantic write; intentionally distinct links remain distinct transactions.
-
-Terminal-native erase, character-shift, line-shift, and scrolling shortcuts remain disabled when semantic state exists because terminfo does not portably specify how emulator-side OSC 8 associations behave under those physical transformations.
-
-### Stable public contract
-
-T1108 completed the pre-RC regret gate and froze the accepted 1.1 public surface exactly two exported types above the stable 1.0 floor:
-
-- `CursesHyperlink`;
-- `CursesCellMetadata`.
-
-Stable fingerprint:
+The accepted 1.1 contract is:
 
 ```text
 45 exported types
@@ -92,66 +57,71 @@ Stable fingerprint:
 sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
 ```
 
-The source-compatible semantic convenience is `WriteWithMetadata(string, CursesCellMetadata)`, avoiding ambiguity with stable 1.0 `Write(string, CursesStyle)` when callers pass `default`. `CursesCellMetadata.Hyperlink` is nullable for future additive metadata kinds while the current constructor remains non-null.
+The two 1.1 exported types are `CursesHyperlink` and `CursesCellMetadata`. Metadata uses a lazily allocated row-sparse plane, follows surviving content through editing/composition/pads/resize, remains coherent across wide-cell footprints, and is rendered through Terminal-owned bounded hyperlink operations.
 
-### Qualification state
-
-T1108's documentation-complete `1.1.0-alpha.8` head:
-
-```text
-290508c69ed7e76179f168cc748edf38a4091b76
-workflow #543 / 34422961869
-```
-
-passed all seven jobs.
-
-T1109's final `1.1.0-rc.1` head:
-
-```text
-b90e54c668ccb8a02142c434470a020775fd375f
-workflow #552 / 34426070109
-```
-
-also passed all seven jobs with no release blocker. Stable `1.1.0` source is now undergoing its final exact-head qualification with the accepted API and implementation unchanged.
-
-Detailed roadmap:
-
-- `Icod.DCurses-1.1.0-Development-Roadmap.md`
-
-Permanent acceptance/closure records:
-
-- `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
-- `docs/T1108-Public-API-Package-Documentation-and-Regret-Gate.md`
-- `docs/T1109-RC-and-Stable-Closure.md`
-
----
+The detailed 1.1 roadmap and T1101–T1109 records remain historical compatibility authorities.
 
 ## 4. Release 1.2.0 — panels, layers, visibility, and z-order
 
 ### Goal
 
-Introduce first-class overlapping logical surfaces without introducing widgets.
+Introduce first-class overlapping retained logical surfaces without introducing widgets or changing ordinary `CursesWindow` shared-view semantics.
 
-### Required mechanics
+### Accepted architecture
 
-The layer/panel model should support attaching a logical window/surface, show/hide, raise/lower, move above/below another layer, deterministic z-order enumeration, clipping, occlusion-aware composition, explicitly defined transparent-cell behavior, and invalidation when visibility/order/position/content changes.
+`CursesPanel` owns an independent retained surface edited through the existing `CursesWindow` model. A `CursesScreen` owns panel identity and deterministic bottom-to-top order.
 
-### Acceptance shapes
+The 1.2 candidate provides:
 
-- modal help overlay;
-- command palette;
-- completion popup;
-- context-menu surface;
-- temporary status/error overlay;
-- movable dialog over a retained screen.
+- screen-owned panel creation;
+- independent retained content;
+- show/hide with remembered z-order;
+- movement and relative/top/bottom ordering;
+- opaque composition by default;
+- explicit `BlankCellsTransparent` composition;
+- clipping without mutating panel content;
+- damage-bounded incremental recomposition;
+- Unicode width-two, line-glyph, style, and semantic-metadata coherence;
+- live `CursesSession.RefreshAsync()` integration;
+- retained content across destination resize and suspend/resume;
+- deterministic one-way `IDisposable` removal for transient panels;
+- no-panel fast path without panel snapshot allocation.
 
-Moving or hiding a layer must expose the correct underlying retained cells without forcing the application to reconstruct the entire screen manually.
+Current candidate fingerprint:
 
-### Non-goal
+```text
+47 exported types
+356 canonical declared contract lines
+sha256 4810ebb088764acedbb94aca84b231677886b9c1a1f920d9a30f960cbe1dfce7
+```
 
-No `Button`, `TextBox`, `Menu`, `Dialog`, or other widget class belongs in the core merely because the layer substrate can support one.
+Exactly two exported types are added over 1.1: `CursesPanel` and `CursesPanelTransparency`.
 
----
+### Application/resource acceptance
+
+T1208 covers modal help, command-palette movement, completion-popup transparency, context-menu ordering, hidden transient status updates, sparse visible damage, allocation-free no-panel presence checking, and retained-frame reuse under repeated steady-state composition.
+
+T1208 exact head `bb00707779cf3dc6c2222455a6f942469d036881` passed workflow #596 / `34522859308` across all seven jobs; the Linux ARM64 evidence leg reported 551/551 passing tests on each supported TFM with zero warnings/errors.
+
+### Regret gate
+
+T1209 discovered that hide-only lifetime semantics would retain every transient panel in the owning screen. The accepted correction makes `CursesPanel` implement `IDisposable`; disposal permanently removes the panel from its screen and rejects later manipulation. Reattachment/transfer is intentionally not introduced.
+
+The fingerprint-complete lifetime/API head `866497c9d5015f3a149580d67eacefaf7e121aaf` passed workflow #600 / `34524054785` across all seven jobs.
+
+### Non-goals
+
+No `Button`, `TextBox`, `Menu`, `Dialog`, widget tree, general panel resizing, layout solver, or focus dispatch belongs in 1.2. Panel size remains fixed; general layout/resize primitives belong to 1.3.
+
+Detailed roadmap:
+
+- `Icod.DCurses-1.2.0-Development-Roadmap.md`
+
+Permanent acceptance/closure records:
+
+- `docs/T1208-Panel-Application-Performance-and-Allocation-Acceptance.md`
+- `docs/T1209-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/Public-API-Baseline-1.2.md`
 
 ## 5. Release 1.3.0 — layout and resize primitives
 
@@ -159,11 +129,7 @@ No `Button`, `TextBox`, `Menu`, `Dialog`, or other widget class belongs in the c
 
 Remove routine terminal-geometry arithmetic from applications while keeping layout deterministic and curses-oriented.
 
-### Candidate concepts
-
-Public names remain a later design decision, but the release should cover concepts equivalent to rectangles/bounds, insets/margins/padding, horizontal and vertical splits, fixed-size plus remainder allocation, proportional allocation, minimum/maximum sizes, top/bottom/left/right docking, clipping/empty-layout behavior, and deterministic recomputation after resize.
-
-### Acceptance shape
+Candidate concepts remain subject to their own design/regret gate and include rectangles/bounds, insets/margins/padding, horizontal and vertical splits, fixed-size plus remainder allocation, proportional allocation, minimum/maximum sizes, docking, clipping/empty-layout behavior, and deterministic recomputation after resize.
 
 A `top`-style screen should be expressible conceptually as:
 
@@ -176,23 +142,17 @@ status        fixed 1 row
 
 without hand-coded resize arithmetic spread through application logic.
 
-### Non-goals
-
 No CSS, browser-style flexbox, general constraint solver, animation system, or declarative widget tree is required in the core.
-
----
 
 ## 6. Release 1.4.0 — focus and interaction mechanics
 
 ### Goal
 
-Add higher-level dispatch mechanics for the semantic events DCurses already receives from Terminal: focusable logical regions, explicit focus ownership, traversal, keyboard gestures/command mapping, mouse hit testing, interaction rectangles/regions, pointer-shape requests, focus repair, resize-aware hit testing, and deterministic precedence where regions overlap.
+Add higher-level dispatch mechanics for semantic events already received through Terminal: focusable logical regions, focus ownership/traversal, keyboard gestures/commands, mouse hit testing, interaction regions, pointer-shape requests, focus repair, resize-aware hit testing, and deterministic overlap precedence.
 
-DCurses owns geometry, focus, target selection, and semantic interaction policy. Terminal owns the authoritative input stream and physical pointer-shape protocol state.
+DCurses owns geometry, focus, target selection, and semantic interaction policy. Terminal remains the authoritative input stream and physical pointer/protocol owner.
 
-Version 1.4 provides interaction substrate, not a widget toolkit.
-
----
+Version 1.4 provides interaction substrate, not widgets.
 
 ## 7. Terminal features are wrapped only when DCurses adds meaning
 
@@ -200,69 +160,42 @@ Version 1.4 provides interaction substrate, not a widget toolkit.
 |---|---|
 | OSC 8 hyperlinks | Yes — attached to retained logical content |
 | Pointer shape | Yes — when associated with DCurses interaction regions |
-| Pixel geometry | Later — when needed by an accepted raster/layout abstraction |
+| Pixel geometry | Later — when required by an accepted raster/layout abstraction |
 | Sixel / Kitty Graphics | Later — through one semantic raster abstraction |
-| Notifications | Usually no — application-level semantic operation |
-| Shell integration metadata | No — shell/application semantic operation |
-| Clipboard | No automatic wrapper; direct Terminal remains appropriate unless a future editing abstraction adds real value |
+| Notifications | Usually application-level; no automatic wrapper |
+| Shell integration metadata | No |
+| Clipboard | No automatic wrapper unless a future editing abstraction adds real value |
 | Terminal titles | No automatic wrapper |
 
-The architectural rule is: **DCurses wraps meaning, not method names.**
-
----
+The rule is: **DCurses wraps meaning, not method names.**
 
 ## 8. Future satellite packages
 
-### `Icod.DCurses.Compat`
+Potential later packages remain:
 
-A native-curses-shaped compatibility facade may eventually provide familiar conveniences such as `stdscr`, `newwin`, `wmove`, `waddstr`, and `wrefresh`, implemented over explicit `CursesSession` ownership.
-
-### `Icod.DCurses.Widgets`
-
-A widget package may eventually provide labels, buttons, text fields, tables, menus, dialogs, scroll bars, trees, and similar controls once the core layer/layout/interaction substrate is mature.
-
-### `Icod.DCurses.Graphics`
-
-A separate graphics package may be preferable if raster support would otherwise impose optional image-oriented concepts on every core consumer.
-
----
+- `Icod.DCurses.Compat` — native-curses-shaped compatibility facade;
+- `Icod.DCurses.Widgets` — controls built after layer/layout/interaction substrate matures;
+- `Icod.DCurses.Graphics` — optional raster-oriented layer if graphics concepts should remain outside every core consumer.
 
 ## 9. Cross-release compatibility and validation rules
 
-Each 1.x release must satisfy:
+Each compatible 1.x release must satisfy:
 
 1. additive public API by default;
-2. exact compiled public-API fingerprint for every intentional delta;
-3. retained 1.0 signature/enum compatibility unless explicitly reconsidered;
-4. no public raw Terminal protocol frames or internal routing types;
+2. exact compiler-derived public-API fingerprint for every intentional delta;
+3. retained 1.0/1.1 compatibility unless explicitly reconsidered;
+4. no public raw Terminal protocol/routing types;
 5. no competing terminal input reader;
 6. no private terminal capability database;
-7. preserved Unicode/wide-cell/continuation/line-glyph semantics;
-8. compositional editing/copy/overlay/pad/viewports behavior;
-9. conservative failure/cancellation/lifecycle recovery and authoritative Terminal restoration;
-10. measured large-screen/pad memory and allocation impact when data structures change;
-11. fresh NuGet-only consumer validation on `net8.0`, `net9.0`, and `net10.0`;
-12. Windows/Linux/macOS x64/ARM64 runtime validation before stable promotion;
-13. package/symbol/XML/dependency/fresh-consumer validation;
-14. README/current-roadmap/API/migration/sample/package documentation audit at stable closure;
-15. historical tranche records remain historical.
+7. preserved Unicode/wide-cell/line-glyph/metadata semantics;
+8. conservative failure/cancellation/lifecycle recovery with Terminal-authoritative restoration;
+9. measured memory/allocation impact when retained data structures change;
+10. fresh NuGet-only consumer validation on net8/net9/net10;
+11. Windows/Linux/macOS x64/ARM64 runtime validation before stable promotion;
+12. package/symbol/XML/dependency/readme validation;
+13. README/current-roadmap/sample/package documentation audit before RC;
+14. historical tranche records remain historical.
 
----
+## 10. Immediate next step
 
-## 10. Version policy
-
-The current 1.1 source identity is:
-
-```text
-Version         1.1.0
-PackageVersion  1.1.0
-AssemblyVersion 1.0.0.0
-```
-
-Compatible additive 1.x releases retain `AssemblyVersion 1.0.0.0` while package versions advance normally.
-
----
-
-## 11. Immediate next step
-
-Qualify the exact atomic stable `1.1.0` source head across the seven-job PR matrix. If green, record that tested SHA/workflow in PR #25 without moving the branch. Merge, tag, GitHub Release creation, and NuGet publication remain explicit separate actions.
+Finish the T1209 documentation/sample/package closure on one exact head. If that head is green across the seven-job PR matrix, proceed to T1210 RC and stable-source qualification. Merge, tag, GitHub Release creation, and NuGet publication remain explicit separate actions.
