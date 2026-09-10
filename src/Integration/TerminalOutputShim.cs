@@ -26,9 +26,25 @@ internal interface ITerminalOutput {
 	);
 }
 
+/// <summary>Optional semantic hyperlink output implemented by Terminal-backed refresh output.</summary>
+internal interface ITerminalHyperlinkOutput {
+	/// <summary>Writes one bounded application-text run through Terminal's typed hyperlink ownership.</summary>
+	/// <param name="value">The application text to write.</param>
+	/// <param name="hyperlink">The terminal-independent hyperlink semantic.</param>
+	/// <param name="cancellationToken">Cancellation observed before Terminal begins hyperlink transmission.</param>
+	ValueTask WriteHyperlinkTextAsync(
+		string value,
+		CursesHyperlink hyperlink,
+		CancellationToken cancellationToken = default
+	);
+}
+
 /// <summary>Routes DCurses refresh output through the canonical Terminal session.</summary>
-internal sealed class TerminalSessionCursesOutput : ITerminalOutput {
+internal sealed class TerminalSessionCursesOutput
+	: ITerminalOutput,
+	  ITerminalHyperlinkOutput {
 	private readonly TerminalSession session;
+	private Exception? semanticOutputFailure;
 
 	internal TerminalSessionCursesOutput(
 		TerminalSession session
@@ -42,6 +58,7 @@ internal sealed class TerminalSessionCursesOutput : ITerminalOutput {
 		CancellationToken cancellationToken = default
 	) {
 		ArgumentNullException.ThrowIfNull( value );
+		ThrowIfSemanticOutputIsUncertain();
 		return this.session.WriteTextAsync( value, cancellationToken );
 	}
 
@@ -62,9 +79,52 @@ internal sealed class TerminalSessionCursesOutput : ITerminalOutput {
 		);
 	}
 
+	public async ValueTask WriteHyperlinkTextAsync(
+		string value,
+		CursesHyperlink hyperlink,
+		CancellationToken cancellationToken = default
+	) {
+		ArgumentNullException.ThrowIfNull( value );
+		ArgumentNullException.ThrowIfNull( hyperlink );
+		ThrowIfSemanticOutputIsUncertain();
+
+		try {
+			await this.session.WriteHyperlinkAsync(
+				value,
+				hyperlink.Uri,
+				hyperlink.Identifier,
+				cancellationToken
+			).ConfigureAwait( false );
+		} catch ( OperationCanceledException ) when (
+			cancellationToken.IsCancellationRequested
+		) {
+			throw;
+		} catch ( Exception exception ) {
+			_ = Interlocked.CompareExchange(
+				ref this.semanticOutputFailure,
+				exception,
+				null
+			);
+			throw;
+		}
+	}
+
 	public ValueTask FlushAsync(
 		CancellationToken cancellationToken = default
 	) {
 		return this.session.Output.FlushAsync( cancellationToken );
+	}
+
+	private void ThrowIfSemanticOutputIsUncertain() {
+		Exception? failure = Volatile.Read( ref this.semanticOutputFailure );
+		if ( failure is null ) {
+			return;
+		}
+
+		throw new InvalidOperationException(
+			"A prior Terminal hyperlink operation failed and may still require Terminal-owned cleanup. "
+				+ "Dispose the owning CursesSession before emitting further application text.",
+			failure
+		);
 	}
 }

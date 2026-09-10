@@ -1,5 +1,7 @@
 namespace Icod.DCurses;
 
+using Icod.DCurses.Internal;
+
 /// <summary>Window-local inspection and region-editing operations.</summary>
 public sealed partial class CursesWindow {
 	/// <summary>Gets one logical cell using window-local coordinates.</summary>
@@ -31,7 +33,8 @@ public sealed partial class CursesWindow {
 	/// <param name="cell">The one-column non-continuation cell copied into the rectangle.</param>
 	/// <remarks>
 	/// The cursor is preserved. If the selected rectangle intersects either half of an existing two-column
-	/// footprint, the owning screen repairs the other half before storing the replacement cells.
+	/// footprint, the owning screen repairs the other half before storing the replacement cells. Existing
+	/// semantic metadata in the filled coordinates is removed with the replaced content.
 	/// </remarks>
 	public void FillRectangle(
 		int row,
@@ -74,20 +77,25 @@ public sealed partial class CursesWindow {
 	/// <param name="count">The positive number of terminal columns to insert.</param>
 	/// <remarks>
 	/// The operation is confined to the current window row, preserves the cursor, discards shifted-out
-	/// content, and never retains half of a two-column footprint at an edit boundary.
+	/// content, moves semantic metadata with surviving content, and never retains half of a two-column
+	/// footprint at an edit boundary.
 	/// </remarks>
 	public void InsertCells( int count = 1 ) {
 		ValidateEditCount( count );
 		CursesCell editingBackground = GetEditingBackgroundCell();
-		CursesCell[] source = SnapshotRow( cursorRow );
-		CursesCell[] result = (CursesCell[])source.Clone();
+		CursesLogicalCellState backgroundState = new(
+			editingBackground,
+			null
+		);
+		CursesLogicalCellState[] source = SnapshotEditingRow( cursorRow );
+		CursesLogicalCellState[] result = (CursesLogicalCellState[])source.Clone();
 		int shift = Math.Min(
 			count,
 			Columns - cursorColumn
 		);
 
 		for ( int column = cursorColumn; column < Columns; column++ ) {
-			result[ column ] = editingBackground;
+			result[ column ] = backgroundState;
 		}
 		for ( int column = cursorColumn; column < Columns - shift; column++ ) {
 			result[ column + shift ] = source[ column ];
@@ -108,20 +116,25 @@ public sealed partial class CursesWindow {
 	/// <param name="count">The positive number of terminal columns to delete.</param>
 	/// <remarks>
 	/// The operation is confined to the current window row, preserves the cursor, fills vacated columns
-	/// with <see cref="BackgroundCell"/>, and never retains half of a two-column footprint.
+	/// with <see cref="BackgroundCell"/>, moves semantic metadata with surviving content, and never retains
+	/// half of a two-column footprint.
 	/// </remarks>
 	public void DeleteCells( int count = 1 ) {
 		ValidateEditCount( count );
 		CursesCell editingBackground = GetEditingBackgroundCell();
-		CursesCell[] source = SnapshotRow( cursorRow );
-		CursesCell[] result = (CursesCell[])source.Clone();
+		CursesLogicalCellState backgroundState = new(
+			editingBackground,
+			null
+		);
+		CursesLogicalCellState[] source = SnapshotEditingRow( cursorRow );
+		CursesLogicalCellState[] result = (CursesLogicalCellState[])source.Clone();
 		int shift = Math.Min(
 			count,
 			Columns - cursorColumn
 		);
 
 		for ( int column = cursorColumn; column < Columns; column++ ) {
-			result[ column ] = editingBackground;
+			result[ column ] = backgroundState;
 		}
 		for ( int column = cursorColumn; column < Columns - shift; column++ ) {
 			result[ column ] = source[ column + shift ];
@@ -140,12 +153,19 @@ public sealed partial class CursesWindow {
 
 	/// <summary>Inserts background rows at the cursor and shifts following window rows downward.</summary>
 	/// <param name="count">The positive number of rows to insert.</param>
-	/// <remarks>The operation preserves the cursor and discards rows shifted below the window.</remarks>
+	/// <remarks>
+	/// The operation preserves the cursor, discards rows shifted below the window, and moves semantic
+	/// metadata with surviving row content.
+	/// </remarks>
 	public void InsertLines( int count = 1 ) {
 		ValidateEditCount( count );
 		CursesCell editingBackground = GetEditingBackgroundCell();
-		CursesCell[][] source = SnapshotRows();
-		CursesCell[][] result = CloneRows( source );
+		CursesLogicalCellState backgroundState = new(
+			editingBackground,
+			null
+		);
+		CursesLogicalCellState[][] source = SnapshotEditingRows();
+		CursesLogicalCellState[][] result = CloneRows( source );
 		int shift = Math.Min(
 			count,
 			Rows - cursorRow
@@ -154,11 +174,11 @@ public sealed partial class CursesWindow {
 		for ( int row = cursorRow; row < Rows; row++ ) {
 			Array.Fill(
 				result[ row ],
-				editingBackground
+				backgroundState
 			);
 		}
 		for ( int row = cursorRow; row < Rows - shift; row++ ) {
-			result[ row + shift ] = (CursesCell[])source[ row ].Clone();
+			result[ row + shift ] = (CursesLogicalCellState[])source[ row ].Clone();
 		}
 
 		CommitEditingRows(
@@ -171,14 +191,18 @@ public sealed partial class CursesWindow {
 	/// <summary>Deletes rows at the cursor and shifts following window rows upward.</summary>
 	/// <param name="count">The positive number of rows to delete.</param>
 	/// <remarks>
-	/// The operation preserves the cursor and fills the vacated rows at the bottom with
-	/// <see cref="BackgroundCell"/>.
+	/// The operation preserves the cursor, fills vacated rows at the bottom with
+	/// <see cref="BackgroundCell"/>, and moves semantic metadata with surviving row content.
 	/// </remarks>
 	public void DeleteLines( int count = 1 ) {
 		ValidateEditCount( count );
 		CursesCell editingBackground = GetEditingBackgroundCell();
-		CursesCell[][] source = SnapshotRows();
-		CursesCell[][] result = CloneRows( source );
+		CursesLogicalCellState backgroundState = new(
+			editingBackground,
+			null
+		);
+		CursesLogicalCellState[][] source = SnapshotEditingRows();
+		CursesLogicalCellState[][] result = CloneRows( source );
 		int shift = Math.Min(
 			count,
 			Rows - cursorRow
@@ -187,11 +211,11 @@ public sealed partial class CursesWindow {
 		for ( int row = cursorRow; row < Rows; row++ ) {
 			Array.Fill(
 				result[ row ],
-				editingBackground
+				backgroundState
 			);
 		}
 		for ( int row = cursorRow; row < Rows - shift; row++ ) {
-			result[ row ] = (CursesCell[])source[ row + shift ].Clone();
+			result[ row ] = (CursesLogicalCellState[])source[ row + shift ].Clone();
 		}
 
 		CommitEditingRows(
@@ -212,14 +236,30 @@ public sealed partial class CursesWindow {
 		return backgroundCell;
 	}
 
-	private CursesCell[] SnapshotRow( int row ) {
+	private CursesLogicalCellState SnapshotLogicalCell(
+		int row,
+		int column
+	) {
+		return new CursesLogicalCellState(
+			GetCellOrBackground(
+				row,
+				column
+			),
+			GetMetadata(
+				row,
+				column
+			)
+		);
+	}
+
+	private CursesLogicalCellState[] SnapshotEditingRow( int row ) {
 		if ( 0 > row || row >= Rows ) {
 			throw new ArgumentOutOfRangeException( nameof( row ) );
 		}
 
-		CursesCell[] result = new CursesCell[ Columns ];
+		CursesLogicalCellState[] result = new CursesLogicalCellState[ Columns ];
 		for ( int column = 0; column < Columns; column++ ) {
-			result[ column ] = GetCellOrBackground(
+			result[ column ] = SnapshotLogicalCell(
 				row,
 				column
 			);
@@ -227,26 +267,28 @@ public sealed partial class CursesWindow {
 		return result;
 	}
 
-	private CursesCell[][] SnapshotRows() {
-		CursesCell[][] result = new CursesCell[ Rows ][];
+	private CursesLogicalCellState[][] SnapshotEditingRows() {
+		CursesLogicalCellState[][] result = new CursesLogicalCellState[ Rows ][];
 		for ( int row = 0; row < Rows; row++ ) {
-			result[ row ] = SnapshotRow( row );
+			result[ row ] = SnapshotEditingRow( row );
 		}
 		return result;
 	}
 
-	private static CursesCell[][] CloneRows( CursesCell[][] source ) {
+	private static CursesLogicalCellState[][] CloneRows(
+		CursesLogicalCellState[][] source
+	) {
 		ArgumentNullException.ThrowIfNull( source );
-		CursesCell[][] result = new CursesCell[ source.Length ][];
+		CursesLogicalCellState[][] result = new CursesLogicalCellState[ source.Length ][];
 		for ( int row = 0; row < source.Length; row++ ) {
 			ArgumentNullException.ThrowIfNull( source[ row ] );
-			result[ row ] = (CursesCell[])source[ row ].Clone();
+			result[ row ] = (CursesLogicalCellState[])source[ row ].Clone();
 		}
 		return result;
 	}
 
 	private void CommitEditingRows(
-		CursesCell[][] rows,
+		CursesLogicalCellState[][] rows,
 		int firstRow,
 		CursesCell editingBackground
 	) {
@@ -276,58 +318,96 @@ public sealed partial class CursesWindow {
 
 	private void CommitEditingRow(
 		int row,
-		CursesCell[] cells,
+		CursesLogicalCellState[] states,
 		CursesCell editingBackground
 	) {
-		ArgumentNullException.ThrowIfNull( cells );
-		if ( cells.Length != Columns ) {
+		ArgumentNullException.ThrowIfNull( states );
+		if ( states.Length != Columns ) {
 			throw new ArgumentException(
 				"The editing snapshot width must match the window.",
-				nameof( cells )
+				nameof( states )
 			);
 		}
 
+		CursesLogicalCellState backgroundState = new(
+			editingBackground,
+			null
+		);
 		for ( int column = 0; column < Columns; column++ ) {
-			SetCellIfVisible(
+			SetLogicalCellStateIfVisible(
 				row,
 				column,
-				editingBackground
+				backgroundState
 			);
 		}
 		for ( int column = 0; column < Columns; column++ ) {
-			if ( cells[ column ] == editingBackground ) {
+			CursesLogicalCellState state = states[ column ];
+			if ( state == backgroundState ) {
 				continue;
 			}
-			SetCellIfVisible(
+			SetLogicalCellStateIfVisible(
 				row,
 				column,
-				cells[ column ]
+				state
 			);
 		}
 	}
 
 	private static void NormalizeEditingRow(
-		CursesCell[] cells,
+		CursesLogicalCellState[] states,
 		CursesCell editingBackground
 	) {
-		ArgumentNullException.ThrowIfNull( cells );
-		for ( int column = 0; column < cells.Length; column++ ) {
-			CursesCell cell = cells[ column ];
+		ArgumentNullException.ThrowIfNull( states );
+		CursesLogicalCellState backgroundState = new(
+			editingBackground,
+			null
+		);
+
+		for ( int column = 0; column < states.Length; column++ ) {
+			CursesLogicalCellState state = states[ column ];
+			CursesCell cell = state.Cell;
 			if ( cell.IsContinuation ) {
-				cells[ column ] = editingBackground;
+				states[ column ] = backgroundState;
 				continue;
 			}
 			if ( 2 != cell.DisplayWidth ) {
 				continue;
 			}
-			if ( column + 1 >= cells.Length
-				|| !cells[ column + 1 ].IsContinuation ) {
-				cells[ column ] = editingBackground;
+			if ( column + 1 >= states.Length
+				|| !states[ column + 1 ].Cell.IsContinuation ) {
+				states[ column ] = backgroundState;
 				continue;
 			}
 
-			cells[ column + 1 ] = CursesCell.Continuation( cell.Style );
+			states[ column + 1 ] = new CursesLogicalCellState(
+				CursesCell.Continuation( cell.Style ),
+				state.Metadata
+			);
 			column++;
+		}
+	}
+
+	private void SetLogicalCellStateIfVisible(
+		int row,
+		int column,
+		CursesLogicalCellState state
+	) {
+		if ( !TryMapToScreen(
+			row,
+			column,
+			out int screenRow,
+			out int screenColumn
+		) ) {
+			return;
+		}
+
+		screen.VirtualScreen[ screenRow, screenColumn ] = state.Cell;
+		if ( state.Metadata is not null ) {
+			screen.VirtualScreen.SetMetadata(
+				screenRow,
+				screenColumn,
+				state.Metadata
+			);
 		}
 	}
 

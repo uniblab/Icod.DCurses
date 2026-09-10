@@ -8,6 +8,7 @@ using Icod.Terminal;
 public sealed partial class CursesSession {
 	private readonly object refreshSync = new();
 	private CursesRefreshEngine? refreshEngine;
+	private TerminalSynchronizedOutputLease? pendingSynchronizedOutputCleanup;
 
 	/// <summary>
 	/// Synchronizes the desired logical screen with the terminal and leaves the physical cursor
@@ -28,6 +29,7 @@ public sealed partial class CursesSession {
 			return;
 		}
 
+		await this.RetryPendingSynchronizedOutputCleanupAsync().ConfigureAwait( false );
 		TerminalSynchronizedOutputLease synchronizedOutput =
 			await this.HostSession.AcquireSynchronizedOutputAsync(
 				cancellationToken
@@ -44,6 +46,8 @@ public sealed partial class CursesSession {
 		try {
 			await synchronizedOutput.DisposeAsync().ConfigureAwait( false );
 		} catch ( Exception synchronizationFailure ) {
+			this.pendingSynchronizedOutputCleanup = synchronizedOutput;
+			this.InvalidatePhysicalScreen();
 			if ( refreshFailure is not null ) {
 				throw new AggregateException(
 					"Curses refresh failed and synchronized-output restoration also reported an error.",
@@ -86,6 +90,8 @@ public sealed partial class CursesSession {
 	}
 
 	private async ValueTask ResetRefreshRenditionAsync() {
+		await this.RetryPendingSynchronizedOutputCleanupAsync().ConfigureAwait( false );
+
 		CursesRefreshEngine? engine;
 		lock ( this.refreshSync ) {
 			engine = this.refreshEngine;
@@ -98,6 +104,21 @@ public sealed partial class CursesSession {
 		await engine.ResetRenditionAsync(
 			CancellationToken.None
 		).ConfigureAwait( false );
+	}
+
+	private async ValueTask RetryPendingSynchronizedOutputCleanupAsync() {
+		TerminalSynchronizedOutputLease? pending = this.pendingSynchronizedOutputCleanup;
+		if ( pending is null ) {
+			return;
+		}
+
+		try {
+			await pending.DisposeAsync().ConfigureAwait( false );
+			this.pendingSynchronizedOutputCleanup = null;
+		} catch {
+			this.InvalidatePhysicalScreen();
+			throw;
+		}
 	}
 
 	private CursesRefreshEngine GetRefreshEngine() {

@@ -5,7 +5,7 @@ so the minimal session lifecycle stays easy to copy without mixing it with the
 interactive and acceptance-focused showcases.
 
 All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the
-repository `Icod.DCurses` project, which currently uses `Icod.Terminal 1.5.0` and
+repository `Icod.DCurses` project, which currently uses `Icod.Terminal 1.6.0` and
 `Icod.TermInfo 1.10.0`.
 
 ## 0.8 concurrency and lifetime contract
@@ -31,9 +31,12 @@ second byte reader, per-cell locking, or a private terminal scheduler.
 ## Icod.DCurses.Sample
 
 `Icod.DCurses.Sample` is the minimal quick-start demonstration. It opens a
-`CursesSession`, writes styled content through the standard screen, updates a
-small moving marker through timed event waits, repaints after resize, accepts
-input, and restores terminal state through asynchronous disposal.
+`CursesSession`, writes styled content through the standard screen, demonstrates
+one retained hyperlink through `CursesHyperlink`, `CursesCellMetadata`, and
+`WriteWithMetadata(...)`, updates a small moving marker through timed event waits,
+repaints after resize, accepts input, and restores terminal state through
+asynchronous disposal. Hyperlink framing remains owned by `Icod.Terminal`; the
+sample does not emit OSC 8 directly.
 
 ```text
 dotnet run --project samples/Icod.DCurses.Sample/Icod.DCurses.Sample.csproj
@@ -70,7 +73,7 @@ demonstration rather than a Unicode-conformance test.
 ## Icod.DCurses.Input.Showcase
 
 `Icod.DCurses.Input.Showcase` is the live rich-input inspector for the current
-`Icod.Terminal 1.5.0` / `Icod.TermInfo 1.10.0` baseline. During the `0.2.0`
+`Icod.Terminal 1.6.0` / `Icod.TermInfo 1.10.0` baseline. During the `0.2.0`
 development line it also demonstrates the expanded Terminal 1.0 keyboard
 semantics carried through the curses facade.
 

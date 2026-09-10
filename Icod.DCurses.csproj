@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>1.0.0</Version>
+		<Version>1.1.0</Version>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>1.0.0</PackageVersion>
+		<PackageVersion>1.1.0</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>1.0.0 is the stable release closure of the managed Icod.DCurses contract frozen by 0.9.0 and accepted through the green 1.0.0-rc.1 gate. The stable DCurses public and semantic contract remains machine-guarded at 43 exported types and 309 canonical contract lines; enum values, geometry, Unicode/cell semantics, lifetime, ownership, exception/cancellation behavior, nullable metadata, the approved Terminal/TermInfo public dependency boundary, documentation, and representative application acceptance remain unchanged from the accepted release candidate. After stable source closure, the direct Icod.Terminal package dependency was refreshed from 1.4.0 to 1.5.0 without changing the Icod.DCurses Version, PackageVersion, AssemblyVersion, or public API. Current dependencies are Icod.Terminal 1.5.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>1.1.0 adds retained semantic cell metadata and hyperlinks while preserving the stable 1.0 compatibility floor. The accepted public contract is 45 exported types, 337 canonical contract lines, and SHA-256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039 across net8.0, net9.0, and net10.0. The two intentional new exported types are CursesHyperlink and CursesCellMetadata. Semantic metadata uses a lazily allocated row-sparse plane, moves with surviving content through editing/composition/pads/resize, and participates independently in retained physical refresh. Adjacent equivalent links coalesce into Terminal-owned bounded OSC 8 operations. Synchronized-output, cancellation, lifecycle replay, and uncertain hyperlink cleanup are handled conservatively. The source-compatible two-argument semantic convenience is WriteWithMetadata(string, CursesCellMetadata); the explicit Write(string, CursesStyle, CursesCellMetadata) and WriteCell(CursesCell, CursesCellMetadata) operations remain available. CursesCellMetadata.Hyperlink is nullable for future additive semantic kinds while the current constructor requires a real CursesHyperlink. Dependencies are Icod.Terminal 1.8.1 and Icod.TermInfo 1.10.0; AssemblyVersion remains 1.0.0.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -95,7 +95,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Icod.Terminal" Version="1.5.0" />
+		<PackageReference Include="Icod.Terminal" Version="1.8.1" />
 		<PackageReference Include="Icod.TermInfo" Version="1.10.0" />
 	</ItemGroup>
 </Project>

@@ -84,6 +84,21 @@ static void DrawQuickStart(
 		3,
 		"Resize the terminal to exercise repaint handling."
 	);
+	if ( 4 < screen.Rows ) {
+		screen.Move(
+			4,
+			0
+		);
+		screen.WriteWithMetadata(
+			"https://github.com/uniblab/Icod.DCurses",
+			new CursesCellMetadata(
+				new CursesHyperlink(
+					"https://github.com/uniblab/Icod.DCurses",
+					"project"
+				)
+			)
+		);
+	}
 	WriteLine(
 		screen,
 		5,

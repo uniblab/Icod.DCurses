@@ -347,6 +347,7 @@ public sealed partial class CursesWindow {
 
 	/// <summary>Scrolls the logical contents upward inside this window.</summary>
 	/// <param name="lines">The positive number of rows to scroll.</param>
+	/// <remarks>Semantic metadata moves with surviving logical content. Newly vacated rows have no metadata.</remarks>
 	public void ScrollUp( int lines = 1 ) {
 		ValidateScrollCount( lines );
 
@@ -364,11 +365,11 @@ public sealed partial class CursesWindow {
 
 		for ( int row = 0; row < Rows - lines; row++ ) {
 			for ( int column = 0; column < Columns; column++ ) {
-				CursesCell source = GetCellOrBackground(
+				CursesLogicalCellState source = SnapshotLogicalCell(
 					row + lines,
 					column
 				);
-				SetCellIfVisible(
+				SetLogicalCellStateIfVisible(
 					row,
 					column,
 					source
@@ -388,6 +389,7 @@ public sealed partial class CursesWindow {
 
 	/// <summary>Scrolls the logical contents downward inside this window.</summary>
 	/// <param name="lines">The positive number of rows to scroll.</param>
+	/// <remarks>Semantic metadata moves with surviving logical content. Newly vacated rows have no metadata.</remarks>
 	public void ScrollDown( int lines = 1 ) {
 		ValidateScrollCount( lines );
 
@@ -405,11 +407,11 @@ public sealed partial class CursesWindow {
 
 		for ( int row = Rows - 1; row >= lines; row-- ) {
 			for ( int column = 0; column < Columns; column++ ) {
-				CursesCell source = GetCellOrBackground(
+				CursesLogicalCellState source = SnapshotLogicalCell(
 					row - lines,
 					column
 				);
-				SetCellIfVisible(
+				SetLogicalCellStateIfVisible(
 					row,
 					column,
 					source

@@ -10,18 +10,26 @@
 It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 - `Icod.TermInfo` is the immutable terminal-capability authority;
-- `Icod.Terminal` owns the live terminal session, host mode, dimensions, lifecycle, input decoding, presentation leases, and input-protocol leases;
-- `Icod.DCurses` owns curses-shaped events, logical screens and windows, pads and viewports, terminal cells and styles, semantic drawing, and retained refresh/damage policy.
+- `Icod.Terminal` owns the live terminal session, host mode, dimensions, lifecycle, input decoding, semantic terminal protocols, presentation leases, and input-protocol leases;
+- `Icod.DCurses` owns curses-shaped events, logical screens and windows, pads and viewports, terminal cells and styles, semantic drawing/content, and retained refresh/damage policy.
 
 ## Status
 
-`Icod.DCurses 1.0.0` stable source has been merged into `main`.
+`Icod.DCurses 1.0.0` remains the currently published stable release while the `1.1.0` source candidate completes final qualification in PR #25.
 
-PR #24 updates only the direct `Icod.Terminal` dependency from `1.4.0` to `1.5.0`. It does not change `Icod.DCurses` `Version` (`1.0.0`), `PackageVersion` (`1.0.0`), `AssemblyVersion` (`1.0.0.0`), public API, or runtime ownership model.
+T1101 froze the stable 1.0 compatibility floor and version policy. T1102 selected the row-sparse semantic metadata plane. T1103 introduced the logical semantic API. T1104 added retained physical hyperlink rendering through Terminal-owned OSC 8. T1105 propagated semantics through editing/composition/pads/resize. T1106 hardened failure, cancellation, cleanup, and lifecycle replay. T1107 completed application/performance/allocation acceptance. T1108 completed the pre-RC regret gate and froze the accepted 1.1 public contract. T1109 qualified `1.1.0-rc.1` and now validates the unchanged stable `1.1.0` source before any merge, tag, release, or package publication.
 
-The accepted `1.0.0-rc.1` contract was promoted unchanged to stable `1.0.0` package metadata. Exact RC head `1968bae18610e69e56dc8f720bffb099cb58eb24` passed Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and package/fresh-consumer validation before stable promotion. The documentation-complete stable-source head `5c17607194b546c6d831be5811d1865a195b970e` passed the same complete gate before merge.
+Current source identity:
 
-The frozen stable public contract contains:
+```text
+Version         1.1.0
+PackageVersion  1.1.0
+AssemblyVersion 1.0.0.0
+Icod.Terminal   1.6.0
+Icod.TermInfo   1.10.0
+```
+
+Stable 1.0 compatibility floor:
 
 ```text
 43 exported types
@@ -29,22 +37,23 @@ The frozen stable public contract contains:
 sha256 274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
 ```
 
-The 1.0 machine baseline is intentionally identical to the 0.9 freeze. CI regenerates the compiled fingerprint for `net8.0`, `net9.0`, and `net10.0`, and a separate compatibility test requires the 1.0 baseline to match the historical 0.9 baseline exactly.
+Accepted 1.1 contract:
 
-The current direct dependency baseline is:
+```text
+45 exported types
+337 canonical declared contract lines
+sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
+```
 
-- `Icod.Terminal` 1.5.0
-- `Icod.TermInfo` 1.10.0
+The two intentional new exported types are `CursesHyperlink` and `CursesCellMetadata`.
 
 ## Installation
 
-The latest published GitHub release is `0.9.0`. Stable `1.0.0` source has been merged, but `v1.0.0` has not yet been published and is therefore not presented here as an installable stable package.
+Until the `1.1.0` tag/package is explicitly published, the current published stable package remains `1.0.0`:
 
 ```text
-dotnet add package Icod.DCurses --version 0.9.0
+dotnet add package Icod.DCurses --version 1.0.0
 ```
-
-After `v1.0.0` is tagged, published, and verified, this installation example will move to the stable 1.0 package.
 
 ## Architecture
 
@@ -53,11 +62,11 @@ top / slabtop / watch / editors / pagers / other TUIs
                          |
                     Icod.DCurses
        windows / pads / cells / refresh
-     rendition / drawing / curses events
+   rendition / semantic content / events
                          |
                     Icod.Terminal
       session / input / lifecycle / dimensions
-       presentation / input-protocol leases
+       presentation / semantic protocols
                          |
                     Icod.TermInfo
              terminal capability model
@@ -107,7 +116,7 @@ A `CursesSession` restores the presentation and Terminal-owned state it acquires
 
 ## Stable 1.0 compatibility contract
 
-Stable `1.0.0` source carries forward the exact contract frozen in 0.9 and accepted by the green 1.0 RC gate.
+The 1.1 release carries forward the contract frozen in 0.9 and published as 1.0.0.
 
 The accepted compatibility rules include:
 
@@ -126,7 +135,7 @@ The accepted compatibility rules include:
 - independently meaningful primary/restoration failures remain observable;
 - Terminal remains the authoritative owner of host-state restoration.
 
-The only lower-layer type definitions intentionally visible in the public DCurses contract are:
+The only lower-layer type definitions intentionally visible in the stable DCurses contract are:
 
 ```text
 Icod.Terminal.TerminalSession
@@ -136,13 +145,153 @@ Icod.TermInfo.TerminalDescription
 Icod.TermInfo.TerminalSize
 ```
 
-These preserve the authoritative session, endpoint, live-size result, and immutable terminal-description vocabulary. No additional Terminal/TermInfo type may enter a public DCurses signature without an explicit compatibility decision.
+No additional Terminal/TermInfo type may enter a public DCurses signature without an explicit compatibility decision.
 
 See:
 
 - `docs/Public-API-Fingerprint-1.0.json`
 - `docs/Public-API-Baseline-1.0.md`
 - `docs/1.0-Stable-Compatibility-and-Migration-Guide.md`
+
+## 1.1 semantic metadata and hyperlinks
+
+Version 1.1 adds semantic meaning attached to retained content, beginning with hyperlinks.
+
+```text
+visual rendition     -> CursesStyle
+semantic meaning     -> CursesCellMetadata / CursesHyperlink
+wire protocol/state  -> Icod.Terminal
+```
+
+### Sparse representation
+
+T1102 measured the portable incremental cost of adding a metadata/token slot rather than assuming one private `CursesCell` size across architectures:
+
+```text
+cell + metadata-reference wrapper overhead   +8 bytes per cell
+cell + int-token wrapper overhead             +8 bytes per cell
+```
+
+At the established 2,048 × 256 pad scale, one unconditional extra eight-byte slot would add exactly 4 MiB even when metadata is unused.
+
+The selected row-sparse metadata plane allocates no per-row metadata storage until needed, releases empty rows, provides O(1) coordinate lookup, composes with row snapshots, and leaves `CursesCell` unchanged.
+
+T1107 binds that representation to the reference scale: the 2,048 top-level row references contribute 16 KiB of deterministic reference payload, and ten populated 256-column rows contribute another 20 KiB, for 36 KiB of reference payload. This deliberately excludes runtime-specific array/object headers from the portable contract.
+
+### Logical public contract
+
+T1103 introduced immutable semantic values. T1108 froze the source-compatible convenience name:
+
+```csharp
+CursesCellMetadata metadata = new(
+    new CursesHyperlink(
+        "https://example.test/docs",
+        "docs"
+    )
+);
+
+screen.WriteWithMetadata(
+    "documentation",
+    metadata
+);
+```
+
+The explicit style-bearing semantic form is:
+
+```csharp
+screen.Write(
+    "documentation",
+    style,
+    metadata
+);
+```
+
+`WriteWithMetadata(string, CursesCellMetadata)` deliberately avoids adding a second `Write(string, T)` overload beside stable 1.0's `Write(string, CursesStyle)`, so existing source such as `screen.Write("text", default)` remains unambiguous.
+
+`CursesCellMetadata.Hyperlink` is nullable so later additive metadata kinds can be introduced without weakening a published non-null return contract. The 1.1 constructor still requires a real `CursesHyperlink`.
+
+Metadata can also be inspected or changed at window/virtual-screen coordinates through `GetMetadata(...)` and `SetMetadata(...)`.
+
+Two-column text elements carry one coherent metadata value across the leader/continuation footprint. Ordinary unannotated replacement clears overwritten semantic metadata even if the glyph/style value is otherwise unchanged. Metadata-only changes participate in logical damage tracking.
+
+### Retained physical hyperlink rendering
+
+T1104 compares retained physical metadata independently of glyph/style equality. A hyperlink change therefore repaints even when the visible cell is unchanged, while an unchanged linked second refresh emits no repeated hyperlink payload.
+
+Adjacent cells with equal style and metadata are coalesced into one semantic text run. Each linked payload is sent through Terminal's typed hyperlink operation; DCurses does not construct OSC 8 frames.
+
+A real synchronized `TerminalSession`/`CursesSession` integration test verifies canonical Terminal OSC 8 begin/text/end output inside the synchronized-output bracket without deadlock.
+
+### Structural semantic propagation
+
+T1105 moves semantic metadata together with surviving logical content through:
+
+- insert/delete cells;
+- insert/delete lines;
+- upward/downward scrolling;
+- destructive rectangle copy;
+- transparent overlay;
+- pad presentation and independent pad viewports;
+- preserved screen resize;
+- wide-cell normalization and clipping repair.
+
+The internal transient `CursesLogicalCellState` pairs `CursesCell` with optional `CursesCellMetadata` during these transformations without altering the public cell layout.
+
+`CopyRectangleTo` transfers semantic state, including an annotated source blank. `OverlayRectangleTo` retains the stable transparency rule: a source blank replaces neither destination content nor destination metadata. Multiple pad viewports acknowledge semantic-only changes independently.
+
+### Failure, cancellation, and recovery
+
+T1106 distinguishes two Terminal-owned cleanup models.
+
+A failed synchronized-output final release is retryable because DCurses still owns the `TerminalSynchronizedOutputLease`. DCurses retains that failed lease, invalidates physical state, and retries the same cleanup before starting another synchronized refresh or resetting rendition during lifecycle/disposal. Repeated cleanup failure blocks the new refresh body.
+
+Terminal's bounded hyperlink operation is different. A non-cancellation failure may leave an internal synthetic hyperlink lease owned by Terminal, but that lease is not returned to DCurses. DCurses therefore cannot safely determine whether OSC 8 begin, application text, or close was the uncertain stage. After such a failure, the Terminal-backed curses output **fails closed for further application text until the owning `CursesSession` is disposed**. Terminal control cleanup and flush remain available, and Terminal session disposal remains the authoritative final hyperlink cleanup path.
+
+Caller cancellation reported before hyperlink transmission does not poison later semantic output. If cancellation arrives after one bounded semantic run has completed but before the full refresh finishes, the refresh engine invalidates retained physical state and a later fresh-token refresh repaints the complete logical image.
+
+Terminal's meaningful hyperlink text + cleanup dual failure remains visible as an aggregate through `CursesSession.RefreshAsync()`. The existing refresh + synchronized-output restoration dual-failure rule likewise remains intact.
+
+Suspend/resume invalidates retained physical semantic knowledge, so visible linked content is repainted after lifecycle re-entry.
+
+### Application, performance, and optimization acceptance
+
+T1107 exercises the semantic implementation in editor-, pager-, and large-pad-shaped workloads rather than only isolated unit examples.
+
+Editor coverage includes linked wide Unicode, style changes that retain hyperlink identity, insertion before and inside linked spans, and repeated semantic-only retargeting. Pager/help coverage includes many links, settled no-op refresh, viewport movement, line insertion/deletion, and scrolling while semantic identity follows the surviving line. The exact 2,048 × 256 reference pad exercises sparse and dense linked rows plus independent viewports.
+
+Equivalent links are coalesced: a dense 256-cell linked row produces one bounded semantic hyperlink write. Intentionally distinct adjacent links remain distinct: 32 different links produce 32 semantic transactions.
+
+Real Terminal-backed tests cover synchronized output both enabled and disabled, one rich-input event wait concurrent with semantic refresh, live resize, suspend/resume, and deterministic input-protocol cleanup.
+
+Terminal-native erase, character-shift, line-shift, and scrolling shortcuts remain conservatively disabled while desired or retained physical semantic metadata exists. The non-semantic cost wins are established, but terminfo does not provide a portable guarantee that those physical transformations preserve emulator-side OSC 8 cell associations. Direct semantic rewriting remains the 1.1 correctness policy.
+
+### Public regret gate and stable contract
+
+T1108 regenerated the public API fingerprint on all three target frameworks and accepted one identical contract:
+
+```text
+45 exported types
+337 canonical declared contract lines
+sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
+```
+
+The fresh NuGet-only consumer exercises hyperlink construction, semantic writing, inspection, removal, and reassignment. The minimal executable sample contains a retained hyperlink example. No new Terminal/TermInfo public type enters the DCurses contract.
+
+T1108's documentation-complete alpha.8 head `290508c69ed7e76179f168cc748edf38a4091b76` passed workflow #543 (`34422961869`) across all seven jobs.
+
+T1109 then qualified the unchanged `1.1.0-rc.1` source at `b90e54c668ccb8a02142c434470a020775fd375f` in workflow #552 (`34426070109`) across all seven jobs. The stable `1.1.0` source now requires one final exact-head qualification before any release action.
+
+See:
+
+- `docs/Public-API-Fingerprint-1.1.json`
+- `docs/Public-API-Baseline-1.1.md`
+- `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`
+- `docs/T1104-Retained-Physical-Hyperlink-Renderer.md`
+- `docs/T1105-Editing-Composition-and-Pad-Semantic-Propagation.md`
+- `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`
+- `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
+- `docs/T1108-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/T1109-RC-and-Stable-Closure.md`
 
 ## Concurrency and production hardening
 
@@ -151,10 +300,10 @@ The stable library uses a deliberately narrow concurrency model rather than perv
 - logical screens, windows, pads, and viewports are single-writer;
 - one Terminal-owned event wait may coexist with refresh/output work;
 - terminal-mutating curses operations are serialized internally;
-- caller cancellation of one wait does not discard Terminal decoder state or fragmented input;
+- caller cancellation does not discard Terminal decoder state;
 - disposal unblocks pending DCurses event/lifecycle waits while preserving authoritative restoration;
-- resize/suspend/resume and rich-input/full-screen ownership survive repeated stress cycles;
-- output uncertainty invalidates retained physical state and a later refresh returns through a safe repaint path.
+- output uncertainty invalidates retained physical state;
+- semantic cleanup uncertainty is never hidden by optimistic continued application output.
 
 No public scheduler, lock/token abstraction, hardening helper, or diagnostics/statistics surface is part of the stable API.
 
@@ -174,7 +323,7 @@ await using CursesSession session = await CursesSession.OpenAsync(
 
 `UseSynchronizedOutput` defaults to `false`. DCurses delegates synchronized-output ownership to `Icod.Terminal`; it does not infer support from a terminal name or construct private mode sequences itself.
 
-Internal refresh optimization can select safe cursor motion, erase operations, character/line insertion and deletion, full-width scrolling, temporary scroll regions, and differential rendition transitions. Correctness and recoverability take precedence over minimizing every possible escape stream.
+Internal refresh optimization can select safe cursor motion, erase operations, character/line insertion and deletion, full-width scrolling, temporary scroll regions, and differential rendition transitions for non-semantic content. Semantic state keeps structural terminal shortcuts disabled unless a future portable semantic-equivalence contract proves that the physical operation preserves hyperlink associations.
 
 Representative deterministic maintainer fixtures include:
 
@@ -232,11 +381,11 @@ viewport.Present();
 await session.RefreshAsync();
 ```
 
-Multiple viewports may observe one pad independently. Pads and viewports do not own terminal sessions or physical refresh state.
+Multiple viewports may observe one pad independently. Pads and viewports do not own terminal sessions or physical refresh state. Semantic-only changes are observed and presented independently by multiple viewports.
 
 ## Window editing and composition
 
-Windows are shared logical views. Editing, copying, overlay, drawing, and damage operations preserve the Unicode/wide-cell contract.
+Windows are shared logical views. Editing, copying, overlay, drawing, and damage operations preserve the Unicode/wide-cell contract and, where content moves, its semantic metadata.
 
 ```csharp
 CursesScreen logical = new( 80, 24 );
@@ -249,7 +398,7 @@ editor.DrawHorizontalLine( 16, 1, 58 );
 editor.TouchRegion( 0, 0, 18, 60 );
 ```
 
-`CopyRectangleTo` copies source blanks; `OverlayRectangleTo` treats ordinary source blanks as transparent.
+`CopyRectangleTo` copies source blanks and their semantic state; `OverlayRectangleTo` treats source blanks as fully transparent and therefore preserves destination semantic metadata at those coordinates.
 
 ## Unicode column helpers
 
@@ -297,22 +446,24 @@ The release workflow derives displayed `Icod.Terminal` and `Icod.TermInfo` depen
 
 ## Release documentation
 
-The completed 1.0 release-closure roadmap is:
+Current post-1.0 authorities:
 
-- `Icod.DCurses-1.0.0-Development-Roadmap.md`
+- `Icod.DCurses-Development-Roadmap.md`
+- `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md`
+- `Icod.DCurses-1.1.0-Development-Roadmap.md`
+- `docs/T1101-1.1.0-Contract-Reference-and-Version-Policy-Freeze.md`
+- `docs/T1102-Semantic-Metadata-Representation-and-Memory-Gate.md`
+- `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md`
+- `docs/T1104-Retained-Physical-Hyperlink-Renderer.md`
+- `docs/T1105-Editing-Composition-and-Pad-Semantic-Propagation.md`
+- `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`
+- `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
+- `docs/T1108-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/T1109-RC-and-Stable-Closure.md`
+- `docs/Public-API-Fingerprint-1.1.json`
+- `docs/Public-API-Baseline-1.1.md`
 
-The 1.0 closure records include:
-
-- `docs/T1001-1.0.0-Release-Closure-Foundation.md`
-- `docs/T1002-1.0-Public-Contract-Carry-Forward.md`
-- `docs/T1003-1.0-Documentation-Package-and-Release-Audit.md`
-- `docs/T1004-1.0.0-RC-Final-Gate.md`
-- `docs/T1005-1.0.0-Stable-Release-Closure.md`
-- `docs/Public-API-Fingerprint-1.0.json`
-- `docs/Public-API-Baseline-1.0.md`
-- `docs/1.0-Stable-Compatibility-and-Migration-Guide.md`
-
-The frozen 0.9 contract and earlier release roadmaps remain historical compatibility records and are not rewritten merely to reflect later dependency or package versions.
+The published 1.0 closure records remain stable compatibility authorities and are not rewritten merely to reflect later development state.
 
 ## Authors
 
