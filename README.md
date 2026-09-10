@@ -281,6 +281,12 @@ sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
 
 The fresh NuGet-only consumer exercises hyperlink construction, semantic writing, inspection, removal, and reassignment. The minimal executable sample also contains a retained hyperlink example. No new Terminal/TermInfo public type enters the DCurses contract.
 
+T1108's documentation-complete alpha.8 head `290508c69ed7e76179f168cc748edf38a4091b76` passed workflow #543 (`34422961869`) across all seven jobs.
+
+### Release-candidate freeze
+
+The final documentation-synchronized `1.1.0-rc.1` branch head is qualified through the T1109 seven-job gate before stable promotion. Its exact SHA/workflow are recorded in PR #25 so this README does not require another source move merely to self-record its own commit hash.
+
 See:
 
 - `docs/Public-API-Fingerprint-1.1.json`
@@ -291,6 +297,7 @@ See:
 - `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`
 - `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
 - `docs/T1108-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/T1109-RC-and-Stable-Closure.md`
 
 ## Concurrency and production hardening
 
@@ -458,6 +465,7 @@ Current post-1.0 authorities:
 - `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`
 - `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
 - `docs/T1108-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/T1109-RC-and-Stable-Closure.md`
 - `docs/Public-API-Fingerprint-1.1.json`
 - `docs/Public-API-Baseline-1.1.md`
 
