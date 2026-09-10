@@ -4,13 +4,13 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`  
 **Published stable baseline:** `1.0.0`  
 **Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
-**Current development package:** `1.1.0-alpha.8`  
+**Current development package:** `1.1.0-rc.1`  
 **Assembly version:** `1.0.0.0`  
 **Current runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.1.0` — semantic cell metadata and retained hyperlinks  
-**Status:** T1101–T1107 complete and qualified; T1108 pre-RC contract accepted and alpha.8 documentation-complete qualification active; T1109 next
+**Status:** T1101–T1108 complete and qualified; T1109 release-candidate validation active
 
 ---
 
@@ -31,7 +31,7 @@ Current development is organized by stable 1.x release documents rather than con
 | Release | Theme | Status |
 |---|---|---|
 | `1.0.0` | Stable core contract | Published stable release |
-| `1.1.0` | Semantic cell metadata and hyperlinks | Active — `1.1.0-alpha.8`; T1108 exact-head qualification |
+| `1.1.0` | Semantic cell metadata and hyperlinks | Active — `1.1.0-rc.1`; T1109 validation |
 | `1.2.0` | Panels, layers, visibility, and z-order composition | Approved future release |
 | `1.3.0` | Layout and resize primitives | Approved future release |
 | `1.4.0` | Focus, interaction regions, key gestures, hit testing, and pointer semantics | Approved future release |
@@ -40,7 +40,8 @@ Current development is organized by stable 1.x release documents rather than con
 Authorities:
 
 - `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md` — approved post-1.0 release train;
-- `Icod.DCurses-1.1.0-Development-Roadmap.md` — active detailed 1.1 plan.
+- `Icod.DCurses-1.1.0-Development-Roadmap.md` — active detailed 1.1 plan;
+- `docs/T1109-RC-and-Stable-Closure.md` — active release-candidate/stable closure record.
 
 ---
 
@@ -83,20 +84,13 @@ exported types:    43
 contract lines:   309
 ```
 
-Accepted pre-RC 1.1 contract after T1108:
+Accepted 1.1 release-candidate contract:
 
 ```text
 sha256:            21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
 exported types:    45
 contract lines:   337
 ```
-
-The only intentional new exported types remain:
-
-- `CursesHyperlink`;
-- `CursesCellMetadata`.
-
-T1108 refined two provisional T1103 contract lines before RC: `CursesCellMetadata.Hyperlink` is nullable for future semantic kinds while its 1.1 constructor still requires a hyperlink, and the two-argument semantic convenience is `WriteWithMetadata(string, CursesCellMetadata)` so stable `Write(string, CursesStyle)` calls using `default` remain source-compatible.
 
 T1101 ratified:
 
@@ -108,8 +102,8 @@ AssemblyVersion   remains 1.0.0.0 for compatible additive 1.x releases
 Active identity:
 
 ```text
-Version         1.1.0-alpha.8
-PackageVersion  1.1.0-alpha.8
+Version         1.1.0-rc.1
+PackageVersion  1.1.0-rc.1
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -128,8 +122,9 @@ Icod.TermInfo   1.10.0
 | T1106 | `59232c1eb9da1bd97f8c3ea950c757159f82a15f` | #507 / `34416436456` | seven jobs green |
 | T1107 implementation/acceptance | `bc226acf20fc5a8ab88f81d0d2053663d0120288` | #516 / `34419328443` | seven jobs green |
 | T1107 documentation/alpha.7 | `8bfdb38ac6964f8a6bd1654d29d931c89cedf5c0` | #517 / `34419902612` | seven jobs green |
+| T1108 documentation/alpha.8 | `290508c69ed7e76179f168cc748edf38a4091b76` | #543 / `34422961869` | seven jobs green |
 
-T1108's pre-fingerprint exact head `04ad8707956b7d45cb0eefba30d6af0b1833b5a3` built cleanly across the framework matrix and produced the same compiler-derived `21dff2e5...` fingerprint on net8.0/net9.0/net10.0; its sole test failure was the deliberately stale prior fingerprint. The documentation-synchronized alpha.8 head requires one full seven-job qualification before closure.
+T1108 therefore closes the pre-RC public regret gate and authorizes release-candidate promotion.
 
 ---
 
@@ -137,7 +132,7 @@ T1108's pre-fingerprint exact head `04ad8707956b7d45cb0eefba30d6af0b1833b5a3` bu
 
 Semantic metadata uses a lazily allocated row-sparse reference plane rather than a permanent field inside every `CursesCell`.
 
-Both tested inline metadata/token candidates impose an additional eight-byte slot per logical cell on the supported 64-bit matrix. At 2,048 × 256 cells that would add exactly 4 MiB even when semantics are unused.
+Both tested inline metadata/token candidates impose an additional eight-byte slot per logical cell on the supported 64-bit validation matrix. At 2,048 × 256 cells that would add exactly 4 MiB even when semantics are unused.
 
 The sparse representation retains only a top-level row-reference table until semantic rows are populated; individual row arrays are allocated on demand and released when empty.
 
@@ -152,7 +147,7 @@ T1103 introduced exactly two public semantic types:
 
 Window/virtual-screen APIs provide metadata inspection/mutation and metadata-aware writes. Wide text elements carry one coherent metadata value, ordinary replacement removes overwritten semantics, and semantic-only changes participate in damage/change tracking.
 
-T1108's final pre-RC convenience spelling is `WriteWithMetadata(string, CursesCellMetadata)`; explicit style plus metadata remains `Write(string, CursesStyle, CursesCellMetadata)`.
+T1108 froze the source-compatible two-argument convenience as `WriteWithMetadata(string, CursesCellMetadata)` so stable source such as `Write("text", default)` does not become ambiguous with `Write(string, CursesStyle)`.
 
 ---
 
@@ -184,7 +179,7 @@ Destructive copy transfers annotated blanks. Overlay blanks remain fully transpa
 
 A failed synchronized-output release remains retryable because DCurses retains the `TerminalSynchronizedOutputLease`; cleanup is retried before later synchronized refresh or rendition reset.
 
-A non-cancellation failure from Terminal's bounded hyperlink operation is treated more conservatively because the internal synthetic hyperlink lease may be retained by Terminal but is not exposed to DCurses. The curses session therefore fails closed for further application text until disposal while Terminal control cleanup and final TerminalSession disposal remain authoritative.
+A non-cancellation failure from Terminal's bounded hyperlink operation is treated more conservatively because the internal synthetic hyperlink lease may be retained by Terminal but is not exposed to DCurses. The curses session therefore fails closed for further application text until disposal while Terminal control cleanup and final `TerminalSession` disposal remain authoritative.
 
 Caller cancellation before hyperlink transmission is non-poisoning. Cancellation after a complete linked run invalidates retained physical state so a later fresh refresh repaints safely. Suspend/resume likewise invalidates retained semantic knowledge.
 
@@ -214,22 +209,20 @@ Permanent record:
 
 ## T1108 — public API, package, documentation, and regret gate
 
-T1108 performs the final pre-RC public-contract review.
+T1108 is complete and qualified. It:
 
-It identified and corrected two provisional-alpha API regrets:
+- regenerated the compiler-derived 1.1 API fingerprint across net8/net9/net10;
+- froze the accepted 45-type/337-line contract at `21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039`;
+- made `CursesCellMetadata.Hyperlink` nullable for forward-compatible future semantic kinds while retaining the non-null constructor;
+- renamed the ambiguous two-argument semantic write to `WriteWithMetadata(...)`;
+- extended the package-only consumer through the new semantic surface;
+- added one retained-hyperlink use to the minimal sample;
+- removed the superseded duplicate T1103 draft;
+- recorded machine-readable and human-readable 1.1 API baselines.
 
-- `CursesCellMetadata.Hyperlink` is nullable in the published contract shape so future additive metadata kinds do not require a later return-nullability weakening; the 1.1 constructor still requires a real hyperlink.
-- the two-argument semantic write is named `WriteWithMetadata(...)`, avoiding ambiguity with stable `Write(string, CursesStyle)` for source such as `Write("text", default)`.
-
-The final compiler-derived pre-RC fingerprint is `21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039` with 45 exported types and 337 contract lines on all three target frameworks.
-
-The fresh NuGet-only consumer now exercises semantic construction/write/inspection/removal/reassignment, the minimal sample demonstrates one retained hyperlink, and the superseded duplicate T1103 draft has been removed.
-
-Permanent records:
+Permanent record:
 
 - `docs/T1108-Public-API-Package-Documentation-and-Regret-Gate.md`
-- `docs/Public-API-Fingerprint-1.1.json`
-- `docs/Public-API-Baseline-1.1.md`
 
 ---
 
@@ -237,7 +230,27 @@ Permanent records:
 
 Terminal-native line-shift, character-shift, erase, and scrolling shortcuts remain bypassed while desired or retained physical semantic metadata exists.
 
-T1107 closes this decision for 1.1. Representative non-semantic shortcuts provide strict cost wins, but terminfo does not guarantee that emulator-side OSC 8 associations follow physical insert/delete/erase/scroll operations. Direct semantic rewriting therefore remains the portable correctness choice.
+T1107 closed this decision for 1.1. Representative non-semantic shortcuts provide strict cost wins, but terminfo does not guarantee that emulator-side OSC 8 associations follow physical insert/delete/erase/scroll operations. Direct semantic rewriting therefore remains the portable correctness choice.
+
+---
+
+## T1109 — RC and stable closure
+
+T1109 is active.
+
+The release candidate must preserve the T1108-accepted contract unchanged. No new features, API names, semantic kinds, dependency updates, or optimization work enter RC absent a demonstrated release blocker.
+
+Current candidate:
+
+```text
+1.1.0-rc.1
+```
+
+The permanent closure record is:
+
+- `docs/T1109-RC-and-Stable-Closure.md`
+
+After one exact RC head passes all seven jobs, stable promotion changes only release identity/notes/status documentation to `1.1.0`, then requires another exact seven-job gate. Merge, tag, GitHub Release creation, and NuGet publication remain explicit later actions.
 
 ---
 
@@ -251,8 +264,8 @@ T1101  contract/reference/version-policy freeze             complete
   -> T1105  editing/copy/overlay/pad propagation            complete
   -> T1106  lifecycle/failure/cancellation hardening        complete
   -> T1107  application/performance/allocation acceptance   complete
-  -> T1108  API/package/documentation/regret gate           alpha.8 exact-head qualification
-  -> T1109  RC and stable 1.1.0 closure                     next
+  -> T1108  API/package/documentation/regret gate           complete; alpha.8 qualified
+  -> T1109  RC and stable 1.1.0 closure                     active; rc.1 validation
 ```
 
 ---
@@ -270,6 +283,7 @@ T1101  contract/reference/version-policy freeze             complete
 - `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`
 - `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
 - `docs/T1108-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/T1109-RC-and-Stable-Closure.md`
 - `docs/Public-API-Fingerprint-1.1.json`
 - `docs/Public-API-Baseline-1.1.md`
 
