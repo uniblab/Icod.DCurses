@@ -6,7 +6,7 @@
 **Active source package:** `1.2.0`  
 **Assembly version policy:** retain `1.0.0.0` through compatible additive 1.x releases  
 **Current declared runtime dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
-**Planning status:** 1.2 RC qualified; stable-source exact-head qualification active
+**Planning status:** 1.2 source complete; dependency refresh qualification pending NuGet indexing
 
 ---
 
@@ -57,10 +57,12 @@ Late qualification:
 - T1209 API/lifetime: `866497c9d5015f3a149580d67eacefaf7e121aaf`, workflow #600 / `34524054785`.
 - T1209 docs/sample/package: `3728bf0e576b32747dd3a628ed5d3eca768ac67f`, workflow #603 / `34525966166`.
 - T1210 `1.2.0-rc.1`: `8c5d329fa195685c0349068ce33a100aaf9eb0a3`, workflow #604 / `34526810086`.
+- T1210 stable-source `1.2.0`: `a065ef389b4e5224bd9defeb3f4de0e688e2e08a`, workflow #605 / `34527425232`.
+- Final sample/test hardening: `93ef832042dac743008a065acb683d3029710f1c`, workflow #607 / `34528856997`.
 
-All passed the seven-job matrix. The RC evidence leg reported 554/554 tests per TFM with zero build warnings/errors.
+All of those checkpoints passed the seven-job matrix. The final hardening evidence leg reported 560/560 tests per TFM with zero build warnings/errors.
 
-The source is now promoted to stable-source `1.2.0` with the same implementation/API; exact-head stable qualification is the remaining repository-side gate.
+The only post-qualification source change is the declared `Icod.Terminal` dependency update from `1.8.1` to `1.9.0` plus corresponding current-status documentation. A temporary restore failure is expected until NuGet indexes `Icod.Terminal 1.9.0`; once indexed, this dependency-refresh head must receive its own exact-head seven-job qualification.
 
 Panel dimensions remain fixed in 1.2. General layout/resize belongs to 1.3. Widgets, focus routing, and raster placement remain non-goals for 1.2.
 
@@ -78,4 +80,4 @@ Compatible 1.x releases retain additive API by default, exact compiler-derived f
 
 ## Immediate next step
 
-Qualify the exact stable-source `1.2.0` head across the seven-job PR matrix. If green, PR #26 is repository-side release-ready; merge, main Release qualification, tag, GitHub Release creation, and NuGet publication remain separate explicit actions.
+Wait only for NuGet indexing of `Icod.Terminal 1.9.0`, then require the current PR head to pass the seven-job matrix. No code fallback, version pin, or hard-coded compatibility check should be added merely to work around package-index propagation.
