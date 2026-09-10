@@ -4,13 +4,13 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`  
 **Published stable baseline:** `1.0.0`  
 **Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
-**Current development package:** `1.1.0-alpha.7`  
+**Current development package:** `1.1.0-alpha.8`  
 **Assembly version:** `1.0.0.0`  
 **Current runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.1.0` — semantic cell metadata and retained hyperlinks  
-**Status:** T1101–T1107 complete at implementation level; alpha.7 documentation-complete gate active; T1108 next
+**Status:** T1101–T1107 complete and qualified; T1108 pre-RC contract accepted and alpha.8 documentation-complete qualification active; T1109 next
 
 ---
 
@@ -31,7 +31,7 @@ Current development is organized by stable 1.x release documents rather than con
 | Release | Theme | Status |
 |---|---|---|
 | `1.0.0` | Stable core contract | Published stable release |
-| `1.1.0` | Semantic cell metadata and hyperlinks | Active — `1.1.0-alpha.7`; T1107 documentation gate / T1108 next |
+| `1.1.0` | Semantic cell metadata and hyperlinks | Active — `1.1.0-alpha.8`; T1108 exact-head qualification |
 | `1.2.0` | Panels, layers, visibility, and z-order composition | Approved future release |
 | `1.3.0` | Layout and resize primitives | Approved future release |
 | `1.4.0` | Focus, interaction regions, key gestures, hit testing, and pointer semantics | Approved future release |
@@ -83,13 +83,20 @@ exported types:    43
 contract lines:   309
 ```
 
-Provisional 1.1 contract introduced by T1103:
+Accepted pre-RC 1.1 contract after T1108:
 
 ```text
-sha256:            d7fb2040d9cd22ed71e90e788f453c73eb29d681f2cc0f7aaefa805792fab2ea
+sha256:            21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
 exported types:    45
 contract lines:   337
 ```
+
+The only intentional new exported types remain:
+
+- `CursesHyperlink`;
+- `CursesCellMetadata`.
+
+T1108 refined two provisional T1103 contract lines before RC: `CursesCellMetadata.Hyperlink` is nullable for future semantic kinds while its 1.1 constructor still requires a hyperlink, and the two-argument semantic convenience is `WriteWithMetadata(string, CursesCellMetadata)` so stable `Write(string, CursesStyle)` calls using `default` remain source-compatible.
 
 T1101 ratified:
 
@@ -101,8 +108,8 @@ AssemblyVersion   remains 1.0.0.0 for compatible additive 1.x releases
 Active identity:
 
 ```text
-Version         1.1.0-alpha.7
-PackageVersion  1.1.0-alpha.7
+Version         1.1.0-alpha.8
+PackageVersion  1.1.0-alpha.8
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -120,8 +127,9 @@ Icod.TermInfo   1.10.0
 | T1105 | `f35eee81a9660271ba8eb4a930738b1997207cb7` | #497 / `34413294079` | seven jobs green |
 | T1106 | `59232c1eb9da1bd97f8c3ea950c757159f82a15f` | #507 / `34416436456` | seven jobs green |
 | T1107 implementation/acceptance | `bc226acf20fc5a8ab88f81d0d2053663d0120288` | #516 / `34419328443` | seven jobs green |
+| T1107 documentation/alpha.7 | `8bfdb38ac6964f8a6bd1654d29d931c89cedf5c0` | #517 / `34419902612` | seven jobs green |
 
-The alpha.7 documentation/version synchronization requires its own exact-head seven-job gate before T1107 documentation closure.
+T1108's pre-fingerprint exact head `04ad8707956b7d45cb0eefba30d6af0b1833b5a3` built cleanly across the framework matrix and produced the same compiler-derived `21dff2e5...` fingerprint on net8.0/net9.0/net10.0; its sole test failure was the deliberately stale prior fingerprint. The documentation-synchronized alpha.8 head requires one full seven-job qualification before closure.
 
 ---
 
@@ -143,6 +151,8 @@ T1103 introduced exactly two public semantic types:
 - `CursesCellMetadata`.
 
 Window/virtual-screen APIs provide metadata inspection/mutation and metadata-aware writes. Wide text elements carry one coherent metadata value, ordinary replacement removes overwritten semantics, and semantic-only changes participate in damage/change tracking.
+
+T1108's final pre-RC convenience spelling is `WriteWithMetadata(string, CursesCellMetadata)`; explicit style plus metadata remains `Write(string, CursesStyle, CursesCellMetadata)`.
 
 ---
 
@@ -186,7 +196,7 @@ Permanent record:
 
 ## T1107 — application, performance, allocation, and optimization acceptance
 
-T1107 now provides application-shaped evidence across editor, pager/help, large-pad, and real Terminal-backed session workloads.
+T1107 provides application-shaped evidence across editor, pager/help, large-pad, and real Terminal-backed session workloads.
 
 Editor coverage includes wide linked Unicode, style changes independent of hyperlink identity, edits before/inside linked content, and repeated semantic-only retargeting. Pager coverage includes many links, no-op settling, viewport movement, line insertion/deletion, and scrolling. The 2,048 × 256 pad covers sparse and dense semantics plus independent viewports.
 
@@ -199,6 +209,27 @@ Real Terminal-backed acceptance covers synchronized output on/off, concurrent ri
 Permanent record:
 
 - `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
+
+---
+
+## T1108 — public API, package, documentation, and regret gate
+
+T1108 performs the final pre-RC public-contract review.
+
+It identified and corrected two provisional-alpha API regrets:
+
+- `CursesCellMetadata.Hyperlink` is nullable in the published contract shape so future additive metadata kinds do not require a later return-nullability weakening; the 1.1 constructor still requires a real hyperlink.
+- the two-argument semantic write is named `WriteWithMetadata(...)`, avoiding ambiguity with stable `Write(string, CursesStyle)` for source such as `Write("text", default)`.
+
+The final compiler-derived pre-RC fingerprint is `21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039` with 45 exported types and 337 contract lines on all three target frameworks.
+
+The fresh NuGet-only consumer now exercises semantic construction/write/inspection/removal/reassignment, the minimal sample demonstrates one retained hyperlink, and the superseded duplicate T1103 draft has been removed.
+
+Permanent records:
+
+- `docs/T1108-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/Public-API-Fingerprint-1.1.json`
+- `docs/Public-API-Baseline-1.1.md`
 
 ---
 
@@ -219,9 +250,9 @@ T1101  contract/reference/version-policy freeze             complete
   -> T1104  retained physical hyperlink renderer            complete
   -> T1105  editing/copy/overlay/pad propagation            complete
   -> T1106  lifecycle/failure/cancellation hardening        complete
-  -> T1107  application/performance/allocation acceptance   implementation qualified; alpha.7 doc gate
-  -> T1108  API/package/documentation/regret gate           next
-  -> T1109  RC and stable 1.1.0 closure
+  -> T1107  application/performance/allocation acceptance   complete
+  -> T1108  API/package/documentation/regret gate           alpha.8 exact-head qualification
+  -> T1109  RC and stable 1.1.0 closure                     next
 ```
 
 ---
@@ -238,6 +269,8 @@ T1101  contract/reference/version-policy freeze             complete
 - `docs/T1105-Editing-Composition-and-Pad-Semantic-Propagation.md`
 - `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`
 - `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
+- `docs/T1108-Public-API-Package-Documentation-and-Regret-Gate.md`
 - `docs/Public-API-Fingerprint-1.1.json`
+- `docs/Public-API-Baseline-1.1.md`
 
 Published 1.0 compatibility documents remain historical/stable authorities and are not rewritten for later development state.
