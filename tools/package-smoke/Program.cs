@@ -53,6 +53,7 @@ if ( 100 != logicalScreen.Columns
 }
 
 VerifyApprovedDependencySurface();
+VerifySemanticMetadataSurface();
 VerifyInputSemanticSurface();
 VerifyUnicodeWidthSurface();
 VerifyColumnTextSurface();
@@ -84,6 +85,68 @@ static void VerifyApprovedDependencySurface() {
 	if ( 5 != approvedDependencyTypes.Length ) {
 		throw new InvalidOperationException(
 			"DCurses package-only dependency-surface smoke validation failed."
+		);
+	}
+}
+
+static void VerifySemanticMetadataSurface() {
+	CursesHyperlink hyperlink = new(
+		"https://example.test/package-smoke%2fdocs",
+		"package-smoke"
+	);
+	if ( "https://example.test/package-smoke%2Fdocs" != hyperlink.Uri
+		|| "package-smoke" != hyperlink.Identifier ) {
+		throw new InvalidOperationException(
+			"DCurses package-only hyperlink value surface failed validation."
+		);
+	}
+
+	CursesCellMetadata metadata = new( hyperlink );
+	if ( hyperlink != metadata.Hyperlink ) {
+		throw new InvalidOperationException(
+			"DCurses package-only semantic metadata surface failed validation."
+		);
+	}
+
+	CursesScreen logical = new(
+		20,
+		2
+	);
+	CursesWindow window = logical.StandardWindow;
+	window.Move(
+		0,
+		1
+	);
+	window.Write(
+		"docs",
+		metadata
+	);
+	if ( metadata != window.GetMetadata( 0, 1 )
+		|| metadata != logical.VirtualScreen.GetMetadata( 0, 4 ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only metadata-aware write surface failed validation."
+		);
+	}
+
+	window.SetMetadata(
+		0,
+		2,
+		null
+	);
+	if ( null != window.GetMetadata( 0, 2 ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only semantic metadata removal surface failed validation."
+		);
+	}
+
+	window.SetMetadata(
+		0,
+		2,
+		metadata
+	);
+	if ( metadata != window.GetMetadata( 0, 2 ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only semantic metadata mutation surface failed validation."
 		);
 	}
 }
