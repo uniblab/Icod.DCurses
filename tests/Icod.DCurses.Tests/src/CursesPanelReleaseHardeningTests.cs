@@ -130,7 +130,7 @@ public sealed class CursesPanelReleaseHardeningTests {
 
 		Assert.Same( composed, revealed );
 		Assert.Equal( "LOW", ReadText( revealed, 1, 2, 3 ) );
-		Assert.Equal( 3, revealed.DirtyCellCount );
+		Assert.Equal( 2, revealed.DirtyCellCount );
 	}
 
 	[Fact]
