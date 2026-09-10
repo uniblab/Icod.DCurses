@@ -122,6 +122,27 @@ public sealed class CursesScreen {
 		return panelOrder.SnapshotBottomToTop();
 	}
 
+	/// <summary>Permanently removes one owned panel from this screen's composition order.</summary>
+	/// <param name="panel">The owned panel to remove.</param>
+	internal void RemovePanel( CursesPanel panel ) {
+		ArgumentNullException.ThrowIfNull( panel );
+		if ( !ReferenceEquals(
+			panel.Owner,
+			this
+		) ) {
+			throw new ArgumentException(
+				"The panel belongs to another screen.",
+				nameof( panel )
+			);
+		}
+		if ( !panelOrder.Remove( panel ) ) {
+			throw new ArgumentException(
+				"The panel is not attached to this screen.",
+				nameof( panel )
+			);
+		}
+	}
+
 	/// <summary>Moves one owned panel to the top of the remembered panel order.</summary>
 	/// <param name="panel">The owned panel to move.</param>
 	internal void MovePanelToTop( CursesPanel panel ) {
@@ -311,9 +332,9 @@ public sealed class CursesScreen {
 		if ( !ReferenceEquals(
 			panel.Owner,
 			this
-		) ) {
+		) || panel.IsDisposed ) {
 			throw new ArgumentException(
-				"The panel belongs to another screen.",
+				"The panel does not belong to this screen's active panel set.",
 				parameterName
 			);
 		}
