@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>1.1.0-alpha.7</Version>
+		<Version>1.1.0-alpha.8</Version>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>1.1.0-alpha.7</PackageVersion>
+		<PackageVersion>1.1.0-alpha.8</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>1.1.0-alpha.7 completes T1107 application-shaped semantic acceptance and performance/allocation review. Editor-like linked content now has acceptance coverage for wide Unicode, style changes independent of hyperlink identity, edits before and inside linked spans, and repeated semantic-only retargeting. Pager/help coverage exercises many links, settled no-op refresh, viewport movement, line insertion/deletion, and scrolling. The 2,048 x 256 reference pad validates sparse and dense semantic rows plus independent viewports. Deterministic storage evidence binds ten semantic rows to 36 KiB of reference payload versus the rejected 4 MiB unconditional inline-slot cost. Equivalent 256-cell linked runs coalesce to one bounded Terminal hyperlink transaction, while 32 distinct links remain 32 distinct semantic transactions. Real Terminal-backed tests cover synchronized output on and off, concurrent rich input, resize, suspend/resume, and deterministic protocol cleanup. Character-shift, line-shift, erase, and scrolling terminal-native shortcuts remain conservatively disabled whenever desired or retained physical semantic metadata exists because terminfo does not provide a portable guarantee that those physical operations preserve emulator-side OSC 8 cell associations. The provisional 1.1 public API remains unchanged at 45 exported types and 337 contract lines. Dependencies are Icod.Terminal 1.6.0 and Icod.TermInfo 1.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>1.1.0-alpha.8 completes the T1108 pre-RC public API, package, documentation, and regret gate. The compiler-derived 1.1 contract is frozen at 45 exported types, 337 canonical contract lines, and SHA-256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039 across net8.0, net9.0, and net10.0. The two-argument semantic write convenience is named WriteWithMetadata(string, CursesCellMetadata) so the stable 1.0 source form Write(string, default) remains unambiguous; the explicit Write(string, CursesStyle, CursesCellMetadata) operation remains available. CursesCellMetadata.Hyperlink is nullable for future additive semantic kinds while the current 1.1 constructor still requires a real CursesHyperlink. The fresh NuGet-only consumer now compiles and executes hyperlink construction, metadata-aware writing, inspection, removal, and reassignment. The minimal sample demonstrates one retained hyperlink without raw OSC 8. The superseded duplicate T1103 draft is removed and the accepted 1.1 machine/human API baselines are recorded. Dependencies remain Icod.Terminal 1.6.0 and Icod.TermInfo 1.10.0; AssemblyVersion remains 1.0.0.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
