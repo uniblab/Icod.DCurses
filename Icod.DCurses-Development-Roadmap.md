@@ -4,13 +4,13 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`  
 **Published stable baseline:** `1.0.0`  
 **Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
-**Current development package:** `1.1.0-rc.1`  
+**Current source package:** `1.1.0`  
 **Assembly version:** `1.0.0.0`  
 **Current runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.1.0` — semantic cell metadata and retained hyperlinks  
-**Status:** T1101–T1108 complete and qualified; T1109 release-candidate validation active
+**Status:** T1101–T1108 complete and qualified; T1109 RC qualified and stable-source exact-head qualification active
 
 ---
 
@@ -31,7 +31,7 @@ Current development is organized by stable 1.x release documents rather than con
 | Release | Theme | Status |
 |---|---|---|
 | `1.0.0` | Stable core contract | Published stable release |
-| `1.1.0` | Semantic cell metadata and hyperlinks | Active — `1.1.0-rc.1`; T1109 validation |
+| `1.1.0` | Semantic cell metadata and hyperlinks | Stable-source candidate — final seven-job qualification |
 | `1.2.0` | Panels, layers, visibility, and z-order composition | Approved future release |
 | `1.3.0` | Layout and resize primitives | Approved future release |
 | `1.4.0` | Focus, interaction regions, key gestures, hit testing, and pointer semantics | Approved future release |
@@ -41,7 +41,7 @@ Authorities:
 
 - `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md` — approved post-1.0 release train;
 - `Icod.DCurses-1.1.0-Development-Roadmap.md` — active detailed 1.1 plan;
-- `docs/T1109-RC-and-Stable-Closure.md` — active release-candidate/stable closure record.
+- `docs/T1109-RC-and-Stable-Closure.md` — active final closure record.
 
 ---
 
@@ -84,7 +84,7 @@ exported types:    43
 contract lines:   309
 ```
 
-Accepted 1.1 release-candidate contract:
+Accepted 1.1 stable contract:
 
 ```text
 sha256:            21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
@@ -99,11 +99,11 @@ Package version   advances normally through compatible 1.x releases
 AssemblyVersion   remains 1.0.0.0 for compatible additive 1.x releases
 ```
 
-Active identity:
+Current source identity:
 
 ```text
-Version         1.1.0-rc.1
-PackageVersion  1.1.0-rc.1
+Version         1.1.0
+PackageVersion  1.1.0
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -123,8 +123,9 @@ Icod.TermInfo   1.10.0
 | T1107 implementation/acceptance | `bc226acf20fc5a8ab88f81d0d2053663d0120288` | #516 / `34419328443` | seven jobs green |
 | T1107 documentation/alpha.7 | `8bfdb38ac6964f8a6bd1654d29d931c89cedf5c0` | #517 / `34419902612` | seven jobs green |
 | T1108 documentation/alpha.8 | `290508c69ed7e76179f168cc748edf38a4091b76` | #543 / `34422961869` | seven jobs green |
+| T1109 rc.1 | `b90e54c668ccb8a02142c434470a020775fd375f` | #552 / `34426070109` | seven jobs green |
 
-T1108 therefore closes the pre-RC public regret gate and authorizes release-candidate promotion.
+The final stable-source SHA is recorded in PR #25 after its exact-head workflow passes; the source branch is not moved merely to self-record that SHA.
 
 ---
 
@@ -161,15 +162,7 @@ Physical invalidation clears semantic knowledge with cell knowledge. Synchronize
 
 ## T1105 — structural semantic propagation
 
-The internal transient `CursesLogicalCellState` pair moves `CursesCell` plus optional `CursesCellMetadata` through:
-
-- insert/delete cells and lines;
-- scroll up/down;
-- destructive rectangle copy;
-- transparent overlay;
-- pads and independent viewports;
-- preserved screen resize;
-- wide-cell normalization/clipping repair.
+The internal transient `CursesLogicalCellState` pair moves `CursesCell` plus optional `CursesCellMetadata` through insert/delete cells and lines, scroll up/down, destructive rectangle copy, transparent overlay, pads and independent viewports, preserved screen resize, and wide-cell normalization/clipping repair.
 
 Destructive copy transfers annotated blanks. Overlay blanks remain fully transparent and preserve destination metadata.
 
@@ -183,9 +176,7 @@ A non-cancellation failure from Terminal's bounded hyperlink operation is treate
 
 Caller cancellation before hyperlink transmission is non-poisoning. Cancellation after a complete linked run invalidates retained physical state so a later fresh refresh repaints safely. Suspend/resume likewise invalidates retained semantic knowledge.
 
-Permanent record:
-
-- `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`
+Permanent record: `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`.
 
 ---
 
@@ -193,36 +184,21 @@ Permanent record:
 
 T1107 provides application-shaped evidence across editor, pager/help, large-pad, and real Terminal-backed session workloads.
 
-Editor coverage includes wide linked Unicode, style changes independent of hyperlink identity, edits before/inside linked content, and repeated semantic-only retargeting. Pager coverage includes many links, no-op settling, viewport movement, line insertion/deletion, and scrolling. The 2,048 × 256 pad covers sparse and dense semantics plus independent viewports.
-
-The sparse reference-plane acceptance shape records 36 KiB of deterministic reference payload for ten populated rows at the reference pad, compared with the rejected 4 MiB unconditional inline-slot cost.
+The sparse reference-plane acceptance shape records 36 KiB of deterministic reference payload for ten populated rows at the 2,048 × 256 reference pad, compared with the rejected 4 MiB unconditional inline-slot cost.
 
 Equivalent semantic cells coalesce to bounded hyperlink runs; 256 equivalent linked cells generate one semantic transaction, while 32 intentionally distinct links remain 32 transactions.
 
 Real Terminal-backed acceptance covers synchronized output on/off, concurrent rich input, live resize, suspend/resume, and deterministic protocol cleanup.
 
-Permanent record:
-
-- `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
+Permanent record: `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`.
 
 ---
 
 ## T1108 — public API, package, documentation, and regret gate
 
-T1108 is complete and qualified. It:
+T1108 is complete and qualified. It regenerated the compiler-derived 1.1 API fingerprint across net8/net9/net10, froze the accepted 45-type/337-line contract at `21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039`, made `CursesCellMetadata.Hyperlink` nullable for forward-compatible future semantic kinds while retaining the non-null constructor, renamed the ambiguous two-argument semantic write to `WriteWithMetadata(...)`, extended the package-only consumer, added one retained-hyperlink use to the minimal sample, removed the superseded duplicate T1103 draft, and recorded machine-readable/human-readable 1.1 API baselines.
 
-- regenerated the compiler-derived 1.1 API fingerprint across net8/net9/net10;
-- froze the accepted 45-type/337-line contract at `21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039`;
-- made `CursesCellMetadata.Hyperlink` nullable for forward-compatible future semantic kinds while retaining the non-null constructor;
-- renamed the ambiguous two-argument semantic write to `WriteWithMetadata(...)`;
-- extended the package-only consumer through the new semantic surface;
-- added one retained-hyperlink use to the minimal sample;
-- removed the superseded duplicate T1103 draft;
-- recorded machine-readable and human-readable 1.1 API baselines.
-
-Permanent record:
-
-- `docs/T1108-Public-API-Package-Documentation-and-Regret-Gate.md`
+Permanent record: `docs/T1108-Public-API-Package-Documentation-and-Regret-Gate.md`.
 
 ---
 
@@ -236,21 +212,13 @@ T1107 closed this decision for 1.1. Representative non-semantic shortcuts provid
 
 ## T1109 — RC and stable closure
 
-T1109 is active.
+The `1.1.0-rc.1` freeze `b90e54c668ccb8a02142c434470a020775fd375f` passed workflow #552 (`34426070109`) across all seven jobs with no release blocker.
 
-The release candidate must preserve the T1108-accepted contract unchanged. No new features, API names, semantic kinds, dependency updates, or optimization work enter RC absent a demonstrated release blocker.
+Stable-source promotion preserves the accepted API and implementation unchanged and changes only release/package/status documentation to `1.1.0`.
 
-Current candidate:
+The resulting exact stable-source SHA must pass the same seven-job matrix. After that qualification, PR #25 records the tested SHA/workflow without moving the branch. Merge, tag, GitHub Release creation, and NuGet publication remain explicit later actions.
 
-```text
-1.1.0-rc.1
-```
-
-The permanent closure record is:
-
-- `docs/T1109-RC-and-Stable-Closure.md`
-
-After one exact RC head passes all seven jobs, stable promotion changes only release identity/notes/status documentation to `1.1.0`, then requires another exact seven-job gate. Merge, tag, GitHub Release creation, and NuGet publication remain explicit later actions.
+Permanent record: `docs/T1109-RC-and-Stable-Closure.md`.
 
 ---
 
@@ -265,7 +233,7 @@ T1101  contract/reference/version-policy freeze             complete
   -> T1106  lifecycle/failure/cancellation hardening        complete
   -> T1107  application/performance/allocation acceptance   complete
   -> T1108  API/package/documentation/regret gate           complete; alpha.8 qualified
-  -> T1109  RC and stable 1.1.0 closure                     active; rc.1 validation
+  -> T1109  RC and stable 1.1.0 closure                     RC qualified; stable-source gate active
 ```
 
 ---

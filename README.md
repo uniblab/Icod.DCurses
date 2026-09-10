@@ -15,17 +15,15 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 ## Status
 
-`Icod.DCurses 1.0.0` is the current published stable release.
+`Icod.DCurses 1.0.0` remains the currently published stable release while the `1.1.0` source candidate completes final qualification in PR #25.
 
-`Icod.DCurses 1.1.0-rc.1` is the active post-1.0 release candidate on PR #25.
+T1101 froze the stable 1.0 compatibility floor and version policy. T1102 selected the row-sparse semantic metadata plane. T1103 introduced the logical semantic API. T1104 added retained physical hyperlink rendering through Terminal-owned OSC 8. T1105 propagated semantics through editing/composition/pads/resize. T1106 hardened failure, cancellation, cleanup, and lifecycle replay. T1107 completed application/performance/allocation acceptance. T1108 completed the pre-RC regret gate and froze the accepted 1.1 public contract. T1109 qualified `1.1.0-rc.1` and now validates the unchanged stable `1.1.0` source before any merge, tag, release, or package publication.
 
-T1101 froze the stable 1.0 compatibility floor and version policy. T1102 selected the row-sparse semantic metadata plane. T1103 introduced the logical semantic API. T1104 added retained physical hyperlink rendering through Terminal-owned OSC 8. T1105 propagated semantics through editing/composition/pads/resize. T1106 hardened failure, cancellation, cleanup, and lifecycle replay. T1107 completed application/performance/allocation acceptance. T1108 completed the pre-RC regret gate and froze the accepted 1.1 public contract. T1109 now validates that exact contract as `1.1.0-rc.1` before stable promotion.
-
-Current development identity:
+Current source identity:
 
 ```text
-Version         1.1.0-rc.1
-PackageVersion  1.1.0-rc.1
+Version         1.1.0
+PackageVersion  1.1.0
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -39,7 +37,7 @@ Stable 1.0 compatibility floor:
 sha256 274b87ec28a253e4891f7f72dea847eaf7d57f45e7b6dd2ae4b464e783046639
 ```
 
-Accepted 1.1 release-candidate contract:
+Accepted 1.1 contract:
 
 ```text
 45 exported types
@@ -51,13 +49,11 @@ The two intentional new exported types are `CursesHyperlink` and `CursesCellMeta
 
 ## Installation
 
-The current published stable release remains `1.0.0`:
+Until the `1.1.0` tag/package is explicitly published, the current published stable package remains `1.0.0`:
 
 ```text
 dotnet add package Icod.DCurses --version 1.0.0
 ```
-
-The release candidate is being validated in PR #25 and is not presented here as the stable installation target.
 
 ## Architecture
 
@@ -120,7 +116,7 @@ A `CursesSession` restores the presentation and Terminal-owned state it acquires
 
 ## Stable 1.0 compatibility contract
 
-The 1.1 release candidate carries forward the contract frozen in 0.9 and published as 1.0.0.
+The 1.1 release carries forward the contract frozen in 0.9 and published as 1.0.0.
 
 The accepted compatibility rules include:
 
@@ -159,7 +155,7 @@ See:
 
 ## 1.1 semantic metadata and hyperlinks
 
-The 1.1 release introduces semantic meaning attached to retained content, beginning with hyperlinks.
+Version 1.1 adds semantic meaning attached to retained content, beginning with hyperlinks.
 
 ```text
 visual rendition     -> CursesStyle
@@ -184,7 +180,7 @@ T1107 binds that representation to the reference scale: the 2,048 top-level row 
 
 ### Logical public contract
 
-T1103 introduced immutable semantic values. T1108 froze the source-compatible convenience name before RC:
+T1103 introduced immutable semantic values. T1108 froze the source-compatible convenience name:
 
 ```csharp
 CursesCellMetadata metadata = new(
@@ -200,7 +196,7 @@ screen.WriteWithMetadata(
 );
 ```
 
-The explicit style-bearing semantic form remains:
+The explicit style-bearing semantic form is:
 
 ```csharp
 screen.Write(
@@ -212,7 +208,7 @@ screen.Write(
 
 `WriteWithMetadata(string, CursesCellMetadata)` deliberately avoids adding a second `Write(string, T)` overload beside stable 1.0's `Write(string, CursesStyle)`, so existing source such as `screen.Write("text", default)` remains unambiguous.
 
-`CursesCellMetadata.Hyperlink` is nullable in the RC contract so later additive metadata kinds can be introduced without weakening a published non-null return contract. The current 1.1 constructor still requires a real `CursesHyperlink`.
+`CursesCellMetadata.Hyperlink` is nullable so later additive metadata kinds can be introduced without weakening a published non-null return contract. The 1.1 constructor still requires a real `CursesHyperlink`.
 
 Metadata can also be inspected or changed at window/virtual-screen coordinates through `GetMetadata(...)` and `SetMetadata(...)`.
 
@@ -269,7 +265,7 @@ Real Terminal-backed tests cover synchronized output both enabled and disabled, 
 
 Terminal-native erase, character-shift, line-shift, and scrolling shortcuts remain conservatively disabled while desired or retained physical semantic metadata exists. The non-semantic cost wins are established, but terminfo does not provide a portable guarantee that those physical transformations preserve emulator-side OSC 8 cell associations. Direct semantic rewriting remains the 1.1 correctness policy.
 
-### Pre-RC public regret gate
+### Public regret gate and stable contract
 
 T1108 regenerated the public API fingerprint on all three target frameworks and accepted one identical contract:
 
@@ -279,13 +275,11 @@ T1108 regenerated the public API fingerprint on all three target frameworks and 
 sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
 ```
 
-The fresh NuGet-only consumer exercises hyperlink construction, semantic writing, inspection, removal, and reassignment. The minimal executable sample also contains a retained hyperlink example. No new Terminal/TermInfo public type enters the DCurses contract.
+The fresh NuGet-only consumer exercises hyperlink construction, semantic writing, inspection, removal, and reassignment. The minimal executable sample contains a retained hyperlink example. No new Terminal/TermInfo public type enters the DCurses contract.
 
 T1108's documentation-complete alpha.8 head `290508c69ed7e76179f168cc748edf38a4091b76` passed workflow #543 (`34422961869`) across all seven jobs.
 
-### Release-candidate freeze
-
-The final documentation-synchronized `1.1.0-rc.1` branch head is qualified through the T1109 seven-job gate before stable promotion. Its exact SHA/workflow are recorded in PR #25 so this README does not require another source move merely to self-record its own commit hash.
+T1109 then qualified the unchanged `1.1.0-rc.1` source at `b90e54c668ccb8a02142c434470a020775fd375f` in workflow #552 (`34426070109`) across all seven jobs. The stable `1.1.0` source now requires one final exact-head qualification before any release action.
 
 See:
 
@@ -469,7 +463,7 @@ Current post-1.0 authorities:
 - `docs/Public-API-Fingerprint-1.1.json`
 - `docs/Public-API-Baseline-1.1.md`
 
-The published 1.0 closure records remain stable compatibility authorities and are not rewritten merely to reflect later development versions.
+The published 1.0 closure records remain stable compatibility authorities and are not rewritten merely to reflect later development state.
 
 ## Authors
 

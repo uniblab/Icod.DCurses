@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "release": "1.1.0-alpha.8",
-  "status": "pre-rc-accepted-baseline",
+  "release": "1.1.0",
+  "status": "stable-release-baseline",
   "sha256": "21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039",
   "exportedTypeCount": 45,
   "contractLineCount": 337,

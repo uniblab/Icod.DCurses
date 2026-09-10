@@ -13,16 +13,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>1.1.0-rc.1</Version>
+		<Version>1.1.0</Version>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>1.1.0-rc.1</PackageVersion>
+		<PackageVersion>1.1.0</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>1.1.0-rc.1 promotes the T1108-qualified semantic metadata and retained hyperlink implementation unchanged into release-candidate validation. The accepted 1.1 public contract remains 45 exported types, 337 canonical contract lines, and SHA-256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039 across net8.0, net9.0, and net10.0. The two intentional new exported types are CursesHyperlink and CursesCellMetadata. The source-compatible two-argument semantic convenience is WriteWithMetadata(string, CursesCellMetadata); the explicit Write(string, CursesStyle, CursesCellMetadata) and WriteCell(CursesCell, CursesCellMetadata) operations remain available. CursesCellMetadata.Hyperlink remains nullable for future additive semantic kinds while the current constructor requires a real hyperlink. Retained hyperlinks continue through Terminal-owned bounded OSC 8 output, including synchronized-output composition, conservative failure recovery, structural semantic propagation, and application-scale editor/pager/pad acceptance. Dependencies remain Icod.Terminal 1.6.0 and Icod.TermInfo 1.10.0; AssemblyVersion remains 1.0.0.0. No API or behavioral change is introduced by the RC promotion.</PackageReleaseNotes>
+		<PackageReleaseNotes>1.1.0 adds retained semantic cell metadata and hyperlinks while preserving the stable 1.0 compatibility floor. The accepted public contract is 45 exported types, 337 canonical contract lines, and SHA-256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039 across net8.0, net9.0, and net10.0. The two intentional new exported types are CursesHyperlink and CursesCellMetadata. Semantic metadata uses a lazily allocated row-sparse plane, moves with surviving content through editing/composition/pads/resize, and participates independently in retained physical refresh. Adjacent equivalent links coalesce into Terminal-owned bounded OSC 8 operations. Synchronized-output, cancellation, lifecycle replay, and uncertain hyperlink cleanup are handled conservatively. The source-compatible two-argument semantic convenience is WriteWithMetadata(string, CursesCellMetadata); the explicit Write(string, CursesStyle, CursesCellMetadata) and WriteCell(CursesCell, CursesCellMetadata) operations remain available. CursesCellMetadata.Hyperlink is nullable for future additive semantic kinds while the current constructor requires a real CursesHyperlink. Dependencies remain Icod.Terminal 1.6.0 and Icod.TermInfo 1.10.0; AssemblyVersion remains 1.0.0.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>

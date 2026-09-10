@@ -1,7 +1,6 @@
 # Icod.DCurses 1.1 Public API Baseline
 
-**Release line:** `1.1.0`  
-**Pre-RC accepted checkpoint:** `1.1.0-alpha.8`  
+**Stable release:** `1.1.0`  
 **Stable compatibility floor:** `1.0.0`  
 **Assembly version:** `1.0.0.0`  
 **Dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`
@@ -22,7 +21,7 @@ contract lines:   337
 
 The compiler-derived fingerprint is identical across `net8.0`, `net9.0`, and `net10.0` and covers public type/member signatures, enum values, generic constraints, parameter order/ref-kind/default values, accessor visibility, public fields/constants, and compiled nullable metadata.
 
-The stable 1.0 floor remains independently frozen at 43 exported types / 309 lines. T1108 does not rewrite or weaken that baseline.
+The stable 1.0 floor remains independently frozen at 43 exported types / 309 lines. Version 1.1 does not rewrite or weaken that baseline.
 
 ## Intentional new types
 
@@ -99,6 +98,14 @@ The 1.1 contract is additive over stable 1.0 in exported type/member availabilit
 
 No public raw OSC/CSI/DCS/APC writer, refresh-engine implementation type, sparse-plane type, physical-screen state, Terminal hyperlink lease, output shim, diagnostics record, or test seam is exported.
 
+## Qualification
+
+The pre-RC alpha.8 source `290508c69ed7e76179f168cc748edf38a4091b76` passed workflow #543 (`34422961869`) across package validation and all six runtime jobs.
+
+The unchanged `1.1.0-rc.1` source `b90e54c668ccb8a02142c434470a020775fd375f` passed workflow #552 (`34426070109`) across the same seven-job matrix.
+
+Stable `1.1.0` source preserves this exact public contract and requires one final exact-head qualification before merge, tag, GitHub Release creation, or NuGet publication.
+
 ## Machine guards
 
 - `PublicApiFingerprintTests` regenerates and verifies the complete compiled 1.1 surface.
@@ -108,4 +115,4 @@ No public raw OSC/CSI/DCS/APC writer, refresh-engine implementation type, sparse
 - package-only validation compiles and executes the 1.1 semantic value/write/inspection/mutation surface from the generated NuGet package.
 - package verification requires XML documentation, portable symbols, exact dependencies, README/license/icon/repository metadata, and clean framework groups.
 
-The accepted fingerprint may change after this point only for a documented release-blocking correction before RC; otherwise T1109 promotes this contract unchanged.
+This fingerprint is the stable 1.1 public baseline. Any future intentional public delta requires an explicit versioned compatibility review and a new accepted fingerprint.

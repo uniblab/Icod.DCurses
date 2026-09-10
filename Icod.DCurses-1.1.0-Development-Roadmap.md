@@ -4,13 +4,13 @@
 **Release line:** `1.1.0`  
 **Stable compatibility floor:** `1.0.0`  
 **Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
-**Development checkpoint:** `1.1.0-rc.1`  
+**Source checkpoint:** `1.1.0`  
 **Assembly version:** `1.0.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Theme:** semantic cell metadata and retained hyperlinks  
-**Status:** T1101–T1108 complete and qualified; T1109 release-candidate exact-head qualification active
+**Status:** T1101–T1108 complete and qualified; T1109 RC qualified and stable-source exact-head qualification active
 
 ---
 
@@ -27,15 +27,7 @@ how terminal protocols emit
 that meaning                 -> Icod.Terminal
 ```
 
-Version 1.1 must add semantic content without:
-
-- turning `CursesStyle` into an untyped semantic bag;
-- constructing raw OSC 8 in DCurses;
-- exposing Terminal hyperlink leases publicly;
-- weakening Unicode/wide-cell/editing/pad invariants;
-- creating a second terminal serialization or lifecycle owner;
-- imposing unconditional metadata cost on ordinary cells;
-- hiding output/cleanup uncertainty behind optimistic retained state.
+Version 1.1 adds semantic content without turning `CursesStyle` into an untyped semantic bag, constructing raw OSC 8 in DCurses, exposing Terminal hyperlink leases publicly, weakening Unicode/wide-cell/editing/pad invariants, creating a second terminal serialization/lifecycle owner, imposing unconditional metadata cost on ordinary cells, or hiding output/cleanup uncertainty behind optimistic retained state.
 
 ---
 
@@ -49,7 +41,7 @@ exported types:    43
 contract lines:   309
 ```
 
-Accepted 1.1 release-candidate contract after T1108:
+Accepted stable 1.1 contract after T1108:
 
 ```text
 sha256:            21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
@@ -57,7 +49,7 @@ exported types:    45
 contract lines:   337
 ```
 
-The only intentional new exported types remain:
+The only intentional new exported types are:
 
 - `CursesHyperlink`;
 - `CursesCellMetadata`.
@@ -76,11 +68,11 @@ Package version   advances normally through compatible 1.x releases
 AssemblyVersion   remains 1.0.0.0
 ```
 
-Current identity:
+Current source identity:
 
 ```text
-Version         1.1.0-rc.1
-PackageVersion  1.1.0-rc.1
+Version         1.1.0
+PackageVersion  1.1.0
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -90,7 +82,7 @@ Icod.TermInfo   1.10.0
 
 ## 3. Terminal ownership boundary
 
-DCurses owns retained semantic intent. Terminal owns canonical OSC framing, live terminal state, session output ordering, synchronized-output ownership, hyperlink ownership and cleanup, and terminal lifecycle participation.
+DCurses owns retained semantic intent. Terminal owns canonical OSC framing, live terminal state, session output ordering, synchronized-output ownership, hyperlink ownership/cleanup, and terminal lifecycle participation.
 
 DCurses does not emit raw OSC 8 or expose `TerminalHyperlinkLease` publicly. Linked retained runs use Terminal's typed bounded hyperlink operation.
 
@@ -102,17 +94,42 @@ The accepted logical representation is a lazily allocated row-sparse metadata re
 
 The portable measured incremental cost of both tested inline candidates is +8 bytes per logical cell. At the established 2,048 × 256 reference pad, that is exactly 4 MiB even when semantic metadata is unused.
 
-Qualified head `60fa5e1a0b17e91f7c0e78ee397ff797645471d7`; workflow #456 (`34400518088`) — seven jobs green.
+The sparse plane provides O(1) lookup, lazy row allocation/release, row snapshot/replace support, and leaves `CursesCell` context-free.
+
+Qualified head:
+
+```text
+60fa5e1a0b17e91f7c0e78ee397ff797645471d7
+workflow #456 / 34400518088
+```
+
+Seven jobs green.
 
 ---
 
 ## 5. T1103 — public logical semantic contract
 
-T1103 introduced `CursesHyperlink`, `CursesCellMetadata`, metadata inspection/mutation, and metadata-aware writes. Semantic metadata remains separate from `CursesStyle` and `CursesCell`; wide leader/continuation coordinates share one coherent semantic value; ordinary unannotated replacement clears overwritten semantics; semantic-only mutation participates in dirty/change tracking.
+T1103 introduced `CursesHyperlink`, `CursesCellMetadata`, metadata inspection/mutation, and metadata-aware writes.
 
-The final pre-RC T1108 spelling of the two-argument convenience is `WriteWithMetadata(string, CursesCellMetadata)`; explicit style plus metadata remains `Write(string, CursesStyle, CursesCellMetadata)`.
+Rules include:
 
-Qualified head `d520adf79bf6a74bfbb09e1b2ecc4082a3cce960`; workflow #474 (`34405314146`) — seven jobs green.
+- semantic metadata remains separate from `CursesStyle` and `CursesCell`;
+- wide leader/continuation coordinates share one coherent semantic value;
+- ordinary unannotated replacement clears overwritten semantics;
+- semantic-only mutation participates in dirty/change tracking;
+- `Fill()`/`Clear()` damage coordinates when semantics disappear even if visible cell values are unchanged;
+- hyperlink target/identifier validation aligns with Terminal without leaking Terminal hyperlink types.
+
+The final T1108 spelling of the two-argument convenience is `WriteWithMetadata(string, CursesCellMetadata)`; explicit style plus metadata remains `Write(string, CursesStyle, CursesCellMetadata)`.
+
+Qualified documentation-complete T1103 head:
+
+```text
+d520adf79bf6a74bfbb09e1b2ecc4082a3cce960
+workflow #474 / 34405314146
+```
+
+Seven jobs green.
 
 ---
 
@@ -120,23 +137,48 @@ Qualified head `d520adf79bf6a74bfbb09e1b2ecc4082a3cce960`; workflow #474 (`34405
 
 T1104 detects semantic-only differences, subdivides changed style runs by metadata identity, coalesces adjacent equivalent links, emits linked text through Terminal's typed bounded hyperlink operation, emits only wide-cell leader text, invalidates physical semantic knowledge with cell knowledge, and composes with synchronized output without another output lock.
 
-Qualified head `242deb76ede3e04a89a90591d8c27216f4efd980`; workflow #485 (`34411626180`) — seven jobs green.
+Qualified head:
+
+```text
+242deb76ede3e04a89a90591d8c27216f4efd980
+workflow #485 / 34411626180
+```
+
+Seven jobs green.
 
 ---
 
 ## 7. T1105 — structural semantic propagation
 
-The internal transient `CursesLogicalCellState` pair moves `CursesCell` plus optional `CursesCellMetadata` through insert/delete cells and lines, scroll up/down, destructive copy, transparent overlay, pads/viewports, preserved resize, and wide-cell repair.
+The internal transient `CursesLogicalCellState` pair moves `CursesCell` plus optional `CursesCellMetadata` through insert/delete cells and lines, scroll up/down, destructive rectangle copy, transparent overlay, pads/viewports, preserved resize, and wide-cell repair.
 
-Qualified head `f35eee81a9660271ba8eb4a930738b1997207cb7`; workflow #497 (`34413294079`) — seven jobs green.
+Frozen composition rules include destructive copy transferring annotated blanks, overlay blanks remaining fully transparent, overlapping copy snapshotting cells/metadata before mutation, and clipped/orphaned wide footprints losing semantics with discarded content.
+
+Qualified head:
+
+```text
+f35eee81a9660271ba8eb4a930738b1997207cb7
+workflow #497 / 34413294079
+```
+
+Seven jobs green.
 
 ---
 
 ## 8. T1106 — lifecycle, failure, cancellation, and recovery hardening
 
-A failed synchronized-output release remains retryable because DCurses retains the `TerminalSynchronizedOutputLease`. A non-cancellation bounded hyperlink failure fails application text closed until disposal because Terminal may retain an internal synthetic hyperlink lease that DCurses cannot access. Caller cancellation before hyperlink transmission is non-poisoning; cancellation after one complete linked run invalidates retained physical state for a complete later repaint.
+A failed synchronized-output release remains retryable because DCurses retains the `TerminalSynchronizedOutputLease` and retries cleanup before later synchronized refresh or rendition reset.
 
-Documentation-complete head `59232c1eb9da1bd97f8c3ea950c757159f82a15f`; workflow #507 (`34416436456`) — seven jobs green.
+A non-cancellation bounded hyperlink failure fails application text closed until disposal because Terminal may retain an internal synthetic hyperlink lease that DCurses cannot access. Caller cancellation before hyperlink transmission is non-poisoning; cancellation after one complete linked run invalidates retained physical state for a complete later repaint. Suspend/resume likewise invalidates retained semantic knowledge.
+
+Documentation-complete head:
+
+```text
+59232c1eb9da1bd97f8c3ea950c757159f82a15f
+workflow #507 / 34416436456
+```
+
+Seven jobs green.
 
 Permanent record: `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Hardening.md`.
 
@@ -144,17 +186,47 @@ Permanent record: `docs/T1106-Semantic-Output-Lifecycle-Failure-and-Recovery-Har
 
 ## 9. Physical optimization boundary
 
-Terminal-native line-shift, character-shift, erase, and scrolling shortcuts remain disabled while desired or retained physical semantic metadata exists. T1107 confirmed the non-semantic cost wins but found no portable terminfo guarantee that emulator-side OSC 8 associations survive those physical transforms.
+Terminal-native line-shift, character-shift, erase, and scrolling shortcuts remain disabled while desired or retained physical semantic metadata exists.
+
+T1107 confirmed the non-semantic cost wins but found no portable terminfo guarantee that emulator-side OSC 8 associations survive those physical transforms. Direct rewriting remains the 1.1 portable correctness policy.
 
 ---
 
 ## 10. T1107 — application, performance, allocation, and optimization acceptance
 
-Application-shaped editor, pager/help, large-pad, and real Terminal-backed session workloads are qualified. At the 2,048 × 256 reference pad, ten populated semantic rows carry 36 KiB of deterministic reference payload versus the rejected 4 MiB unconditional inline-slot cost. A 256-cell equivalent linked row coalesces to one semantic transaction; 32 intentionally distinct links remain 32 transactions.
+Application-shaped editor, pager/help, large-pad, and real Terminal-backed session workloads are qualified.
 
-Implementation/acceptance head `bc226acf20fc5a8ab88f81d0d2053663d0120288`; workflow #516 (`34419328443`) — seven jobs green.
+At the 2,048 × 256 reference pad, ten populated semantic rows carry 36 KiB of deterministic reference payload versus the rejected 4 MiB unconditional inline-slot cost. Empty semantic rows allocate no per-row array and cleared rows are released.
 
-Documentation/version head `8bfdb38ac6964f8a6bd1654d29d931c89cedf5c0`; workflow #517 (`34419902612`) — seven jobs green.
+Equivalent links coalesce:
+
+```text
+256 equivalent linked cells -> 1 bounded semantic hyperlink write
+```
+
+Distinct semantics remain distinct:
+
+```text
+32 distinct adjacent links -> 32 bounded semantic hyperlink writes
+```
+
+Real Terminal-backed acceptance covers synchronized output on/off, concurrent rich input, live resize, suspend/resume, and deterministic protocol cleanup.
+
+Implementation/acceptance head:
+
+```text
+bc226acf20fc5a8ab88f81d0d2053663d0120288
+workflow #516 / 34419328443
+```
+
+Documentation/version head:
+
+```text
+8bfdb38ac6964f8a6bd1654d29d931c89cedf5c0
+workflow #517 / 34419902612
+```
+
+Both passed all seven jobs.
 
 Permanent record: `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`.
 
@@ -162,17 +234,30 @@ Permanent record: `docs/T1107-Application-Performance-Allocation-and-Optimizatio
 
 ## 11. T1108 — API/package/documentation/regret gate
 
-T1108 regenerated the compiler-derived 1.1 API fingerprint across net8/net9/net10 and froze the accepted 45-type/337-line contract at `21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039`.
+T1108 regenerated the compiler-derived 1.1 API fingerprint across `net8.0`, `net9.0`, and `net10.0` and froze the accepted 45-type/337-line contract at:
 
-It also froze `WriteWithMetadata(...)`, made `CursesCellMetadata.Hyperlink` nullable for forward-compatible future semantic kinds while retaining the non-null constructor, extended the NuGet-only consumer through the semantic surface, added one retained hyperlink to the minimal sample, removed the superseded duplicate T1103 draft, and recorded machine-readable/human-readable 1.1 API baselines.
+```text
+21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
+```
+
+It also:
+
+- froze `WriteWithMetadata(...)` to preserve stable-source `default` calls;
+- made `CursesCellMetadata.Hyperlink` nullable for future metadata extensibility while retaining the non-null constructor;
+- retained the approved five-type Terminal/TermInfo public dependency allow-list;
+- extended the fresh NuGet-only consumer through hyperlink construction, semantic writing, inspection, removal, and reassignment;
+- added one retained hyperlink to the minimal sample;
+- removed the superseded duplicate T1103 draft;
+- recorded machine-readable and human-readable 1.1 API baselines.
 
 Documentation-complete alpha.8 head:
 
 ```text
 290508c69ed7e76179f168cc748edf38a4091b76
+workflow #543 / 34422961869
 ```
 
-Workflow #543 (`34422961869`) — seven jobs green.
+Seven jobs green.
 
 Permanent records:
 
@@ -188,25 +273,34 @@ Permanent records:
 
 T1109 promotes the T1108-accepted contract unchanged through release-candidate and stable qualification.
 
-Release-candidate identity:
+The final `1.1.0-rc.1` head:
 
 ```text
-Version         1.1.0-rc.1
-PackageVersion  1.1.0-rc.1
+b90e54c668ccb8a02142c434470a020775fd375f
+workflow #552 / 34426070109
+```
+
+passed all seven jobs. No release blocker appeared.
+
+Stable-source identity is therefore:
+
+```text
+Version         1.1.0
+PackageVersion  1.1.0
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
 ```
 
-The accepted fingerprint remains `21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039` with 45 exported types and 337 contract lines.
+The accepted fingerprint remains unchanged at `21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039`, 45 exported types, and 337 contract lines.
 
-The final documentation-synchronized RC qualification target is recorded in PR #25 after its workflow is assigned, without moving the branch. Only a seven-job green result on that exact SHA authorizes stable promotion.
+The atomic stable-source commit changes release/package/status documentation only. Its exact SHA/workflow are recorded in PR #25 after its seven-job qualification without moving the branch.
 
-Stable promotion then changes only release identity, release notes, and current release-status documentation unless a demonstrated blocker requires reopening the gate. One exact stable-source SHA must subsequently pass all seven jobs. Merge, tag, GitHub Release creation, and NuGet publication remain explicit later actions.
+After that gate is green, T1109 is complete at source/qualification level. Merge, tag, GitHub Release creation, and NuGet publication remain explicit later actions.
 
 Permanent record: `docs/T1109-RC-and-Stable-Closure.md`.
 
-**Status:** active; exact `1.1.0-rc.1` qualification pending.
+**Status:** stable-source exact-head qualification active.
 
 ---
 
@@ -221,14 +315,14 @@ T1101  contract/reference/version-policy freeze             complete
   -> T1106  lifecycle/failure/cancellation/recovery         complete
   -> T1107  application/performance/allocation acceptance   complete
   -> T1108  public API/package/documentation/regret gate    complete; alpha.8 qualified
-  -> T1109  RC and stable 1.1.0 closure                     active; rc.1 validation
+  -> T1109  RC and stable 1.1.0 closure                     RC qualified; stable-source gate active
 ```
 
 ---
 
 ## 14. Explicit 1.1 non-goals
 
-Version 1.1 does not require panels/layers/z-order, layout managers, focus/key binding/hit testing, Sixel or Kitty Graphics, generic raster APIs, public pixel geometry, widget controls, native ncurses ABI/source compatibility, generic raw OSC/CSI/DCS/APC writers, or application-level Terminal feature wrappers that add no curses meaning.
+Version 1.1 does not add panels/layers/z-order, layout managers, focus/key binding/hit testing, Sixel or Kitty Graphics, generic raster APIs, public pixel geometry, widget controls, native ncurses ABI/source compatibility, generic raw OSC/CSI/DCS/APC writers, or application-level Terminal feature wrappers that add no curses meaning.
 
 ---
 

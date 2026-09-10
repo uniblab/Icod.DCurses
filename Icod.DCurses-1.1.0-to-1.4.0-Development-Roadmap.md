@@ -3,10 +3,10 @@
 **Project:** `Icod.DCurses`  
 **Scope:** post-1.0 additive core development  
 **Stable compatibility floor:** `1.0.0`  
-**Active development package:** `1.1.0-rc.1`  
+**Active source package:** `1.1.0`  
 **Assembly version policy:** retain `1.0.0.0` through compatible additive 1.x releases  
 **Current runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
-**Planning status:** approved release train; 1.1 T1108 qualified; T1109 release-candidate validation active
+**Planning status:** approved release train; 1.1 RC qualified; stable-source final qualification active
 
 ---
 
@@ -61,43 +61,30 @@ Therefore DCurses does not introduce `DrawSixel(...)`, `DrawKittyImage(...)`, a 
 
 Add non-visual semantic information to retained screen content, beginning with hyperlinks, while keeping `CursesStyle` exclusively concerned with visual rendition.
 
-### Core requirements
+### Core requirements and result
 
-Semantic metadata participates in:
-
-- logical equality and inspection;
-- retained physical refresh planning;
-- editing and scrolling;
-- copy and overlay;
-- windows and subwindows;
-- pads and viewports;
-- resize/clipping and wide-cell repair;
-- lifecycle invalidation and safe output recovery.
+Semantic metadata participates in logical equality/inspection, retained physical refresh planning, editing/scrolling, copy/overlay, windows/subwindows, pads/viewports, resize/clipping/wide-cell repair, lifecycle invalidation, and safe output recovery.
 
 Hyperlink output composes through Terminal's typed OSC 8 ownership APIs. DCurses does not construct raw OSC 8 and does not expose `TerminalHyperlinkLease` publicly.
-
-### Representation result
 
 T1102 selected a lazily allocated row-sparse metadata plane after rejecting unconditional inline reference/token candidates that add eight bytes per logical cell on the supported 64-bit validation matrix. At the 2,048 × 256 reference pad, that rejected shape costs 4 MiB before any semantic content is used.
 
 T1107 binds the accepted sparse shape to application-scale evidence: the top-level 2,048-row reference table contributes 16 KiB of reference payload and ten populated 256-column semantic rows contribute 20 KiB, for 36 KiB of deterministic reference payload.
 
-### Application and output result
-
-T1107 proves editor-like wide linked content, style/semantic independence, edits and repeated semantic retargeting; pager/help many-link/no-op behavior plus viewport movement, insertion/deletion and scrolling; the reference large pad with sparse/dense semantic rows and independent viewports; and real Terminal-backed semantic sessions with synchronized output on/off, concurrent rich input, live resize, suspend/resume, and deterministic protocol cleanup.
+Application acceptance covers editor-like wide linked content, style/semantic independence, edits and repeated semantic retargeting; pager/help many-link/no-op behavior plus viewport movement, insertion/deletion and scrolling; the reference large pad with sparse/dense semantic rows and independent viewports; and real Terminal-backed semantic sessions with synchronized output on/off, concurrent rich input, live resize, suspend/resume, and deterministic protocol cleanup.
 
 Adjacent equivalent links are emitted as semantic runs through Terminal rather than per-cell protocol churn. A 256-cell equivalent linked row uses one bounded semantic write; intentionally distinct links remain distinct transactions.
 
 Terminal-native erase, character-shift, line-shift, and scrolling shortcuts remain disabled when semantic state exists because terminfo does not portably specify how emulator-side OSC 8 associations behave under those physical transformations.
 
-### Public contract
+### Stable public contract
 
 T1108 completed the pre-RC regret gate and froze the accepted 1.1 public surface exactly two exported types above the stable 1.0 floor:
 
 - `CursesHyperlink`;
 - `CursesCellMetadata`.
 
-Accepted fingerprint:
+Stable fingerprint:
 
 ```text
 45 exported types
@@ -107,15 +94,25 @@ sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
 
 The source-compatible semantic convenience is `WriteWithMetadata(string, CursesCellMetadata)`, avoiding ambiguity with stable 1.0 `Write(string, CursesStyle)` when callers pass `default`. `CursesCellMetadata.Hyperlink` is nullable for future additive metadata kinds while the current constructor remains non-null.
 
-### Release-candidate state
+### Qualification state
 
 T1108's documentation-complete `1.1.0-alpha.8` head:
 
 ```text
 290508c69ed7e76179f168cc748edf38a4091b76
+workflow #543 / 34422961869
 ```
 
-passed workflow #543 (`34422961869`) across all seven jobs. T1109 therefore promotes the accepted contract unchanged to `1.1.0-rc.1` and performs release-candidate qualification before stable promotion.
+passed all seven jobs.
+
+T1109's final `1.1.0-rc.1` head:
+
+```text
+b90e54c668ccb8a02142c434470a020775fd375f
+workflow #552 / 34426070109
+```
+
+also passed all seven jobs with no release blocker. Stable `1.1.0` source is now undergoing its final exact-head qualification with the accepted API and implementation unchanged.
 
 Detailed roadmap:
 
@@ -137,18 +134,7 @@ Introduce first-class overlapping logical surfaces without introducing widgets.
 
 ### Required mechanics
 
-The layer/panel model should support:
-
-- attaching a logical window/surface;
-- show/hide;
-- raise/lower;
-- move above/below another layer;
-- deterministic top/bottom ordering;
-- z-order enumeration;
-- clipping to destination geometry;
-- occlusion-aware composition;
-- explicitly defined transparent-cell behavior;
-- invalidation when visibility/order/position/content changes.
+The layer/panel model should support attaching a logical window/surface, show/hide, raise/lower, move above/below another layer, deterministic z-order enumeration, clipping, occlusion-aware composition, explicitly defined transparent-cell behavior, and invalidation when visibility/order/position/content changes.
 
 ### Acceptance shapes
 
@@ -175,17 +161,7 @@ Remove routine terminal-geometry arithmetic from applications while keeping layo
 
 ### Candidate concepts
 
-Public names remain a later design decision, but the release should cover concepts equivalent to:
-
-- rectangles/bounds;
-- insets/margins/padding;
-- horizontal and vertical splits;
-- fixed-size plus remainder allocation;
-- proportional allocation;
-- minimum/maximum sizes;
-- top/bottom/left/right docking;
-- clipping and empty-layout behavior;
-- deterministic recomputation after resize.
+Public names remain a later design decision, but the release should cover concepts equivalent to rectangles/bounds, insets/margins/padding, horizontal and vertical splits, fixed-size plus remainder allocation, proportional allocation, minimum/maximum sizes, top/bottom/left/right docking, clipping/empty-layout behavior, and deterministic recomputation after resize.
 
 ### Acceptance shape
 
@@ -210,52 +186,15 @@ No CSS, browser-style flexbox, general constraint solver, animation system, or d
 
 ### Goal
 
-Add higher-level dispatch mechanics for the semantic events DCurses already receives from Terminal.
-
-The question this layer answers is:
-
-> Which logical part of the terminal UI should receive this event?
-
-### Required mechanics
-
-The release should consider stable concepts for:
-
-- focusable logical regions;
-- explicit focus ownership;
-- forward/backward traversal;
-- keyboard gestures and command mapping;
-- mouse hit testing;
-- interaction rectangles/regions;
-- pointer-shape requests associated with regions;
-- focus repair when a region disappears or becomes unavailable;
-- resize-aware hit testing;
-- deterministic precedence where regions overlap.
-
-### Terminal relationship
+Add higher-level dispatch mechanics for the semantic events DCurses already receives from Terminal: focusable logical regions, explicit focus ownership, traversal, keyboard gestures/command mapping, mouse hit testing, interaction rectangles/regions, pointer-shape requests, focus repair, resize-aware hit testing, and deterministic precedence where regions overlap.
 
 DCurses owns geometry, focus, target selection, and semantic interaction policy. Terminal owns the authoritative input stream and physical pointer-shape protocol state.
 
-For example:
-
-```text
-DCurses hyperlink region      -> semantic pointer request
-DCurses column divider        -> resize pointer request
-DCurses editable region       -> text pointer request
-                                  |
-                                  v
-                         Icod.Terminal
-                         physical protocol
-```
-
-### Non-goal
-
-1.4 provides interaction substrate, not a widget toolkit.
+Version 1.4 provides interaction substrate, not a widget toolkit.
 
 ---
 
 ## 7. Terminal features are wrapped only when DCurses adds meaning
-
-DCurses does not mirror every `TerminalSession` method.
 
 | Terminal semantic feature | DCurses core treatment |
 |---|---|
@@ -277,8 +216,6 @@ The architectural rule is: **DCurses wraps meaning, not method names.**
 ### `Icod.DCurses.Compat`
 
 A native-curses-shaped compatibility facade may eventually provide familiar conveniences such as `stdscr`, `newwin`, `wmove`, `waddstr`, and `wrefresh`, implemented over explicit `CursesSession` ownership.
-
-The stable core remains instance-based and does not gain mandatory process-global state.
 
 ### `Icod.DCurses.Widgets`
 
@@ -314,11 +251,11 @@ Each 1.x release must satisfy:
 
 ## 10. Version policy
 
-The active 1.1 checkpoint is:
+The current 1.1 source identity is:
 
 ```text
-Version         1.1.0-rc.1
-PackageVersion  1.1.0-rc.1
+Version         1.1.0
+PackageVersion  1.1.0
 AssemblyVersion 1.0.0.0
 ```
 
@@ -328,4 +265,4 @@ Compatible additive 1.x releases retain `AssemblyVersion 1.0.0.0` while package 
 
 ## 11. Immediate next step
 
-Qualify one exact documentation-synchronized `1.1.0-rc.1` source head across the seven-job PR matrix without changing the T1108-accepted API. If green, promote only release identity/notes/status documentation to stable `1.1.0`, then require one final exact stable-source seven-job qualification before any merge, tag, release, or NuGet publication.
+Qualify the exact atomic stable `1.1.0` source head across the seven-job PR matrix. If green, record that tested SHA/workflow in PR #25 without moving the branch. Merge, tag, GitHub Release creation, and NuGet publication remain explicit separate actions.
