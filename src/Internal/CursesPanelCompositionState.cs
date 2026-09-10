@@ -281,12 +281,24 @@ internal sealed class CursesPanelCompositionState {
 					row,
 					column
 				);
-				ApplyLogicalCellState(
+				bool changed = ApplyLogicalCellState(
 					destination,
 					row,
 					column,
 					desired
 				);
+				if ( !changed
+					&& TopmostContributingProducerChanged(
+						currentBaseScreen,
+						currentOrder,
+						row,
+						column
+					) ) {
+					destination.TouchCell(
+						row,
+						column
+					);
+				}
 			}
 
 			CursesCellFootprint.Repair( destination );
@@ -295,7 +307,7 @@ internal sealed class CursesPanelCompositionState {
 		}
 	}
 
-	private static void ApplyLogicalCellState(
+	private static bool ApplyLogicalCellState(
 		CursesVirtualScreen destination,
 		int row,
 		int column,
@@ -315,7 +327,7 @@ internal sealed class CursesPanelCompositionState {
 				currentMetadata,
 				desired.Metadata
 			) ) {
-			return;
+			return false;
 		}
 
 		if ( currentCell != desired.Cell ) {
@@ -331,7 +343,7 @@ internal sealed class CursesPanelCompositionState {
 					desired.Metadata
 				);
 			}
-			return;
+			return true;
 		}
 
 		destination.SetMetadata(
@@ -339,6 +351,60 @@ internal sealed class CursesPanelCompositionState {
 			column,
 			desired.Metadata
 		);
+		return true;
+	}
+
+	private bool TopmostContributingProducerChanged(
+		CursesVirtualScreen currentBaseScreen,
+		CursesPanel[] currentOrder,
+		int row,
+		int column
+	) {
+		ArgumentNullException.ThrowIfNull( currentBaseScreen );
+		ArgumentNullException.ThrowIfNull( currentOrder );
+
+		CursesVirtualScreen producer = currentBaseScreen;
+		int producerRow = row;
+		int producerColumn = column;
+		ulong previousProducerRevision = baseRevision;
+		foreach ( CursesPanel panel in currentOrder ) {
+			if ( !panel.IsVisible
+				|| row < panel.Row
+				|| column < panel.Column
+				|| row >= panel.Row + panel.Rows
+				|| column >= panel.Column + panel.Columns ) {
+				continue;
+			}
+
+			int sourceRow = row - panel.Row;
+			int sourceColumn = column - panel.Column;
+			CursesVirtualScreen panelScreen = panel.VirtualScreen;
+			CursesCell panelCell = panelScreen.GetCell(
+				sourceRow,
+				sourceColumn
+			);
+			if ( CursesPanelTransparency.BlankCellsTransparent == panel.Transparency
+				&& panelCell.IsBlank ) {
+				continue;
+			}
+
+			producer = panelScreen;
+			producerRow = sourceRow;
+			producerColumn = sourceColumn;
+			if ( panelSnapshots.TryGetValue(
+				panel,
+				out PanelSnapshot previous
+			) ) {
+				previousProducerRevision = previous.ContentRevision;
+			} else {
+				previousProducerRevision = panelScreen.ChangeRevision;
+			}
+		}
+
+		return producer.GetCellChangeRevision(
+			producerRow,
+			producerColumn
+		) > previousProducerRevision;
 	}
 
 	private void CaptureState(
