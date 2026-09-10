@@ -263,7 +263,7 @@ public sealed class CursesSemanticFailureHardeningTests {
 			0,
 			0
 		);
-		session.StandardScreen.Write(
+		session.StandardScreen.WriteWithMetadata(
 			"link",
 			new CursesCellMetadata(
 				new CursesHyperlink(
@@ -332,7 +332,6 @@ public sealed class CursesSemanticFailureHardeningTests {
 				lock ( this.sync ) {
 					return Encoding.UTF8.GetString( this.bytes.ToArray() );
 				}
-			}
 		}
 
 		internal void Clear() {
