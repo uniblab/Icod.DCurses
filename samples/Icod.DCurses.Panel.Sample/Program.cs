@@ -13,7 +13,7 @@ WriteLine(
 WriteLine(
 	baseWindow,
 	1,
-	"The base screen remains retained while a panel is hidden, moved, and disposed."
+	"The base screen remains retained while panels overlap, move, hide, and dispose."
 );
 
 if ( screen.Rows < 4 || screen.Columns < 12 ) {
@@ -44,6 +44,58 @@ using CursesPanel panel = screen.CreatePanel(
 CursesWindow panelWindow = panel.ContentWindow;
 panelWindow.WrapMode = CursesWrapMode.Clip;
 panelWindow.Clear();
+WriteLine(
+	panelWindow,
+	0,
+	"Independent retained panel"
+);
+WriteLine(
+	panelWindow,
+	2,
+	"Press a key: show overlap"
+);
+
+int overlayColumns = Math.Min(
+	24,
+	panelColumns - 1
+);
+using CursesPanel overlay = screen.CreatePanel(
+	1,
+	2,
+	1,
+	overlayColumns
+);
+CursesWindow overlayWindow = overlay.ContentWindow;
+overlayWindow.WrapMode = CursesWrapMode.Clip;
+overlayWindow.Clear();
+WriteLine(
+	overlayWindow,
+	0,
+	"Second panel starts on top"
+);
+await session.RefreshAsync();
+await WaitForInputAsync( session );
+
+panel.MoveToTop();
+WriteLine(
+	panelWindow,
+	0,
+	"Primary panel moved to top"
+);
+await session.RefreshAsync();
+await WaitForInputAsync( session );
+
+overlay.MoveAbove( panel );
+overlayWindow.Clear();
+WriteLine(
+	overlayWindow,
+	0,
+	"Second panel moved above"
+);
+await session.RefreshAsync();
+await WaitForInputAsync( session );
+
+overlay.Dispose();
 WriteLine(
 	panelWindow,
 	0,
