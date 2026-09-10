@@ -4,13 +4,13 @@
 **Release line:** `1.1.0`  
 **Stable compatibility floor:** `1.0.0`  
 **Post-1.0 baseline commit:** `d3ff96ad57fd58a046135ca989ecccdda501d08f`  
-**Development checkpoint:** `1.1.0-alpha.7`  
+**Development checkpoint:** `1.1.0-alpha.8`  
 **Assembly version:** `1.0.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.6.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Theme:** semantic cell metadata and retained hyperlinks  
-**Status:** T1101–T1107 complete at implementation level; T1107 documentation-complete alpha.7 exact-head gate active; T1108 next
+**Status:** T1101–T1107 complete and qualified; T1108 pre-RC contract/package/documentation regret work complete at implementation level and alpha.8 exact-head qualification active; T1109 next
 
 ---
 
@@ -49,10 +49,10 @@ exported types:    43
 contract lines:   309
 ```
 
-Current provisional 1.1 contract:
+Accepted pre-RC 1.1 contract after T1108:
 
 ```text
-sha256:            d7fb2040d9cd22ed71e90e788f453c73eb29d681f2cc0f7aaefa805792fab2ea
+sha256:            21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
 exported types:    45
 contract lines:   337
 ```
@@ -62,7 +62,12 @@ The only intentional new exported types remain:
 - `CursesHyperlink`;
 - `CursesCellMetadata`.
 
-T1104–T1107 add no further public API.
+T1108 deliberately refined two provisional T1103 public contract lines before RC:
+
+- `CursesCellMetadata.Hyperlink` is `CursesHyperlink?` for future additive semantic kinds while the current constructor still requires a real hyperlink;
+- the two-argument convenience is `WriteWithMetadata(string, CursesCellMetadata)` rather than `Write(string, CursesCellMetadata)`, preserving stable 1.0 source such as `Write("text", default)` from overload ambiguity.
+
+The explicit `Write(string, CursesStyle, CursesCellMetadata)` and `WriteCell(CursesCell, CursesCellMetadata)` operations remain unambiguous.
 
 Compatible 1.x policy:
 
@@ -74,8 +79,8 @@ AssemblyVersion   remains 1.0.0.0
 Current identity:
 
 ```text
-Version         1.1.0-alpha.7
-PackageVersion  1.1.0-alpha.7
+Version         1.1.0-alpha.8
+PackageVersion  1.1.0-alpha.8
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.6.0
 Icod.TermInfo   1.10.0
@@ -149,13 +154,17 @@ Rules include:
 - `Fill()`/`Clear()` damage coordinates when semantics disappear even if visible cell values are unchanged;
 - hyperlink target/identifier validation aligns with Terminal without leaking Terminal hyperlink types.
 
-Qualified documentation-complete head:
+The final pre-RC T1108 spelling of the two-argument convenience is `WriteWithMetadata(string, CursesCellMetadata)`; explicit style plus metadata remains `Write(string, CursesStyle, CursesCellMetadata)`.
+
+Qualified documentation-complete T1103 head:
 
 ```text
 d520adf79bf6a74bfbb09e1b2ecc4082a3cce960
 ```
 
 Workflow #474 (`34405314146`) — seven jobs green.
+
+T1103's alpha.3 fingerprint was provisional by design and was later refined at the designated T1108 regret gate.
 
 ---
 
@@ -396,42 +405,157 @@ bc226acf20fc5a8ab88f81d0d2053663d0120288
 
 Workflow #516 (`34419328443`) — seven jobs green.
 
+Documentation/version-qualified alpha.7 head:
+
+```text
+8bfdb38ac6964f8a6bd1654d29d931c89cedf5c0
+```
+
+Workflow #517 (`34419902612`) — seven jobs green.
+
 Permanent record:
 
 - `docs/T1107-Application-Performance-Allocation-and-Optimization-Acceptance.md`
 
-**Status:** implementation/acceptance complete and qualified; documentation-synchronized `1.1.0-alpha.7` exact-head gate active.
+**Status:** complete and qualified.
 
 ---
 
 ## 11. T1108 — API/package/documentation/regret gate
 
-Before RC:
+T1108 is the final pre-RC public-contract review.
 
-- regenerate public API fingerprint on net8/net9/net10;
-- confirm the intended 45-type/337-line contract or document any deliberate delta;
-- review names, nullability, equality, validation, and future extensibility;
-- verify no accidental Terminal/TermInfo public type leakage;
-- extend package-only consumer coverage to the 1.1 semantic API;
-- verify XML documentation;
-- audit README/samples/roadmaps/release notes;
-- resolve duplicate/stale planning documents if any remain;
-- perform a final public regret review before RC promotion.
+### 11.1 Compiler-derived public contract
 
-**Status:** next after the exact alpha.7 documentation-complete gate.
+The provisional T1103 fingerprint was intentionally left mutable until this gate.
+
+A pre-fingerprint T1108 head built cleanly and executed the complete suite across all three target frameworks. On each of `net8.0`, `net9.0`, and `net10.0`, 485 of 486 tests passed; the only failure was the deliberately stale public fingerprint assertion.
+
+The compiler-derived replacement was identical across all three targets:
+
+```text
+sha256:            21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
+exported types:    45
+contract lines:   337
+```
+
+Pre-fingerprint evidence head:
+
+```text
+04ad8707956b7d45cb0eefba30d6af0b1833b5a3
+```
+
+Workflow #534 (`34422239633`) supplied that compiler-derived contract. Package construction passed; runtime jobs reached tests and failed only on the intentionally stale fingerprint.
+
+### 11.2 Source-compatibility regret correction
+
+Stable 1.0 already exposes:
+
+```text
+CursesWindow.Write(string, CursesStyle)
+```
+
+The provisional T1103 convenience:
+
+```text
+CursesWindow.Write(string, CursesCellMetadata)
+```
+
+would make previously valid stable source such as `window.Write("text", default)` ambiguous when recompiled against 1.1.
+
+The accepted pre-RC convenience is therefore:
+
+```text
+CursesWindow.WriteWithMetadata(string, CursesCellMetadata)
+```
+
+The explicit `Write(string, CursesStyle, CursesCellMetadata)` operation remains available and unambiguous.
+
+`PublicSemanticMetadataRegretTests` compiles both `Write("plain", default)` and `WriteWithMetadata(...)` to freeze this source-compatibility decision.
+
+### 11.3 Metadata extensibility/nullability correction
+
+The 1.1 constructor remains:
+
+```text
+CursesCellMetadata(CursesHyperlink hyperlink)
+```
+
+and requires a non-null hyperlink.
+
+The public property is frozen as:
+
+```text
+CursesHyperlink? Hyperlink
+```
+
+so future additive metadata kinds do not require a later weakening of a published non-null return contract. Every `CursesCellMetadata` constructible through the 1.1 constructor still contains a hyperlink.
+
+The record remains immutable with value equality semantics.
+
+### 11.4 Dependency boundary
+
+The approved public lower-layer allow-list remains exactly:
+
+```text
+Icod.Terminal.TerminalSession
+Icod.Terminal.TerminalEndpoint
+Icod.Terminal.TerminalControlResult<T>
+Icod.TermInfo.TerminalDescription
+Icod.TermInfo.TerminalSize
+```
+
+No Terminal hyperlink/protocol/output implementation type enters the public DCurses surface.
+
+### 11.5 Package-only consumer
+
+The fresh generated-package consumer now exercises:
+
+- `CursesHyperlink` construction/canonicalization;
+- `CursesCellMetadata` construction;
+- `WriteWithMetadata(...)`;
+- window and virtual-screen metadata inspection;
+- metadata removal;
+- metadata reassignment.
+
+This remains a real NuGet-only consumer rather than a repository project-reference smoke test.
+
+### 11.6 Sample and documentation audit
+
+The minimal `Icod.DCurses.Sample` now demonstrates one retained hyperlink with `CursesHyperlink`, `CursesCellMetadata`, and `WriteWithMetadata(...)`. It emits no raw OSC 8; Terminal remains the framing owner.
+
+The documentation audit found and removed the superseded `docs/T1103-Hyperlink-and-Public-Semantic-Metadata-Contract.md` implementation-staged draft. `docs/T1103-Hyperlink-Value-and-Public-Logical-Metadata-Contract.md` remains the single authoritative T1103 record and is synchronized with the final T1108 API decisions.
+
+The root README, samples README, package release notes, current roadmap index, post-1.0 release-train roadmap, and this detailed 1.1 roadmap are synchronized to alpha.8 and the accepted pre-RC fingerprint.
+
+### 11.7 XML/package gate
+
+The package continues to generate XML documentation for `net8.0`, `net9.0`, and `net10.0`. The existing package verifier continues to require XML documentation, portable PDBs/symbol package, exact dependency groups, README/license/icon/repository metadata, and fresh package-only consumption.
+
+Permanent records:
+
+- `docs/T1108-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/Public-API-Fingerprint-1.1.json`
+- `docs/Public-API-Baseline-1.1.md`
+
+**Status:** implementation, package, API, sample, and documentation work complete; one documentation-synchronized `1.1.0-alpha.8` exact-head seven-job qualification remains before T1108 closure.
 
 ---
 
 ## 12. T1109 — RC and stable closure
 
-1. promote accepted contract to `1.1.0-rc.1`;
+Once T1108's alpha.8 exact-head gate is green:
+
+1. promote the accepted `21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039` contract unchanged to `1.1.0-rc.1`;
 2. validate one exact RC SHA on all seven jobs;
 3. correct release blockers only;
-4. promote unchanged accepted contract to stable `1.1.0`;
+4. promote the unchanged accepted contract to stable `1.1.0`;
 5. perform final documentation/status audit;
 6. validate one exact stable-source SHA;
-7. record tested SHA in PR metadata without moving branch;
+7. record tested SHA in PR metadata without moving branch where possible;
 8. leave merge/tag/publication as explicit later actions.
+
+No new feature family or opportunistic public API should enter T1109.
 
 ---
 
@@ -444,9 +568,9 @@ T1101  contract/reference/version-policy freeze             complete
   -> T1104  retained physical hyperlink renderer            complete
   -> T1105  editing/copy/overlay/pad propagation            complete
   -> T1106  lifecycle/failure/cancellation/recovery         complete
-  -> T1107  application/performance/allocation acceptance   implementation qualified; alpha.7 doc gate
-  -> T1108  public API/package/documentation/regret gate    next
-  -> T1109  RC and stable 1.1.0 closure
+  -> T1107  application/performance/allocation acceptance   complete
+  -> T1108  public API/package/documentation/regret gate    alpha.8 exact-head qualification
+  -> T1109  RC and stable 1.1.0 closure                     next
 ```
 
 ---
@@ -470,4 +594,4 @@ Version 1.1 does not require:
 
 ## 15. Definition of success
 
-`Icod.DCurses 1.1.0` succeeds when semantic meaning can be attached to retained screen content, preserved through the complete curses editing/composition/lifecycle model, emitted through Terminal's typed OSC 8 ownership, and recovered conservatively after output uncertainty—while ordinary unlinked workloads retain the memory, allocation, and refresh characteristics expected from the stable 1.0 core.
+`Icod.DCurses 1.1.0` succeeds when semantic meaning can be attached to retained screen content, preserved through the complete curses editing/composition/lifecycle model, emitted through Terminal's typed OSC 8 ownership, and recovered conservatively after output uncertainty—while ordinary unlinked workloads retain the memory, allocation, and refresh characteristics expected from the stable 1.0 core and the additive public API does not introduce avoidable source-compatibility or future-extensibility regret.
