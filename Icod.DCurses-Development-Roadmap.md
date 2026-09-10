@@ -10,7 +10,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.2.0` — panels, retained layers, and z-order composition  
-**Status:** T1201–T1209 complete; `1.2.0-rc.1` qualified; T1210 stable-source exact-head qualification active
+**Status:** implementation/API/sample/test closure complete; dependency-refresh qualification pending NuGet indexing of `Icod.Terminal 1.9.0`
 
 ---
 
@@ -32,7 +32,7 @@ Historical pre-1.2 tranche records remain historical and are not rewritten to si
 |---|---|---|
 | `1.0.0` | Stable core contract | Historical stable baseline |
 | `1.1.0` | Semantic metadata and hyperlinks | Accepted compatibility floor |
-| `1.2.0` | Panels/layers/z-order composition | Stable-source qualification active |
+| `1.2.0` | Panels/layers/z-order composition | Dependency-refresh qualification pending |
 | `1.3.0` | Layout and resize primitives | Approved future release |
 | `1.4.0` | Focus/interaction/gestures/hit testing/pointer semantics | Approved future release |
 
@@ -73,15 +73,19 @@ No-panel refresh retains an allocation-free internal presence check.
 | T1209 API/lifetime | `866497c9d5015f3a149580d67eacefaf7e121aaf` | #600 / `34524054785` | seven jobs green |
 | T1209 docs/sample/package | `3728bf0e576b32747dd3a628ed5d3eca768ac67f` | #603 / `34525966166` | seven jobs green |
 | T1210 RC | `8c5d329fa195685c0349068ce33a100aaf9eb0a3` | #604 / `34526810086` | seven jobs green |
+| T1210 stable source | `a065ef389b4e5224bd9defeb3f4de0e688e2e08a` | #605 / `34527425232` | seven jobs green |
+| Final sample/test hardening | `93ef832042dac743008a065acb683d3029710f1c` | #607 / `34528856997` | seven jobs green; 560/560 per TFM |
 
-The RC evidence leg built with zero warnings/errors and passed 554/554 tests per supported TFM.
+The current branch then updates only the declared `Icod.Terminal` dependency from `1.8.1` to `1.9.0` plus current-status documentation. The accepted API remains unchanged.
 
 ## Current sequence
 
 ```text
-T1201–T1209  implementation, acceptance, API/package/docs regret gates  complete
-T1210 RC      1.2.0-rc.1 exact-head qualification                       complete
-T1210 stable  1.2.0 exact-head qualification                            active
+T1201–T1210  implementation, acceptance, API/package/docs and stable closure  complete
+Final hardening sample/test regression tranche                                complete
+Dependency refresh Icod.Terminal 1.8.1 -> 1.9.0                              awaiting exact-head qualification
 ```
 
-After a green stable-source head, repository-side development qualification is complete. Merge, main Release qualification, tag, GitHub Release creation, and NuGet publication remain explicit separate actions.
+A temporary restore failure is expected until NuGet indexes `Icod.Terminal 1.9.0`. Do not add fallback package sources, hard-coded compatibility checks, or revert the version merely to make that propagation window green. Once NuGet indexing completes, require the exact current head to pass the normal seven-job matrix.
+
+Merge, main Release qualification, tag, GitHub Release creation, and NuGet publication remain explicit separate actions.
