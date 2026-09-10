@@ -16,8 +16,6 @@ internal static class Program {
 		"net9.0",
 		"net10.0"
 	];
-	private const string TerminalDependencyVersion = "1.6.0";
-	private const string TermInfoDependencyVersion = "1.10.0";
 
 	public static int Main(
 		string[] args
@@ -49,6 +47,7 @@ internal static class Program {
 				string PackageVersion,
 				string AssemblyVersion
 			) projectMetadata = ReadProjectMetadata( root );
+			string[] projectDependencyIds = ReadProjectDependencyIds( root );
 
 			string packagePath = Path.Combine(
 				artifactDirectory,
@@ -71,7 +70,8 @@ internal static class Program {
 			VerifyPrimaryPackage(
 				packagePath,
 				projectMetadata.PackageVersion,
-				projectMetadata.AssemblyVersion
+				projectMetadata.AssemblyVersion,
+				projectDependencyIds
 			);
 			VerifySymbolPackage( symbolsPath );
 
@@ -227,14 +227,58 @@ internal static class Program {
 			.Trim();
 	}
 
+	private static string[] ReadProjectDependencyIds(
+		string root
+	) {
+		ArgumentException.ThrowIfNullOrWhiteSpace( root );
+
+		XDocument project = XDocument.Load(
+			Path.Combine(
+				root,
+				"Icod.DCurses.csproj"
+			),
+			LoadOptions.None
+		);
+
+		string[] dependencyIds = project
+			.Descendants()
+			.Where(
+				element => "PackageReference" == element.Name.LocalName
+			)
+			.Select(
+				element => element.Attribute( "Include" )?.Value
+			)
+			.Where(
+				value => !string.IsNullOrWhiteSpace( value )
+			)
+			.Select(
+				value => value!
+			)
+			.Distinct( StringComparer.Ordinal )
+			.OrderBy(
+				value => value,
+				StringComparer.Ordinal
+			)
+			.ToArray();
+
+		Require(
+			0 < dependencyIds.Length,
+			"Project must declare at least one direct package dependency."
+		);
+
+		return dependencyIds;
+	}
+
 	private static void VerifyPrimaryPackage(
 		string packagePath,
 		string expectedVersion,
-		string expectedAssemblyVersion
+		string expectedAssemblyVersion,
+		IReadOnlyCollection<string> expectedDependencyIds
 	) {
 		ArgumentException.ThrowIfNullOrWhiteSpace( packagePath );
 		ArgumentException.ThrowIfNullOrWhiteSpace( expectedVersion );
 		ArgumentException.ThrowIfNullOrWhiteSpace( expectedAssemblyVersion );
+		ArgumentNullException.ThrowIfNull( expectedDependencyIds );
 
 		using ZipArchive package = ZipFile.OpenRead( packagePath );
 		HashSet<string> names = package.Entries
@@ -351,7 +395,8 @@ internal static class Program {
 		}
 		VerifyNuspec(
 			package,
-			expectedVersion
+			expectedVersion,
+			expectedDependencyIds
 		);
 	}
 
@@ -454,10 +499,12 @@ internal static class Program {
 
 	private static void VerifyNuspec(
 		ZipArchive package,
-		string expectedVersion
+		string expectedVersion,
+		IReadOnlyCollection<string> expectedDependencyIds
 	) {
 		ArgumentNullException.ThrowIfNull( package );
 		ArgumentException.ThrowIfNullOrWhiteSpace( expectedVersion );
+		ArgumentNullException.ThrowIfNull( expectedDependencyIds );
 
 		ZipArchiveEntry[] nuspecs = package.Entries
 			.Where(
@@ -621,13 +668,18 @@ internal static class Program {
 			);
 		}
 
-		VerifyDependencies( metadata! );
+		VerifyDependencies(
+			metadata!,
+			expectedDependencyIds
+		);
 	}
 
 	private static void VerifyDependencies(
-		XElement metadata
+		XElement metadata,
+		IReadOnlyCollection<string> expectedDependencyIds
 	) {
 		ArgumentNullException.ThrowIfNull( metadata );
+		ArgumentNullException.ThrowIfNull( expectedDependencyIds );
 
 		XElement? dependencies = metadata
 			.Elements()
@@ -655,6 +707,13 @@ internal static class Program {
 			$"Expected {TargetFrameworks.Length} dependency groups, found {groups.Length}."
 		);
 
+		string[] expectedIds = expectedDependencyIds
+			.OrderBy(
+				value => value,
+				StringComparer.Ordinal
+			)
+			.ToArray();
+
 		foreach ( string targetFramework in TargetFrameworks ) {
 			string frameworkVersion = targetFramework[ "net".Length.. ];
 			XElement[] matchingGroups = groups
@@ -672,57 +731,35 @@ internal static class Program {
 					+ $"found {matchingGroups.Length}."
 			);
 
-			XElement[] packageDependencies = matchingGroups[ 0 ]
+			string[] actualIds = matchingGroups[ 0 ]
 				.Elements()
 				.Where(
 					element => "dependency" == element.Name.LocalName
 				)
+				.Select(
+					element => element.Attribute( "id" )?.Value
+				)
+				.Where(
+					value => !string.IsNullOrWhiteSpace( value )
+				)
+				.Select(
+					value => value!
+				)
+				.OrderBy(
+					value => value,
+					StringComparer.Ordinal
+				)
 				.ToArray();
-			Require(
-				2 == packageDependencies.Length,
-				$"DCurses {targetFramework} package group must contain exactly "
-					+ "two runtime dependencies."
-			);
 
-			VerifyDependency(
-				packageDependencies,
-				"Icod.Terminal",
-				TerminalDependencyVersion
-			);
-			VerifyDependency(
-				packageDependencies,
-				"Icod.TermInfo",
-				TermInfoDependencyVersion
+			Require(
+				expectedIds.SequenceEqual(
+					actualIds,
+					StringComparer.Ordinal
+				),
+				$"Package dependency set for {targetFramework} does not match "
+					+ "the project's direct PackageReference set."
 			);
 		}
-	}
-
-	private static void VerifyDependency(
-		IEnumerable<XElement> dependencies,
-		string packageId,
-		string expectedVersion
-	) {
-		ArgumentNullException.ThrowIfNull( dependencies );
-		ArgumentException.ThrowIfNullOrWhiteSpace( packageId );
-		ArgumentException.ThrowIfNullOrWhiteSpace( expectedVersion );
-
-		XElement[] matches = dependencies
-			.Where(
-				dependency => string.Equals(
-					dependency.Attribute( "id" )?.Value,
-					packageId,
-					StringComparison.Ordinal
-				)
-			)
-			.ToArray();
-		Require(
-			1 == matches.Length,
-			$"Package must reference {packageId} exactly once."
-		);
-		Require(
-			expectedVersion == matches[ 0 ].Attribute( "version" )?.Value,
-			$"Package references unexpected {packageId} version."
-		);
 	}
 
 	private static void VerifySymbolPackage(
