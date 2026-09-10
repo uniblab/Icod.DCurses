@@ -38,6 +38,9 @@
     <None Include="..\..\docs\Public-API-Fingerprint-1.1.json"
           Link="Public-API-Fingerprint-1.1.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\Public-API-Fingerprint-1.2.json"
+          Link="Public-API-Fingerprint-1.2.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
