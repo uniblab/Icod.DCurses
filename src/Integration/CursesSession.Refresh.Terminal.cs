@@ -8,6 +8,7 @@ using Icod.Terminal;
 public sealed partial class CursesSession {
 	private readonly object refreshSync = new();
 	private CursesRefreshEngine? refreshEngine;
+	private CursesScreen? panelRefreshProjection;
 	private TerminalSynchronizedOutputLease? pendingSynchronizedOutputCleanup;
 
 	/// <summary>
@@ -81,12 +82,126 @@ public sealed partial class CursesSession {
 		cancellationToken.ThrowIfCancellationRequested();
 		_ = this.SynchronizeDimensions();
 		CursesScreen currentScreen = this.Screen;
-		await this.GetRefreshEngine().RefreshAsync(
+		CursesPanel[] panels = currentScreen.SnapshotPanelsBottomToTop();
+		if ( 0 == panels.Length ) {
+			await this.GetRefreshEngine().RefreshAsync(
+				currentScreen,
+				currentScreen.StandardWindow.CursorRow,
+				currentScreen.StandardWindow.CursorColumn,
+				cancellationToken
+			).ConfigureAwait( false );
+			return;
+		}
+
+		CursesVirtualScreen composed = currentScreen.ComposePanels();
+		CursesScreen projection = this.SynchronizePanelRefreshProjection(
 			currentScreen,
+			composed
+		);
+		await this.GetRefreshEngine().RefreshAsync(
+			projection,
 			currentScreen.StandardWindow.CursorRow,
 			currentScreen.StandardWindow.CursorColumn,
 			cancellationToken
 		).ConfigureAwait( false );
+		composed.MarkClean();
+	}
+
+	private CursesScreen SynchronizePanelRefreshProjection(
+		CursesScreen sourceScreen,
+		CursesVirtualScreen composed
+	) {
+		ArgumentNullException.ThrowIfNull( sourceScreen );
+		ArgumentNullException.ThrowIfNull( composed );
+
+		bool replaceProjection = this.panelRefreshProjection is null
+			|| this.panelRefreshProjection.Columns != composed.Columns
+			|| this.panelRefreshProjection.Rows != composed.Rows
+			|| !ReferenceEquals(
+				this.panelRefreshProjection.TextWidthProvider,
+				sourceScreen.TextWidthProvider
+			);
+		if ( replaceProjection ) {
+			this.panelRefreshProjection = new CursesScreen(
+				composed.Columns,
+				composed.Rows,
+				sourceScreen.TextWidthProvider
+			);
+		}
+
+		CursesScreen projection = this.panelRefreshProjection;
+		CursesVirtualScreen destination = projection.VirtualScreen;
+		bool repairOnReplacement = destination.RepairWideFootprintsOnReplacement;
+		destination.RepairWideFootprintsOnReplacement = false;
+		try {
+			for ( int row = 0; row < composed.Rows; row++ ) {
+				for ( int column = 0; column < composed.Columns; column++ ) {
+					if ( !replaceProjection
+						&& !composed.IsDirty(
+							row,
+							column
+						) ) {
+						continue;
+					}
+
+					CursesCell desiredCell = composed.GetCell(
+						row,
+						column
+					);
+					CursesCellMetadata? desiredMetadata = composed.GetMetadata(
+						row,
+						column
+					);
+					CursesCell currentCell = destination.GetCell(
+						row,
+						column
+					);
+					CursesCellMetadata? currentMetadata = destination.GetMetadata(
+						row,
+						column
+					);
+					if ( currentCell == desiredCell
+						&& Equals(
+							currentMetadata,
+							desiredMetadata
+						) ) {
+						if ( composed.IsDirty(
+							row,
+							column
+						) ) {
+							destination.TouchCell(
+								row,
+								column
+							);
+						}
+						continue;
+					}
+
+					if ( currentCell != desiredCell ) {
+						destination.SetCell(
+							row,
+							column,
+							desiredCell
+						);
+					}
+					if ( !Equals(
+						currentMetadata,
+						desiredMetadata
+					) ) {
+						destination.SetMetadata(
+							row,
+							column,
+							desiredMetadata
+						);
+					}
+				}
+			}
+
+			CursesCellFootprint.Repair( destination );
+		} finally {
+			destination.RepairWideFootprintsOnReplacement = repairOnReplacement;
+		}
+		return projection;
 	}
 
 	private async ValueTask ResetRefreshRenditionAsync() {
