@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Icod.DCurses.Tests;
 
-/// <summary>Verifies public panel visibility, placement, and z-order operations.</summary>
+/// <summary>Verifies public panel visibility, placement, z-order, and lifetime operations.</summary>
 public sealed class CursesPanelManipulationTests {
 	[Fact]
 	public void CreatedPanelsBeginVisibleInBottomToTopCreationOrder() {
@@ -279,5 +279,84 @@ public sealed class CursesPanelManipulationTests {
 			},
 			screen.SnapshotPanelsBottomToTop()
 		);
+	}
+
+	[Fact]
+	public void DisposeRemovesPanelAndRevealsUnderlyingComposition() {
+		CursesScreen screen = new( 12, 4 );
+		screen.StandardWindow.Move( 1, 2 );
+		screen.StandardWindow.Write( "BASE" );
+		CursesPanel panel = screen.CreatePanel( 1, 2, 1, 4 );
+		panel.ContentWindow.Write( "TOP!" );
+		CursesVirtualScreen composed = screen.ComposePanels();
+		Assert.Equal( "TOP!", ReadText( composed, 1, 2, 4 ) );
+		composed.MarkClean();
+
+		panel.Dispose();
+		CursesVirtualScreen revealed = screen.ComposePanels();
+
+		Assert.Same( composed, revealed );
+		Assert.False( panel.IsVisible );
+		Assert.Empty( screen.SnapshotPanelsBottomToTop() );
+		Assert.False( screen.HasPanels );
+		Assert.Equal( "BASE", ReadText( revealed, 1, 2, 4 ) );
+	}
+
+	[Fact]
+	public void DisposeIsIdempotent() {
+		CursesScreen screen = new( 12, 4 );
+		CursesPanel panel = screen.CreatePanel( 1, 2, 1, 4 );
+		IDisposable disposable = panel;
+
+		disposable.Dispose();
+		disposable.Dispose();
+
+		Assert.False( panel.IsVisible );
+		Assert.False( screen.HasPanels );
+		Assert.Empty( screen.SnapshotPanelsBottomToTop() );
+	}
+
+	[Fact]
+	public void DisposedPanelRejectsFurtherManipulation() {
+		CursesScreen screen = new( 12, 4 );
+		CursesPanel panel = screen.CreatePanel( 1, 2, 1, 4 );
+		CursesPanel sibling = screen.CreatePanel( 0, 0, 1, 1 );
+		panel.Dispose();
+
+		Assert.Throws<ObjectDisposedException>( () => panel.Show() );
+		Assert.Throws<ObjectDisposedException>( () => panel.Hide() );
+		Assert.Throws<ObjectDisposedException>( () => panel.MoveTo( 1, 2 ) );
+		Assert.Throws<ObjectDisposedException>( () => panel.MoveToTop() );
+		Assert.Throws<ObjectDisposedException>( () => panel.MoveToBottom() );
+		Assert.Throws<ObjectDisposedException>( () => panel.MoveAbove( sibling ) );
+		Assert.Throws<ObjectDisposedException>( () => panel.MoveBelow( sibling ) );
+		Assert.Throws<ObjectDisposedException>(
+			() => panel.Transparency = CursesPanelTransparency.BlankCellsTransparent
+		);
+		Assert.Throws<ArgumentException>( () => sibling.MoveAbove( panel ) );
+	}
+
+	private static string ReadText(
+		CursesVirtualScreen screen,
+		int row,
+		int column,
+		int length
+	) {
+		ArgumentNullException.ThrowIfNull( screen );
+		if ( 0 > row ) {
+			throw new ArgumentOutOfRangeException( nameof( row ) );
+		}
+		if ( 0 > column ) {
+			throw new ArgumentOutOfRangeException( nameof( column ) );
+		}
+		if ( 0 > length ) {
+			throw new ArgumentOutOfRangeException( nameof( length ) );
+		}
+
+		System.Text.StringBuilder result = new();
+		for ( int index = 0; index < length; index++ ) {
+			result.Append( screen.GetCell( row, column + index ).Content );
+		}
+		return result.ToString();
 	}
 }
