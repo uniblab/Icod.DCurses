@@ -83,7 +83,7 @@ public sealed class CursesLayoutApplicationAcceptanceTests {
 	[Fact]
 	public void RepeatedPureGeometryCalculationIsAllocationFree() {
 		CursesRectangle bounds = new( 0, 0, 48, 160 );
-		for ( int index = 0; index < 64; index++ ) {
+		for ( int index = 0; index < 100000; index++ ) {
 			ComputeApplicationLayout(
 				bounds,
 				out _,
