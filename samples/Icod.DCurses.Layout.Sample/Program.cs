@@ -84,13 +84,12 @@ while ( running ) {
 	if ( CursesEventKind.Input == current.Kind
 		&& current.Input is not null ) {
 		CursesInputEvent input = current.Input;
-		if ( CursesInputEventKind.Key == input.Kind
-			&& input.Key is not null
-			&& ( input.Key.Key is CursesKey.Escape
-				|| input.Key.Text?.Equals(
-					"q",
-					StringComparison.OrdinalIgnoreCase
-				) == true ) ) {
+		if ( CursesInputEventKind.EndOfInput == input.Kind
+			|| ( CursesInputEventKind.Key == input.Kind
+				&& CursesKey.Escape == input.Key )
+			|| ( CursesInputEventKind.Text == input.Kind
+				&& input.Character.HasValue
+				&& input.Character.Value.Value is 'q' or 'Q' ) ) {
 			running = false;
 			continue;
 		}
