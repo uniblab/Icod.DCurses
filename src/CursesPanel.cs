@@ -161,6 +161,33 @@ public sealed class CursesPanel : IDisposable {
 		Column = column;
 	}
 
+	/// <summary>Changes this panel's retained dimensions without changing its destination origin.</summary>
+	/// <param name="rows">The positive new panel height.</param>
+	/// <param name="columns">The positive new panel width.</param>
+	/// <remarks>
+	/// Overlapping retained content and semantic metadata are preserved. The retained content-window
+	/// object remains the same instance, and its cursor is clamped when the new dimensions shrink.
+	/// </remarks>
+	public void Resize(
+		int rows,
+		int columns
+	) {
+		ThrowIfDisposed();
+		CursesScreen.ValidateWindowRectangle(
+			Row,
+			Column,
+			rows,
+			columns,
+			owner.Rows,
+			owner.Columns
+		);
+
+		surface.Resize(
+			rows,
+			columns
+		);
+	}
+
 	/// <summary>Moves this panel to the top of its owning screen's panel order.</summary>
 	public void MoveToTop() {
 		ThrowIfDisposed();
