@@ -62,4 +62,25 @@ internal sealed class CursesPanelSurface {
 
 	/// <summary>Gets the panel width.</summary>
 	internal int Columns => backingScreen.Columns;
+
+	/// <summary>Resizes the retained surface while preserving overlapping content and metadata.</summary>
+	/// <param name="rows">The positive new panel height.</param>
+	/// <param name="columns">The positive new panel width.</param>
+	internal void Resize(
+		int rows,
+		int columns
+	) {
+		if ( 0 >= rows ) {
+			throw new ArgumentOutOfRangeException( nameof( rows ) );
+		}
+		if ( 0 >= columns ) {
+			throw new ArgumentOutOfRangeException( nameof( columns ) );
+		}
+
+		backingScreen.Resize(
+			columns,
+			rows,
+			preserveContents: true
+		);
+	}
 }
