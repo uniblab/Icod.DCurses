@@ -227,6 +227,64 @@ public static class CursesLayout {
 		);
 	}
 
+	/// <summary>Allocates a fixed extent from one edge of a rectangle.</summary>
+	/// <param name="bounds">The source rectangle.</param>
+	/// <param name="edge">The edge from which to allocate.</param>
+	/// <param name="size">The non-negative requested extent.</param>
+	/// <param name="docked">The allocated edge rectangle.</param>
+	/// <param name="remaining">The rectangle remaining after allocation.</param>
+	public static void Dock(
+		CursesRectangle bounds,
+		CursesDockEdge edge,
+		int size,
+		out CursesRectangle docked,
+		out CursesRectangle remaining
+	) {
+		if ( !Enum.IsDefined( edge ) ) {
+			throw new ArgumentOutOfRangeException( nameof( edge ) );
+		}
+		if ( 0 > size ) {
+			throw new ArgumentOutOfRangeException( nameof( size ) );
+		}
+
+		switch ( edge ) {
+			case CursesDockEdge.Top:
+				SplitTop(
+					bounds,
+					size,
+					out docked,
+					out remaining
+				);
+				break;
+			case CursesDockEdge.Right:
+				SplitRight(
+					bounds,
+					size,
+					out remaining,
+					out docked
+				);
+				break;
+			case CursesDockEdge.Bottom:
+				SplitBottom(
+					bounds,
+					size,
+					out remaining,
+					out docked
+				);
+				break;
+			case CursesDockEdge.Left:
+				SplitLeft(
+					bounds,
+					size,
+					out docked,
+					out remaining
+				);
+				break;
+			default:
+				throw new ArgumentOutOfRangeException( nameof( edge ) );
+		}
+	}
+
 	/// <summary>Clips one rectangle to a containing rectangle.</summary>
 	/// <param name="rectangle">The rectangle to clip.</param>
 	/// <param name="container">The clipping container.</param>
