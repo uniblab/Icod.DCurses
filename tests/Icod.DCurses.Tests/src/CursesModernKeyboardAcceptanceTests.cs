@@ -30,6 +30,7 @@ namespace Icod.DCurses.Tests;
 /// <summary>
 /// End-to-end acceptance coverage for negotiated Terminal 1.0 keyboard semantics through DCurses.
 /// </summary>
+[Collection( TerminalProtocolNegotiationCollection.Name )]
 public sealed class CursesModernKeyboardAcceptanceTests {
 	private const string ProbeRequest = "\u001b[?u\u001b[c";
 	private const string PushAllKeys = "\u001b[>31u";
