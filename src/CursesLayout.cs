@@ -155,6 +155,78 @@ public static class CursesLayout {
 		);
 	}
 
+	/// <summary>Splits a rectangle's rows according to two positive proportional weights.</summary>
+	/// <param name="bounds">The source rectangle.</param>
+	/// <param name="firstWeight">The positive weight for the first region.</param>
+	/// <param name="secondWeight">The positive weight for the second region.</param>
+	/// <param name="first">The first region, beginning at the source top edge.</param>
+	/// <param name="second">The second region, receiving any integer remainder.</param>
+	public static void SplitRowsProportional(
+		CursesRectangle bounds,
+		int firstWeight,
+		int secondWeight,
+		out CursesRectangle first,
+		out CursesRectangle second
+	) {
+		if ( 0 >= firstWeight ) {
+			throw new ArgumentOutOfRangeException( nameof( firstWeight ) );
+		}
+		if ( 0 >= secondWeight ) {
+			throw new ArgumentOutOfRangeException( nameof( secondWeight ) );
+		}
+
+		long totalWeight = (long)firstWeight + secondWeight;
+		int firstRows = (int)( (long)bounds.Rows * firstWeight / totalWeight );
+		first = new CursesRectangle(
+			bounds.Row,
+			bounds.Column,
+			firstRows,
+			bounds.Columns
+		);
+		second = new CursesRectangle(
+			bounds.Row + firstRows,
+			bounds.Column,
+			bounds.Rows - firstRows,
+			bounds.Columns
+		);
+	}
+
+	/// <summary>Splits a rectangle's columns according to two positive proportional weights.</summary>
+	/// <param name="bounds">The source rectangle.</param>
+	/// <param name="firstWeight">The positive weight for the first region.</param>
+	/// <param name="secondWeight">The positive weight for the second region.</param>
+	/// <param name="first">The first region, beginning at the source left edge.</param>
+	/// <param name="second">The second region, receiving any integer remainder.</param>
+	public static void SplitColumnsProportional(
+		CursesRectangle bounds,
+		int firstWeight,
+		int secondWeight,
+		out CursesRectangle first,
+		out CursesRectangle second
+	) {
+		if ( 0 >= firstWeight ) {
+			throw new ArgumentOutOfRangeException( nameof( firstWeight ) );
+		}
+		if ( 0 >= secondWeight ) {
+			throw new ArgumentOutOfRangeException( nameof( secondWeight ) );
+		}
+
+		long totalWeight = (long)firstWeight + secondWeight;
+		int firstColumns = (int)( (long)bounds.Columns * firstWeight / totalWeight );
+		first = new CursesRectangle(
+			bounds.Row,
+			bounds.Column,
+			bounds.Rows,
+			firstColumns
+		);
+		second = new CursesRectangle(
+			bounds.Row,
+			bounds.Column + firstColumns,
+			bounds.Rows,
+			bounds.Columns - firstColumns
+		);
+	}
+
 	/// <summary>Clips one rectangle to a containing rectangle.</summary>
 	/// <param name="rectangle">The rectangle to clip.</param>
 	/// <param name="container">The clipping container.</param>
