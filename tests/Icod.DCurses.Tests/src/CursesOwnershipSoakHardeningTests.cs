@@ -28,6 +28,7 @@ using Xunit;
 namespace Icod.DCurses.Tests;
 
 /// <summary>Runs repeated complete Terminal/DCurses ownership and rich-input handoff cycles.</summary>
+[Collection( TerminalProtocolNegotiationCollection.Name )]
 public sealed class CursesOwnershipSoakHardeningTests {
 	private const int CycleCount = 8;
 	private const string ProbeRequest = "\u001b[?u\u001b[c";
