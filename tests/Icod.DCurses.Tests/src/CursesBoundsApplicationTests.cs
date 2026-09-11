@@ -232,9 +232,9 @@ public sealed class CursesBoundsApplicationTests {
 			),
 			panel.Bounds
 		);
-		Assert.Equal( "A", panel.ContentWindow.VirtualScreen.GetCell( 0, 0 ).Content );
-		Assert.Equal( "B", panel.ContentWindow.VirtualScreen.GetCell( 0, 1 ).Content );
-		Assert.Equal( "C", panel.ContentWindow.VirtualScreen.GetCell( 0, 2 ).Content );
+		Assert.Equal( "A", panel.ContentWindow.GetCell( 0, 0 ).Content );
+		Assert.Equal( "B", panel.ContentWindow.GetCell( 0, 1 ).Content );
+		Assert.Equal( "C", panel.ContentWindow.GetCell( 0, 2 ).Content );
 	}
 
 	[Fact]
@@ -307,7 +307,7 @@ public sealed class CursesBoundsApplicationTests {
 
 		char[] characters = new char[ count ];
 		for ( int index = 0; index < count; index++ ) {
-			CursesCell cell = window.VirtualScreen.GetCell(
+			CursesCell cell = window.GetCell(
 				row,
 				column + index
 			);
