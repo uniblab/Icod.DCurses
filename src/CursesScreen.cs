@@ -61,6 +61,14 @@ public sealed class CursesScreen {
 	/// <summary>Gets the current number of rows.</summary>
 	public int Rows => virtualScreen.Rows;
 
+	/// <summary>Gets the complete logical-screen rectangle.</summary>
+	public CursesRectangle Bounds => new(
+		0,
+		0,
+		Rows,
+		Columns
+	);
+
 	/// <summary>Gets the application-requested virtual-screen image.</summary>
 	public CursesVirtualScreen VirtualScreen => virtualScreen;
 
