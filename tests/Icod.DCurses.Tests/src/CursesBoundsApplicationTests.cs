@@ -167,8 +167,8 @@ public sealed class CursesBoundsApplicationTests {
 				new CursesRectangle(
 					4,
 					6,
-					1,
-					2
+					2,
+					3
 				)
 			)
 		);
@@ -255,8 +255,8 @@ public sealed class CursesBoundsApplicationTests {
 				new CursesRectangle(
 					4,
 					6,
-					1,
-					2
+					2,
+					3
 				)
 			)
 		);
