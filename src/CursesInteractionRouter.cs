@@ -109,6 +109,66 @@ public sealed class CursesInteractionRouter : IDisposable {
 		return region;
 	}
 
+	/// <summary>Resolves the highest-precedence enabled interaction region at one screen coordinate.</summary>
+	/// <param name="row">The non-negative zero-based screen row.</param>
+	/// <param name="column">The non-negative zero-based screen column.</param>
+	/// <returns>The resolved hit, or <see langword="null"/> when no region is eligible at the coordinate.</returns>
+	public CursesInteractionHit? HitTest(
+		int row,
+		int column
+	) {
+		if ( 0 > row ) {
+			throw new ArgumentOutOfRangeException( nameof( row ) );
+		}
+		if ( 0 > column ) {
+			throw new ArgumentOutOfRangeException( nameof( column ) );
+		}
+		this.ThrowIfDisposed();
+
+		if ( row >= this.Screen.Rows
+			|| column >= this.Screen.Columns ) {
+			return null;
+		}
+
+		CursesInteractionRegion? selected = null;
+		int selectedLocalRow = 0;
+		int selectedLocalColumn = 0;
+
+		foreach ( CursesInteractionRegion region in this.regions ) {
+			if ( !region.IsEnabled ) {
+				continue;
+			}
+			if ( !TryGetLocalCoordinates(
+				region,
+				row,
+				column,
+				out int localRow,
+				out int localColumn
+			) ) {
+				continue;
+			}
+
+			if ( selected is null
+				|| this.IsPreferredHitCandidate(
+					region,
+					selected
+				) ) {
+				selected = region;
+				selectedLocalRow = localRow;
+				selectedLocalColumn = localColumn;
+			}
+		}
+
+		return selected is null
+			? null
+			: new CursesInteractionHit(
+				selected,
+				selectedLocalRow,
+				selectedLocalColumn
+			)
+		;
+	}
+
 	/// <summary>Disposes all live regions and closes this router to further mutation.</summary>
 	public void Dispose() {
 		if ( this.disposed ) {
@@ -142,6 +202,95 @@ public sealed class CursesInteractionRouter : IDisposable {
 				"The interaction region is not registered with this router."
 			);
 		}
+	}
+
+	private bool IsPreferredHitCandidate(
+		CursesInteractionRegion candidate,
+		CursesInteractionRegion selected
+	) {
+		CursesPanel? candidatePanel = candidate.Panel;
+		CursesPanel? selectedPanel = selected.Panel;
+
+		if ( candidatePanel is not null && selectedPanel is null ) {
+			return true;
+		}
+		if ( candidatePanel is null && selectedPanel is not null ) {
+			return false;
+		}
+
+		if ( candidatePanel is not null
+			&& selectedPanel is not null
+			&& !ReferenceEquals(
+				candidatePanel,
+				selectedPanel
+			) ) {
+			int candidatePanelIndex = this.Screen.GetPanelOrderIndex( candidatePanel );
+			int selectedPanelIndex = this.Screen.GetPanelOrderIndex( selectedPanel );
+			if ( candidatePanelIndex != selectedPanelIndex ) {
+				return candidatePanelIndex > selectedPanelIndex;
+			}
+		}
+
+		if ( candidate.HitTestPriority != selected.HitTestPriority ) {
+			return candidate.HitTestPriority > selected.HitTestPriority;
+		}
+
+		return candidate.RegistrationOrdinal > selected.RegistrationOrdinal;
+	}
+
+	private static bool TryGetLocalCoordinates(
+		CursesInteractionRegion region,
+		int row,
+		int column,
+		out int localRow,
+		out int localColumn
+	) {
+		CursesRectangle bounds = region.Bounds;
+		CursesPanel? panel = region.Panel;
+
+		if ( panel is null ) {
+			if ( !bounds.Contains(
+				row,
+				column
+			) ) {
+				localRow = 0;
+				localColumn = 0;
+				return false;
+			}
+
+			localRow = row - bounds.Row;
+			localColumn = column - bounds.Column;
+			return true;
+		}
+
+		if ( panel.IsDisposed || !panel.IsVisible ) {
+			localRow = 0;
+			localColumn = 0;
+			return false;
+		}
+		if ( !panel.Bounds.Contains(
+			row,
+			column
+		) ) {
+			localRow = 0;
+			localColumn = 0;
+			return false;
+		}
+
+		int panelLocalRow = row - panel.Row;
+		int panelLocalColumn = column - panel.Column;
+		if ( !bounds.Contains(
+			panelLocalRow,
+			panelLocalColumn
+		) ) {
+			localRow = 0;
+			localColumn = 0;
+			return false;
+		}
+
+		localRow = panelLocalRow - bounds.Row;
+		localColumn = panelLocalColumn - bounds.Column;
+		return true;
 	}
 
 	private void ThrowIfDisposed() {
