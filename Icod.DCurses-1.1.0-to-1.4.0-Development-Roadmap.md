@@ -2,46 +2,32 @@
 
 **Project:** `Icod.DCurses`  
 **Scope:** post-1.0 additive core development  
-**Accepted compatibility floor:** `1.1.0`  
-**Active source package:** `1.2.0`  
+**Published compatibility floor:** `1.2.0`  
+**Active source package:** `1.3.0-alpha.1`  
 **Assembly version policy:** retain `1.0.0.0` through compatible additive 1.x releases  
 **Current declared runtime dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
-**Planning status:** 1.2 source complete; dependency refresh qualification pending NuGet indexing
+**Planning status:** 1.3 T1301-T1309 qualified; T1310 release-regret gate in progress
 
 ---
 
 ## Release sequence
 
 ```text
-1.1.0  semantic cell metadata + hyperlinks
-1.2.0  panels/layers + z-order composition
-1.3.0  layout + resize primitives
-1.4.0  focus/interaction/key gestures/hit testing/pointer semantics
+1.1.0  semantic cell metadata + hyperlinks                  complete/published history
+1.2.0  panels/layers + z-order composition                  complete/published
+1.3.0  layout + resize primitives                           active; T1310 gate
+1.4.0  focus/interaction/key gestures/hit testing/pointer   approved future release
 ```
 
 The sequence is cumulative: 1.1 adds meaning to retained content; 1.2 composes overlapping retained surfaces; 1.3 makes geometry manageable; 1.4 routes semantic input to logical regions.
 
 ## Ownership boundary
 
-The current 1.2 source declares `Icod.Terminal 1.9.0` and `Icod.TermInfo 1.10.0`. DCurses consumes Terminal's live-session/input/lifecycle/semantic-output contracts rather than terminal-family protocol details and does not install private protocol writers or a second input owner.
+DCurses consumes Terminal's live-session/input/lifecycle/semantic-output contracts rather than terminal-family protocol details and does not install private protocol writers or a second input owner.
 
-## 1.1 compatibility floor
+The 1.3 layout work preserves the same ownership principle internally: geometry values are immutable, `CursesLayout` is pure/stateless, and applications explicitly recompute/apply layout rather than delegating control to a background layout owner.
 
-```text
-45 exported types
-337 canonical declared contract lines
-sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
-```
-
-`CursesHyperlink` and `CursesCellMetadata` remain the two 1.1 additions. The detailed 1.1 roadmap and T1101–T1109 documents remain historical compatibility authorities.
-
-## 1.2 retained panels
-
-`CursesPanel` owns an independent retained surface edited through the established `CursesWindow` model. `CursesScreen` owns panel identity and deterministic bottom-to-top order.
-
-The accepted contract provides show/hide, movement and relative ordering, opaque/default and blank-transparent composition, clipping, incremental damage-bounded recomposition, Unicode/wide-cell/metadata coherence, live `CursesSession.RefreshAsync()` integration, destination resize and suspend/resume recovery, deterministic `IDisposable` removal, and an allocation-free no-panel refresh presence check.
-
-Accepted 1.2 contract:
+## Published 1.2 floor
 
 ```text
 47 exported types
@@ -49,35 +35,69 @@ Accepted 1.2 contract:
 sha256 4810ebb088764acedbb94aca84b231677886b9c1a1f920d9a30f960cbe1dfce7
 ```
 
-Exactly two exported types are added over 1.1: `CursesPanel` and `CursesPanelTransparency`.
+`CursesPanel` and `CursesPanelTransparency` are the two 1.2 exported additions. The published contract includes retained panel content, deterministic z-order, show/hide, movement/ordering, opaque or blank-transparent composition, clipping, incremental recomposition, semantic-metadata/wide-cell coherence, live refresh/lifecycle integration, and deterministic one-way disposal.
 
-Late qualification:
+Panel dimensions are fixed in the published 1.2 package; resize/layout belongs to 1.3.
 
-- T1208 application/resource acceptance: `bb00707779cf3dc6c2222455a6f942469d036881`, workflow #596 / `34522859308`.
-- T1209 API/lifetime: `866497c9d5015f3a149580d67eacefaf7e121aaf`, workflow #600 / `34524054785`.
-- T1209 docs/sample/package: `3728bf0e576b32747dd3a628ed5d3eca768ac67f`, workflow #603 / `34525966166`.
-- T1210 `1.2.0-rc.1`: `8c5d329fa195685c0349068ce33a100aaf9eb0a3`, workflow #604 / `34526810086`.
-- T1210 stable-source `1.2.0`: `a065ef389b4e5224bd9defeb3f4de0e688e2e08a`, workflow #605 / `34527425232`.
-- Final sample/test hardening: `93ef832042dac743008a065acb683d3029710f1c`, workflow #607 / `34528856997`.
+## Active 1.3 layout and resize primitives
 
-All of those checkpoints passed the seven-job matrix. The final hardening evidence leg reported 560/560 tests per TFM with zero build warnings/errors.
+Current compiler-derived candidate:
 
-The only post-qualification source change is the declared `Icod.Terminal` dependency update from `1.8.1` to `1.9.0` plus corresponding current-status documentation. A temporary restore failure is expected until NuGet indexes `Icod.Terminal 1.9.0`; once indexed, this dependency-refresh head must receive its own exact-head seven-job qualification.
+```text
+51 exported types
+406 canonical declared contract lines
+sha256 a655bd85e3c88f5bf38ad0d43a148e3bd06a9e943bbf3e3aa2e21575ffb07424
+```
 
-Panel dimensions remain fixed in 1.2. General layout/resize belongs to 1.3. Widgets, focus routing, and raster placement remain non-goals for 1.2.
+Four exported types are added over 1.2:
 
-## 1.3 layout and resize primitives
+```text
+CursesRectangle
+CursesInsets
+CursesDockEdge
+CursesLayout
+```
 
-Version 1.3 is planned to remove routine terminal-geometry arithmetic through deterministic rectangles/bounds, insets, splits, allocation rules, docking, clipping/empty-layout behavior, and resize recomputation. It is not intended to become CSS/flexbox/a general constraint solver.
+Additive members on existing types provide screen/window/panel bounds, atomic rectangle application, and retained panel resizing.
 
-## 1.4 focus and interaction mechanics
+The accepted 1.3 design provides:
+
+- immutable terminal-cell rectangles and insets;
+- deterministic containment/intersection/inset semantics;
+- fixed top/bottom/left/right allocation;
+- proportional row/column allocation;
+- Top/Right/Bottom/Left docking;
+- clipping and explicit empty geometry;
+- `CursesScreen.Bounds`;
+- parent-relative nested `CursesWindow.Bounds` plus atomic `SetBounds`;
+- screen-relative `CursesPanel.Bounds`, retained `Resize`, and atomic `SetBounds`;
+- surviving upper-left content/metadata preservation on panel resize;
+- width-two footprint repair at shrink boundaries;
+- explicit lifecycle-driven recomputation from `session.Screen.Bounds`;
+- a dedicated interactive layout sample;
+- Unicode/metadata/repeated-resize hardening;
+- application/performance/allocation acceptance with no retained layout state.
+
+Qualified T1309 implementation head: `c209780cf4a0afbf71991e34a1d8912373426922`, workflow #671 / `34625614322`, all seven jobs green.
+
+T1310 is now freezing the API/package/documentation candidate. The 1.3 candidate API has survived the naming/mutability/ambiguity/1.4-reuse audit without a requested corrective break. Fresh package-only coverage now consumes the geometry, layout, bounds-application, and retained-resize surface.
+
+## Planned 1.4 focus and interaction mechanics
 
 Version 1.4 is planned to add focusable regions, focus traversal, keyboard gestures/commands, mouse hit testing, interaction regions, pointer-shape requests, focus repair, resize-aware hit testing, and deterministic overlap precedence. Terminal remains the authoritative input/protocol owner.
+
+The key 1.3-to-1.4 bridge is `CursesRectangle`: 1.4 can reuse the same immutable terminal-cell coordinate substrate for focus and hit-test regions without inventing a second geometry model or changing 1.3 layout ownership.
+
+Version 1.4 is not being pulled forward into 1.3. No focus router, gesture registry, hit-test tree, pointer policy, widget framework, raster placement, animation system, or general constraint solver belongs in the current release.
 
 ## Cross-release rules
 
 Compatible 1.x releases retain additive API by default, exact compiler-derived fingerprints, Terminal/TermInfo ownership boundaries, Unicode/wide-cell/metadata semantics, conservative lifecycle recovery, package-only consumer validation, Windows/Linux/macOS x64/ARM64 validation, and documentation/sample/package audits before stable promotion.
 
+Historical release documents remain historical authorities and are not rewritten simply to reflect newer package/dependency state.
+
 ## Immediate next step
 
-Wait for NuGet indexing of `Icod.Terminal 1.9.0`, then qualify the exact current PR head across the normal seven-job matrix. No code fallback, version rollback, or hard-coded sibling-version check should be introduced merely to work around package propagation.
+Close T1310 only after the exact current documentation/package-smoke/API-baseline head passes package candidate validation plus all six runtime jobs across `net8.0`, `net9.0`, and `net10.0`.
+
+Then enter T1311 by promoting the unchanged implementation/API to `1.3.0-rc.1`. Merge, tagging, GitHub Release creation, and NuGet publication remain separate explicit actions.
