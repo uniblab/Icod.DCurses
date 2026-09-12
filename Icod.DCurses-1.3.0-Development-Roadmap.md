@@ -4,11 +4,11 @@
 **Release line:** `1.3.0`  
 **Published baseline:** `1.2.0`  
 **Baseline commit:** `16c148a1b84064a05d64f974cbbf2122e1bda236`  
-**Current source package:** `1.3.0`  
+**Final source package:** `1.3.0`  
 **Assembly version:** `1.0.0.0`  
 **Declared dependencies:** `Icod.Terminal 1.11.1`; `Icod.TermInfo 1.11.0`  
 **Theme:** deterministic geometry, layout allocation, retained panel resizing, and explicit live resize recomputation  
-**Status:** T1301-T1310 complete and qualified; T1311 RC qualified; stable-source dependency refresh qualification in progress
+**Status:** complete; merged to `main` and Release-qualified; tag/GitHub Release/NuGet publication pending
 
 ---
 
@@ -61,7 +61,7 @@ CursesPanel.SetBounds(CursesRectangle)
 
 `AssemblyVersion` remains `1.0.0.0`.
 
-The stable-source dependency refresh to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0` is a package-graph change and does not alter the public API fingerprint.
+The final dependency refresh to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0` is a package-graph change and does not alter the public API fingerprint.
 
 ## Qualified checkpoints
 
@@ -78,6 +78,8 @@ The stable-source dependency refresh to `Icod.Terminal 1.11.1` and `Icod.TermInf
 | T1309 application/performance/allocation acceptance | `c209780cf4a0afbf71991e34a1d8912373426922` | #671 / `34625614322` | seven jobs green |
 | T1310 API/package/docs/licensing regret gate | `c8d6a6313b9f6ca124a255c12b912f8ed89ffda7` | #681 / `34694609178` | seven jobs green |
 | T1311 release candidate | `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` | #689 / `34694881296` | seven jobs green |
+| T1311 dependency-refreshed stable source | `b90b444556291434bddb9f56d031f09ac1aabfbf` | #719 / `34708925529` | seven jobs green |
+| post-merge `main` Release | `18255d59136922b9e246f4113dc6fdb6a9ea24a3` | #17 / `34709142076` | success |
 
 T1303 includes the test-isolation correction required by the macOS bounded Terminal negotiation acceptance tests; production timeout behavior was not changed.
 
@@ -91,18 +93,19 @@ Authorities:
 - `docs/Public-API-Baseline-1.3.md`
 - `docs/T1309-Layout-Application-Performance-and-Allocation-Acceptance.md`
 - `docs/T1310-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/T1311-RC-and-Stable-Closure.md`
 
-## T1311 — current gate
+## T1311 — closure
 
-The T1310-qualified implementation/API was promoted to `1.3.0-rc.1` and exact head `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` passed workflow #689 / `34694881296` across all seven jobs.
+The T1310-qualified implementation/API was promoted to `1.3.0-rc.1`; exact head `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` passed workflow #689 / `34694881296` across all seven jobs.
 
-During stable-source closure, the declared dependencies are intentionally refreshed to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`; `AssemblyVersion` remains `1.0.0.0`. The DCurses implementation and frozen public API are unchanged by this dependency update.
+During stable-source closure, the declared dependencies were refreshed to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`; `AssemblyVersion` remained `1.0.0.0`. The DCurses implementation and frozen public API remained unchanged by that dependency update.
 
-Because the package dependency graph changed after RC qualification, the final stable-source exact head must receive a fresh normal seven-job PR matrix. Package candidate validation must restore and execute the NuGet-only consumer against the declared `Icod.Terminal 1.11.1` / `Icod.TermInfo 1.11.0` graph. A green dependency-refreshed stable-source head completes repository-side 1.3 development qualification.
+Final stable-source head `b90b444556291434bddb9f56d031f09ac1aabfbf` then passed workflow #719 / `34708925529` across package candidate plus Windows/Linux/macOS x64/ARM64. The package candidate included fresh NuGet-only restore/build/run against the refreshed dependency graph.
 
-Authority: `docs/T1311-RC-and-Stable-Closure.md`.
+PR #27 was merged to `main` as `18255d59136922b9e246f4113dc6fdb6a9ea24a3`. The resulting `main` Release workflow #17 / `34709142076` passed.
 
-## Remaining workflow
+## Completed workflow
 
 ```text
 T1301 foundation + immutable geometry contract                 complete
@@ -115,7 +118,8 @@ T1307 live resize recomputation acceptance + sample            complete
 T1308 Unicode / metadata / wide-cell resize hardening          complete
 T1309 application / performance / allocation acceptance        complete
 T1310 API / package / docs / licensing regret gate             complete
-T1311 RC / stable-source closure                               dependency refresh qualification in progress
+T1311 RC / stable-source closure                               complete
+merge / main Release qualification                             complete
 ```
 
 ## Non-goals
@@ -132,4 +136,4 @@ Version 1.3 does not add widgets, focus traversal, keyboard gestures, hit testin
 - `docs/T1310-Public-API-Package-Documentation-and-Regret-Gate.md`
 - `docs/T1311-RC-and-Stable-Closure.md`
 
-Merge, tagging, GitHub Release creation, and NuGet publication remain separate explicit actions after repository-side stable-source qualification.
+The remaining 1.3 release actions are creation of tag `v1.3.0`, the GitHub Release, and NuGet publication.

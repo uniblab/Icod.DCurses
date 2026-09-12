@@ -6,10 +6,14 @@
 **T1310 workflow:** #681 / `34694609178`  
 **Qualified RC head:** `2ab949a64f63759ad9cf4e93e45a368c50ab6e49`  
 **RC workflow:** #689 / `34694881296`  
+**Qualified stable-source head:** `b90b444556291434bddb9f56d031f09ac1aabfbf`  
+**Stable-source workflow:** #719 / `34708925529`  
+**Merged main commit:** `18255d59136922b9e246f4113dc6fdb6a9ea24a3`  
+**Main Release workflow:** #17 / `34709142076`  
 **Stable-source identity:** `1.3.0`  
 **AssemblyVersion:** `1.0.0.0`  
 **Stable-source runtime dependencies:** `Icod.Terminal 1.11.1`; `Icod.TermInfo 1.11.0`  
-**Status:** dependency-refreshed stable-source exact-head qualification in progress  
+**Status:** repository-side closure complete; public tag/release/NuGet publication pending  
 
 ## Entry gate
 
@@ -65,13 +69,7 @@ Workflow:
 #689 / 34694881296
 ```
 
-All seven jobs passed:
-
-- package candidate;
-- Windows x64 and ARM64;
-- Linux x64 and ARM64;
-- macOS x64 and ARM64;
-- all supported target frameworks (`net8.0`, `net9.0`, `net10.0`).
+All seven jobs passed: package candidate, Windows x64/ARM64, Linux x64/ARM64, macOS x64/ARM64, and all supported target frameworks (`net8.0`, `net9.0`, `net10.0`).
 
 The RC package also passed the fresh NuGet-only 1.3 geometry/layout/bounds/panel-resize consumer. That RC evidence used the then-declared `Icod.Terminal 1.9.0` and `Icod.TermInfo 1.10.0` dependency graph.
 
@@ -79,24 +77,33 @@ The RC package also passed the fresh NuGet-only 1.3 geometry/layout/bounds/panel
 
 With the exact RC fully green, the branch was promoted to source/package identity `1.3.0`.
 
-During final stable-source closure, the declared dependencies are intentionally refreshed to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`. `AssemblyVersion` remains `1.0.0.0`.
+During final stable-source closure, the declared dependencies were refreshed to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`. `AssemblyVersion` remained `1.0.0.0`.
 
-This user-authorized dependency refresh is intentionally narrow:
+This dependency refresh was intentionally narrow:
 
 - `Version` and `PackageVersion` remain `1.3.0`;
 - `AssemblyVersion` remains `1.0.0.0`;
 - the frozen DCurses public API remains unchanged;
-- `src/` implementation behavior is not changed merely for the dependency bump;
-- tests and samples remain behaviorally unchanged unless the new dependencies expose a demonstrated compatibility defect;
-- package-smoke source remains the same consumer contract, but its documentation and restore graph now identify `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`;
-- current release/status authorities are updated to the new dependency graph;
-- historical 1.2-and-earlier records are not rewritten.
-
-The fully qualified RC remains implementation/API evidence, but it is not sufficient final package-graph evidence after these dependency changes.
+- `src/` implementation behavior was not changed merely for the dependency bump;
+- tests and samples remained behaviorally unchanged;
+- package-smoke source remained the same consumer contract;
+- historical 1.2-and-earlier records were not rewritten.
 
 ## Dependency-refreshed stable-source qualification
 
-The final `1.3.0` source must pass a fresh exact-head seven-job PR matrix with the new graph:
+Final stable-source exact head:
+
+```text
+b90b444556291434bddb9f56d031f09ac1aabfbf
+```
+
+Workflow:
+
+```text
+#719 / 34708925529
+```
+
+All seven jobs passed:
 
 - package candidate, including structural dependency metadata verification;
 - fresh NuGet-only package consumer restore/build/run against `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`;
@@ -105,24 +112,36 @@ The final `1.3.0` source must pass a fresh exact-head seven-job PR matrix with t
 - macOS x64 and ARM64;
 - all supported target frameworks (`net8.0`, `net9.0`, `net10.0`).
 
-Any compatibility correction required by either refreshed dependency must be demonstrated by failing evidence and must itself receive the same full exact-head requalification before closure.
-
-## Completion rule
-
-T1311 is complete only when the dependency-refreshed stable-source exact head passes package validation and all six runtime jobs with the API fingerprint still exactly:
+The API fingerprint remained exactly:
 
 ```text
 a655bd85e3c88f5bf38ad0d43a148e3bd06a9e943bbf3e3aa2e21575ffb07424
 ```
 
-A green dependency-refreshed stable-source head completes repository-side 1.3 development qualification but does not itself perform a public release action.
+This completed repository-side T1311 qualification.
 
-The resulting final stable-source SHA/workflow is reported without making another self-referential source commit merely to record its own SHA.
+## Merge and main Release qualification
 
-The following remain explicit separate actions:
+PR #27 was merged to `main` as:
 
-- merge PR #27 to `main`;
-- qualify the resulting `main` Release build;
+```text
+18255d59136922b9e246f4113dc6fdb6a9ea24a3
+```
+
+The resulting `main` Release workflow also passed:
+
+```text
+#17 / 34709142076
+```
+
+Thus the exact dependency-refreshed 1.3 source is merged and Release-qualified on `main`.
+
+## Remaining public release actions
+
+Repository-side 1.3 development and main Release qualification are complete. These remain separate explicit actions:
+
 - create/push tag `v1.3.0`;
 - create a GitHub Release;
 - publish the NuGet package.
+
+No checked-in document should describe T1311, PR #27 merge, or main Release qualification as still pending.
