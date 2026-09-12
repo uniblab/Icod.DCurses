@@ -38,6 +38,7 @@ public sealed class CursesInteractionRouter : IDisposable {
 	public const int MaximumGestureBindings = 16384;
 
 	private readonly List<CursesInteractionRegion> regions = [];
+	private CursesInteractionRegion? focusedRegion;
 	private long nextRegistrationOrdinal;
 	private bool registrationOrdinalExhausted;
 	private bool disposed;
@@ -54,6 +55,15 @@ public sealed class CursesInteractionRouter : IDisposable {
 	/// <summary>Gets the logical screen associated with this router.</summary>
 	public CursesScreen Screen {
 		get;
+	}
+
+	/// <summary>Gets the current logical-focus region after deterministic lazy repair.</summary>
+	public CursesInteractionRegion? FocusedRegion {
+		get {
+			this.ThrowIfDisposed();
+			this.RepairFocusIfNeeded();
+			return this.focusedRegion;
+		}
 	}
 
 	/// <summary>Registers one interaction region.</summary>
@@ -107,6 +117,77 @@ public sealed class CursesInteractionRouter : IDisposable {
 		}
 
 		return region;
+	}
+
+	/// <summary>Explicitly gives logical focus to one eligible owned region.</summary>
+	/// <param name="region">The owned region to focus.</param>
+	/// <returns><see langword="true"/> when the region is eligible and was focused; otherwise <see langword="false"/>.</returns>
+	public bool Focus(
+		CursesInteractionRegion region
+	) {
+		ArgumentNullException.ThrowIfNull( region );
+		this.ThrowIfDisposed();
+		if ( !ReferenceEquals(
+			region.Owner,
+			this
+		) ) {
+			throw new ArgumentException(
+				"The interaction region belongs to another router.",
+				nameof( region )
+			);
+		}
+		if ( region.IsDisposed ) {
+			throw new ObjectDisposedException( nameof( region ) );
+		}
+
+		this.RepairFocusIfNeeded();
+		if ( !this.IsRegionEligible( region ) ) {
+			return false;
+		}
+
+		this.focusedRegion = region;
+		return true;
+	}
+
+	/// <summary>Clears application logical focus without changing terminal focus state.</summary>
+	public void ClearFocus() {
+		this.ThrowIfDisposed();
+		this.focusedRegion = null;
+	}
+
+	/// <summary>Moves logical focus through eligible regions using deterministic traversal order.</summary>
+	/// <param name="direction">The traversal direction.</param>
+	/// <returns>The newly focused region, or <see langword="null"/> when no eligible region exists.</returns>
+	public CursesInteractionRegion? MoveFocus(
+		CursesFocusDirection direction
+	) {
+		if ( CursesFocusDirection.Forward != direction
+			&& CursesFocusDirection.Backward != direction ) {
+			throw new ArgumentOutOfRangeException( nameof( direction ) );
+		}
+		this.ThrowIfDisposed();
+		this.RepairFocusIfNeeded();
+
+		CursesInteractionRegion? next;
+		if ( this.focusedRegion is null ) {
+			next = CursesFocusDirection.Forward == direction
+				? this.FindFirstEligibleRegion()
+				: this.FindLastEligibleRegion()
+			;
+		} else if ( CursesFocusDirection.Forward == direction ) {
+			next = this.FindNextEligibleRegion(
+				this.focusedRegion.TraversalOrder,
+				this.focusedRegion.RegistrationOrdinal
+			);
+		} else {
+			next = this.FindPreviousEligibleRegion(
+				this.focusedRegion.TraversalOrder,
+				this.focusedRegion.RegistrationOrdinal
+			);
+		}
+
+		this.focusedRegion = next;
+		return next;
 	}
 
 	/// <summary>Resolves the highest-precedence enabled interaction region at one screen coordinate.</summary>
@@ -176,11 +257,37 @@ public sealed class CursesInteractionRouter : IDisposable {
 		}
 
 		this.disposed = true;
+		this.focusedRegion = null;
 		CursesInteractionRegion[] snapshot = this.regions.ToArray();
 		foreach ( CursesInteractionRegion region in snapshot ) {
 			region.Dispose();
 		}
 		this.regions.Clear();
+	}
+
+	internal void HandleRegionEligibilityChanged(
+		CursesInteractionRegion region
+	) {
+		ArgumentNullException.ThrowIfNull( region );
+		if ( !ReferenceEquals(
+			region.Owner,
+			this
+		) ) {
+			throw new ArgumentException(
+				"The interaction region belongs to another router.",
+				nameof( region )
+			);
+		}
+
+		if ( ReferenceEquals(
+			this.focusedRegion,
+			region
+		) && !this.IsRegionEligible( region ) ) {
+			this.focusedRegion = this.FindNextEligibleRegion(
+				region.TraversalOrder,
+				region.RegistrationOrdinal
+			);
+		}
 	}
 
 	internal void RemoveRegion(
@@ -197,11 +304,110 @@ public sealed class CursesInteractionRouter : IDisposable {
 			);
 		}
 
+		bool wasFocused = ReferenceEquals(
+			this.focusedRegion,
+			region
+		);
+		int traversalOrder = region.TraversalOrder;
+		long registrationOrdinal = region.RegistrationOrdinal;
 		if ( !this.regions.Remove( region ) ) {
 			throw new InvalidOperationException(
 				"The interaction region is not registered with this router."
 			);
 		}
+
+		if ( wasFocused ) {
+			this.focusedRegion = this.FindNextEligibleRegion(
+				traversalOrder,
+				registrationOrdinal
+			);
+		}
+	}
+
+	private CursesInteractionRegion? FindFirstEligibleRegion() {
+		CursesInteractionRegion? selected = null;
+		foreach ( CursesInteractionRegion region in this.regions ) {
+			if ( !this.IsRegionEligible( region ) ) {
+				continue;
+			}
+			if ( selected is null
+				|| IsTraversalBefore(
+					region,
+					selected
+				) ) {
+				selected = region;
+			}
+		}
+		return selected;
+	}
+
+	private CursesInteractionRegion? FindLastEligibleRegion() {
+		CursesInteractionRegion? selected = null;
+		foreach ( CursesInteractionRegion region in this.regions ) {
+			if ( !this.IsRegionEligible( region ) ) {
+				continue;
+			}
+			if ( selected is null
+				|| IsTraversalAfter(
+					region,
+					selected
+				) ) {
+				selected = region;
+			}
+		}
+		return selected;
+	}
+
+	private CursesInteractionRegion? FindNextEligibleRegion(
+		int traversalOrder,
+		long registrationOrdinal
+	) {
+		CursesInteractionRegion? selected = null;
+		foreach ( CursesInteractionRegion region in this.regions ) {
+			if ( !this.IsRegionEligible( region )
+				|| !IsTraversalAfter(
+					region,
+					traversalOrder,
+					registrationOrdinal
+				) ) {
+				continue;
+			}
+			if ( selected is null
+				|| IsTraversalBefore(
+					region,
+					selected
+				) ) {
+				selected = region;
+			}
+		}
+
+		return selected ?? this.FindFirstEligibleRegion();
+	}
+
+	private CursesInteractionRegion? FindPreviousEligibleRegion(
+		int traversalOrder,
+		long registrationOrdinal
+	) {
+		CursesInteractionRegion? selected = null;
+		foreach ( CursesInteractionRegion region in this.regions ) {
+			if ( !this.IsRegionEligible( region )
+				|| !IsTraversalBefore(
+					region,
+					traversalOrder,
+					registrationOrdinal
+				) ) {
+				continue;
+			}
+			if ( selected is null
+				|| IsTraversalAfter(
+					region,
+					selected
+				) ) {
+				selected = region;
+			}
+		}
+
+		return selected ?? this.FindLastEligibleRegion();
 	}
 
 	private bool IsPreferredHitCandidate(
@@ -236,6 +442,106 @@ public sealed class CursesInteractionRouter : IDisposable {
 		}
 
 		return candidate.RegistrationOrdinal > selected.RegistrationOrdinal;
+	}
+
+	private bool IsRegionEligible(
+		CursesInteractionRegion region
+	) {
+		if ( region.IsDisposed
+			|| !region.IsEnabled
+			|| !region.IsFocusable ) {
+			return false;
+		}
+
+		CursesRectangle bounds = region.Bounds;
+		if ( bounds.IsEmpty ) {
+			return false;
+		}
+
+		CursesPanel? panel = region.Panel;
+		if ( panel is null ) {
+			return bounds.Row < this.Screen.Rows
+				&& bounds.Column < this.Screen.Columns;
+		}
+
+		if ( panel.IsDisposed || !panel.IsVisible ) {
+			return false;
+		}
+
+		long top = (long)panel.Row + bounds.Row;
+		long left = (long)panel.Column + bounds.Column;
+		long bottom = Math.Min(
+			(long)this.Screen.Rows,
+			Math.Min(
+				(long)panel.Row + panel.Rows,
+				top + bounds.Rows
+			)
+		);
+		long right = Math.Min(
+			(long)this.Screen.Columns,
+			Math.Min(
+				(long)panel.Column + panel.Columns,
+				left + bounds.Columns
+			)
+		);
+
+		return top < bottom && left < right;
+	}
+
+	private void RepairFocusIfNeeded() {
+		if ( this.focusedRegion is null
+			|| this.IsRegionEligible( this.focusedRegion ) ) {
+			return;
+		}
+
+		int traversalOrder = this.focusedRegion.TraversalOrder;
+		long registrationOrdinal = this.focusedRegion.RegistrationOrdinal;
+		this.focusedRegion = this.FindNextEligibleRegion(
+			traversalOrder,
+			registrationOrdinal
+		);
+	}
+
+	private static bool IsTraversalAfter(
+		CursesInteractionRegion candidate,
+		CursesInteractionRegion reference
+	) {
+		return IsTraversalAfter(
+			candidate,
+			reference.TraversalOrder,
+			reference.RegistrationOrdinal
+		);
+	}
+
+	private static bool IsTraversalAfter(
+		CursesInteractionRegion candidate,
+		int traversalOrder,
+		long registrationOrdinal
+	) {
+		return candidate.TraversalOrder > traversalOrder
+			|| ( candidate.TraversalOrder == traversalOrder
+				&& candidate.RegistrationOrdinal > registrationOrdinal );
+	}
+
+	private static bool IsTraversalBefore(
+		CursesInteractionRegion candidate,
+		CursesInteractionRegion reference
+	) {
+		return IsTraversalBefore(
+			candidate,
+			reference.TraversalOrder,
+			reference.RegistrationOrdinal
+		);
+	}
+
+	private static bool IsTraversalBefore(
+		CursesInteractionRegion candidate,
+		int traversalOrder,
+		long registrationOrdinal
+	) {
+		return candidate.TraversalOrder < traversalOrder
+			|| ( candidate.TraversalOrder == traversalOrder
+				&& candidate.RegistrationOrdinal < registrationOrdinal );
 	}
 
 	private static bool TryGetLocalCoordinates(

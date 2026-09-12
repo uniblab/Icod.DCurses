@@ -68,7 +68,12 @@ public sealed class CursesInteractionRegion : IDisposable {
 		get => this.isEnabled;
 		set {
 			this.ThrowIfDisposed();
+			if ( this.isEnabled == value ) {
+				return;
+			}
+
 			this.isEnabled = value;
+			this.owner.HandleRegionEligibilityChanged( this );
 		}
 	}
 
@@ -77,7 +82,12 @@ public sealed class CursesInteractionRegion : IDisposable {
 		get => this.isFocusable;
 		set {
 			this.ThrowIfDisposed();
+			if ( this.isFocusable == value ) {
+				return;
+			}
+
 			this.isFocusable = value;
+			this.owner.HandleRegionEligibilityChanged( this );
 		}
 	}
 
@@ -105,7 +115,12 @@ public sealed class CursesInteractionRegion : IDisposable {
 		CursesRectangle bounds
 	) {
 		this.ThrowIfDisposed();
+		if ( this.bounds == bounds ) {
+			return;
+		}
+
 		this.bounds = bounds;
+		this.owner.HandleRegionEligibilityChanged( this );
 	}
 
 	/// <summary>Permanently removes this region from its owning interaction router.</summary>
