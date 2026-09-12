@@ -1,12 +1,12 @@
 # Icod.DCurses 1.3 Public API Baseline
 
 **Release candidate line:** `1.3.0`  
-**Current source package identity:** `1.3.0-alpha.1`  
+**Current source package identity:** `1.3.0-rc.1`  
 **Compatibility floor:** published `1.2.0` contract  
 **AssemblyVersion:** `1.0.0.0`  
 **Declared runtime dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
-**T1309 qualified implementation head:** `c209780cf4a0afbf71991e34a1d8912373426922`  
-**T1309 workflow:** #671 / `34625614322`  
+**Qualified T1310 head:** `c8d6a6313b9f6ca124a255c12b912f8ed89ffda7`  
+**T1310 workflow:** #681 / `34694609178`  
 
 ## Published 1.2 floor
 
@@ -100,7 +100,7 @@ T1310 reviewed the candidate surface for naming, mutability, overload ambiguity,
 
 ## Package evidence
 
-The fresh NuGet-only package smoke consumer now compiles and executes representative use of:
+The fresh NuGet-only package smoke consumer compiles and executes representative use of:
 
 - `CursesRectangle` and `CursesInsets`;
 - fixed, proportional, docking, and clipping layout operations;
@@ -109,8 +109,10 @@ The fresh NuGet-only package smoke consumer now compiles and executes representa
 - retained `CursesPanel.Resize`;
 - `CursesPanel.Bounds` and `SetBounds` with retained content preservation.
 
-The smoke consumer has no project reference to repository source. Package validation must therefore succeed against the packed artifact and its declared NuGet dependency graph before T1310 can close.
+The package-only consumer has no project reference to repository source. The T1310 exact head passed package candidate validation in workflow #681, establishing that the packed alpha artifact exposes the reviewed API and declared dependency graph correctly.
 
-## Qualification rule
+## Release-candidate rule
 
-This document freezes the T1310 candidate contract but does not make a qualification claim by itself. T1310 closes only after the exact source head containing the package-smoke and documentation changes passes package validation plus Windows/Linux/macOS x64/ARM64 testing across all supported target frameworks.
+The `1.3.0-rc.1` promotion changes release/package/status metadata only. The implementation and public API remain identical to the T1310-qualified candidate above.
+
+The RC is accepted only after its exact head passes package validation plus Windows/Linux/macOS x64/ARM64 testing across all supported target frameworks. A green RC may then be promoted unchanged to stable-source `1.3.0` for a final exact-head qualification.
