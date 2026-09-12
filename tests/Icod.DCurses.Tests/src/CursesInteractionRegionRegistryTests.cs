@@ -27,13 +27,17 @@ public sealed class CursesInteractionRegionRegistryTests {
 	[Fact]
 	public void RouterRejectsNullScreenAndNullRegistrationOptions() {
 		Assert.Throws<ArgumentNullException>(
-			() => new CursesInteractionRouter( null! )
+			() => {
+				_ = new CursesInteractionRouter( null! );
+			}
 		);
 
 		CursesScreen screen = new( 80, 24 );
 		using CursesInteractionRouter router = new( screen );
 		Assert.Throws<ArgumentNullException>(
-			() => router.RegisterRegion( null! )
+			() => {
+				_ = router.RegisterRegion( null! );
+			}
 		);
 	}
 
@@ -104,25 +108,29 @@ public sealed class CursesInteractionRegionRegistryTests {
 		using CursesPanel foreign = second.CreatePanel( 0, 0, 2, 2 );
 
 		Assert.Throws<ArgumentException>(
-			() => router.RegisterRegion(
-				new CursesInteractionRegionOptions(
-					new CursesRectangle( 0, 0, 1, 1 )
-				) {
-					Panel = foreign
-				}
-			)
+			() => {
+				_ = router.RegisterRegion(
+					new CursesInteractionRegionOptions(
+						new CursesRectangle( 0, 0, 1, 1 )
+					) {
+						Panel = foreign
+					}
+				);
+			}
 		);
 
 		CursesPanel disposed = first.CreatePanel( 0, 0, 2, 2 );
 		disposed.Dispose();
 		Assert.Throws<ObjectDisposedException>(
-			() => router.RegisterRegion(
-				new CursesInteractionRegionOptions(
-					new CursesRectangle( 0, 0, 1, 1 )
-				) {
-					Panel = disposed
-				}
-			)
+			() => {
+				_ = router.RegisterRegion(
+					new CursesInteractionRegionOptions(
+						new CursesRectangle( 0, 0, 1, 1 )
+					) {
+						Panel = disposed
+					}
+				);
+			}
 		);
 	}
 
@@ -168,11 +176,13 @@ public sealed class CursesInteractionRegionRegistryTests {
 		}
 
 		Assert.Throws<InvalidOperationException>(
-			() => router.RegisterRegion(
-				new CursesInteractionRegionOptions(
-					new CursesRectangle( 0, 0, 0, 0 )
-				)
-			)
+			() => {
+				_ = router.RegisterRegion(
+					new CursesInteractionRegionOptions(
+						new CursesRectangle( 0, 0, 0, 0 )
+					)
+				);
+			}
 		);
 
 		regions[ 0 ].Dispose();
@@ -211,19 +221,29 @@ public sealed class CursesInteractionRegionRegistryTests {
 		Assert.Equal( 5, region.TraversalOrder );
 		Assert.Equal( 6, region.HitTestPriority );
 		Assert.Throws<ObjectDisposedException>(
-			() => region.IsEnabled = false
+			() => {
+				region.IsEnabled = false;
+			}
 		);
 		Assert.Throws<ObjectDisposedException>(
-			() => region.IsFocusable = false
+			() => {
+				region.IsFocusable = false;
+			}
 		);
 		Assert.Throws<ObjectDisposedException>(
-			() => region.TraversalOrder = 0
+			() => {
+				region.TraversalOrder = 0;
+			}
 		);
 		Assert.Throws<ObjectDisposedException>(
-			() => region.HitTestPriority = 0
+			() => {
+				region.HitTestPriority = 0;
+			}
 		);
 		Assert.Throws<ObjectDisposedException>(
-			() => region.SetBounds( new CursesRectangle( 0, 0, 1, 1 ) )
+			() => {
+				region.SetBounds( new CursesRectangle( 0, 0, 1, 1 ) );
+			}
 		);
 	}
 
@@ -242,14 +262,18 @@ public sealed class CursesInteractionRegionRegistryTests {
 
 		Assert.Same( screen, router.Screen );
 		Assert.Throws<ObjectDisposedException>(
-			() => router.RegisterRegion(
-				new CursesInteractionRegionOptions(
-					new CursesRectangle( 0, 0, 1, 1 )
-				)
-			)
+			() => {
+				_ = router.RegisterRegion(
+					new CursesInteractionRegionOptions(
+						new CursesRectangle( 0, 0, 1, 1 )
+					)
+				);
+			}
 		);
 		Assert.Throws<ObjectDisposedException>(
-			() => region.IsEnabled = false
+			() => {
+				region.IsEnabled = false;
+			}
 		);
 	}
 }
