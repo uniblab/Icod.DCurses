@@ -4,9 +4,11 @@
 **Tranche:** T1311  
 **Qualified T1310 head:** `c8d6a6313b9f6ca124a255c12b912f8ed89ffda7`  
 **T1310 workflow:** #681 / `34694609178`  
-**Release-candidate identity:** `1.3.0-rc.1`  
+**Qualified RC head:** `2ab949a64f63759ad9cf4e93e45a368c50ab6e49`  
+**RC workflow:** #689 / `34694881296`  
+**Stable-source identity:** `1.3.0`  
 **AssemblyVersion:** `1.0.0.0`  
-**Status:** release-candidate exact-head qualification pending  
+**Status:** stable-source exact-head qualification in progress  
 
 ## Entry gate
 
@@ -46,20 +48,23 @@ CursesPanel.SetBounds(CursesRectangle)
 
 No implementation or API change is permitted during RC/stable promotion unless a qualification failure demonstrates a release-blocking defect and that correction is explicitly requalified through the same gate.
 
-## Release candidate promotion
+## Release candidate qualification
 
-The sole planned release candidate is `1.3.0-rc.1`.
+The sole release candidate, `1.3.0-rc.1`, carried the T1310-qualified implementation and API unchanged.
 
-The alpha-to-RC promotion is limited to:
+Exact RC head:
 
-- `Version`/`PackageVersion` identity;
-- package release-note wording;
-- API fingerprint release/status metadata, without changing its hash/counts;
-- current README/roadmap/API-baseline/closure status documentation.
+```text
+2ab949a64f63759ad9cf4e93e45a368c50ab6e49
+```
 
-It must not alter `src/`, test behavior, sample behavior, package-smoke behavior, runtime dependencies, or `AssemblyVersion`.
+Workflow:
 
-RC qualification requires the normal seven-job PR matrix:
+```text
+#689 / 34694881296
+```
+
+All seven jobs passed:
 
 - package candidate;
 - Windows x64 and ARM64;
@@ -67,15 +72,22 @@ RC qualification requires the normal seven-job PR matrix:
 - macOS x64 and ARM64;
 - all supported target frameworks (`net8.0`, `net9.0`, `net10.0`).
 
-The resulting exact RC SHA/workflow will be recorded during the subsequent stable-source promotion rather than by making a post-qualification commit whose only purpose is to record its own SHA.
+The RC package also passed the fresh NuGet-only 1.3 geometry/layout/bounds/panel-resize consumer.
 
 ## Stable-source promotion
 
-Only after the exact `1.3.0-rc.1` head passes the full matrix may the branch be promoted to source identity `1.3.0`.
+With the exact RC fully green, the branch is now promoted to source/package identity `1.3.0`.
 
-The RC-to-stable change must again be limited to version/package identity and current release-status documentation. The implementation/API, tests, samples, package smoke, dependencies, and `AssemblyVersion` remain unchanged.
+The RC-to-stable change is limited to:
 
-Stable-source qualification requires a second full exact-head seven-job PR matrix. The resulting stable-source SHA/workflow is repository-side completion evidence and should be recorded in PR discussion/status reporting without another self-referential source commit.
+- `Version`/`PackageVersion` identity;
+- stable package release-note wording;
+- API fingerprint release/status metadata, without changing its hash/counts;
+- current README/roadmap/API-baseline/closure status documentation.
+
+It does not alter `src/`, test behavior, sample behavior, package-smoke behavior, runtime dependencies, or `AssemblyVersion`.
+
+Stable-source qualification requires a second full exact-head seven-job PR matrix. The resulting stable-source SHA/workflow is repository-side completion evidence and will be reported without another self-referential source commit.
 
 ## Completion rule
 
