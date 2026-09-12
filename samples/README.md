@@ -1,8 +1,8 @@
 # Icod.DCurses Samples
 
-The repository contains seven executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
+The repository contains eight executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
-All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project, which currently declares `Icod.Terminal 1.8.1` and `Icod.TermInfo 1.10.0`.
+All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project, which currently declares `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`.
 
 ## Ownership model
 
@@ -32,6 +32,16 @@ dotnet run --project samples/Icod.DCurses.Panel.Sample/Icod.DCurses.Panel.Sample
 ```
 
 Press a key between each stage to observe the retained content beneath the panel. Disposal permanently removes the panel from the owning screen; hide/show remains the reversible visibility mechanism.
+
+## Icod.DCurses.Layout.Sample
+
+`Icod.DCurses.Layout.Sample` demonstrates the 1.3 explicit resize/recomputation model. It derives a header region, body region, and retained side panel from `session.Screen.Bounds`, then reapplies those rectangles with `CursesWindow.SetBounds(...)` and `CursesPanel.SetBounds(...)` after resize lifecycle repaint requests. No retained layout tree or automatic application-layout owner is introduced.
+
+```text
+dotnet run --project samples/Icod.DCurses.Layout.Sample/Icod.DCurses.Layout.Sample.csproj
+```
+
+Resize the terminal while the sample is running to see the two windows and retained panel recompute from the new screen bounds. Press `Q` or `Escape` to exit.
 
 ## Icod.DCurses.Showcase
 

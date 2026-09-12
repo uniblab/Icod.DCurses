@@ -95,6 +95,14 @@ public sealed class CursesPanel : IDisposable {
 	/// <summary>Gets the panel width in terminal cells.</summary>
 	public int Columns => surface.Columns;
 
+	/// <summary>Gets the panel rectangle relative to its owning screen.</summary>
+	public CursesRectangle Bounds => new(
+		Row,
+		Column,
+		Rows,
+		Columns
+	);
+
 	/// <summary>Gets whether this panel currently participates in logical composition.</summary>
 	public bool IsVisible {
 		get;
@@ -159,6 +167,61 @@ public sealed class CursesPanel : IDisposable {
 
 		Row = row;
 		Column = column;
+	}
+
+	/// <summary>Changes this panel's retained dimensions without changing its destination origin.</summary>
+	/// <param name="rows">The positive new panel height.</param>
+	/// <param name="columns">The positive new panel width.</param>
+	/// <remarks>
+	/// Overlapping retained content and semantic metadata are preserved. The retained content-window
+	/// object remains the same instance, and its cursor is clamped when the new dimensions shrink.
+	/// </remarks>
+	public void Resize(
+		int rows,
+		int columns
+	) {
+		ThrowIfDisposed();
+		CursesScreen.ValidateWindowRectangle(
+			Row,
+			Column,
+			rows,
+			columns,
+			owner.Rows,
+			owner.Columns
+		);
+
+		surface.Resize(
+			rows,
+			columns
+		);
+	}
+
+	/// <summary>Atomically assigns this panel's final rectangle relative to its owning screen.</summary>
+	/// <param name="bounds">The positive-sized final rectangle.</param>
+	/// <remarks>
+	/// Overlapping retained content and semantic metadata are preserved when dimensions change.
+	/// Validation is performed against the complete final rectangle before either position or size mutates.
+	/// </remarks>
+	public void SetBounds( CursesRectangle bounds ) {
+		ThrowIfDisposed();
+		CursesScreen.ValidateWindowRectangle(
+			bounds.Row,
+			bounds.Column,
+			bounds.Rows,
+			bounds.Columns,
+			owner.Rows,
+			owner.Columns
+		);
+
+		if ( bounds.Rows != Rows
+			|| bounds.Columns != Columns ) {
+			surface.Resize(
+				bounds.Rows,
+				bounds.Columns
+			);
+		}
+		Row = bounds.Row;
+		Column = bounds.Column;
 	}
 
 	/// <summary>Moves this panel to the top of its owning screen's panel order.</summary>

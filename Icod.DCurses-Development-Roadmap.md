@@ -2,90 +2,102 @@
 
 **Project:** `Icod.DCurses`  
 **Repository:** `https://github.com/uniblab/Icod.DCurses`  
-**Accepted stable compatibility floor:** `1.1.0`  
-**1.1 merged baseline commit:** `99aa3a6f95d950e37f729386549dc42817f63bd1`  
-**Current source package:** `1.2.0`  
+**Accepted stable compatibility floor:** published `1.2.0`  
+**Current development package:** `1.3.0`  
 **Assembly version:** `1.0.0.0`  
-**Current declared runtime dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
+**Current declared runtime dependencies:** `Icod.Terminal 1.11.1`; `Icod.TermInfo 1.11.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Active development target:** `1.2.0` — panels, retained layers, and z-order composition  
-**Status:** implementation/API/sample/test closure complete; dependency-refresh qualification pending NuGet indexing of `Icod.Terminal 1.9.0`
+**Active development target:** `1.3.0` — deterministic geometry, layout allocation, retained panel resizing, explicit live relayout  
+**Status:** T1301-T1310 complete; T1311 RC qualified; stable-source dependency refresh qualification in progress
 
 ---
 
 ## Current authorities
 
 - `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md`
-- `Icod.DCurses-1.2.0-Development-Roadmap.md`
-- `docs/T1208-Panel-Application-Performance-and-Allocation-Acceptance.md`
-- `docs/T1209-Public-API-Package-Documentation-and-Regret-Gate.md`
-- `docs/T1210-RC-and-Stable-Closure.md`
-- `docs/Public-API-Fingerprint-1.2.json`
-- `docs/Public-API-Baseline-1.2.md`
+- `Icod.DCurses-1.3.0-Development-Roadmap.md`
+- `docs/Public-API-Fingerprint-1.3.json`
+- `docs/Public-API-Baseline-1.3.md`
+- `docs/T1309-Layout-Application-Performance-and-Allocation-Acceptance.md`
+- `docs/T1310-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/T1311-RC-and-Stable-Closure.md`
 
-Historical pre-1.2 tranche records remain historical and are not rewritten to simulate current dependency/version state.
+Historical 1.0-1.2 tranche records remain historical compatibility authorities and are not rewritten to simulate current development state.
 
 ## Release train
 
 | Release | Theme | Status |
 |---|---|---|
 | `1.0.0` | Stable core contract | Historical stable baseline |
-| `1.1.0` | Semantic metadata and hyperlinks | Accepted compatibility floor |
-| `1.2.0` | Panels/layers/z-order composition | Dependency-refresh qualification pending |
-| `1.3.0` | Layout and resize primitives | Approved future release |
+| `1.1.0` | Semantic metadata and hyperlinks | Historical stable baseline |
+| `1.2.0` | Panels/layers/z-order composition | Published stable baseline |
+| `1.3.0` | Layout and resize primitives | stable-source dependency refresh qualification active |
 | `1.4.0` | Focus/interaction/gestures/hit testing/pointer semantics | Approved future release |
 
 ## API policy
 
-Accepted 1.1 contract:
-
-```text
-45 exported types
-337 canonical contract lines
-sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
-```
-
-Accepted 1.2 contract:
+Published 1.2 contract:
 
 ```text
 47 exported types
-356 canonical contract lines
+356 canonical declared contract lines
 sha256 4810ebb088764acedbb94aca84b231677886b9c1a1f920d9a30f960cbe1dfce7
 ```
 
-Exactly two exported types are added over 1.1: `CursesPanel` and `CursesPanelTransparency`. `AssemblyVersion` remains `1.0.0.0`.
+Frozen 1.3 contract:
 
-## 1.2 accepted architecture
+```text
+51 exported types
+406 canonical declared contract lines
+sha256 a655bd85e3c88f5bf38ad0d43a148e3bd06a9e943bbf3e3aa2e21575ffb07424
+```
 
-Ordinary `CursesWindow` remains a shared view. `CursesPanel` owns an independent retained surface and participates in deterministic screen-owned z-order composition.
+Four exported types are added over 1.2: `CursesRectangle`, `CursesInsets`, `CursesDockEdge`, and `CursesLayout`. Existing screen/window/panel types receive additive bounds/resize application members. `AssemblyVersion` remains `1.0.0.0`.
 
-The accepted substrate provides show/hide, movement/ordering, opaque or blank-transparent composition, clipping, damage-bounded incremental recomposition, Unicode/wide-cell/semantic-metadata coherence, live session refresh, resize/suspend/resume integration, and deterministic one-way `IDisposable` removal. Panel dimensions stay fixed in 1.2; layout/resize belongs to 1.3.
+The stable-source dependency refresh to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0` changes the package dependency graph only. It does not change the frozen DCurses public API fingerprint above.
 
-No-panel refresh retains an allocation-free internal presence check.
+## 1.3 accepted architecture
 
-## Qualified 1.2 checkpoints
+Geometry is immutable and terminal-independent. `CursesLayout` performs pure fixed/proportional/docking/clipping calculations and retains no application state.
+
+`CursesWindow` remains a shared logical view. `CursesPanel` remains an independent retained screen-owned surface. Version 1.3 adds retained panel resizing plus explicit rectangle application without changing those ownership models.
+
+Live terminal resize remains explicit application policy:
+
+```text
+session.Screen.Bounds
+    -> application layout calculation
+    -> window/panel SetBounds or panel Resize
+    -> retained RefreshAsync
+```
+
+No retained layout tree or automatic layout owner exists.
+
+## Qualified 1.3 checkpoints
 
 | Tranche | Exact head | Workflow | Result |
 |---|---|---|---|
-| T1207 | `c0b7fcd48c9b97eaa924299367ffd28779dfd1d0` | #593 / `34520535815` | seven jobs green |
-| T1208 | `bb00707779cf3dc6c2222455a6f942469d036881` | #596 / `34522859308` | seven jobs green |
-| T1209 API/lifetime | `866497c9d5015f3a149580d67eacefaf7e121aaf` | #600 / `34524054785` | seven jobs green |
-| T1209 docs/sample/package | `3728bf0e576b32747dd3a628ed5d3eca768ac67f` | #603 / `34525966166` | seven jobs green |
-| T1210 RC | `8c5d329fa195685c0349068ce33a100aaf9eb0a3` | #604 / `34526810086` | seven jobs green |
-| T1210 stable source | `a065ef389b4e5224bd9defeb3f4de0e688e2e08a` | #605 / `34527425232` | seven jobs green |
-| Final sample/test hardening | `93ef832042dac743008a065acb683d3029710f1c` | #607 / `34528856997` | seven jobs green; 560/560 per TFM |
-
-The current branch then updates only the declared `Icod.Terminal` dependency from `1.8.1` to `1.9.0` plus current-status documentation. The accepted API remains unchanged.
+| T1301 | `fb77341ac844ae9345917a36f4e4d33febe46125` | #633 / `34598939553` | seven jobs green |
+| T1302 | `acb3f5beee8003cc952f6f5062eefd8ed7f70eb1` | #637 / `34603146171` | seven jobs green |
+| T1303 | `a10a58bb37e17a86401a1ccabb863458b516cb21` | #643 / `34613814570` | seven jobs green |
+| T1304 | `2c80b1dceca475b81690baa6c2c00f30167b24a6` | #647 / `34614953520` | seven jobs green |
+| T1305 | `89409d7e323657bd8f86cfd80bedd882486fba4a` | #652 / `34621558815` | seven jobs green |
+| T1306 | `aa29fd378ba96e879cfb28fee05fefa37cdf3774` | #659 / `34622698523` | seven jobs green |
+| T1307 | `1c8ad631fd68fba4e56a9afd4cbc2bca832769d4` | #665 / `34623947573` | seven jobs green |
+| T1308 | `976f677a24a07cacfdde21c2bb8aed61b6b7be89` | #666 / `34624445542` | seven jobs green |
+| T1309 | `c209780cf4a0afbf71991e34a1d8912373426922` | #671 / `34625614322` | seven jobs green |
+| T1310 | `c8d6a6313b9f6ca124a255c12b912f8ed89ffda7` | #681 / `34694609178` | seven jobs green |
+| T1311 RC | `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` | #689 / `34694881296` | seven jobs green |
 
 ## Current sequence
 
 ```text
-T1201–T1210  implementation, acceptance, API/package/docs and stable closure  complete
-Final hardening sample/test regression tranche                                complete
-Dependency refresh Icod.Terminal 1.8.1 -> 1.9.0                              awaiting exact-head qualification
+T1301-T1310  implementation + acceptance + regret gate           complete
+T1311 RC      1.3.0-rc.1 exact-head qualification                complete
+T1311 stable  Terminal 1.11.1 + TermInfo 1.11.0 refresh          qualification in progress
 ```
 
-A temporary restore failure is expected until NuGet indexes `Icod.Terminal 1.9.0`. Do not add fallback package sources, hard-coded compatibility checks, or revert the version merely to make that propagation window green. Once NuGet indexing completes, require the exact current head to pass the normal seven-job matrix.
+The final stable-source gate must prove the packed `1.3.0` package and complete runtime matrix against the declared `Icod.Terminal 1.11.1` / `Icod.TermInfo 1.11.0` graph. A green exact head completes repository-side 1.3 development qualification.
 
-Merge, main Release qualification, tag, GitHub Release creation, and NuGet publication remain explicit separate actions.
+Merge, main Release qualification, tagging, GitHub Release creation, and NuGet publication remain explicit separate actions and are not implied by source completion.

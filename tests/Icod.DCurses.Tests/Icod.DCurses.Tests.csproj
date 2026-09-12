@@ -61,6 +61,10 @@
           Link="Public-API-Fingerprint-1.1.json"
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\docs\Public-API-Fingerprint-1.2.json"
+          Link="Public-API-Fingerprint-1.2-stable.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <!-- PublicApiFingerprintTests reads the current-development baseline through this stable filename. -->
+    <None Include="..\..\docs\Public-API-Fingerprint-1.3.json"
           Link="Public-API-Fingerprint-1.2.json"
           CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

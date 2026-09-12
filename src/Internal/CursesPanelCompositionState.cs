@@ -213,9 +213,12 @@ internal sealed class CursesPanelCompositionState {
 
 			bool positionChanged = previous.Row != panel.Row
 				|| previous.Column != panel.Column;
+			bool dimensionsChanged = previous.Rows != panel.Rows
+				|| previous.Columns != panel.Columns;
 			bool visibilityChanged = previous.IsVisible != panel.IsVisible;
 			bool transparencyChanged = previous.Transparency != panel.Transparency;
 			if ( positionChanged
+				|| dimensionsChanged
 				|| visibilityChanged
 				|| transparencyChanged ) {
 				if ( previous.IsVisible ) {
