@@ -9,6 +9,10 @@
 **T1310 workflow:** #681 / `34694609178`  
 **Qualified RC head:** `2ab949a64f63759ad9cf4e93e45a368c50ab6e49`  
 **RC workflow:** #689 / `34694881296`  
+**Qualified stable-source head:** `b90b444556291434bddb9f56d031f09ac1aabfbf`  
+**Stable-source workflow:** #719 / `34708925529`  
+**Merged main commit:** `18255d59136922b9e246f4113dc6fdb6a9ea24a3`  
+**Main Release workflow:** #17 / `34709142076`  
 
 ## Published 1.2 floor
 
@@ -26,7 +30,7 @@ sha256 4810ebb088764acedbb94aca84b231677886b9c1a1f920d9a30f960cbe1dfce7
 sha256 a655bd85e3c88f5bf38ad0d43a148e3bd06a9e943bbf3e3aa2e21575ffb07424
 ```
 
-The compiler-derived fingerprint is represented by `docs/Public-API-Fingerprint-1.3.json` and is required to remain identical on `net8.0`, `net9.0`, and `net10.0`.
+The compiler-derived fingerprint is represented by `docs/Public-API-Fingerprint-1.3.json` and is identical on `net8.0`, `net9.0`, and `net10.0`.
 
 Exactly four exported types are added over 1.2:
 
@@ -100,23 +104,14 @@ T1310 reviewed the candidate surface for naming, mutability, overload ambiguity,
 - no overload introduces source ambiguity with the published 1.2 API;
 - `AssemblyVersion` remains `1.0.0.0`.
 
-## Package evidence
+## Package and merge evidence
 
-The fresh NuGet-only package smoke consumer compiles and executes representative use of:
+The fresh NuGet-only package smoke consumer compiles and executes representative use of rectangles, insets, fixed/proportional/docking/clipping layout, screen/window bounds, retained panel resize, and atomic panel bounds application.
 
-- `CursesRectangle` and `CursesInsets`;
-- fixed, proportional, docking, and clipping layout operations;
-- `CursesScreen.Bounds`;
-- `CursesWindow.Bounds` and `SetBounds`;
-- retained `CursesPanel.Resize`;
-- `CursesPanel.Bounds` and `SetBounds` with retained content preservation.
+T1310 and the RC qualification used the then-declared `Icod.Terminal 1.9.0` / `Icod.TermInfo 1.10.0` graph. Before final closure, dependencies were refreshed to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0` without changing this DCurses API fingerprint.
 
-The package-only consumer has no project reference to repository source. T1310 alpha qualification and the exact `1.3.0-rc.1` qualification both passed package candidate validation with the then-declared `Icod.Terminal 1.9.0` / `Icod.TermInfo 1.10.0` dependency graph.
+Final stable-source head `b90b444556291434bddb9f56d031f09ac1aabfbf` passed workflow #719 / `34708925529`, including the fresh NuGet-only consumer against the refreshed dependency graph and all six runtime jobs. PR #27 was merged as `18255d59136922b9e246f4113dc6fdb6a9ea24a3`, and the resulting `main` Release workflow #17 / `34709142076` passed.
 
-Before final stable-source closure, the declared dependencies are explicitly refreshed to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`. This package-graph update does not change the compiler-derived DCurses public API fingerprint, but final package evidence must be regenerated against the new dependency graph.
+## Release state
 
-## Stable-source rule
-
-The implementation and public API remain identical to the fully qualified RC above. The dependency-refreshed `1.3.0` source is accepted as repository-side stable only after its exact head passes package validation plus Windows/Linux/macOS x64/ARM64 testing across all supported target frameworks, with the NuGet-only consumer restoring against `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`.
-
-Merge, tagging, GitHub Release creation, and NuGet publication remain separate explicit actions.
+The 1.3 source/API/package candidate is repository-side complete and Release-qualified on `main`. Public release actions remain separate: tag `v1.3.0`, GitHub Release creation, and NuGet publication have not yet occurred.

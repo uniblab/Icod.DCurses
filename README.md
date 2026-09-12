@@ -15,9 +15,9 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 ## Status
 
-Published stable baseline: `Icod.DCurses 1.2.0`.
+Current published stable release: `Icod.DCurses 1.2.0`.
 
-Active development in PR #27 has been promoted to stable-source identity `Icod.DCurses 1.3.0`. The exact `1.3.0-rc.1` head `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` passed workflow #689 / `34694881296` across all seven jobs. Before repository-side closure, the declared dependencies were explicitly refreshed to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`; that dependency graph requires a fresh exact-head package and runtime qualification before merge or publication.
+`Icod.DCurses 1.3.0` is complete in source and merged to `main`. The final dependency-qualified source head `b90b444556291434bddb9f56d031f09ac1aabfbf` passed pull-request workflow #719 / `34708925529` across the package candidate plus Windows/Linux/macOS x64/ARM64. PR #27 was then merged as `18255d59136922b9e246f4113dc6fdb6a9ea24a3`, and the resulting `main` Release workflow #17 / `34709142076` passed. A `v1.3.0` tag, GitHub Release, and NuGet publication have not yet been created.
 
 Current source identity:
 
@@ -55,7 +55,7 @@ Install the current published package selected by your normal NuGet policy:
 dotnet add package Icod.DCurses
 ```
 
-This README describes the 1.3 stable-source candidate in PR #27. Merge, tag, GitHub Release creation, and NuGet publication are separate explicit release actions; source identity `1.3.0` does not mean the 1.3 package has already been published.
+Until `v1.3.0` is tagged and published, normal package resolution still selects the published 1.2 line. The `main` branch already contains the fully qualified 1.3.0 source.
 
 ## Architecture
 
