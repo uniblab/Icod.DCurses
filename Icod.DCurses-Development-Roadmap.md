@@ -3,13 +3,13 @@
 **Project:** `Icod.DCurses`  
 **Repository:** `https://github.com/uniblab/Icod.DCurses`  
 **Accepted stable compatibility floor:** published `1.2.0`  
-**Current development package:** `1.3.0-rc.1`  
+**Current development package:** `1.3.0`  
 **Assembly version:** `1.0.0.0`  
 **Current declared runtime dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.3.0` — deterministic geometry, layout allocation, retained panel resizing, explicit live relayout  
-**Status:** T1301-T1310 complete and qualified; T1311 RC qualification in progress
+**Status:** T1301-T1310 complete; T1311 RC qualified; stable-source qualification in progress
 
 ---
 
@@ -32,7 +32,7 @@ Historical 1.0-1.2 tranche records remain historical compatibility authorities a
 | `1.0.0` | Stable core contract | Historical stable baseline |
 | `1.1.0` | Semantic metadata and hyperlinks | Historical stable baseline |
 | `1.2.0` | Panels/layers/z-order composition | Published stable baseline |
-| `1.3.0` | Layout and resize primitives | `1.3.0-rc.1` qualification active |
+| `1.3.0` | Layout and resize primitives | stable-source qualification active |
 | `1.4.0` | Focus/interaction/gestures/hit testing/pointer semantics | Approved future release |
 
 ## API policy
@@ -45,7 +45,7 @@ Published 1.2 contract:
 sha256 4810ebb088764acedbb94aca84b231677886b9c1a1f920d9a30f960cbe1dfce7
 ```
 
-Frozen 1.3 RC contract:
+Frozen 1.3 contract:
 
 ```text
 51 exported types
@@ -86,15 +86,16 @@ No retained layout tree or automatic layout owner exists.
 | T1308 | `976f677a24a07cacfdde21c2bb8aed61b6b7be89` | #666 / `34624445542` | seven jobs green |
 | T1309 | `c209780cf4a0afbf71991e34a1d8912373426922` | #671 / `34625614322` | seven jobs green |
 | T1310 | `c8d6a6313b9f6ca124a255c12b912f8ed89ffda7` | #681 / `34694609178` | seven jobs green |
+| T1311 RC | `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` | #689 / `34694881296` | seven jobs green |
 
 ## Current sequence
 
 ```text
-T1301-T1310  implementation + acceptance + regret gate     complete
-T1311 RC      1.3.0-rc.1 exact-head qualification          in progress
-T1311 stable  unchanged 1.3.0 stable-source qualification  pending
+T1301-T1310  implementation + acceptance + regret gate      complete
+T1311 RC      1.3.0-rc.1 exact-head qualification           complete
+T1311 stable  unchanged 1.3.0 stable-source qualification   in progress
 ```
 
-The RC promotion changes release/package/status metadata only. A green RC is required before source identity may advance to `1.3.0`; stable-source then receives its own full exact-head seven-job qualification.
+The stable-source promotion changes release/package/status metadata only. A green stable-source exact head completes repository-side 1.3 development qualification.
 
 Merge, main Release qualification, tagging, GitHub Release creation, and NuGet publication remain explicit separate actions and are not implied by source completion.
