@@ -1,12 +1,14 @@
 # Icod.DCurses 1.3 Public API Baseline
 
-**Release candidate line:** `1.3.0`  
-**Current source package identity:** `1.3.0-rc.1`  
+**Release:** `1.3.0`  
+**Current source package identity:** `1.3.0`  
 **Compatibility floor:** published `1.2.0` contract  
 **AssemblyVersion:** `1.0.0.0`  
 **Declared runtime dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
 **Qualified T1310 head:** `c8d6a6313b9f6ca124a255c12b912f8ed89ffda7`  
 **T1310 workflow:** #681 / `34694609178`  
+**Qualified RC head:** `2ab949a64f63759ad9cf4e93e45a368c50ab6e49`  
+**RC workflow:** #689 / `34694881296`  
 
 ## Published 1.2 floor
 
@@ -16,7 +18,7 @@
 sha256 4810ebb088764acedbb94aca84b231677886b9c1a1f920d9a30f960cbe1dfce7
 ```
 
-## 1.3 candidate contract
+## 1.3 stable-source contract
 
 ```text
 51 exported types
@@ -89,7 +91,7 @@ No widget framework, retained layout tree, automatic layout owner, constraint so
 
 ## Regret-gate conclusions
 
-T1310 reviewed the candidate surface for naming, mutability, overload ambiguity, ownership, and planned 1.4 reuse. No corrective API break is required before RC promotion:
+T1310 reviewed the candidate surface for naming, mutability, overload ambiguity, ownership, and planned 1.4 reuse. No corrective API break was required before RC promotion:
 
 - the geometry names use existing curses terminology and are explicit about rows/columns rather than pixels;
 - immutable record structs prevent hidden geometry ownership;
@@ -109,10 +111,10 @@ The fresh NuGet-only package smoke consumer compiles and executes representative
 - retained `CursesPanel.Resize`;
 - `CursesPanel.Bounds` and `SetBounds` with retained content preservation.
 
-The package-only consumer has no project reference to repository source. The T1310 exact head passed package candidate validation in workflow #681, establishing that the packed alpha artifact exposes the reviewed API and declared dependency graph correctly.
+The package-only consumer has no project reference to repository source. T1310 alpha qualification and the exact `1.3.0-rc.1` qualification both passed package candidate validation with this consumer.
 
-## Release-candidate rule
+## Stable-source rule
 
-The `1.3.0-rc.1` promotion changes release/package/status metadata only. The implementation and public API remain identical to the T1310-qualified candidate above.
+The RC-to-stable promotion changes release/package/status metadata only. The implementation and public API remain identical to the fully qualified RC above.
 
-The RC is accepted only after its exact head passes package validation plus Windows/Linux/macOS x64/ARM64 testing across all supported target frameworks. A green RC may then be promoted unchanged to stable-source `1.3.0` for a final exact-head qualification.
+The `1.3.0` source is accepted as repository-side stable only after its exact head passes package validation plus Windows/Linux/macOS x64/ARM64 testing across all supported target frameworks. Merge, tagging, GitHub Release creation, and NuGet publication remain separate explicit actions.
