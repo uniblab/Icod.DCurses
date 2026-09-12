@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "release": "1.3.0",
-  "status": "development-baseline",
+  "release": "1.3.0-alpha.1",
+  "status": "development-baseline-t1310",
   "sha256": "a655bd85e3c88f5bf38ad0d43a148e3bd06a9e943bbf3e3aa2e21575ffb07424",
   "exportedTypeCount": 51,
   "contractLineCount": 406,
