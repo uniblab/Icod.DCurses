@@ -2,7 +2,7 @@
 
 This project is intentionally not part of `Icod.DCurses.sln` and has no project reference to the repository library.
 
-Package validation copies the project into a temporary directory, uses an isolated NuGet package cache, restores the exact current DCurses package version from the local artifact directory, and resolves the project-declared `Icod.Terminal 1.9.0` and `Icod.TermInfo 1.10.0` dependencies through NuGet.org.
+Package validation copies the project into a temporary directory, uses an isolated NuGet package cache, restores the exact current DCurses package version from the local artifact directory, and resolves the project-declared `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0` dependencies through NuGet.org.
 
 Dependency versions are not duplicated as verifier policy. The package metadata is authoritative; restore/build/run establish whether the generated package is consumable with its declared dependency graph.
 

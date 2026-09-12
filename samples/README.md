@@ -2,7 +2,7 @@
 
 The repository contains eight executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
-All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project, which currently declares `Icod.Terminal 1.9.0` and `Icod.TermInfo 1.10.0`.
+All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project, which currently declares `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`.
 
 ## Ownership model
 

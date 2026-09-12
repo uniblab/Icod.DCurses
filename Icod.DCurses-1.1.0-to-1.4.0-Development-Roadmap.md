@@ -5,8 +5,8 @@
 **Published compatibility floor:** `1.2.0`  
 **Active source package:** `1.3.0`  
 **Assembly version policy:** retain `1.0.0.0` through compatible additive 1.x releases  
-**Current declared runtime dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
-**Planning status:** 1.3 T1301-T1310 qualified; T1311 RC qualified; stable-source qualification active
+**Current declared runtime dependencies:** `Icod.Terminal 1.11.1`; `Icod.TermInfo 1.11.0`  
+**Planning status:** 1.3 T1301-T1310 qualified; T1311 RC qualified; stable-source dependency refresh qualification active
 
 ---
 
@@ -15,7 +15,7 @@
 ```text
 1.1.0  semantic cell metadata + hyperlinks                  complete/published history
 1.2.0  panels/layers + z-order composition                  complete/published
-1.3.0  layout + resize primitives                           stable-source qualification active
+1.3.0  layout + resize primitives                           stable-source dependency qualification active
 1.4.0  focus/interaction/key gestures/hit testing/pointer   approved future release
 ```
 
@@ -81,7 +81,7 @@ The accepted 1.3 design provides:
 
 T1310 qualified exact head `c8d6a6313b9f6ca124a255c12b912f8ed89ffda7` in workflow #681 / `34694609178`, all seven jobs green. The API regret audit found no naming, mutability, ambiguity, ownership, or 1.4-reuse correction requiring an API break.
 
-The unchanged implementation/API was then promoted to `1.3.0-rc.1`; exact RC head `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` passed workflow #689 / `34694881296` across all seven jobs. The same implementation/API is now promoted to stable-source identity `1.3.0` for the final repository-side qualification.
+The unchanged implementation/API was then promoted to `1.3.0-rc.1`; exact RC head `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` passed workflow #689 / `34694881296` across all seven jobs. During stable-source closure, the declared dependencies were explicitly advanced to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`. That package-graph change does not alter the frozen 1.3 public API, but it requires a fresh exact-head package and runtime qualification before repository-side completion.
 
 ## Planned 1.4 focus and interaction mechanics
 
@@ -99,6 +99,6 @@ Historical release documents remain historical authorities and are not rewritten
 
 ## Immediate next step
 
-Qualify the exact stable-source `1.3.0` head across package candidate plus Windows/Linux/macOS x64/ARM64. A green exact head completes repository-side 1.3 development.
+Qualify the exact stable-source `1.3.0` head across package candidate plus Windows/Linux/macOS x64/ARM64 against `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`. A green exact head completes repository-side 1.3 development.
 
 Merge, main Release qualification, tagging, GitHub Release creation, and NuGet publication remain separate explicit actions.

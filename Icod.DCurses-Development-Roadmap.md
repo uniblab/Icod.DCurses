@@ -5,11 +5,11 @@
 **Accepted stable compatibility floor:** published `1.2.0`  
 **Current development package:** `1.3.0`  
 **Assembly version:** `1.0.0.0`  
-**Current declared runtime dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
+**Current declared runtime dependencies:** `Icod.Terminal 1.11.1`; `Icod.TermInfo 1.11.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.3.0` — deterministic geometry, layout allocation, retained panel resizing, explicit live relayout  
-**Status:** T1301-T1310 complete; T1311 RC qualified; stable-source qualification in progress
+**Status:** T1301-T1310 complete; T1311 RC qualified; stable-source dependency refresh qualification in progress
 
 ---
 
@@ -32,7 +32,7 @@ Historical 1.0-1.2 tranche records remain historical compatibility authorities a
 | `1.0.0` | Stable core contract | Historical stable baseline |
 | `1.1.0` | Semantic metadata and hyperlinks | Historical stable baseline |
 | `1.2.0` | Panels/layers/z-order composition | Published stable baseline |
-| `1.3.0` | Layout and resize primitives | stable-source qualification active |
+| `1.3.0` | Layout and resize primitives | stable-source dependency refresh qualification active |
 | `1.4.0` | Focus/interaction/gestures/hit testing/pointer semantics | Approved future release |
 
 ## API policy
@@ -54,6 +54,8 @@ sha256 a655bd85e3c88f5bf38ad0d43a148e3bd06a9e943bbf3e3aa2e21575ffb07424
 ```
 
 Four exported types are added over 1.2: `CursesRectangle`, `CursesInsets`, `CursesDockEdge`, and `CursesLayout`. Existing screen/window/panel types receive additive bounds/resize application members. `AssemblyVersion` remains `1.0.0.0`.
+
+The stable-source dependency refresh to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0` changes the package dependency graph only. It does not change the frozen DCurses public API fingerprint above.
 
 ## 1.3 accepted architecture
 
@@ -91,11 +93,11 @@ No retained layout tree or automatic layout owner exists.
 ## Current sequence
 
 ```text
-T1301-T1310  implementation + acceptance + regret gate      complete
-T1311 RC      1.3.0-rc.1 exact-head qualification           complete
-T1311 stable  unchanged 1.3.0 stable-source qualification   in progress
+T1301-T1310  implementation + acceptance + regret gate           complete
+T1311 RC      1.3.0-rc.1 exact-head qualification                complete
+T1311 stable  Terminal 1.11.1 + TermInfo 1.11.0 refresh          qualification in progress
 ```
 
-The stable-source promotion changes release/package/status metadata only. A green stable-source exact head completes repository-side 1.3 development qualification.
+The final stable-source gate must prove the packed `1.3.0` package and complete runtime matrix against the declared `Icod.Terminal 1.11.1` / `Icod.TermInfo 1.11.0` graph. A green exact head completes repository-side 1.3 development qualification.
 
 Merge, main Release qualification, tagging, GitHub Release creation, and NuGet publication remain explicit separate actions and are not implied by source completion.

@@ -6,9 +6,9 @@
 **Baseline commit:** `16c148a1b84064a05d64f974cbbf2122e1bda236`  
 **Current source package:** `1.3.0`  
 **Assembly version:** `1.0.0.0`  
-**Declared dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
+**Declared dependencies:** `Icod.Terminal 1.11.1`; `Icod.TermInfo 1.11.0`  
 **Theme:** deterministic geometry, layout allocation, retained panel resizing, and explicit live resize recomputation  
-**Status:** T1301-T1310 complete and qualified; T1311 RC qualified; stable-source qualification in progress
+**Status:** T1301-T1310 complete and qualified; T1311 RC qualified; stable-source dependency refresh qualification in progress
 
 ---
 
@@ -61,6 +61,8 @@ CursesPanel.SetBounds(CursesRectangle)
 
 `AssemblyVersion` remains `1.0.0.0`.
 
+The stable-source dependency refresh to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0` is a package-graph change and does not alter the public API fingerprint.
+
 ## Qualified checkpoints
 
 | Tranche | Exact head | Workflow | Result |
@@ -92,11 +94,11 @@ Authorities:
 
 ## T1311 — current gate
 
-The unchanged T1310-qualified implementation/API was promoted to `1.3.0-rc.1` and exact head `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` passed workflow #689 / `34694881296` across all seven jobs.
+The T1310-qualified implementation/API was promoted to `1.3.0-rc.1` and exact head `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` passed workflow #689 / `34694881296` across all seven jobs.
 
-The same implementation/API is now promoted to stable-source identity `1.3.0`. Only version/package/status metadata changed. Runtime dependencies remain `Icod.Terminal 1.9.0` and `Icod.TermInfo 1.10.0`; `AssemblyVersion` remains `1.0.0.0`.
+During stable-source closure, the declared dependencies are intentionally refreshed to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`; `AssemblyVersion` remains `1.0.0.0`. The DCurses implementation and frozen public API are unchanged by this dependency update.
 
-The stable-source exact head must pass the normal seven-job PR matrix. A green stable-source head completes repository-side 1.3 development qualification.
+Because the package dependency graph changed after RC qualification, the final stable-source exact head must receive a fresh normal seven-job PR matrix. Package candidate validation must restore and execute the NuGet-only consumer against the declared `Icod.Terminal 1.11.1` / `Icod.TermInfo 1.11.0` graph. A green dependency-refreshed stable-source head completes repository-side 1.3 development qualification.
 
 Authority: `docs/T1311-RC-and-Stable-Closure.md`.
 
@@ -113,7 +115,7 @@ T1307 live resize recomputation acceptance + sample            complete
 T1308 Unicode / metadata / wide-cell resize hardening          complete
 T1309 application / performance / allocation acceptance        complete
 T1310 API / package / docs / licensing regret gate             complete
-T1311 RC / stable-source closure                               stable-source qualification in progress
+T1311 RC / stable-source closure                               dependency refresh qualification in progress
 ```
 
 ## Non-goals

@@ -17,7 +17,7 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 Published stable baseline: `Icod.DCurses 1.2.0`.
 
-Active development in PR #27 has been promoted to stable-source identity `Icod.DCurses 1.3.0`. The exact `1.3.0-rc.1` head `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` passed workflow #689 / `34694881296` across all seven jobs. The stable-source head is now receiving its final exact-head qualification before merge or publication.
+Active development in PR #27 has been promoted to stable-source identity `Icod.DCurses 1.3.0`. The exact `1.3.0-rc.1` head `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` passed workflow #689 / `34694881296` across all seven jobs. Before repository-side closure, the declared dependencies were explicitly refreshed to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`; that dependency graph requires a fresh exact-head package and runtime qualification before merge or publication.
 
 Current source identity:
 
@@ -25,8 +25,8 @@ Current source identity:
 Version         1.3.0
 PackageVersion  1.3.0
 AssemblyVersion 1.0.0.0
-Icod.Terminal   1.9.0
-Icod.TermInfo   1.10.0
+Icod.Terminal   1.11.1
+Icod.TermInfo   1.11.0
 ```
 
 Published 1.2 contract:

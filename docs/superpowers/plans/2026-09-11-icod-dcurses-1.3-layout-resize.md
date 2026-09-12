@@ -14,7 +14,7 @@
 
 - Baseline is published `Icod.DCurses 1.2.0`, `main` commit `16c148a1b84064a05d64f974cbbf2122e1bda236`.
 - Preserve `AssemblyVersion 1.0.0.0`.
-- Keep `Icod.Terminal 1.9.0` and `Icod.TermInfo 1.10.0` unless a separately approved dependency change occurs.
+- Stable-source closure now declares `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0` by separately approved dependency refresh. Earlier tranche checkpoints remain historical evidence for the dependency graph they actually qualified against.
 - Keep all library `.cs` LGPL headers and all executable sample/test GPL headers intact.
 - `Icod.DCurses.csproj` line 1 remains exactly `<?xml version="1.0" encoding="utf-8"?>`.
 - No widgets, retained layout tree, focus routing, hit testing, pointer policy, raster placement, animation, or general constraint solver in 1.3.
@@ -38,7 +38,7 @@
 
 - [ ] **Step 1: bump development identity**
 
-Set `Version` and `PackageVersion` to `1.3.0-alpha.1`; retain `AssemblyVersion 1.0.0.0` and current dependency versions.
+Set `Version` and `PackageVersion` to `1.3.0-alpha.1`; retain `AssemblyVersion 1.0.0.0` and the then-current dependency versions. The later stable-source dependency refresh is recorded in T1311 rather than retroactively changing T1301 evidence.
 
 - [ ] **Step 2: write failing geometry tests**
 
@@ -309,10 +309,12 @@ public void CursesPanel.SetBounds( CursesRectangle bounds );
 ### Task 11: T1311 RC and Stable-Source Closure
 
 **Files:**
-- Modify release/version/status docs and `Icod.DCurses.csproj` only.
+- Modify release/version/status docs and `Icod.DCurses.csproj` only unless dependency compatibility evidence requires a demonstrated correction.
 - Create: `docs/T1311-RC-and-Stable-Closure.md`
 
 - [ ] Promote unchanged implementation/API to `1.3.0-rc.1` and qualify exact head.
-- [ ] If green, promote the same implementation/API to stable-source `1.3.0` and qualify exact head.
+- [ ] If green, promote the same implementation/API to stable-source `1.3.0`.
+- [ ] Apply the separately approved stable-source dependency refresh to `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0` without changing the frozen DCurses API.
+- [ ] Qualify the dependency-refreshed stable-source exact head through package candidate plus Windows/Linux/macOS x64/ARM64.
 - [ ] Record exact SHAs/workflows without making a self-referential post-qualification source commit.
 - [ ] Do not merge, tag, create a GitHub Release, or publish NuGet without explicit authorization.
