@@ -17,13 +17,13 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 Published stable baseline: `Icod.DCurses 1.2.0`.
 
-Active development in PR #27 has entered the `Icod.DCurses 1.3.0-rc.1` qualification gate. T1301-T1310 are complete; T1310 exact head `c8d6a6313b9f6ca124a255c12b912f8ed89ffda7` passed workflow #681 / `34694609178` across all seven jobs, including the fresh NuGet-only 1.3 package consumer.
+Active development in PR #27 has been promoted to stable-source identity `Icod.DCurses 1.3.0`. The exact `1.3.0-rc.1` head `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` passed workflow #689 / `34694881296` across all seven jobs. The stable-source head is now receiving its final exact-head qualification before merge or publication.
 
 Current source identity:
 
 ```text
-Version         1.3.0-rc.1
-PackageVersion  1.3.0-rc.1
+Version         1.3.0
+PackageVersion  1.3.0
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.9.0
 Icod.TermInfo   1.10.0
@@ -37,7 +37,7 @@ Published 1.2 contract:
 sha256 4810ebb088764acedbb94aca84b231677886b9c1a1f920d9a30f960cbe1dfce7
 ```
 
-Frozen 1.3 RC contract:
+Frozen 1.3 contract:
 
 ```text
 51 exported types
@@ -55,7 +55,7 @@ Install the current published package selected by your normal NuGet policy:
 dotnet add package Icod.DCurses
 ```
 
-This README describes the 1.3 release-candidate source in PR #27. Merge, tag, GitHub Release creation, and NuGet publication are separate explicit release actions; the current RC source identity is not a statement that an RC package has been published.
+This README describes the 1.3 stable-source candidate in PR #27. Merge, tag, GitHub Release creation, and NuGet publication are separate explicit release actions; source identity `1.3.0` does not mean the 1.3 package has already been published.
 
 ## Architecture
 
@@ -251,7 +251,7 @@ Local wrappers use Debug configuration. Pull requests use Staging with warnings-
 
 Runtime validation covers Windows/Linux/macOS x64 and ARM64; the library/test matrix covers `net8.0`, `net9.0`, and `net10.0`.
 
-Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. T1310 extended that consumer to compile and execute the 1.3 rectangle/inset/layout/bounds/panel-resize surface directly from the packed artifact. Package validation does not impose hard-coded sibling dependency versions.
+Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. The 1.3 package consumer compiles and executes the rectangle/inset/layout/bounds/panel-resize surface directly from the packed artifact. Package validation does not impose hard-coded sibling dependency versions.
 
 ## Release documentation
 
