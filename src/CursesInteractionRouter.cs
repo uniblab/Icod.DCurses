@@ -24,7 +24,7 @@ namespace Icod.DCurses;
 /// <summary>
 /// Owns a bounded set of application interaction regions associated with one logical screen.
 /// </summary>
-public sealed class CursesInteractionRouter : IDisposable {
+public sealed partial class CursesInteractionRouter : IDisposable {
 	/// <summary>Gets the maximum number of live interaction regions owned by one router.</summary>
 	public const int MaximumRegions = 4096;
 
