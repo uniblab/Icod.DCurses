@@ -25,7 +25,7 @@ namespace Icod.DCurses;
 /// Represents one application-owned interaction region registered with a
 /// <see cref="CursesInteractionRouter"/>.
 /// </summary>
-public sealed class CursesInteractionRegion : IDisposable {
+public sealed partial class CursesInteractionRegion : IDisposable {
 	private readonly CursesInteractionRouter owner;
 	private CursesRectangle bounds;
 	private bool isEnabled;
