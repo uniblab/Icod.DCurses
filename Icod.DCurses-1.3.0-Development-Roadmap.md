@@ -4,11 +4,11 @@
 **Release line:** `1.3.0`  
 **Published baseline:** `1.2.0`  
 **Baseline commit:** `16c148a1b84064a05d64f974cbbf2122e1bda236`  
-**Current source package:** `1.3.0-rc.1`  
+**Current source package:** `1.3.0`  
 **Assembly version:** `1.0.0.0`  
 **Declared dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
 **Theme:** deterministic geometry, layout allocation, retained panel resizing, and explicit live resize recomputation  
-**Status:** T1301-T1310 complete and qualified; T1311 release-candidate qualification in progress
+**Status:** T1301-T1310 complete and qualified; T1311 RC qualified; stable-source qualification in progress
 
 ---
 
@@ -75,6 +75,7 @@ CursesPanel.SetBounds(CursesRectangle)
 | T1308 Unicode/metadata/wide-cell hardening | `976f677a24a07cacfdde21c2bb8aed61b6b7be89` | #666 / `34624445542` | seven jobs green |
 | T1309 application/performance/allocation acceptance | `c209780cf4a0afbf71991e34a1d8912373426922` | #671 / `34625614322` | seven jobs green |
 | T1310 API/package/docs/licensing regret gate | `c8d6a6313b9f6ca124a255c12b912f8ed89ffda7` | #681 / `34694609178` | seven jobs green |
+| T1311 release candidate | `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` | #689 / `34694881296` | seven jobs green |
 
 T1303 includes the test-isolation correction required by the macOS bounded Terminal negotiation acceptance tests; production timeout behavior was not changed.
 
@@ -91,11 +92,11 @@ Authorities:
 
 ## T1311 — current gate
 
-The unchanged T1310-qualified implementation/API has been promoted to source/package identity `1.3.0-rc.1`.
+The unchanged T1310-qualified implementation/API was promoted to `1.3.0-rc.1` and exact head `2ab949a64f63759ad9cf4e93e45a368c50ab6e49` passed workflow #689 / `34694881296` across all seven jobs.
 
-Only release/package/status metadata changed. Runtime dependencies remain `Icod.Terminal 1.9.0` and `Icod.TermInfo 1.10.0`; `AssemblyVersion` remains `1.0.0.0`.
+The same implementation/API is now promoted to stable-source identity `1.3.0`. Only version/package/status metadata changed. Runtime dependencies remain `Icod.Terminal 1.9.0` and `Icod.TermInfo 1.10.0`; `AssemblyVersion` remains `1.0.0.0`.
 
-The RC exact head must pass the normal seven-job PR matrix before any stable-source promotion. After a green RC, the unchanged implementation/API may be promoted to source identity `1.3.0` and must pass a second exact-head seven-job matrix.
+The stable-source exact head must pass the normal seven-job PR matrix. A green stable-source head completes repository-side 1.3 development qualification.
 
 Authority: `docs/T1311-RC-and-Stable-Closure.md`.
 
@@ -112,7 +113,7 @@ T1307 live resize recomputation acceptance + sample            complete
 T1308 Unicode / metadata / wide-cell resize hardening          complete
 T1309 application / performance / allocation acceptance        complete
 T1310 API / package / docs / licensing regret gate             complete
-T1311 RC / stable-source closure                               RC qualification in progress
+T1311 RC / stable-source closure                               stable-source qualification in progress
 ```
 
 ## Non-goals
