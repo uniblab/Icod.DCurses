@@ -11,31 +11,25 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 - `Icod.TermInfo` owns immutable terminal capability descriptions and expansion;
 - `Icod.Terminal` owns the live terminal session, host mode, dimensions, lifecycle, input decoding, semantic terminal protocols, and output serialization;
-- `Icod.DCurses` owns curses-shaped events, logical screens/windows, pads/viewports, retained panels/layers, cells/styles/metadata, composition, and retained refresh policy.
+- `Icod.DCurses` owns curses-shaped events, logical screens/windows, pads/viewports, retained panels/layers, cells/styles/metadata, composition, retained refresh policy, and terminal-cell layout primitives.
 
 ## Status
 
-`Icod.DCurses 1.2.0` is implementation/API/sample/test complete in PR #26. The branch now declares `Icod.Terminal 1.9.0`; exact-head dependency-refresh qualification is pending NuGet indexing of that newly published package. A temporary restore failure during package propagation is expected and is not a reason to add version-specific compatibility checks or fallback package sources.
+Published stable baseline: `Icod.DCurses 1.2.0`.
+
+Active development in PR #27 is `Icod.DCurses 1.3.0`, focused on immutable terminal-cell geometry, pure deterministic layout allocation, retained panel resizing, and explicit live resize recomputation. T1301-T1309 are qualified; T1310 is the API/package/documentation/licensing regret gate before release-candidate promotion.
 
 Current source identity:
 
 ```text
-Version         1.2.0
-PackageVersion  1.2.0
+Version         1.3.0-alpha.1
+PackageVersion  1.3.0-alpha.1
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.9.0
 Icod.TermInfo   1.10.0
 ```
 
-Accepted 1.1 compatibility floor:
-
-```text
-45 exported types
-337 canonical declared contract lines
-sha256 21dff2e57d8bbc9b2f0e40aa4ee4dfd575dd765d02d0f670424c93b2bdc1c039
-```
-
-Accepted 1.2 contract:
+Published 1.2 contract:
 
 ```text
 47 exported types
@@ -43,17 +37,25 @@ Accepted 1.2 contract:
 sha256 4810ebb088764acedbb94aca84b231677886b9c1a1f920d9a30f960cbe1dfce7
 ```
 
-The two new exported types are `CursesPanel` and `CursesPanelTransparency`.
+Current reviewed 1.3 candidate:
+
+```text
+51 exported types
+406 canonical declared contract lines
+sha256 a655bd85e3c88f5bf38ad0d43a148e3bd06a9e943bbf3e3aa2e21575ffb07424
+```
+
+The four new exported types are `CursesRectangle`, `CursesInsets`, `CursesDockEdge`, and `CursesLayout`.
 
 ## Installation
 
-Install the current package selected by your normal NuGet policy:
+Install the current published package selected by your normal NuGet policy:
 
 ```text
 dotnet add package Icod.DCurses
 ```
 
-This README describes the source candidate in PR #26. Merge, tag, GitHub Release creation, and NuGet publication are separate explicit release actions.
+This README describes the 1.3 source candidate in PR #27. Merge, tag, GitHub Release creation, and NuGet publication are separate explicit release actions; the current `1.3.0-alpha.1` source identity is not a statement that a corresponding package has been published.
 
 ## Architecture
 
@@ -62,7 +64,7 @@ applications / future widgets / compatibility facades
                          |
                     Icod.DCurses
  windows / pads / panels / cells / semantic metadata
-     logical composition / retained refresh / events
+ immutable geometry / pure layout / retained refresh / events
                          |
                     Icod.Terminal
    live session / input / lifecycle / semantic protocols
@@ -75,6 +77,8 @@ applications / future widgets / compatibility facades
 ```
 
 `Icod.DCurses` does not maintain a second terminal capability database, install a competing raw-input loop, own terminal modes independently of `Icod.Terminal`, emit private OSC/CSI/DCS/APC framing for Terminal-owned protocols, emulate a terminal, or create/manage PTYs.
+
+Version 1.3 also does not add a retained layout tree or automatic layout owner. Geometry remains caller-owned data and layout recomputation remains explicit application policy.
 
 ## Targets
 
@@ -114,6 +118,57 @@ CursesEvent terminalEvent = await session.ReadEventAsync();
 
 A `CursesSession` restores the presentation and Terminal-owned state it acquires when disposed. Applications should consume terminal input and lifecycle activity through the curses/Terminal ownership model rather than adding a parallel byte reader.
 
+## 1.3 geometry, layout, and resize
+
+`CursesRectangle` and `CursesInsets` are immutable terminal-cell value types. Empty rectangles are valid geometry results; applying bounds to a window or panel still requires positive dimensions.
+
+`CursesLayout` is a stateless utility for fixed splits, proportional splits, docking, and clipping:
+
+```csharp
+CursesRectangle bounds = session.Screen.Bounds;
+
+CursesLayout.Dock(
+    bounds,
+    CursesDockEdge.Top,
+    2,
+    out CursesRectangle headerBounds,
+    out CursesRectangle remaining
+);
+CursesLayout.SplitColumnsProportional(
+    remaining,
+    1,
+    3,
+    out CursesRectangle sidebarBounds,
+    out CursesRectangle bodyBounds
+);
+```
+
+Geometry is applied explicitly to ordinary windows and retained panels:
+
+```csharp
+header.SetBounds( headerBounds );
+sidebar.SetBounds( sidebarBounds );
+body.SetBounds( bodyBounds );
+dialog.SetBounds(
+    bodyBounds.Inset(
+        new CursesInsets( 2, 4, 2, 4 )
+    )
+);
+```
+
+`CursesPanel.Resize` and `SetBounds` preserve surviving upper-left retained content and semantic metadata, clamp the retained cursor after shrink, repair width-two footprints at resize boundaries, preserve visibility/z-order/transparency, and validate the final screen-relative rectangle before mutation.
+
+For live resize, DCurses deliberately does not retain layout rules. The application recomputes from the synchronized logical screen:
+
+```csharp
+CursesRectangle current = session.Screen.Bounds;
+// derive rectangles from current
+// apply them with SetBounds / Resize
+await session.RefreshAsync();
+```
+
+The `Icod.DCurses.Layout.Sample` project demonstrates this explicit lifecycle-driven recomputation model with ordinary windows plus a retained panel.
+
 ## 1.2 retained panels and layers
 
 Ordinary `CursesWindow` instances remain shared logical views. `CursesPanel` is intentionally different: it owns an independent retained surface and participates in a deterministic screen-owned z-order stack.
@@ -144,11 +199,11 @@ overlay.Transparency = CursesPanelTransparency.BlankCellsTransparent;
 overlay.ContentWindow.Write( "overlay" );
 ```
 
-The 1.2 panel contract includes independent retained content, show/hide with remembered z-order, movement and relative ordering, clipping, opaque/blank-transparent composition, Unicode width-two and semantic-metadata coherence, damage-bounded recomposition, live session refresh/lifecycle integration, and deterministic one-way `Dispose()` removal.
+The published 1.2 panel contract includes independent retained content, show/hide with remembered z-order, movement and relative ordering, clipping, opaque/blank-transparent composition, Unicode width-two and semantic-metadata coherence, damage-bounded recomposition, live session refresh/lifecycle integration, and deterministic one-way `Dispose()` removal.
 
 Disposal removes a transient panel from its owning screen so repeatedly-created popups/dialogs are not retained for the screen lifetime. A disposed panel cannot be reattached or manipulated.
 
-Panel size remains fixed in 1.2. General layout and resize primitives belong to the planned 1.3 release.
+Version 1.3 extends this published model with retained resizing; it does not replace panel ownership or composition semantics.
 
 ## 1.1 semantic metadata and hyperlinks
 
@@ -187,7 +242,8 @@ The library deliberately uses a narrow ownership model rather than pervasive per
 - caller cancellation does not discard Terminal decoder state;
 - disposal unblocks pending DCurses waits while preserving authoritative restoration;
 - output uncertainty invalidates retained physical knowledge so a later refresh can repaint safely;
-- suspend/resume invalidates physical knowledge but retains logical panel content.
+- suspend/resume invalidates physical knowledge but retains logical panel content;
+- lifecycle resize synchronizes the logical screen, while application layout recomputation remains explicit.
 
 ## Validation and packaging
 
@@ -195,22 +251,21 @@ Local wrappers use Debug configuration. Pull requests use Staging with warnings-
 
 Runtime validation covers Windows/Linux/macOS x64 and ARM64; the library/test matrix covers `net8.0`, `net9.0`, and `net10.0`.
 
-Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. Package validation does not impose hard-coded sibling dependency versions.
+Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. T1310 extends that consumer to compile and execute the 1.3 rectangle/inset/layout/bounds/panel-resize surface directly from the packed artifact. Package validation does not impose hard-coded sibling dependency versions.
 
 ## Release documentation
 
-Current post-1.0 authorities:
+Current authorities:
 
 - `Icod.DCurses-Development-Roadmap.md`
 - `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md`
-- `Icod.DCurses-1.2.0-Development-Roadmap.md`
-- `docs/T1208-Panel-Application-Performance-and-Allocation-Acceptance.md`
-- `docs/T1209-Public-API-Package-Documentation-and-Regret-Gate.md`
-- `docs/T1210-RC-and-Stable-Closure.md`
-- `docs/Public-API-Fingerprint-1.2.json`
-- `docs/Public-API-Baseline-1.2.md`
+- `Icod.DCurses-1.3.0-Development-Roadmap.md`
+- `docs/Public-API-Fingerprint-1.3.json`
+- `docs/Public-API-Baseline-1.3.md`
+- `docs/T1309-Layout-Application-Performance-and-Allocation-Acceptance.md`
+- `docs/T1310-Public-API-Package-Documentation-and-Regret-Gate.md`
 
-Historical 1.0 and 1.1 closure records remain compatibility authorities and are not rewritten merely to reflect later development state.
+Historical 1.0-1.2 closure records remain compatibility authorities and are not rewritten merely to reflect later development state.
 
 ## Authors
 
