@@ -43,7 +43,7 @@
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>1.3.0 development adds immutable geometry, deterministic layout allocation, retained panel resizing, and explicit live resize recomputation over the published 1.2 panel contract. The current alpha begins with CursesRectangle and CursesInsets. Runtime dependencies remain Icod.Terminal 1.9.0 and Icod.TermInfo 1.10.0; AssemblyVersion remains 1.0.0.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>1.3.0 development adds immutable CursesRectangle/CursesInsets geometry, pure fixed/proportional/docking/clipping layout helpers, screen/window/panel bounds application, retained panel resizing, and explicit live resize recomputation over the published 1.2 panel contract. Runtime dependencies remain Icod.Terminal 1.9.0 and Icod.TermInfo 1.10.0; AssemblyVersion remains 1.0.0.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
