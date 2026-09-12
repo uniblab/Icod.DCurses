@@ -4,11 +4,11 @@
 **Release line:** `1.3.0`  
 **Published baseline:** `1.2.0`  
 **Baseline commit:** `16c148a1b84064a05d64f974cbbf2122e1bda236`  
-**Current source package:** `1.3.0-alpha.1`  
+**Current source package:** `1.3.0-rc.1`  
 **Assembly version:** `1.0.0.0`  
 **Declared dependencies:** `Icod.Terminal 1.9.0`; `Icod.TermInfo 1.10.0`  
 **Theme:** deterministic geometry, layout allocation, retained panel resizing, and explicit live resize recomputation  
-**Status:** T1301-T1309 complete and qualified; T1310 API/package/docs/regret gate in progress
+**Status:** T1301-T1310 complete and qualified; T1311 release-candidate qualification in progress
 
 ---
 
@@ -31,9 +31,7 @@ The 1.2 retained-panel model remains intact. Version 1.3 adds geometry and resiz
 - Screen resize recomputation remains explicit application behavior.
 - 1.4 will reuse 1.3 rectangles for focus/hit-test/interaction work.
 
-## Current 1.3 public contract
-
-Compiler-derived T1310 candidate:
+## Frozen 1.3 public contract
 
 ```text
 51 exported types
@@ -76,73 +74,30 @@ CursesPanel.SetBounds(CursesRectangle)
 | T1307 live resize recomputation + sample | `1c8ad631fd68fba4e56a9afd4cbc2bca832769d4` | #665 / `34623947573` | seven jobs green |
 | T1308 Unicode/metadata/wide-cell hardening | `976f677a24a07cacfdde21c2bb8aed61b6b7be89` | #666 / `34624445542` | seven jobs green |
 | T1309 application/performance/allocation acceptance | `c209780cf4a0afbf71991e34a1d8912373426922` | #671 / `34625614322` | seven jobs green |
+| T1310 API/package/docs/licensing regret gate | `c8d6a6313b9f6ca124a255c12b912f8ed89ffda7` | #681 / `34694609178` | seven jobs green |
 
 T1303 includes the test-isolation correction required by the macOS bounded Terminal negotiation acceptance tests; production timeout behavior was not changed.
 
-## Completed implementation
+## Accepted implementation
 
-### T1301 — immutable geometry
+T1301-T1304 provide immutable geometry plus fixed, proportional, docking, and clipping allocation. T1305-T1306 add retained panel resize and explicit rectangle application to screens/windows/panels. T1307 demonstrates explicit live relayout from synchronized `Screen.Bounds`. T1308 hardens Unicode/metadata/wide-cell resize behavior. T1309 freezes application-shaped state and allocation behavior. T1310 freezes the reviewed API/package/documentation/licensing candidate and proves the packed artifact through a fresh NuGet-only 1.3 consumer.
 
-`CursesRectangle` and `CursesInsets` provide validated immutable terminal-cell geometry. Empty rectangles are legal values and intersection/inset semantics are deterministic.
+Authorities:
 
-### T1302 — fixed splits and clipping
+- `docs/Public-API-Fingerprint-1.3.json`
+- `docs/Public-API-Baseline-1.3.md`
+- `docs/T1309-Layout-Application-Performance-and-Allocation-Acceptance.md`
+- `docs/T1310-Public-API-Package-Documentation-and-Regret-Gate.md`
 
-`CursesLayout` provides top/bottom/left/right fixed allocation plus clipping. Negative extents are rejected and oversized requests consume only available space.
+## T1311 — current gate
 
-### T1303 — proportional allocation
+The unchanged T1310-qualified implementation/API has been promoted to source/package identity `1.3.0-rc.1`.
 
-Two-way row/column proportional splits require positive weights. Integer division determines the first extent and the second receives the deterministic remainder.
+Only release/package/status metadata changed. Runtime dependencies remain `Icod.Terminal 1.9.0` and `Icod.TermInfo 1.10.0`; `AssemblyVersion` remains `1.0.0.0`.
 
-### T1304 — docking
+The RC exact head must pass the normal seven-job PR matrix before any stable-source promotion. After a green RC, the unchanged implementation/API may be promoted to source identity `1.3.0` and must pass a second exact-head seven-job matrix.
 
-`CursesDockEdge` plus `CursesLayout.Dock` provide uniform fixed allocation from Top/Right/Bottom/Left.
-
-### T1305 — retained panel resize
-
-`CursesPanel.Resize` resizes the independent retained panel surface while preserving surviving upper-left cells/metadata, clamping cursor position, repairing wide-cell boundaries, preserving z-order/visibility/transparency, and invalidating old/new composition footprints.
-
-### T1306 — rectangle application
-
-`Bounds` snapshots and atomic `SetBounds` application were added to screens/windows/panels. Final rectangles are validated before mutation; nested-window coordinates remain relative to their immediate parent.
-
-### T1307 — explicit live relayout
-
-The lifecycle integration and new `Icod.DCurses.Layout.Sample` demonstrate the intended ownership model:
-
-```text
-Terminal dimension synchronization
-    -> session.Screen.Bounds
-    -> application recomputation
-    -> SetBounds / Resize
-    -> retained refresh
-```
-
-No automatic layout manager was introduced.
-
-### T1308 — retained Unicode hardening
-
-Repeated grow/shrink, semantic metadata, transparent blank growth, and width-two leader/continuation boundaries are covered with `CursesCellFootprint.Validate` after retained resize states. No production defect was exposed.
-
-### T1309 — application/performance/allocation acceptance
-
-Application-shaped chained layouts are accepted. `CursesLayout` retains no state. A stabilized pure-geometry measurement sample must allocate exactly zero bytes; steady-state bounds application/composition stays under its separately frozen allocation ceiling while retaining the composed frame.
-
-Authority: `docs/T1309-Layout-Application-Performance-and-Allocation-Acceptance.md`.
-
-## T1310 — current gate
-
-T1310 is freezing the API/package/documentation candidate before RC promotion.
-
-Current work includes:
-
-- reviewed human-readable baseline: `docs/Public-API-Baseline-1.3.md`;
-- compiler-derived machine baseline: `docs/Public-API-Fingerprint-1.3.json`;
-- regret-gate record: `docs/T1310-Public-API-Package-Documentation-and-Regret-Gate.md`;
-- fresh NuGet-only 1.3 geometry/layout/bounds/panel-resize smoke coverage;
-- README and roadmap normalization;
-- LGPL/GPL header audit.
-
-T1310 is complete only after one exact head containing all of those changes passes package validation and the six Windows/Linux/macOS x64/ARM64 runtime jobs.
+Authority: `docs/T1311-RC-and-Stable-Closure.md`.
 
 ## Remaining workflow
 
@@ -156,8 +111,8 @@ T1306 rectangle application conveniences                       complete
 T1307 live resize recomputation acceptance + sample            complete
 T1308 Unicode / metadata / wide-cell resize hardening          complete
 T1309 application / performance / allocation acceptance        complete
-T1310 API / package / docs / licensing regret gate             in progress
-T1311 RC / stable-source closure                               pending
+T1310 API / package / docs / licensing regret gate             complete
+T1311 RC / stable-source closure                               RC qualification in progress
 ```
 
 ## Non-goals
@@ -172,5 +127,6 @@ Version 1.3 does not add widgets, focus traversal, keyboard gestures, hit testin
 - `docs/Public-API-Baseline-1.3.md`
 - `docs/T1309-Layout-Application-Performance-and-Allocation-Acceptance.md`
 - `docs/T1310-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/T1311-RC-and-Stable-Closure.md`
 
-T1311 may promote this unchanged implementation/API to `1.3.0-rc.1` only after T1310 exact-head qualification. Merge, tagging, GitHub Release creation, and NuGet publication remain separate explicit actions.
+Merge, tagging, GitHub Release creation, and NuGet publication remain separate explicit actions after repository-side stable-source qualification.
