@@ -6,7 +6,7 @@
 **Current published package:** `1.3.0`  
 **Assembly version policy:** retain `1.0.0.0` through compatible additive 1.x releases  
 **Current declared runtime dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
-**Planning status:** 1.3 is complete/published; 1.4 has completed T1401-T1410 and is in T1411 release qualification
+**Planning status:** 1.3 is complete/published; 1.4 has completed T1401-T1411 and is in T1412 stable-source qualification
 
 ---
 
@@ -16,7 +16,7 @@
 1.1.0  semantic cell metadata + hyperlinks                  complete/published history
 1.2.0  panels/layers + z-order composition                  complete/published history
 1.3.0  layout + resize primitives                           complete/published
-1.4.0  interaction routing/focus/gestures/hit testing       T1411 release qualification active
+1.4.0  interaction routing/focus/gestures/hit testing       stable-source qualification active
 ```
 
 The sequence is cumulative: 1.1 adds meaning to retained content; 1.2 composes overlapping retained surfaces; 1.3 makes geometry manageable; 1.4 routes semantic input to logical application regions.
@@ -81,6 +81,8 @@ The detailed authorities are:
 - `docs/Public-API-Fingerprint-1.4.json`
 - `docs/T1409-Interaction-Acceptance-Sample.md`
 - `docs/T1410-Interaction-Performance-Allocation-and-Adversarial-Hardening.md`
+- `docs/T1411-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/T1412-RC-and-Stable-1.4.0-Closure.md`
 
 ## 1.4 key policy decisions
 
@@ -109,8 +111,8 @@ T1407  pointer shape integration                             complete
 T1408  resize / panel / lifecycle coherence                  complete
 T1409  application acceptance sample                         complete
 T1410  performance / allocation / hardening                  complete
-T1411  API / package / docs / licensing / dependency gate    active
-T1412  RC / stable-source closure                            pending
+T1411  API / package / docs / licensing / dependency gate    complete
+T1412  RC / stable-source closure                            active
 ```
 
 ## Cross-release rules
@@ -125,4 +127,4 @@ Version 1.4 does not add a widget/control library, retained widget hierarchy, ev
 
 ## Immediate next step
 
-T1411 is the active release gate. Finish the API/package/documentation/licensing regret review and qualify the refreshed `Icod.Terminal 1.13.0` / `Icod.TermInfo 1.12.0` dependency graph through the normal package/runtime matrix. T1412 then promotes the accepted implementation through RC and stable-source qualification before merge.
+T1412 is the active release gate. The final `1.4.0-rc.1` head has passed the full seven-job package/runtime matrix and the unchanged accepted implementation/API has been promoted to stable-source `1.4.0`. Qualify the stable-source exact head through the same matrix, then present PR #29 for explicit merge approval. After merge, qualify the resulting `main` Release workflow before tagging, GitHub Release creation, or NuGet publication.
