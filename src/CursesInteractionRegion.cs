@@ -32,6 +32,7 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 	private bool isFocusable;
 	private int traversalOrder;
 	private int hitTestPriority;
+	private CursesPointerShape? pointerShape;
 	private bool disposed;
 
 	internal CursesInteractionRegion(
@@ -44,6 +45,10 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 		if ( 0 > registrationOrdinal ) {
 			throw new ArgumentOutOfRangeException( nameof( registrationOrdinal ) );
 		}
+		if ( options.PointerShape.HasValue
+			&& !Enum.IsDefined( options.PointerShape.Value ) ) {
+			throw new ArgumentOutOfRangeException( nameof( options.PointerShape ) );
+		}
 
 		this.owner = owner;
 		this.bounds = options.Bounds;
@@ -52,6 +57,7 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 		this.isFocusable = options.IsFocusable;
 		this.traversalOrder = options.TraversalOrder;
 		this.hitTestPriority = options.HitTestPriority;
+		this.pointerShape = options.PointerShape;
 		this.RegistrationOrdinal = registrationOrdinal;
 	}
 
@@ -106,6 +112,19 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 		set {
 			this.ThrowIfDisposed();
 			this.hitTestPriority = value;
+		}
+	}
+
+	/// <summary>Gets or sets the optional semantic pointer-shape preference reported by hit testing.</summary>
+	public CursesPointerShape? PointerShape {
+		get => this.pointerShape;
+		set {
+			this.ThrowIfDisposed();
+			if ( value.HasValue
+				&& !Enum.IsDefined( value.Value ) ) {
+				throw new ArgumentOutOfRangeException( nameof( value ) );
+			}
+			this.pointerShape = value;
 		}
 	}
 
