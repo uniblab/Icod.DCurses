@@ -6,13 +6,13 @@
 **Published baseline:** `1.3.0`  
 **Baseline tag:** `v1.3.0`  
 **Baseline commit:** `c10ca043a666b85225f2d3b8955a1ac2075b0d31`  
-**Current development package:** `1.4.0-alpha.1`  
+**Current development package:** `1.4.0`  
 **Final target package:** `1.4.0`  
 **Assembly version policy:** retain `1.0.0.0` for compatible additive 1.x development  
 **Baseline runtime dependencies:** `Icod.Terminal 1.11.1`; `Icod.TermInfo 1.11.0`  
 **Current declared runtime dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
 **Theme:** deterministic interaction routing over semantic input, immutable geometry, retained panels, and Terminal-owned protocol state  
-**Status:** T1401-T1410 complete; T1411 API/package/documentation/licensing/dependency qualification is active; T1412 follows
+**Status:** T1401-T1411 complete; final `1.4.0-rc.1` exact head qualified; T1412 stable-source exact-head qualification is active; merge remains pending explicit approval
 
 ---
 
@@ -496,9 +496,11 @@ Version 1.4 does not provide:
 
 ## Current release state
 
-T1401-T1410 are complete. T1411 is the active release gate and must close the public API/package/documentation/licensing regret review and qualify the refreshed `Icod.Terminal 1.13.0` / `Icod.TermInfo 1.12.0` dependency graph before RC promotion.
+T1401-T1411 are complete. T1411 closed on head `570715e0764f9791fe197462a953df6eccf6105a` with workflow #797 / `34773668892` green across all seven package/runtime jobs and the refreshed `Icod.Terminal 1.13.0` / `Icod.TermInfo 1.12.0` dependency graph.
 
-T1412 then promotes the accepted implementation/API through `1.4.0-rc.1` and stable-source `1.4.0` with exact-head package/runtime qualification. Merge, `main` Release qualification, tagging, GitHub Release creation, and NuGet publication remain separate explicit actions.
+The final `1.4.0-rc.1` head `7f6bcedf70b9cd5cd15bf2a2a53437e23dac3c2f` passed workflow #802 / `34774226736` across all seven jobs after a test-only rich-input timeout hardening correction. Production code and the frozen public API were unchanged.
+
+T1412 has promoted that accepted implementation/API to stable-source `1.4.0`. The stable-source exact head must now pass the full package candidate plus Windows/Linux/macOS x64/ARM64 matrix. If green, PR #29 is release-ready source and may be presented for explicit merge approval. Merge, `main` Release qualification, tagging, GitHub Release creation, and NuGet publication remain separate explicit actions.
 
 ## Definition of done
 
