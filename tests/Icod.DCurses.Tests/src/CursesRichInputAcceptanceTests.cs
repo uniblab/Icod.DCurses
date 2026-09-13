@@ -46,28 +46,27 @@ public sealed class CursesRichInputAcceptanceTests {
 			terminalSession,
 			NoPresentationOptions()
 		);
-		using CancellationTokenSource timeout = new( TimeSpan.FromSeconds( 5 ) );
 
-		CursesInputEvent focus = ( await session.ReadEventAsync( timeout.Token ) ).Input!;
+		CursesInputEvent focus = await ReadInputAsync( session );
 		Assert.Equal( CursesInputEventKind.Focus, focus.Kind );
 		Assert.Equal( CursesFocusState.Focused, focus.Focus!.State );
 
-		CursesInputEvent pasteBegin = ( await session.ReadEventAsync( timeout.Token ) ).Input!;
-		CursesInputEvent pasteData = ( await session.ReadEventAsync( timeout.Token ) ).Input!;
-		CursesInputEvent pasteEnd = ( await session.ReadEventAsync( timeout.Token ) ).Input!;
+		CursesInputEvent pasteBegin = await ReadInputAsync( session );
+		CursesInputEvent pasteData = await ReadInputAsync( session );
+		CursesInputEvent pasteEnd = await ReadInputAsync( session );
 		Assert.Equal( CursesPastePhase.Begin, pasteBegin.Paste!.Phase );
 		Assert.Equal( CursesPastePhase.Data, pasteData.Paste!.Phase );
 		Assert.Equal( "hello", pasteData.Paste.Text );
 		Assert.Equal( CursesPastePhase.End, pasteEnd.Paste!.Phase );
 
-		CursesInputEvent mouse = ( await session.ReadEventAsync( timeout.Token ) ).Input!;
+		CursesInputEvent mouse = await ReadInputAsync( session );
 		Assert.Equal( CursesInputEventKind.Mouse, mouse.Kind );
 		Assert.Equal( CursesMouseAction.Press, mouse.Mouse!.Action );
 		Assert.Equal( CursesMouseButton.Primary, mouse.Mouse.Button );
 		Assert.Equal( 2, mouse.Mouse.Column );
 		Assert.Equal( 3, mouse.Mouse.Row );
 
-		CursesInputEvent modifiedKey = ( await session.ReadEventAsync( timeout.Token ) ).Input!;
+		CursesInputEvent modifiedKey = await ReadInputAsync( session );
 		Assert.Equal( CursesInputEventKind.Key, modifiedKey.Kind );
 		Assert.Equal( CursesKey.Up, modifiedKey.Key );
 		Assert.Equal( CursesKeyModifiers.Control, modifiedKey.Modifiers );
@@ -136,6 +135,14 @@ public sealed class CursesRichInputAcceptanceTests {
 
 		Assert.False( result.IsAvailable );
 		Assert.Equal( TerminalControlStatus.Unavailable, result.Status );
+	}
+
+	private static async ValueTask<CursesInputEvent> ReadInputAsync(
+		CursesSession session
+	) {
+		ArgumentNullException.ThrowIfNull( session );
+		using CancellationTokenSource timeout = new( TimeSpan.FromSeconds( 5 ) );
+		return ( await session.ReadEventAsync( timeout.Token ) ).Input!;
 	}
 
 	private static CursesSessionOptions NoPresentationOptions() {
