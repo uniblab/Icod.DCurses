@@ -4,6 +4,20 @@ The repository contains nine executable samples. They are intentionally separate
 
 All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project, which currently declares `Icod.Terminal 1.13.0` and `Icod.TermInfo 1.12.0`.
 
+## Which sample should I run?
+
+| Goal | Sample |
+| --- | --- |
+| Minimal session lifecycle and retained drawing | `Icod.DCurses.Sample` |
+| Retained panels, z-order, transparency, and disposal | `Icod.DCurses.Panel.Sample` |
+| Explicit geometry/layout and resize recomputation | `Icod.DCurses.Layout.Sample` |
+| Interaction regions, logical focus, commands, mouse routing, and pointer preferences | `Icod.DCurses.Interaction.Sample` |
+| General interactive API showcase | `Icod.DCurses.Showcase` |
+| Raw semantic input inspection | `Icod.DCurses.Input.Showcase` |
+| Application-shaped periodic-command acceptance | `Icod.DCurses.Watch.Acceptance` |
+| Application-shaped slab-table acceptance | `Icod.DCurses.Slabtop.Acceptance` |
+| Larger application-shaped multi-window acceptance | `Icod.DCurses.Top.Acceptance` |
+
 ## Ownership model
 
 The samples follow the production ownership model:
@@ -63,6 +77,8 @@ Mouse        Report screen and region-local coordinates and apply the routed poi
 The left-pane local `x` binding deliberately shadows the router-global `x` binding, demonstrating focused local-command precedence. The retained popup overlaps the body panes and wins mouse routing through the normal panel z-order rules. Mouse routing itself does not change logical focus.
 
 The application explicitly applies pointer-shape preferences with `CursesPointerShapeLease` rather than performing terminal I/O inside hit testing or routing. It also acquires keyboard event types, focus reporting, and mouse button events through DCurses input-protocol leases only.
+
+Mouse, focus, keyboard-protocol behavior, and visible pointer-shape changes ultimately depend on terminal support. A terminal that does not visibly change the pointer shape can still be routing mouse hits and commands correctly; the sample's routed target/local-coordinate status is the relevant routing evidence.
 
 Resize handling remains application-owned: the sample synchronizes the current terminal dimensions, recomputes header/footer and equal left/right pane rectangles, reapplies window/panel/interaction bounds, and repaints. If the terminal falls below `64x16`, retained router/binding identity survives while the application displays a resize message; growing the terminal restores the normal layout. Terminal focus reports update status text but remain distinct from logical `CursesInteractionRouter` focus.
 
