@@ -17,13 +17,13 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 Current published stable release: `Icod.DCurses 1.3.0`.
 
-`Icod.DCurses 1.4.0` is in T1412 release-candidate qualification in PR #29. T1401-T1411 are complete; the T1411-qualified implementation and public API have been promoted unchanged to `1.4.0-rc.1` for exact-head package/runtime qualification before stable-source promotion.
+`Icod.DCurses 1.4.0` is complete in stable-source form in PR #29 and is undergoing the final T1412 exact-head package/runtime qualification before merge. The implementation and frozen public API passed T1411 and the final `1.4.0-rc.1` matrix; stable-source promotion changes release identity and release-facing documentation only.
 
 Current source identity:
 
 ```text
-Version         1.4.0-rc.1
-PackageVersion  1.4.0-rc.1
+Version         1.4.0
+PackageVersion  1.4.0
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.13.0
 Icod.TermInfo   1.12.0
@@ -55,7 +55,7 @@ Install the current published package selected by your normal NuGet policy:
 dotnet add package Icod.DCurses
 ```
 
-Normal stable package resolution currently selects the published 1.3 line. The 1.4 RC source is being release-qualified and is not yet the stable published package.
+Normal stable package resolution currently selects the published 1.3 line until 1.4 has been merged, release-qualified on `main`, tagged, and published.
 
 ## Architecture
 
@@ -326,7 +326,7 @@ Current authorities:
 - `docs/T1411-Public-API-Package-Documentation-and-Regret-Gate.md`
 - `docs/T1412-RC-and-Stable-1.4.0-Closure.md`
 
-T1411 is complete on head `570715e0764f9791fe197462a953df6eccf6105a`, qualified by workflow #797 / `34773668892` across all seven jobs. T1412 is now qualifying the unchanged implementation/API under RC identity before stable-source promotion. Historical 1.0-1.3 closure records remain compatibility authorities and are not rewritten merely to reflect later development state.
+T1411 is complete on head `570715e0764f9791fe197462a953df6eccf6105a`, qualified by workflow #797 / `34773668892` across all seven jobs. The final RC head `7f6bcedf70b9cd5cd15bf2a2a53437e23dac3c2f` passed workflow #802 / `34774226736` across all seven jobs after a test-only timeout hardening correction; production code and the frozen public API were unchanged. T1412 is now qualifying stable-source `1.4.0`. Historical 1.0-1.3 closure records remain compatibility authorities and are not rewritten merely to reflect later development state.
 
 ## Authors
 
