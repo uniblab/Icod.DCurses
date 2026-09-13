@@ -9,7 +9,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.4.0` — deterministic interaction routing, focus, gestures, hit testing, and pointer semantics  
-**Status:** T1401-T1410 complete; T1411 API/package/documentation/licensing/dependency qualification is active; T1412 RC/stable-source closure follows
+**Status:** T1401-T1411 complete; T1412 stable-source exact-head qualification is active; merge remains pending explicit approval
 
 ---
 
@@ -22,8 +22,10 @@
 - `docs/T1401-Interaction-Contract-and-Public-API-Candidate.md`
 - `docs/T1409-Interaction-Acceptance-Sample.md`
 - `docs/T1410-Interaction-Performance-Allocation-and-Adversarial-Hardening.md`
+- `docs/T1411-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/T1412-RC-and-Stable-1.4.0-Closure.md`
 
-T1411 is the active stable-release regret gate. Its closure evidence becomes a current authority before RC promotion. The 1.0-1.3 tranche and closure documents remain historical compatibility/release authorities and are not rewritten to simulate current development state.
+T1411 is complete. The final `1.4.0-rc.1` head passed the full seven-job matrix, and T1412 has promoted the unchanged accepted implementation/API to stable-source `1.4.0`. The stable-source exact head must pass the same matrix before explicit merge approval. The 1.0-1.3 tranche and closure documents remain historical compatibility/release authorities and are not rewritten to simulate current development state.
 
 ## Release train
 
@@ -33,7 +35,7 @@ T1411 is the active stable-release regret gate. Its closure evidence becomes a c
 | `1.1.0` | Semantic metadata and hyperlinks | Historical stable baseline |
 | `1.2.0` | Panels/layers/z-order composition | Historical stable baseline |
 | `1.3.0` | Layout and resize primitives | Current published stable release |
-| `1.4.0` | Interaction routing/focus/gestures/hit testing/pointer semantics | T1411 release qualification active |
+| `1.4.0` | Interaction routing/focus/gestures/hit testing/pointer semantics | Stable-source qualification active |
 
 The progression is intentionally cumulative:
 
@@ -131,8 +133,8 @@ T1407  pointer-shape abstraction and Terminal-owned lease integration           
 T1408  resize / panel / lifecycle coherence                                      complete
 T1409  application acceptance sample                                             complete
 T1410  hardening / performance / allocation / adversarial acceptance             complete
-T1411  public API / package / docs / licensing / dependency regret gate          active
-T1412  RC and stable-source closure                                               pending
+T1411  public API / package / docs / licensing / dependency regret gate          complete
+T1412  RC and stable-source closure                                               active
 ```
 
 Every implementation tranche must receive exact-head Staging qualification before being called complete. The final release retains package-only consumer validation, compiler-derived public API fingerprinting, Windows/Linux/macOS x64/ARM64 coverage, and `net8.0`/`net9.0`/`net10.0` validation.
@@ -160,4 +162,4 @@ A future widget package should be able to build on the 1.4 mechanisms without by
 
 ## Immediate next step
 
-T1411 is the active gate. Complete the public API/package/documentation/licensing regret review against the published 1.3 floor and qualify the refreshed `Icod.Terminal 1.13.0` / `Icod.TermInfo 1.12.0` dependency graph through the normal package/runtime matrix. Only then promote the unchanged accepted implementation/API to T1412 RC/stable-source closure.
+T1412 is the active gate. Qualify the stable-source `1.4.0` exact head through the normal package candidate plus Windows/Linux/macOS x64/ARM64 matrix. If that exact head is green, the branch is release-ready source and PR #29 may be presented for explicit merge approval. After merge, qualify the resulting `main` Release build before tagging or publishing.
