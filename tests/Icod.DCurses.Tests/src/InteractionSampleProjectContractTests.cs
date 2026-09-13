@@ -69,6 +69,64 @@ public sealed class InteractionSampleProjectContractTests {
 		);
 	}
 
+	[Fact]
+	public void InteractionSampleUsesTheFrozenPublicInteractionContract() {
+		string root = FindRepositoryRoot();
+		string programPath = Path.Combine(
+			root,
+			"samples",
+			"Icod.DCurses.Interaction.Sample",
+			"Program.cs"
+		);
+		string source = File.ReadAllText( programPath );
+
+		Assert.DoesNotContain(
+			"Icod.Terminal",
+			source,
+			StringComparison.Ordinal
+		);
+		Assert.DoesNotContain(
+			"Icod.TermInfo",
+			source,
+			StringComparison.Ordinal
+		);
+
+		string[] requiredMarkers = [
+			"CursesInteractionRouter",
+			"CursesInteractionRegionOptions",
+			"BindGlobalGesture",
+			"BindGesture",
+			"CursesKeyGesture.ForKey",
+			"CursesKeyGesture.ForCharacter",
+			"CursesKeyGesture.ForFunctionKey",
+			"AcquireInputProtocolsAsync",
+			"CursesKeyboardReportingMode.EventTypes",
+			"FocusReporting = true",
+			"CursesMouseTrackingMode.ButtonEvents",
+			"router.Route",
+			"MoveFocus",
+			"AcquirePointerShapeAsync",
+			"CursesPointerShapeLease",
+			"SynchronizeDimensions",
+			"CursesLayout.SplitColumnsProportional",
+			"focus.next",
+			"focus.previous",
+			"popup.toggle",
+			"left.action",
+			"right.action",
+			"global.x",
+			"quit"
+		];
+
+		foreach ( string marker in requiredMarkers ) {
+			Assert.Contains(
+				marker,
+				source,
+				StringComparison.Ordinal
+			);
+		}
+	}
+
 	private static string FindRepositoryRoot() {
 		DirectoryInfo? current = new( AppContext.BaseDirectory );
 		while ( current is not null ) {
