@@ -5,11 +5,11 @@
 **Published compatibility floor:** `1.3.0`  
 **Current published package:** `1.3.0`  
 **Assembly version:** `1.0.0.0`  
-**Current declared runtime dependencies:** `Icod.Terminal 1.11.1`; `Icod.TermInfo 1.11.0`  
+**Current declared runtime dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.4.0` — deterministic interaction routing, focus, gestures, hit testing, and pointer semantics  
-**Status:** `1.3.0` is published; `1.4.0` planning is approved and T1401 contract freeze is the next development gate
+**Status:** T1401-T1410 complete; T1411 API/package/documentation/licensing/dependency qualification is active; T1412 RC/stable-source closure follows
 
 ---
 
@@ -18,10 +18,12 @@
 - `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md`
 - `Icod.DCurses-1.4.0-Development-Roadmap.md`
 - `docs/superpowers/specs/2026-09-12-icod-dcurses-1.4-interaction-routing-design.md`
-- `docs/Public-API-Fingerprint-1.3.json`
-- `docs/Public-API-Baseline-1.3.md`
+- `docs/Public-API-Fingerprint-1.4.json`
+- `docs/T1401-Interaction-Contract-and-Public-API-Candidate.md`
+- `docs/T1409-Interaction-Acceptance-Sample.md`
+- `docs/T1410-Interaction-Performance-Allocation-and-Adversarial-Hardening.md`
 
-The 1.0-1.3 tranche and closure documents remain historical compatibility/release authorities and are not rewritten to simulate current development state.
+T1411 is the active stable-release regret gate. Its closure evidence becomes a current authority before RC promotion. The 1.0-1.3 tranche and closure documents remain historical compatibility/release authorities and are not rewritten to simulate current development state.
 
 ## Release train
 
@@ -31,7 +33,7 @@ The 1.0-1.3 tranche and closure documents remain historical compatibility/releas
 | `1.1.0` | Semantic metadata and hyperlinks | Historical stable baseline |
 | `1.2.0` | Panels/layers/z-order composition | Historical stable baseline |
 | `1.3.0` | Layout and resize primitives | Current published stable release |
-| `1.4.0` | Interaction routing/focus/gestures/hit testing/pointer semantics | Active approved development release |
+| `1.4.0` | Interaction routing/focus/gestures/hit testing/pointer semantics | T1411 release qualification active |
 
 The progression is intentionally cumulative:
 
@@ -56,11 +58,19 @@ The tagged compatibility baseline is `v1.3.0`, which resolves to commit:
 c10ca043a666b85225f2d3b8955a1ac2075b0d31
 ```
 
+Current 1.4 interaction fingerprint:
+
+```text
+62 exported types
+491 canonical declared contract lines
+sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
+```
+
 Version 1.4 remains additive by default. Any proposed break to the published 1.3 surface requires an explicit regret-gate finding, migration justification, and user approval before implementation.
 
 ## 1.4 release objective
 
-`Icod.DCurses 1.4.0` will add deterministic, application-owned interaction routing over the existing semantic input, geometry, panel, and Terminal ownership foundations.
+`Icod.DCurses 1.4.0` adds deterministic, application-owned interaction routing over the existing semantic input, geometry, panel, and Terminal ownership foundations.
 
 The intended flow is:
 
@@ -96,7 +106,7 @@ The 1.4 track is governed by these rules:
 - `CursesRectangle` remains the coordinate substrate; no second geometry model is introduced.
 - Interaction regions are application interaction objects, not widgets and not rendering surfaces.
 - Logical application focus is distinct from terminal/window-manager focus reports represented by `CursesFocusEvent`.
-- Screen-relative and panel-associated interaction must use deterministic coordinate conversion and overlap precedence.
+- Screen-relative and panel-associated interaction use deterministic coordinate conversion and overlap precedence.
 - Panel z-order remains the authoritative precedence source for panel-associated hit targets.
 - Visual blank-cell transparency does not automatically imply input transparency.
 - Focus traversal in 1.4 is forward/backward deterministic traversal only; spatial focus navigation is deferred.
@@ -105,31 +115,31 @@ The 1.4 track is governed by these rules:
 - Hit testing and routing remain synchronous and perform no terminal I/O.
 - Pointer-shape protocol ownership stays inside `Icod.Terminal`; DCurses exposes its own curses-shaped semantic abstraction and lease.
 - Public Terminal/TermInfo dependency exposure remains tightly allow-listed.
-- Interaction registries, command bindings, and internal bookkeeping must be bounded and deterministic.
+- Interaction registries, command bindings, and internal bookkeeping are bounded and deterministic.
 - Existing single-writer expectations remain unless a tranche explicitly proves a safe additive concurrency contract.
 
-## Planned 1.4 sequence
+## 1.4 tranche sequence
 
 ```text
-T1401  interaction architecture / terminology / contract freeze
-T1402  bounded interaction-region registry
-T1403  deterministic hit testing and panel precedence
-T1404  logical focus and focus repair
-T1405  semantic keyboard gesture model
-T1406  command bindings and structured interaction routing
-T1407  pointer-shape abstraction and Terminal-owned lease integration
-T1408  resize / panel / lifecycle coherence
-T1409  application acceptance sample
-T1410  hardening / performance / allocation / adversarial acceptance
-T1411  public API / package / docs / licensing regret gate
-T1412  RC and stable-source closure
+T1401  interaction architecture / terminology / contract freeze                 complete
+T1402  bounded interaction-region registry                                      complete
+T1403  deterministic hit testing and panel precedence                           complete
+T1404  logical focus and focus repair                                            complete
+T1405  semantic keyboard gesture model                                           complete
+T1406  command bindings and structured interaction routing                       complete
+T1407  pointer-shape abstraction and Terminal-owned lease integration             complete
+T1408  resize / panel / lifecycle coherence                                      complete
+T1409  application acceptance sample                                             complete
+T1410  hardening / performance / allocation / adversarial acceptance             complete
+T1411  public API / package / docs / licensing / dependency regret gate          active
+T1412  RC and stable-source closure                                               pending
 ```
 
-Every implementation tranche must receive exact-head Staging qualification before being called complete. The final release must retain the existing package-only consumer gate, compiler-derived public API fingerprinting, Windows/Linux/macOS x64/ARM64 coverage, and `net8.0`/`net9.0`/`net10.0` validation.
+Every implementation tranche must receive exact-head Staging qualification before being called complete. The final release retains package-only consumer validation, compiler-derived public API fingerprinting, Windows/Linux/macOS x64/ARM64 coverage, and `net8.0`/`net9.0`/`net10.0` validation.
 
 ## Deliberate 1.4 non-goals
 
-Version 1.4 will not add:
+Version 1.4 does not add:
 
 - a widget framework;
 - buttons, text boxes, menus, controls, or application navigation;
@@ -150,6 +160,4 @@ A future widget package should be able to build on the 1.4 mechanisms without by
 
 ## Immediate next step
 
-T1401 is the active gate. It freezes terminology, ownership, coordinate spaces, eligibility/focus rules, deterministic overlap semantics, command/gesture normalization, pointer-shape boundaries, concrete registry bounds, failure behavior, and the candidate public API before T1402 begins implementation.
-
-No 1.4 production API should be treated as frozen until T1401 exits green and the written design authority is approved.
+T1411 is the active gate. Complete the public API/package/documentation/licensing regret review against the published 1.3 floor and qualify the refreshed `Icod.Terminal 1.13.0` / `Icod.TermInfo 1.12.0` dependency graph through the normal package/runtime matrix. Only then promote the unchanged accepted implementation/API to T1412 RC/stable-source closure.
