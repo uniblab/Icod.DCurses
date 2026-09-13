@@ -10,34 +10,26 @@
 It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 - `Icod.TermInfo` owns immutable terminal capability descriptions and expansion;
-- `Icod.Terminal` owns the live terminal session, host mode, dimensions, lifecycle, input decoding, semantic terminal protocols, and output serialization;
-- `Icod.DCurses` owns curses-shaped events, logical screens/windows, pads/viewports, retained panels/layers, cells/styles/metadata, composition, retained refresh policy, and terminal-cell layout primitives.
+- `Icod.Terminal` owns the live terminal session, host mode, dimensions, lifecycle, input decoding, semantic terminal protocols, physical pointer protocol/state, and output serialization;
+- `Icod.DCurses` owns curses-shaped events, logical screens/windows, pads/viewports, retained panels/layers, cells/styles/metadata, composition, retained refresh policy, terminal-cell layout primitives, interaction regions, logical focus, gesture/command routing, and pointer-shape preferences.
 
 ## Status
 
-Current published stable release: `Icod.DCurses 1.2.0`.
+Current published stable release: `Icod.DCurses 1.3.0`.
 
-`Icod.DCurses 1.3.0` is complete in source and merged to `main`. The final dependency-qualified source head `b90b444556291434bddb9f56d031f09ac1aabfbf` passed pull-request workflow #719 / `34708925529` across the package candidate plus Windows/Linux/macOS x64/ARM64. PR #27 was then merged as `18255d59136922b9e246f4113dc6fdb6a9ea24a3`, and the resulting `main` Release workflow #17 / `34709142076` passed. A `v1.3.0` tag, GitHub Release, and NuGet publication have not yet been created.
+`Icod.DCurses 1.4.0` is the active development line in PR #29. T1401-T1410 are complete; T1411 is qualifying the public API, package, documentation, licensing, refreshed dependencies, and stable-release regret gate before RC/stable-source promotion.
 
 Current source identity:
 
 ```text
-Version         1.3.0
-PackageVersion  1.3.0
+Version         1.4.0-alpha.1
+PackageVersion  1.4.0-alpha.1
 AssemblyVersion 1.0.0.0
-Icod.Terminal   1.11.1
-Icod.TermInfo   1.11.0
+Icod.Terminal   1.13.0
+Icod.TermInfo   1.12.0
 ```
 
-Published 1.2 contract:
-
-```text
-47 exported types
-356 canonical declared contract lines
-sha256 4810ebb088764acedbb94aca84b231677886b9c1a1f920d9a30f960cbe1dfce7
-```
-
-Frozen 1.3 contract:
+Published 1.3 contract:
 
 ```text
 51 exported types
@@ -45,7 +37,15 @@ Frozen 1.3 contract:
 sha256 a655bd85e3c88f5bf38ad0d43a148e3bd06a9e943bbf3e3aa2e21575ffb07424
 ```
 
-The four new exported types are `CursesRectangle`, `CursesInsets`, `CursesDockEdge`, and `CursesLayout`.
+Current frozen 1.4 interaction contract:
+
+```text
+62 exported types
+491 canonical declared contract lines
+sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
+```
+
+Version 1.4 adds the interaction-routing surface over the published 1.3 geometry foundation: bounded interaction regions, panel-aware hit testing, logical focus/traversal/repair, semantic key gestures and command identities, structured routing results, pointer-shape preferences, and a DCurses pointer-shape lease wrapper over Terminal-owned state.
 
 ## Installation
 
@@ -55,7 +55,7 @@ Install the current published package selected by your normal NuGet policy:
 dotnet add package Icod.DCurses
 ```
 
-Until `v1.3.0` is tagged and published, normal package resolution still selects the published 1.2 line. The `main` branch already contains the fully qualified 1.3.0 source.
+Normal stable package resolution currently selects the published 1.3 line. The 1.4 development branch is being release-qualified and is not yet the stable published package.
 
 ## Architecture
 
@@ -65,10 +65,12 @@ applications / future widgets / compatibility facades
                     Icod.DCurses
  windows / pads / panels / cells / semantic metadata
  immutable geometry / pure layout / retained refresh / events
+ interaction regions / logical focus / gesture-command routing
+              pointer-shape preferences
                          |
                     Icod.Terminal
    live session / input / lifecycle / semantic protocols
-          capability routing / serialized output
+ physical pointer state / capability routing / serialized output
                          |
                     Icod.TermInfo
              immutable capability authority
@@ -78,7 +80,7 @@ applications / future widgets / compatibility facades
 
 `Icod.DCurses` does not maintain a second terminal capability database, install a competing raw-input loop, own terminal modes independently of `Icod.Terminal`, emit private OSC/CSI/DCS/APC framing for Terminal-owned protocols, emulate a terminal, or create/manage PTYs.
 
-Version 1.3 also does not add a retained layout tree or automatic layout owner. Geometry remains caller-owned data and layout recomputation remains explicit application policy.
+Version 1.4 also does not add a widget framework, hidden event loop, callback dispatcher, retained layout tree, automatic layout owner, automatic mouse-to-focus policy, or independent pointer-protocol owner. Applications remain responsible for their event loop and command execution. Terminal remains authoritative for physical terminal state and reversible protocol leases.
 
 ## Targets
 
@@ -117,6 +119,59 @@ CursesEvent terminalEvent = await session.ReadEventAsync();
 ```
 
 A `CursesSession` restores the presentation and Terminal-owned state it acquires when disposed. Applications should consume terminal input and lifecycle activity through the curses/Terminal ownership model rather than adding a parallel byte reader.
+
+## 1.4 interaction routing
+
+Version 1.4 adds deterministic interaction routing without taking ownership of the application event loop. Applications register bounded logical regions, decide which regions may receive logical focus, bind semantic key gestures to command identities, and route already-normalized `CursesInputEvent` values returned by the ordinary session reader.
+
+A compact application pattern is:
+
+```csharp
+using CursesInteractionRouter router = new( session.Screen );
+using CursesInteractionRegion body = router.RegisterRegion(
+    new CursesInteractionRegionOptions(
+        new CursesRectangle( 1, 0, 20, 80 )
+    ) {
+        IsFocusable = true,
+        TraversalOrder = 0,
+        PointerShape = CursesPointerShape.Text
+    }
+);
+
+CursesCommand focusNext = new( "focus.next" );
+router.BindGlobalGesture(
+    CursesKeyGesture.ForKey( CursesKey.Tab ),
+    focusNext
+);
+_ = router.Focus( body );
+
+CursesEvent current = await session.ReadEventAsync();
+if ( CursesEventKind.Input == current.Kind
+    && current.Input is not null ) {
+    CursesInteractionResult routed = router.Route( current.Input );
+
+    if ( routed.Command is not null ) {
+        // Application policy executes the command.
+        if ( "focus.next" == routed.Command.Name ) {
+            _ = router.MoveFocus( CursesFocusDirection.Forward );
+        }
+    }
+
+    if ( routed.Hit?.PointerShape is CursesPointerShape pointerShape ) {
+        await using CursesPointerShapeLease lease =
+            await session.AcquirePointerShapeAsync( pointerShape );
+        // Keep the lease for as long as this physical preference should apply.
+    }
+}
+```
+
+The router deliberately returns structured routing data instead of invoking callbacks. Focus changes are explicit application decisions. Mouse hit testing therefore does **not** automatically change logical focus, and logical focus is independent of terminal/window-manager focus reports.
+
+Panel-associated regions participate in the retained panel stack, so current panel z-order is part of mouse hit-test precedence. Successful mouse hits carry region-local row/column coordinates in addition to the original normalized input. A region's `PointerShape` is only a semantic preference surfaced by hit/routing results; applying that preference requires the application to explicitly acquire and retain a `CursesPointerShapeLease` from the session.
+
+Region and gesture-binding registries are intentionally bounded and fail before partial mutation when capacity is exhausted. The router owns no background work, event loop, terminal parser, protocol negotiation, or hidden terminal I/O. It routes only the semantic input and geometry state already owned by DCurses/Terminal.
+
+The `Icod.DCurses.Interaction.Sample` project demonstrates focused local-versus-global bindings, forward/backward traversal, retained popup overlap, panel-aware mouse precedence, screen and region-local coordinates, explicit pointer leases, resize/re-layout, and the distinction between terminal focus reports and logical interaction focus.
 
 ## 1.3 geometry, layout, and resize
 
@@ -237,13 +292,14 @@ The built-in width provider is pinned to Unicode 17.0.0. East Asian Ambiguous ch
 
 The library deliberately uses a narrow ownership model rather than pervasive per-cell locking:
 
-- logical screens, windows, pads, viewports, and panels are single-writer unless documented otherwise;
+- logical screens, windows, pads, viewports, panels, and interaction routers are single-writer unless documented otherwise;
 - one Terminal-owned event wait may coexist with serialized refresh/output work;
 - caller cancellation does not discard Terminal decoder state;
 - disposal unblocks pending DCurses waits while preserving authoritative restoration;
 - output uncertainty invalidates retained physical knowledge so a later refresh can repaint safely;
-- suspend/resume invalidates physical knowledge but retains logical panel content;
-- lifecycle resize synchronizes the logical screen, while application layout recomputation remains explicit.
+- suspend/resume invalidates physical knowledge but retains logical panel and interaction registration state;
+- lifecycle resize synchronizes the logical screen, while application layout recomputation remains explicit;
+- interaction routing never creates a competing input reader or terminal-output path.
 
 ## Validation and packaging
 
@@ -251,7 +307,7 @@ Local wrappers use Debug configuration. Pull requests use Staging with warnings-
 
 Runtime validation covers Windows/Linux/macOS x64 and ARM64; the library/test matrix covers `net8.0`, `net9.0`, and `net10.0`.
 
-Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. The 1.3 package consumer compiles and executes the rectangle/inset/layout/bounds/panel-resize surface directly from the packed artifact. Package validation does not impose hard-coded sibling dependency versions.
+Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. The package consumer now compiles and executes both the 1.3 geometry/layout/panel-resize surface and the 1.4 interaction surface directly from the packed artifact: regions, logical focus/traversal, hit testing, semantic gestures and command bindings, routing API presence, pointer-shape vocabulary, and pointer-lease surface. Package validation does not impose hard-coded sibling dependency versions.
 
 ## Release documentation
 
@@ -259,14 +315,13 @@ Current authorities:
 
 - `Icod.DCurses-Development-Roadmap.md`
 - `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md`
-- `Icod.DCurses-1.3.0-Development-Roadmap.md`
-- `docs/Public-API-Fingerprint-1.3.json`
-- `docs/Public-API-Baseline-1.3.md`
-- `docs/T1309-Layout-Application-Performance-and-Allocation-Acceptance.md`
-- `docs/T1310-Public-API-Package-Documentation-and-Regret-Gate.md`
-- `docs/T1311-RC-and-Stable-Closure.md`
+- `Icod.DCurses-1.4.0-Development-Roadmap.md`
+- `docs/Public-API-Fingerprint-1.4.json`
+- `docs/T1401-Interaction-Contract-and-Public-API-Candidate.md`
+- `docs/T1409-Interaction-Acceptance-Sample.md`
+- `docs/T1410-Interaction-Performance-Allocation-and-Adversarial-Hardening.md`
 
-Historical 1.0-1.2 closure records remain compatibility authorities and are not rewritten merely to reflect later development state.
+T1411 is the active API/package/documentation/licensing regret gate. Its closure evidence joins this authority list before RC/stable-source promotion. Historical 1.0-1.3 closure records remain compatibility authorities and are not rewritten merely to reflect later development state.
 
 ## Authors
 
