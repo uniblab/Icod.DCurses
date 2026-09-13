@@ -69,4 +69,10 @@ public sealed class CursesInteractionRegionOptions {
 		get;
 		init;
 	}
+
+	/// <summary>Gets the optional semantic pointer-shape preference reported by hit testing.</summary>
+	public CursesPointerShape? PointerShape {
+		get;
+		init;
+	}
 }
