@@ -13,7 +13,7 @@
 
 T1409 proves that the 1.4 interaction primitives compose into a realistic application without introducing a widget framework, hidden event loop, automatic focus policy, or raw terminal-protocol dependency.
 
-The sample is a teaching and acceptance artifact. It should show an application author how to combine:
+The sample is a teaching and acceptance artifact. It shows an application author how to combine:
 
 - explicit layout recomputation;
 - ordinary and panel-associated interaction regions;
@@ -93,7 +93,9 @@ The popup exists specifically to demonstrate panel-over-ordinary hit precedence 
 
 ## Minimum terminal size
 
-The sample defines a fixed minimum terminal geometry sufficient to render all four ordinary regions and the popup without degenerate windows. The implementation plan must choose one concrete minimum and use it consistently in startup validation and resize handling.
+The minimum supported geometry is **64 columns x 16 rows**.
+
+This leaves one header row, two footer/help rows, at least thirteen body rows before footer allocation is applied, two usable ordinary panes, and room for a retained popup without degenerate rectangles.
 
 When the terminal is below that minimum, the application must:
 
@@ -107,17 +109,24 @@ When the terminal is below that minimum, the application must:
 
 The application owns layout explicitly.
 
-One `ComputeLayout(...)` routine derives immutable `CursesRectangle` values from current `CursesScreen.Bounds`. The body is split into left and right panes using `CursesLayout`; header and footer areas are docked explicitly.
+One `ComputeLayout(...)` routine derives immutable `CursesRectangle` values from current `CursesScreen.Bounds`.
+
+The layout is frozen as follows:
+
+- dock one row from the top for the header/status area;
+- dock two rows from the bottom for the footer/help area;
+- split the remaining body into left/right panes using `CursesLayout.SplitColumns(...)` with equal weights;
+- center a popup rectangle of **28 columns x 8 rows** within the body, clipping only through the minimum-size fallback rather than creating an undersized popup.
 
 On every accepted resize/repaint boundary:
 
 1. call `session.SynchronizeDimensions()`;
-2. evaluate the minimum-size rule;
+2. evaluate the 64x16 minimum-size rule;
 3. recompute rectangles from the current `screen.Bounds`;
 4. apply new window bounds with `SetBounds(...)`;
 5. apply the popup panel bounds with `SetBounds(...)` when it can be shown;
 6. update the application-owned ordinary interaction-region bounds with `SetBounds(...)`;
-7. update the popup region bounds in panel-local coordinates if its internal target geometry changes;
+7. keep the popup interaction region panel-local and set to the full popup content rectangle;
 8. invalidate/repaint explicitly.
 
 The sample does not introduce a retained layout tree and does not expect the router to relayout regions automatically.
@@ -126,15 +135,15 @@ The sample does not introduce a retained layout tree and does not expect the rou
 
 The application creates exactly one `CursesInteractionRouter` for the session's materialized `CursesScreen` and owns it for the lifetime of the sample.
 
-The router registers at least these interaction regions:
+The router registers exactly these interaction regions:
 
-- header/status region;
-- left pane region;
-- right pane region;
-- footer/help region;
-- one popup panel-associated region.
+- header/status region — non-focusable;
+- left pane region — focusable;
+- right pane region — focusable;
+- footer/help region — non-focusable;
+- popup panel-associated region — focusable.
 
-The left and right panes are focusable. The popup region is focusable while shown. Header/footer regions may remain non-focusable if their only purpose is pointer/mouse demonstration.
+The popup region remains registered for the entire sample lifetime. Panel visibility controls whether it is currently eligible.
 
 All router and region lifetimes are explicit through normal `using`/`Dispose` ownership.
 
@@ -147,39 +156,43 @@ The sample demonstrates:
 - explicit initial logical focus on the left pane;
 - Tab -> `MoveFocus(Forward)`;
 - Shift+Tab -> `MoveFocus(Backward)`;
-- popup focus when explicitly requested by an application command;
-- deterministic repair when the focused popup becomes hidden or otherwise ineligible;
+- popup focus when F2 opens the popup;
+- deterministic focus repair when Escape hides a focused popup;
 - terminal Focused/Unfocused reports update status text only and do not clear or replace `router.FocusedRegion`.
 
-Mouse hits do not automatically mutate logical focus. If the sample chooses to focus a clicked region for one demonstrated command, it must do so explicitly in application code after inspecting the routing result; no implicit focus-on-click helper is introduced.
+Mouse hits do not mutate logical focus. The sample intentionally leaves click-to-focus absent so the distinction between target routing and focus policy remains visible.
 
-## Command vocabulary
+## Command vocabulary and bindings
 
 The sample uses semantic `CursesCommand` identities rather than callbacks registered in the router.
 
-The implementation defines a small, stable local vocabulary inside the sample, including commands equivalent to:
+The sample-private command names are frozen as:
 
-- next focus;
-- previous focus;
-- toggle popup;
-- close popup;
-- left-pane action;
-- right-pane action;
-- quit.
+```text
+focus.next
+focus.previous
+popup.toggle
+escape
+left.action
+right.action
+global.x
+quit
+```
 
-At least one binding must be router-global and at least one binding must be region-local so the sample visibly demonstrates local-before-global resolution.
+Bindings are frozen as follows:
 
-Recommended bindings:
+- global `Tab` -> `focus.next`;
+- global `Shift+Tab` -> `focus.previous`;
+- global `F2` -> `popup.toggle`;
+- global `Escape` -> `escape`;
+- left-pane local character `x` -> `left.action`;
+- right-pane local character `r` -> `right.action`;
+- global character `x` -> `global.x`;
+- global character `q` -> `quit`.
 
-- `Tab` -> next focus;
-- `Shift+Tab` -> previous focus;
-- `F2` -> global popup toggle;
-- `Escape` -> close popup when open, otherwise quit;
-- one character shortcut local to the left pane;
-- the same character gesture bound globally to a different command, proving the focused local binding wins;
-- `q` or `Q` -> quit when not shadowed by a deliberately demonstrated local command.
+This deliberately binds `x` both locally and globally. When the left pane has logical focus, `left.action` must win. When another focusable region has focus, the same `x` gesture resolves to `global.x`.
 
-Exact command names are sample-private implementation details and do not become library API.
+The `escape` command is interpreted by application state: when the popup is visible it hides the popup; otherwise it exits the application. This keeps one deterministic binding while demonstrating that command execution policy belongs to the application.
 
 ## Event loop
 
@@ -211,7 +224,7 @@ The sample never starts a second terminal reader and never consumes raw escape s
 
 The sample passes normalized `CursesInputEvent` values to `router.Route(...)` and handles `CursesInteractionResult` as data.
 
-For a matched command, the application switches on command identity and performs the action itself. For targeted-but-unmatched input, the status line may display the target region and normalized input kind. Unhandled input remains inert.
+For a matched command, the application switches on command identity and performs the action itself. For targeted-but-unmatched input, the status line displays the target region and normalized input kind. Unhandled input remains inert.
 
 ### Mouse
 
@@ -228,11 +241,13 @@ When the popup overlaps a body pane, a mouse event inside the overlap must resol
 
 ## Pointer-shape policy
 
-The sample assigns distinct `PointerShape` preferences to at least three regions, for example:
+Pointer preferences are frozen as:
 
-- ordinary body pane -> `Text`;
-- actionable/help region -> `Pointer`;
-- popup -> `Crosshair` or `Move`.
+- header/status -> `Default`;
+- left pane -> `Text`;
+- right pane -> `Crosshair`;
+- footer/help -> `Pointer`;
+- popup -> `Move`.
 
 Routing/hit testing only reports the preferred shape. The application owns physical application of that preference.
 
@@ -244,7 +259,7 @@ When a routed mouse hit requests a shape different from the currently applied sh
 2. only after successful acquisition, dispose the prior DCurses lease;
 3. remember the new lease and shape.
 
-When a mouse event has no preferred shape, the application disposes its current DCurses pointer lease and leaves terminal policy authoritative.
+When a mouse event has no hit/preferred shape, the application disposes its current DCurses pointer lease and leaves terminal policy authoritative.
 
 On sample exit, any remaining pointer lease is disposed before session disposal through normal structured ownership.
 
@@ -256,32 +271,30 @@ The popup is a retained `CursesPanel` created once after startup and reused.
 
 Application state controls whether it is visible.
 
-Showing the popup:
+F2 toggles the popup:
 
-- makes the panel visible;
-- enables its panel-associated interaction region if needed;
-- may explicitly focus the popup region as part of the application command handling;
-- places it above ordinary body regions by normal panel precedence.
+- when hidden, show the panel and explicitly focus the popup region;
+- when visible, hide the panel and allow existing router focus-repair semantics to select the next eligible region.
 
-Hiding the popup:
+Escape behaves as follows:
 
-- hides the panel;
-- makes its associated region ineligible through existing router semantics;
-- relies on normal logical-focus repair if the popup held focus;
-- does not destroy/recreate command registrations.
+- when the popup is visible, hide it and keep the application running;
+- when the popup is hidden, exit the application.
+
+Hiding the popup does not destroy/recreate its region or any command registrations.
 
 The sample does not implement a modal event loop. The popup is retained application state inside the single normal event loop.
 
 ## Rendering/state model
 
-The sample keeps a small application state record/object containing only values needed for presentation and demonstration, such as:
+The sample keeps one small sample-local application-state type containing only:
 
-- running flag;
-- popup-visible flag;
+- `Running`;
+- `PopupVisible`;
 - latest status message;
 - latest terminal focus state;
-- latest routed target/local coordinate description;
-- current applied pointer shape observation.
+- latest routed target/local-coordinate description;
+- current applied pointer-shape observation.
 
 Rendering is deterministic from current state. Drawing code may be split into small helpers for header, panes, popup, and footer, but the sample remains intentionally lightweight and does not introduce widget abstractions.
 
@@ -289,14 +302,17 @@ Rendering is deterministic from current state. Drawing code may be split into sm
 
 The sample responds to DCurses lifecycle events, not Terminal types.
 
-For `Resize` and `Resumed` events:
+For `Resize` and `Resumed` lifecycle events:
 
 - call `SynchronizeDimensions()`;
 - recompute application layout explicitly;
 - apply window/panel/region bounds;
-- call `session.Invalidate()` before the next refresh when necessary.
+- call `session.Invalidate()` before the next refresh.
 
-For `Focused`/`Unfocused` input reports, if present through normalized input, update status only; logical focus remains controlled by the router.
+For normalized terminal Focused/Unfocused input reports:
+
+- update the header/status observation only;
+- leave logical focus entirely controlled by `CursesInteractionRouter`.
 
 For interrupt/termination lifecycle events, exit the event loop through the normal application shutdown path.
 
@@ -304,14 +320,14 @@ The sample contains no custom suspend/resume protocol handling. T1408 already pr
 
 ## Error handling
 
-The sample should remain pedagogical rather than wrap every call in broad exception handling.
+The sample remains pedagogical rather than wrapping every call in broad exception handling.
 
-Expected policy:
+Policy is frozen as:
 
 - startup/open failures propagate normally;
 - pointer-shape acquisition failures are caught narrowly, reported in status text, and leave the prior successfully-owned pointer lease in place;
 - cancellation/termination exits through the normal session lifecycle path;
-- invalid geometry is prevented by minimum-size checks and deterministic layout calculations rather than caught after the fact;
+- invalid geometry is prevented by the 64x16 minimum-size check and deterministic layout calculation rather than caught after the fact;
 - no exception is swallowed silently.
 
 ## Files touched by T1409 implementation
@@ -326,7 +342,7 @@ samples/Icod.DCurses.Interaction.Sample/Program.cs
 docs/T1409-Interaction-Acceptance-Sample.md
 ```
 
-If implementation reveals that a helper source file is necessary to keep `Program.cs` comprehensible, one additional sample-local `.cs` file is permitted, provided it remains sample-only and introduces no framework-style abstraction.
+One additional sample-local `InteractionSampleState.cs` file is permitted if keeping the state type separate materially improves readability; no other helper project or framework layer is permitted.
 
 No library production source file should change during T1409 unless the sample exposes a concrete public-API defect. Any such defect upgrades the work from sample implementation to a separately documented correction and must be requalified before T1409 can close.
 
@@ -339,25 +355,26 @@ T1409 qualification requires:
 3. the existing full test suite remains green;
 4. package candidate remains green;
 5. Windows/Linux/macOS x64/ARM64 PR jobs remain green;
-6. the 1.4 public API fingerprint remains exactly unchanged from T1408 unless a separately justified production correction was required;
+6. the 1.4 public API fingerprint remains exactly **62 exported types / 491 contract lines / SHA-256 `8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147`**;
 7. `samples/README.md` documents how to run the sample and what 1.4 contracts it demonstrates.
 
 ## Manual acceptance checklist
 
-A human run of the sample should be able to demonstrate all of the following in one session:
+A human run of the sample must demonstrate all of the following in one session:
 
 - left/right logical focus is visibly distinguishable;
 - Tab and Shift+Tab traverse focus deterministically;
-- a local binding wins over an equivalent global gesture while its region is focused;
-- a global command works regardless of focused ordinary pane;
-- the popup can be shown and hidden without a second event loop;
+- left-pane local `x` wins over global `x` while the left region is focused;
+- global `x` works while the right or popup region has focus;
+- F2 shows/hides the popup without a second event loop;
 - the popup wins mouse routing when overlapping a body pane;
 - mouse status reports region-local coordinates;
 - pointer-shape preference changes are applied explicitly by the application;
 - terminal resize triggers explicit recomputation of window, panel, and interaction geometry;
-- shrinking below minimum size does not destroy router/binding state;
+- shrinking below 64x16 does not destroy router/binding state;
 - growing back restores the normal application layout;
 - terminal focus reporting does not erase logical focus;
+- Escape closes the popup before it quits the application;
 - quit/termination cleans up the pointer lease and session normally.
 
 ## Non-goals
