@@ -127,6 +127,49 @@ public sealed class InteractionSampleProjectContractTests {
 		}
 	}
 
+	[Fact]
+	public void InteractionSampleIsDocumentedForUsers() {
+		string root = FindRepositoryRoot();
+		string readme = File.ReadAllText(
+			Path.Combine(
+				root,
+				"samples",
+				"README.md"
+			)
+		);
+
+		Assert.Contains(
+			"## Icod.DCurses.Interaction.Sample",
+			readme,
+			StringComparison.Ordinal
+		);
+		Assert.Contains(
+			"dotnet run --project samples/Icod.DCurses.Interaction.Sample/Icod.DCurses.Interaction.Sample.csproj",
+			readme,
+			StringComparison.Ordinal
+		);
+		Assert.Contains(
+			"Tab",
+			readme,
+			StringComparison.Ordinal
+		);
+		Assert.Contains(
+			"Shift+Tab",
+			readme,
+			StringComparison.Ordinal
+		);
+		Assert.Contains(
+			"F2",
+			readme,
+			StringComparison.Ordinal
+		);
+		Assert.Contains(
+			"pointer",
+			readme,
+			StringComparison.OrdinalIgnoreCase
+		);
+	}
+
 	private static string FindRepositoryRoot() {
 		DirectoryInfo? current = new( AppContext.BaseDirectory );
 		while ( current is not null ) {
