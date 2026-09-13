@@ -95,7 +95,7 @@ The popup exists specifically to demonstrate panel-over-ordinary hit precedence 
 
 The minimum supported geometry is **64 columns x 16 rows**.
 
-This leaves one header row, two footer/help rows, at least thirteen body rows before footer allocation is applied, two usable ordinary panes, and room for a retained popup without degenerate rectangles.
+After allocating one header row and two footer/help rows, this leaves thirteen body rows, two usable ordinary panes, and room for a retained popup without degenerate rectangles.
 
 When the terminal is below that minimum, the application must:
 
@@ -115,7 +115,7 @@ The layout is frozen as follows:
 
 - dock one row from the top for the header/status area;
 - dock two rows from the bottom for the footer/help area;
-- split the remaining body into left/right panes using `CursesLayout.SplitColumns(...)` with equal weights;
+- split the remaining body into left/right panes using `CursesLayout.SplitColumnsProportional(...)` with equal weights;
 - center a popup rectangle of **28 columns x 8 rows** within the body, clipping only through the minimum-size fallback rather than creating an undersized popup.
 
 On every accepted resize/repaint boundary:
