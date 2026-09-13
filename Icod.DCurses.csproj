@@ -43,7 +43,7 @@
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>1.4.0-alpha.1 begins the interaction-routing release with the bounded application-owned CursesInteractionRouter/CursesInteractionRegion registry and one-way region lifetime semantics over the published 1.3 geometry/panel foundation. Hit testing, focus, gestures, command routing, and pointer-shape integration remain later 1.4 tranches. Runtime dependencies remain Icod.Terminal 1.11.1 and Icod.TermInfo 1.11.0; AssemblyVersion remains 1.0.0.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>1.4.0-alpha.1 develops deterministic application-owned interaction routing over the published 1.3 geometry and retained-panel foundation, including bounded interaction regions, panel-aware hit testing, logical focus/traversal/repair, semantic key gestures, local/global command routing, pointer-shape preferences and Terminal-owned pointer leases, lifecycle coherence, an interaction acceptance sample, and allocation/adversarial hardening. Runtime dependencies are Icod.Terminal 1.13.0 and Icod.TermInfo 1.12.0; AssemblyVersion remains 1.0.0.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -116,7 +116,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Icod.Terminal" Version="1.11.1" />
-		<PackageReference Include="Icod.TermInfo" Version="1.11.0" />
+		<PackageReference Include="Icod.Terminal" Version="1.13.0" />
+		<PackageReference Include="Icod.TermInfo" Version="1.12.0" />
 	</ItemGroup>
 </Project>
