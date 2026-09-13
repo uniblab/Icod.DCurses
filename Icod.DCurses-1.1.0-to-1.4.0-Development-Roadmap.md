@@ -5,8 +5,8 @@
 **Published compatibility floor:** `1.3.0`  
 **Current published package:** `1.3.0`  
 **Assembly version policy:** retain `1.0.0.0` through compatible additive 1.x releases  
-**Current declared runtime dependencies:** `Icod.Terminal 1.11.1`; `Icod.TermInfo 1.11.0`  
-**Planning status:** 1.3 is complete/published; 1.4 is the active approved development release
+**Current declared runtime dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
+**Planning status:** 1.3 is complete/published; 1.4 has completed T1401-T1410 and is in T1411 release qualification
 
 ---
 
@@ -16,7 +16,7 @@
 1.1.0  semantic cell metadata + hyperlinks                  complete/published history
 1.2.0  panels/layers + z-order composition                  complete/published history
 1.3.0  layout + resize primitives                           complete/published
-1.4.0  interaction routing/focus/gestures/hit testing       active development
+1.4.0  interaction routing/focus/gestures/hit testing       T1411 release qualification active
 ```
 
 The sequence is cumulative: 1.1 adds meaning to retained content; 1.2 composes overlapping retained surfaces; 1.3 makes geometry manageable; 1.4 routes semantic input to logical application regions.
@@ -27,7 +27,7 @@ DCurses consumes Terminal's live-session/input/lifecycle/semantic-output contrac
 
 The 1.3 layout work preserved that ownership principle internally: geometry values are immutable, `CursesLayout` is pure/stateless, and applications explicitly recompute/apply layout rather than delegating control to a background layout owner.
 
-The 1.4 interaction work extends the same principle. DCurses may classify and route already-normalized input, but `Icod.Terminal` remains authoritative for terminal input decoding, rich-input protocol ownership, pointer-shape transport/lifetime, session lifecycle, and output serialization.
+The 1.4 interaction work extends the same principle. DCurses classifies and routes already-normalized input, while `Icod.Terminal` remains authoritative for terminal input decoding, rich-input protocol ownership, pointer-shape transport/lifetime, session lifecycle, and output serialization.
 
 ## Published 1.3 floor
 
@@ -43,17 +43,25 @@ Tagged baseline:
 v1.3.0 -> c10ca043a666b85225f2d3b8955a1ac2075b0d31
 ```
 
-Version 1.3 contributes the reusable `CursesRectangle` coordinate substrate, screen/window/panel bounds, explicit rectangle application, retained panel resizing, and lifecycle-driven application relayout model which 1.4 will consume rather than replace.
+Current 1.4 interaction fingerprint:
+
+```text
+62 exported types
+491 canonical declared contract lines
+sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
+```
+
+Version 1.3 contributes the reusable `CursesRectangle` coordinate substrate, screen/window/panel bounds, explicit rectangle application, retained panel resizing, and lifecycle-driven application relayout model which 1.4 consumes rather than replaces.
 
 ## Release 1.4 — deterministic interaction routing
 
 Version 1.4 turns the existing semantic input and geometry foundations into an application-facing interaction substrate without introducing widgets or a hidden event loop.
 
-The release is planned to provide:
+The implemented surface provides:
 
 - bounded screen-bound interaction-region registration;
 - screen-relative and panel-associated hit targets;
-- deterministic overlap resolution using panel z-order plus explicit region precedence;
+- deterministic overlap resolution using panel z-order plus region precedence;
 - region-local coordinate translation;
 - logical focus independent of terminal/window-manager focus;
 - explicit focus/clear plus forward/backward traversal;
@@ -64,12 +72,15 @@ The release is planned to provide:
 - pointer-shape preferences and a DCurses-shaped wrapper over Terminal-owned pointer leases;
 - resize/panel visibility/reorder/disposal coherence;
 - an application sample proving keyboard, mouse, panel, pointer, and live-resize composition;
-- allocation/performance/adversarial qualification before API freeze.
+- allocation/performance/adversarial qualification before stable promotion.
 
-The detailed authority is:
+The detailed authorities are:
 
 - `Icod.DCurses-1.4.0-Development-Roadmap.md`
 - `docs/superpowers/specs/2026-09-12-icod-dcurses-1.4-interaction-routing-design.md`
+- `docs/Public-API-Fingerprint-1.4.json`
+- `docs/T1409-Interaction-Acceptance-Sample.md`
+- `docs/T1410-Interaction-Performance-Allocation-and-Adversarial-Hardening.md`
 
 ## 1.4 key policy decisions
 
@@ -88,18 +99,18 @@ Pointer-shape preferences are routing data. Synchronous hit testing never perfor
 ## 1.4 tranche sequence
 
 ```text
-T1401  contract/design/public-surface candidate freeze
-T1402  interaction-region registry
-T1403  hit testing / clipping / panel precedence
-T1404  logical focus / traversal / repair
-T1405  keyboard gestures
-T1406  command bindings / routing result
-T1407  pointer shape integration
-T1408  resize / panel / lifecycle coherence
-T1409  application acceptance sample
-T1410  performance / allocation / hardening
-T1411  API / package / docs / licensing regret gate
-T1412  RC / stable-source closure
+T1401  contract/design/public-surface candidate freeze       complete
+T1402  interaction-region registry                           complete
+T1403  hit testing / clipping / panel precedence             complete
+T1404  logical focus / traversal / repair                    complete
+T1405  keyboard gestures                                     complete
+T1406  command bindings / routing result                     complete
+T1407  pointer shape integration                             complete
+T1408  resize / panel / lifecycle coherence                  complete
+T1409  application acceptance sample                         complete
+T1410  performance / allocation / hardening                  complete
+T1411  API / package / docs / licensing / dependency gate    active
+T1412  RC / stable-source closure                            pending
 ```
 
 ## Cross-release rules
@@ -114,4 +125,4 @@ Version 1.4 does not add a widget/control library, retained widget hierarchy, ev
 
 ## Immediate next step
 
-T1401 freezes the interaction contract before production implementation begins. Once that contract is accepted, T1402 becomes the first source tranche and may advance the development package identity from the published `1.3.0` floor to the 1.4 prerelease line.
+T1411 is the active release gate. Finish the API/package/documentation/licensing regret review and qualify the refreshed `Icod.Terminal 1.13.0` / `Icod.TermInfo 1.12.0` dependency graph through the normal package/runtime matrix. T1412 then promotes the accepted implementation through RC and stable-source qualification before merge.
