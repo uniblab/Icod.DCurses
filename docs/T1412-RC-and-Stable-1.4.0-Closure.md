@@ -7,10 +7,12 @@
 **Qualified T1411 workflow:** #797 / `34773668892` — all seven jobs green  
 **Qualified final RC head:** `7f6bcedf70b9cd5cd15bf2a2a53437e23dac3c2f`  
 **Qualified final RC workflow:** #802 / `34774226736` — all seven jobs green  
+**Qualified stable-source head:** `571af7e1904eb20233ec4fa66c6b76d86478a3b7`  
+**Qualified stable-source workflow:** #808 / `34774590867` — all seven jobs green  
 **Stable-source identity:** `1.4.0`  
 **AssemblyVersion:** `1.0.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
-**Status:** stable-source exact-head qualification active; merge remains pending explicit approval
+**Status:** T1412 complete; release-ready source pending explicit PR #29 merge approval
 
 ---
 
@@ -111,9 +113,9 @@ Workflow #802 / `34774226736` passed the complete seven-job matrix:
 
 The hardened Windows ARM64 acceptance suite passed under the same final RC exact head. No production implementation or public API correction was required.
 
-## Stable-source promotion
+## Stable-source promotion and qualification
 
-The qualified final RC implementation/API is now promoted unchanged to:
+The qualified final RC implementation/API was promoted unchanged to:
 
 ```text
 Version         1.4.0
@@ -121,11 +123,15 @@ PackageVersion  1.4.0
 AssemblyVersion 1.0.0.0
 ```
 
-Stable-source promotion changes stable package identity, stable release notes/status documentation, and closure evidence only. The production interaction implementation and frozen 1.4 public API remain unchanged from the qualified RC.
+Stable-source promotion changed stable package identity, stable release notes/status documentation, and closure evidence only. The production interaction implementation and frozen 1.4 public API remained unchanged from the qualified RC.
 
-## Stable-source exact-head acceptance gate
+The stable-source candidate was finalized at:
 
-The stable-source exact head must pass the complete seven-job pull-request matrix again:
+```text
+571af7e1904eb20233ec4fa66c6b76d86478a3b7
+```
+
+Workflow #808 / `34774590867` passed the complete seven-job matrix:
 
 - Package candidate;
 - Runtime Windows x64;
@@ -135,17 +141,15 @@ The stable-source exact head must pass the complete seven-job pull-request matri
 - Runtime macOS x64;
 - Runtime macOS ARM64.
 
-The package candidate must continue to validate package metadata, symbols, documentation, dependency groups, the frozen multi-target public API fingerprint, and fresh NuGet-only interaction consumption.
+That qualification proves stable package identity and metadata, portable symbols/documentation, the refreshed dependency graph, the frozen multi-target public API fingerprint, fresh NuGet-only interaction consumption, and the Windows/Linux/macOS x64/ARM64 runtime matrix.
 
-Stable-source is release-ready only after that exact head is green.
+Subsequent closure-only documentation edits do not reopen the implementation/API decision, but the current PR head remains subject to the repository's ordinary required checks before merge.
 
 ## Merge gate
 
-A green stable-source branch is release-ready source, but merge remains a separate explicit approval step.
+The branch is release-ready source. Merge remains a separate explicit approval step.
 
-PR #29 must not be merged merely because T1412 qualification succeeds. After the stable-source exact head is fully green, the release state is reported for explicit merge approval.
-
-After merge, the resulting `main` Release workflow must be qualified before creating/pushing the stable release tag or publishing release artifacts.
+PR #29 must not be merged without explicit user approval. After merge, the resulting `main` Release workflow must be qualified before creating/pushing the stable release tag or publishing release artifacts.
 
 Tagging, GitHub Release creation, and NuGet publication remain separate explicit release actions.
 
@@ -173,6 +177,6 @@ T1412 does not reopen the 1.4 architecture. Stable closure retains:
 | initial `1.4.0-rc.1` | `f21110e7d1e75bbe89152ef44c2aa51fd6fac63f` | #800 / `34773915278` | Windows ARM64 timed out once; unchanged rerun passed |
 | RC test hardening | `9e6a17f65079d6052db7183a493b98d523387b31` | — | per-read timeout; production/API unchanged |
 | final `1.4.0-rc.1` | `7f6bcedf70b9cd5cd15bf2a2a53437e23dac3c2f` | #802 / `34774226736` | seven jobs green |
-| stable-source `1.4.0` | pending exact final head | pending | qualification active |
+| stable-source `1.4.0` | `571af7e1904eb20233ec4fa66c6b76d86478a3b7` | #808 / `34774590867` | seven jobs green |
 | PR #29 merge | pending explicit approval | — | not merged |
-| `main` Release | pending | pending | not run |
+| `main` Release | pending post-merge | pending | not run |
