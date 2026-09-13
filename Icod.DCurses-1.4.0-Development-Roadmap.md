@@ -6,12 +6,13 @@
 **Published baseline:** `1.3.0`  
 **Baseline tag:** `v1.3.0`  
 **Baseline commit:** `c10ca043a666b85225f2d3b8955a1ac2075b0d31`  
-**Planning-stage source identity:** `1.3.0` until the first implementation tranche  
+**Current development package:** `1.4.0-alpha.1`  
 **Final target package:** `1.4.0`  
 **Assembly version policy:** retain `1.0.0.0` for compatible additive 1.x development  
 **Baseline runtime dependencies:** `Icod.Terminal 1.11.1`; `Icod.TermInfo 1.11.0`  
+**Current declared runtime dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
 **Theme:** deterministic interaction routing over semantic input, immutable geometry, retained panels, and Terminal-owned protocol state  
-**Status:** architecture approved; T1401 contract freeze is the first gate
+**Status:** T1401-T1410 complete; T1411 API/package/documentation/licensing/dependency qualification is active; T1412 follows
 
 ---
 
@@ -75,6 +76,14 @@ CursesWindow.Bounds / SetBounds
 CursesPanel.Bounds / Resize / SetBounds
 ```
 
+Current 1.4 interaction fingerprint:
+
+```text
+62 exported types
+491 canonical declared contract lines
+sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
+```
+
 Version 1.4 is additive by default. Any breaking correction to the published 1.3 contract requires a concrete regret finding and explicit approval before implementation.
 
 ## Architectural invariants
@@ -123,9 +132,9 @@ A terminal focus-out report does not erase the application's logical focused reg
 
 Registration, traversal, hit-test precedence, gesture resolution, command binding, and focus repair must have deterministic tie-breaking. Registries and binding collections must have documented finite bounds frozen by T1401 before implementation.
 
-## Working public API concepts
+## T1401 design-time public API concepts
 
-The following names describe the approved architecture but are **working names until T1401 freezes the public contract**:
+The following names record the design-time candidate vocabulary that T1401 used to freeze the interaction contract. The compiler-derived 1.4 fingerprint is the current public-surface authority during T1411 review.
 
 ```text
 CursesInteractionRouter
@@ -140,7 +149,7 @@ CursesPointerShape
 CursesPointerShapeLease
 ```
 
-T1401 may rename or consolidate these concepts, but it may not weaken the architectural invariants above without explicit design reapproval.
+Historical candidate names in this section are not themselves a promise that every candidate survived unchanged into the final compiler-derived surface.
 
 ## T1401 — interaction contract and public-surface candidate freeze
 
@@ -484,6 +493,12 @@ Version 1.4 does not provide:
 - raster placement/scene graphs;
 - animation;
 - PTY/process hosting.
+
+## Current release state
+
+T1401-T1410 are complete. T1411 is the active release gate and must close the public API/package/documentation/licensing regret review and qualify the refreshed `Icod.Terminal 1.13.0` / `Icod.TermInfo 1.12.0` dependency graph before RC promotion.
+
+T1412 then promotes the accepted implementation/API through `1.4.0-rc.1` and stable-source `1.4.0` with exact-head package/runtime qualification. Merge, `main` Release qualification, tagging, GitHub Release creation, and NuGet publication remain separate explicit actions.
 
 ## Definition of done
 
