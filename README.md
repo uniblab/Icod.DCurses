@@ -17,13 +17,13 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 Current published stable release: `Icod.DCurses 1.3.0`.
 
-`Icod.DCurses 1.4.0` is the active development line in PR #29. T1401-T1410 are complete; T1411 is qualifying the public API, package, documentation, licensing, refreshed dependencies, and stable-release regret gate before RC/stable-source promotion.
+`Icod.DCurses 1.4.0` is in T1412 release-candidate qualification in PR #29. T1401-T1411 are complete; the T1411-qualified implementation and public API have been promoted unchanged to `1.4.0-rc.1` for exact-head package/runtime qualification before stable-source promotion.
 
 Current source identity:
 
 ```text
-Version         1.4.0-alpha.1
-PackageVersion  1.4.0-alpha.1
+Version         1.4.0-rc.1
+PackageVersion  1.4.0-rc.1
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.13.0
 Icod.TermInfo   1.12.0
@@ -37,7 +37,7 @@ Published 1.3 contract:
 sha256 a655bd85e3c88f5bf38ad0d43a148e3bd06a9e943bbf3e3aa2e21575ffb07424
 ```
 
-Current frozen 1.4 interaction contract:
+Frozen 1.4 interaction contract:
 
 ```text
 62 exported types
@@ -55,7 +55,7 @@ Install the current published package selected by your normal NuGet policy:
 dotnet add package Icod.DCurses
 ```
 
-Normal stable package resolution currently selects the published 1.3 line. The 1.4 development branch is being release-qualified and is not yet the stable published package.
+Normal stable package resolution currently selects the published 1.3 line. The 1.4 RC source is being release-qualified and is not yet the stable published package.
 
 ## Architecture
 
@@ -310,7 +310,7 @@ Local wrappers use Debug configuration. Pull requests use Staging with warnings-
 
 Runtime validation covers Windows/Linux/macOS x64 and ARM64; the library/test matrix covers `net8.0`, `net9.0`, and `net10.0`.
 
-Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. The package consumer now compiles and executes both the 1.3 geometry/layout/panel-resize surface and the 1.4 interaction surface directly from the packed artifact: regions, logical focus/traversal, hit testing, semantic gestures and command bindings, routing API presence, pointer-shape vocabulary, and pointer-lease surface. Package validation does not impose hard-coded sibling dependency versions.
+Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. The package consumer compiles and executes both the 1.3 geometry/layout/panel-resize surface and the 1.4 interaction surface directly from the packed artifact: regions, logical focus/traversal, hit testing, semantic gestures and command bindings, routing API presence, pointer-shape vocabulary, and pointer-lease surface. Package validation does not impose hard-coded sibling dependency versions.
 
 ## Release documentation
 
@@ -323,8 +323,10 @@ Current authorities:
 - `docs/T1401-Interaction-Contract-and-Public-API-Candidate.md`
 - `docs/T1409-Interaction-Acceptance-Sample.md`
 - `docs/T1410-Interaction-Performance-Allocation-and-Adversarial-Hardening.md`
+- `docs/T1411-Public-API-Package-Documentation-and-Regret-Gate.md`
+- `docs/T1412-RC-and-Stable-1.4.0-Closure.md`
 
-T1411 is the active API/package/documentation/licensing regret gate. Its closure evidence joins this authority list before RC/stable-source promotion. Historical 1.0-1.3 closure records remain compatibility authorities and are not rewritten merely to reflect later development state.
+T1411 is complete on head `570715e0764f9791fe197462a953df6eccf6105a`, qualified by workflow #797 / `34773668892` across all seven jobs. T1412 is now qualifying the unchanged implementation/API under RC identity before stable-source promotion. Historical 1.0-1.3 closure records remain compatibility authorities and are not rewritten merely to reflect later development state.
 
 ## Authors
 
