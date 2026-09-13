@@ -17,7 +17,7 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 Current published stable release: `Icod.DCurses 1.3.0`.
 
-`Icod.DCurses 1.4.0` is complete in stable-source form in PR #29 and is undergoing the final T1412 exact-head package/runtime qualification before merge. The implementation and frozen public API passed T1411 and the final `1.4.0-rc.1` matrix; stable-source promotion changes release identity and release-facing documentation only.
+`Icod.DCurses 1.4.0` is complete in stable-source form in PR #29. T1401-T1412 are complete, the final RC exact head passed the full seven-job matrix, and stable-source head `571af7e1904eb20233ec4fa66c6b76d86478a3b7` passed workflow #808 / `34774590867` across the package candidate plus Windows/Linux/macOS x64/ARM64. The branch is release-ready source pending explicit merge approval. After merge, the resulting `main` Release workflow must pass before tagging or publication.
 
 Current source identity:
 
@@ -326,7 +326,7 @@ Current authorities:
 - `docs/T1411-Public-API-Package-Documentation-and-Regret-Gate.md`
 - `docs/T1412-RC-and-Stable-1.4.0-Closure.md`
 
-T1411 is complete on head `570715e0764f9791fe197462a953df6eccf6105a`, qualified by workflow #797 / `34773668892` across all seven jobs. The final RC head `7f6bcedf70b9cd5cd15bf2a2a53437e23dac3c2f` passed workflow #802 / `34774226736` across all seven jobs after a test-only timeout hardening correction; production code and the frozen public API were unchanged. T1412 is now qualifying stable-source `1.4.0`. Historical 1.0-1.3 closure records remain compatibility authorities and are not rewritten merely to reflect later development state.
+T1411 is complete on head `570715e0764f9791fe197462a953df6eccf6105a`, qualified by workflow #797 / `34773668892` across all seven jobs. The final RC head `7f6bcedf70b9cd5cd15bf2a2a53437e23dac3c2f` passed workflow #802 / `34774226736` across all seven jobs after a test-only timeout hardening correction; production code and the frozen public API were unchanged. Stable-source head `571af7e1904eb20233ec4fa66c6b76d86478a3b7` then passed workflow #808 / `34774590867` across all seven jobs. T1412 is complete and PR #29 is release-ready source pending explicit merge approval. Historical 1.0-1.3 closure records remain compatibility authorities and are not rewritten merely to reflect later development state.
 
 ## Authors
 
