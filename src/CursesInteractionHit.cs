@@ -39,6 +39,7 @@ public sealed class CursesInteractionHit {
 		this.Region = region;
 		this.LocalRow = localRow;
 		this.LocalColumn = localColumn;
+		this.PointerShape = region.PointerShape;
 	}
 
 	/// <summary>Gets the interaction region selected by the hit test.</summary>
@@ -53,6 +54,11 @@ public sealed class CursesInteractionHit {
 
 	/// <summary>Gets the zero-based column relative to the declared region origin.</summary>
 	public int LocalColumn {
+		get;
+	}
+
+	/// <summary>Gets the semantic pointer-shape preference captured when this hit was resolved.</summary>
+	public CursesPointerShape? PointerShape {
 		get;
 	}
 }
