@@ -587,6 +587,13 @@ static void VerifyInteractionSurface() {
 			"DCurses package-only pointer-shape lease surface is unavailable."
 		);
 	}
+
+	Func<CursesInteractionRouter, CursesInputEvent, CursesInteractionResult> routeCompiler =
+		CompileRoutingSurface;
+	Func<CursesSession, CancellationToken, ValueTask<CursesPointerShapeLease>> pointerCompiler =
+		CompilePointerShapeSurfaceAsync;
+	_ = routeCompiler;
+	_ = pointerCompiler;
 }
 
 static CursesInteractionResult CompileRoutingSurface(
