@@ -1,6 +1,6 @@
 # Icod.DCurses Samples
 
-The repository contains eight executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
+The repository contains nine executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
 All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project, which currently declares `Icod.Terminal 1.11.1` and `Icod.TermInfo 1.11.0`.
 
@@ -42,6 +42,33 @@ dotnet run --project samples/Icod.DCurses.Layout.Sample/Icod.DCurses.Layout.Samp
 ```
 
 Resize the terminal while the sample is running to see the two windows and retained panel recompute from the new screen bounds. Press `Q` or `Escape` to exit.
+
+## Icod.DCurses.Interaction.Sample
+
+`Icod.DCurses.Interaction.Sample` is the 1.4 interaction-routing acceptance sample. It composes public DCurses geometry, retained panels, focus traversal, semantic command bindings, mouse hit testing, pointer-shape preferences, and resize handling inside one application-owned event loop. The sample does not use a widget framework, direct Terminal APIs, callback-driven command execution, automatic layout ownership, or a second input reader.
+
+Controls:
+
+```text
+Tab          Move logical focus forward
+Shift+Tab    Move logical focus backward
+F2           Show/hide the retained popup; showing it explicitly focuses the popup
+x            Left-local action while the left pane has focus; otherwise global x
+r            Right-pane local action
+Escape       Close the popup first; otherwise exit
+q            Exit
+Mouse        Report screen and region-local coordinates and apply the routed pointer preference
+```
+
+The left-pane local `x` binding deliberately shadows the router-global `x` binding, demonstrating focused local-command precedence. The retained popup overlaps the body panes and wins mouse routing through the normal panel z-order rules. Mouse routing itself does not change logical focus.
+
+The application explicitly applies pointer-shape preferences with `CursesPointerShapeLease` rather than performing terminal I/O inside hit testing or routing. It also acquires keyboard event types, focus reporting, and mouse button events through DCurses input-protocol leases only.
+
+Resize handling remains application-owned: the sample synchronizes the current terminal dimensions, recomputes header/footer and equal left/right pane rectangles, reapplies window/panel/interaction bounds, and repaints. If the terminal falls below `64x16`, retained router/binding identity survives while the application displays a resize message; growing the terminal restores the normal layout. Terminal focus reports update status text but remain distinct from logical `CursesInteractionRouter` focus.
+
+```text
+dotnet run --project samples/Icod.DCurses.Interaction.Sample/Icod.DCurses.Interaction.Sample.csproj
+```
 
 ## Icod.DCurses.Showcase
 
