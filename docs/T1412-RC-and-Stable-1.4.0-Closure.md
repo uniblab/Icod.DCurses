@@ -5,10 +5,12 @@
 **Published baseline:** `1.3.0`  
 **Qualified T1411 head:** `570715e0764f9791fe197462a953df6eccf6105a`  
 **Qualified T1411 workflow:** #797 / `34773668892` — all seven jobs green  
-**RC identity:** `1.4.0-rc.1`  
+**Qualified final RC head:** `7f6bcedf70b9cd5cd15bf2a2a53437e23dac3c2f`  
+**Qualified final RC workflow:** #802 / `34774226736` — all seven jobs green  
+**Stable-source identity:** `1.4.0`  
 **AssemblyVersion:** `1.0.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
-**Status:** final RC candidate qualification active after test-only timeout hardening
+**Status:** stable-source exact-head qualification active; merge remains pending explicit approval
 
 ---
 
@@ -47,7 +49,7 @@ sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
 
 T1411 found no public API, ownership, packaging, documentation, licensing, or dependency-boundary regret requiring an implementation/API correction before RC.
 
-## RC promotion
+## RC promotion and qualification
 
 The T1411-qualified implementation/API was promoted unchanged to:
 
@@ -59,7 +61,7 @@ AssemblyVersion 1.0.0.0
 
 The RC promotion changed release identity and release-facing documentation only. It did not reopen the interaction contract or add features.
 
-## RC Windows ARM64 timeout investigation
+### Windows ARM64 timeout investigation
 
 The first RC exact-head workflow, #800 / `34773915278`, passed the package candidate plus Windows x64, both Linux architectures, and both macOS architectures. Its initial Windows ARM64 attempt failed one pre-existing acceptance test on `net10.0`:
 
@@ -79,7 +81,7 @@ Evidence that this was a test-timeout defect rather than an RC implementation re
 - the same RC Windows ARM64 job was rerun unchanged and the full test step passed;
 - the other five runtime architectures and package candidate passed the original RC attempt.
 
-The acceptance test was therefore hardened without changing production code or public API: each expected semantic input event now receives its own five-second bounded read timeout instead of sharing one absolute deadline across the entire multi-event sequence.
+The acceptance test was hardened without changing production code or public API: each expected semantic input event now receives its own five-second bounded read timeout instead of sharing one absolute deadline across the entire multi-event sequence.
 
 Test-only hardening commit:
 
@@ -87,11 +89,43 @@ Test-only hardening commit:
 9e6a17f65079d6052db7183a493b98d523387b31
 ```
 
-This correction preserves hang detection while removing dependence on cumulative runner scheduling time.
+This preserves hang detection while removing dependence on cumulative runner scheduling time.
 
-## Final RC exact-head acceptance gate
+### Final RC gate
 
-Because the test suite changed after the initial RC workflow, the final RC candidate head must pass a fresh complete seven-job pull-request matrix:
+The final documented RC head was:
+
+```text
+7f6bcedf70b9cd5cd15bf2a2a53437e23dac3c2f
+```
+
+Workflow #802 / `34774226736` passed the complete seven-job matrix:
+
+- Package candidate;
+- Runtime Windows x64;
+- Runtime Windows ARM64;
+- Runtime Linux x64;
+- Runtime Linux ARM64;
+- Runtime macOS x64;
+- Runtime macOS ARM64.
+
+The hardened Windows ARM64 acceptance suite passed under the same final RC exact head. No production implementation or public API correction was required.
+
+## Stable-source promotion
+
+The qualified final RC implementation/API is now promoted unchanged to:
+
+```text
+Version         1.4.0
+PackageVersion  1.4.0
+AssemblyVersion 1.0.0.0
+```
+
+Stable-source promotion changes stable package identity, stable release notes/status documentation, and closure evidence only. The production interaction implementation and frozen 1.4 public API remain unchanged from the qualified RC.
+
+## Stable-source exact-head acceptance gate
+
+The stable-source exact head must pass the complete seven-job pull-request matrix again:
 
 - Package candidate;
 - Runtime Windows x64;
@@ -103,21 +137,7 @@ Because the test suite changed after the initial RC workflow, the final RC candi
 
 The package candidate must continue to validate package metadata, symbols, documentation, dependency groups, the frozen multi-target public API fingerprint, and fresh NuGet-only interaction consumption.
 
-No stable-source promotion occurs until that exact final RC head is green.
-
-## Stable-source promotion
-
-After the final RC exact-head matrix is green, the same accepted implementation/API may be promoted to:
-
-```text
-Version         1.4.0
-PackageVersion  1.4.0
-AssemblyVersion 1.0.0.0
-```
-
-The stable-source promotion must not alter the frozen 1.4 implementation or public API. Only stable package identity, stable release notes/status documentation, and this closure record may change.
-
-The stable-source exact head must then pass the same complete seven-job matrix again.
+Stable-source is release-ready only after that exact head is green.
 
 ## Merge gate
 
@@ -150,9 +170,9 @@ T1412 does not reopen the 1.4 architecture. Stable closure retains:
 | Stage | Head | Workflow | Result |
 |---|---|---|---|
 | T1411 qualified | `570715e0764f9791fe197462a953df6eccf6105a` | #797 / `34773668892` | seven jobs green |
-| initial `1.4.0-rc.1` | `f21110e7d1e75bbe89152ef44c2aa51fd6fac63f` | #800 / `34773915278` | six original jobs green; Windows ARM64 timed out once, then passed unchanged rerun |
+| initial `1.4.0-rc.1` | `f21110e7d1e75bbe89152ef44c2aa51fd6fac63f` | #800 / `34773915278` | Windows ARM64 timed out once; unchanged rerun passed |
 | RC test hardening | `9e6a17f65079d6052db7183a493b98d523387b31` | — | per-read timeout; production/API unchanged |
-| final `1.4.0-rc.1` | pending | pending | fresh qualification active |
-| stable-source `1.4.0` | pending | pending | not promoted |
+| final `1.4.0-rc.1` | `7f6bcedf70b9cd5cd15bf2a2a53437e23dac3c2f` | #802 / `34774226736` | seven jobs green |
+| stable-source `1.4.0` | pending exact final head | pending | qualification active |
 | PR #29 merge | pending explicit approval | — | not merged |
 | `main` Release | pending | pending | not run |
