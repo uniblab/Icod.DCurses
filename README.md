@@ -150,24 +150,27 @@ if ( CursesEventKind.Input == current.Kind
     && current.Input is not null ) {
     CursesInteractionResult routed = router.Route( current.Input );
 
-    if ( routed.Command is not null ) {
-        // Application policy executes the command.
-        if ( "focus.next" == routed.Command.Name ) {
-            _ = router.MoveFocus( CursesFocusDirection.Forward );
-        }
+    if ( routed.Command is not null
+        && "focus.next" == routed.Command.Name ) {
+        _ = router.MoveFocus( CursesFocusDirection.Forward );
     }
 
-    if ( routed.Hit?.PointerShape is CursesPointerShape pointerShape ) {
-        await using CursesPointerShapeLease lease =
-            await session.AcquirePointerShapeAsync( pointerShape );
-        // Keep the lease for as long as this physical preference should apply.
-    }
+    // routed.Hit contains region-local mouse coordinates and the
+    // region's pointer-shape preference, if one was configured.
 }
 ```
 
 The router deliberately returns structured routing data instead of invoking callbacks. Focus changes are explicit application decisions. Mouse hit testing therefore does **not** automatically change logical focus, and logical focus is independent of terminal/window-manager focus reports.
 
-Panel-associated regions participate in the retained panel stack, so current panel z-order is part of mouse hit-test precedence. Successful mouse hits carry region-local row/column coordinates in addition to the original normalized input. A region's `PointerShape` is only a semantic preference surfaced by hit/routing results; applying that preference requires the application to explicitly acquire and retain a `CursesPointerShapeLease` from the session.
+Panel-associated regions participate in the retained panel stack, so current panel z-order is part of mouse hit-test precedence. Successful mouse hits carry region-local row/column coordinates in addition to the original normalized input. A region's `PointerShape` is only a semantic preference surfaced by hit/routing results; applying that preference requires the application to explicitly acquire and retain a `CursesPointerShapeLease` from the session for as long as the physical preference should remain active:
+
+```csharp
+CursesPointerShapeLease pointerLease =
+    await session.AcquirePointerShapeAsync( CursesPointerShape.Text );
+
+// Keep pointerLease while the preference applies, then restore prior state.
+await pointerLease.DisposeAsync();
+```
 
 Region and gesture-binding registries are intentionally bounded and fail before partial mutation when capacity is exhausted. The router owns no background work, event loop, terminal parser, protocol negotiation, or hidden terminal I/O. It routes only the semantic input and geometry state already owned by DCurses/Terminal.
 
