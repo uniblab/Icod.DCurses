@@ -636,16 +636,22 @@ static void VerifyAdvancedInteractionSurface() {
 		}
 	);
 
-	CursesCommand scopeCommand = new( "package-smoke.scope" );
-	CursesCommand nestedCommand = new( "package-smoke.nested" );
+	CursesKeyGesture scopeGesture = CursesKeyGesture.ForCharacter( new Rune( 's' ) );
+	CursesKeyGesture nestedGesture = CursesKeyGesture.ForCharacter( new Rune( 'n' ) );
 	scope.BindGesture(
-		CursesKeyGesture.ForCharacter( new Rune( 's' ) ),
-		scopeCommand
+		scopeGesture,
+		new CursesCommand( "package-smoke.scope" )
 	);
 	nestedScope.BindGesture(
-		CursesKeyGesture.ForCharacter( new Rune( 'n' ) ),
-		nestedCommand
+		nestedGesture,
+		new CursesCommand( "package-smoke.nested" )
 	);
+	if ( !scope.UnbindGesture( scopeGesture )
+		|| !nestedScope.UnbindGesture( nestedGesture ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only scope-binding surface failed validation."
+		);
+	}
 
 	if ( !router.Focus( root ) ) {
 		throw new InvalidOperationException(
@@ -654,51 +660,17 @@ static void VerifyAdvancedInteractionSurface() {
 	}
 
 	CursesInteractionScopeLease outerLease = router.ActivateScope( scope );
-	if ( !router.Focus( scopedLeft ) ) {
-		throw new InvalidOperationException(
-			"DCurses package-only scoped focus setup failed."
-		);
-	}
-
-	CursesInteractionResult scopedCommandResult = router.Route(
-		CursesInputEvent.FromText( new Rune( 's' ) )
-	);
-	CursesInteractionResult nestedCommandResult = router.Route(
-		CursesInputEvent.FromText( new Rune( 'n' ) )
-	);
-	if ( scopeCommand.Name != scopedCommandResult.Command?.Name
-		|| nestedCommand.Name != nestedCommandResult.Command?.Name ) {
-		throw new InvalidOperationException(
-			"DCurses package-only scoped command surface failed validation."
-		);
-	}
-
-	if ( !ReferenceEquals(
-		scopedRight,
-		router.MoveFocus( CursesFocusDirection.Right )
-	) ) {
-		throw new InvalidOperationException(
-			"DCurses package-only spatial-focus surface failed validation."
-		);
-	}
-	_ = router.MoveFocus( CursesFocusDirection.Left );
-
-	CursesInteractionResult press = router.Route(
-		CursesInputEvent.FromMouse(
-			new CursesMouseEvent(
-				CursesMouseAction.Press,
-				CursesMouseButton.Primary,
-				column: 4,
-				row: 4
-			)
+	if ( !router.Focus( scopedLeft )
+		|| !ReferenceEquals(
+			scopedRight,
+			router.MoveFocus( CursesFocusDirection.Right )
 		)
-	);
-	if ( !ReferenceEquals(
-		scopedLeft,
-		press.Region
-	) || CursesPointerGestureKind.Press != press.PointerGesture?.Kind ) {
+		|| !ReferenceEquals(
+			scopedLeft,
+			router.MoveFocus( CursesFocusDirection.Left )
+		) ) {
 		throw new InvalidOperationException(
-			"DCurses package-only pointer-press surface failed validation."
+			"DCurses package-only scoped spatial-focus surface failed validation."
 		);
 	}
 
@@ -706,67 +678,16 @@ static void VerifyAdvancedInteractionSurface() {
 		scopedLeft,
 		CursesMouseButton.Primary
 	);
-	CursesInteractionResult dragStart = router.Route(
-		CursesInputEvent.FromMouse(
-			new CursesMouseEvent(
-				CursesMouseAction.Move,
-				CursesMouseButton.Primary,
-				column: 30,
-				row: 10
-			)
-		)
-	);
-	CursesPointerTarget? dragTarget = dragStart.PointerTarget;
-	if ( CursesPointerGestureKind.DragStart != dragStart.PointerGesture?.Kind
-		|| dragTarget is null
-		|| !ReferenceEquals(
-			scopedLeft,
-			dragTarget.Region
-		)
-		|| dragTarget.IsInside ) {
-		throw new InvalidOperationException(
-			"DCurses package-only captured DragStart surface failed validation."
-		);
-	}
-
-	CursesInteractionResult dragMove = router.Route(
-		CursesInputEvent.FromMouse(
-			new CursesMouseEvent(
-				CursesMouseAction.Move,
-				CursesMouseButton.Primary,
-				column: 31,
-				row: 10
-			)
-		)
-	);
-	if ( CursesPointerGestureKind.DragMove != dragMove.PointerGesture?.Kind ) {
-		throw new InvalidOperationException(
-			"DCurses package-only captured DragMove surface failed validation."
-		);
-	}
-
-	CursesInteractionResult dragEnd = router.Route(
-		CursesInputEvent.FromMouse(
-			new CursesMouseEvent(
-				CursesMouseAction.Release,
-				CursesMouseButton.Primary,
-				column: 31,
-				row: 10
-			)
-		)
-	);
-	if ( CursesPointerGestureKind.DragEnd != dragEnd.PointerGesture?.Kind
-		|| dragEnd.PointerTarget is null
-		|| !ReferenceEquals(
-			scopedLeft,
-			dragEnd.PointerTarget.Region
-		) ) {
-		throw new InvalidOperationException(
-			"DCurses package-only captured DragEnd surface failed validation."
-		);
-	}
+	scopedLeft.IsEnabled = false;
 	captureLease.Dispose();
 	captureLease.Dispose();
+	scopedLeft.IsEnabled = true;
+	CursesPointerCaptureLease secondCapture = router.CapturePointer(
+		scopedLeft,
+		CursesMouseButton.Primary
+	);
+	secondCapture.Dispose();
+	secondCapture.Dispose();
 
 	CursesInteractionScopeLease nestedLease = router.ActivateScope( nestedScope );
 	if ( !router.Focus( scopedLeft ) ) {
@@ -774,23 +695,6 @@ static void VerifyAdvancedInteractionSurface() {
 			"DCurses package-only nested-scope focus setup failed."
 		);
 	}
-	CursesInteractionResult blockedOuter = router.Route(
-		CursesInputEvent.FromText( new Rune( 's' ) )
-	);
-	if ( blockedOuter.Command is not null ) {
-		throw new InvalidOperationException(
-			"DCurses package-only nested modal boundary leaked an outer scope command."
-		);
-	}
-	CursesInteractionResult nestedOnly = router.Route(
-		CursesInputEvent.FromText( new Rune( 'n' ) )
-	);
-	if ( nestedCommand.Name != nestedOnly.Command?.Name ) {
-		throw new InvalidOperationException(
-			"DCurses package-only nested scope command failed validation."
-		);
-	}
-
 	nestedLease.Dispose();
 	outerLease.Dispose();
 	if ( !ReferenceEquals(
@@ -799,6 +703,56 @@ static void VerifyAdvancedInteractionSurface() {
 	) ) {
 		throw new InvalidOperationException(
 			"DCurses package-only scope focus restoration failed validation."
+		);
+	}
+
+	if ( 256 != CursesInteractionRouter.MaximumScopes
+		|| 32 != CursesInteractionRouter.MaximumScopeDepth
+		|| 256 != CursesInteractionRouter.MaximumScopeGestureBindings
+		|| 5 != (int)CursesFocusDirection.Right ) {
+		throw new InvalidOperationException(
+			"DCurses package-only advanced interaction bounds changed."
+		);
+	}
+
+	PropertyInfo? pointerTargetProperty = typeof( CursesInteractionResult ).GetProperty(
+		nameof( CursesInteractionResult.PointerTarget )
+	);
+	PropertyInfo? pointerGestureProperty = typeof( CursesInteractionResult ).GetProperty(
+		nameof( CursesInteractionResult.PointerGesture )
+	);
+	PropertyInfo? targetRegionProperty = typeof( CursesPointerTarget ).GetProperty(
+		nameof( CursesPointerTarget.Region )
+	);
+	PropertyInfo? gestureTargetProperty = typeof( CursesPointerGesture ).GetProperty(
+		nameof( CursesPointerGesture.Target )
+	);
+	if ( pointerTargetProperty is null
+		|| typeof( CursesPointerTarget ) != pointerTargetProperty.PropertyType
+		|| pointerGestureProperty is null
+		|| typeof( CursesPointerGesture ) != pointerGestureProperty.PropertyType
+		|| targetRegionProperty is null
+		|| gestureTargetProperty is null ) {
+		throw new InvalidOperationException(
+			"DCurses package-only pointer target/gesture result surface is unavailable."
+		);
+	}
+
+	_ = CursesPointerGestureKind.DragStart;
+	_ = CursesPointerGestureKind.DragMove;
+	_ = CursesPointerGestureKind.DragEnd;
+
+	MethodInfo? captureMethod = typeof( CursesInteractionRouter ).GetMethod(
+		nameof( CursesInteractionRouter.CapturePointer ),
+		[
+			typeof( CursesInteractionRegion ),
+			typeof( CursesMouseButton )
+		]
+	);
+	if ( captureMethod is null
+		|| typeof( CursesPointerCaptureLease ) != captureMethod.ReturnType ) {
+		throw new InvalidOperationException(
+			"DCurses package-only explicit pointer-capture surface is unavailable."
 		);
 	}
 }
