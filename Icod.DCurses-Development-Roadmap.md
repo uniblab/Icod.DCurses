@@ -9,7 +9,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.5.0` — advanced interaction control  
-**Status:** T150 complete; T151 bounded interaction scopes in progress
+**Status:** T150-T151 complete; T152 explicit pointer capture in progress
 
 ---
 
@@ -19,6 +19,7 @@
 - `docs/superpowers/specs/2026-09-14-icod-dcurses-1.5-advanced-interaction-control-design.md`
 - `docs/superpowers/plans/2026-09-14-icod-dcurses-1.5-advanced-interaction-control.md`
 - `docs/T150-1.5.0-Architecture-API-Regret-and-Contract-Freeze.md`
+- `docs/T151-Bounded-Interaction-Scopes.md`
 - `docs/Public-API-Fingerprint-1.5.json`
 
 The 1.0-1.4 tranche, roadmap, and release-closure documents remain historical compatibility/release authorities and are not rewritten to simulate current development state.
@@ -58,12 +59,12 @@ The tagged compatibility baseline is `v1.4.0`, whose merged source is rooted at:
 48d591aa427096be78c173ad8ed85566d7f671bf
 ```
 
-Current T150 1.5 candidate fingerprint:
+Current T151 1.5 candidate fingerprint:
 
 ```text
-62 exported types
-494 canonical declared contract lines
-sha256 456cb7704d0addedbb081b357bc53c2b39a14e42fda4c865865c9afcfd903d30
+65 exported types
+506 canonical declared contract lines
+sha256 661e8d7adb76e23560fe5c70bedbd0d07e6a3d0b214a92111b0b1cdae3b27aaf
 ```
 
 Version 1.5 remains additive by default. Any proposed break to the published 1.4 surface requires an explicit regret-gate finding, migration justification, and maintainer approval before implementation.
@@ -121,8 +122,8 @@ The 1.5 track is governed by these rules:
 
 ```text
 T150  architecture/API-regret gate, planning freeze, test housekeeping          complete
-T151  bounded interaction scopes and active-scope eligibility                   in progress
-T152  explicit pointer capture and capture lifetime                             planned
+T151  bounded interaction scopes and active-scope eligibility                   complete
+T152  explicit pointer capture and capture lifetime                             in progress
 T153  deterministic spatial focus navigation                                    planned
 T154  deterministic pointer-gesture normalization                               planned
 T155  scoped command bindings and precedence                                    planned
@@ -132,14 +133,14 @@ T158  performance/allocation/API/package/docs/dependency regret gate            
 T159  RC and stable-source 1.5.0 closure                                        planned
 ```
 
-T150 was accepted on exact head:
+Accepted checkpoints:
 
 ```text
-eb34c8236a9e6c008b7ff486df177e8b52cba274
-workflow #818 / 34878235207
+T150  eb34c8236a9e6c008b7ff486df177e8b52cba274  #818 / 34878235207
+T151  ac0bfcbf38800a94533cc4ada4caf3b8feee4fb1  #829 / 34879561466
 ```
 
-The full seven-job Staging matrix passed: package candidate plus Windows/Linux/macOS on x64 and ARM64.
+Both checkpoints passed the complete seven-job Staging matrix: package candidate plus Windows/Linux/macOS on x64 and ARM64.
 
 ## Deliberate 1.5 non-goals
 
@@ -164,4 +165,4 @@ Future widget or mixed-media layers should be able to build on the 1.5 mechanism
 
 ## Immediate next step
 
-T151 is active. Implement bounded immutable-parent interaction scopes and descendant-only LIFO activation through RED -> GREEN tests, then qualify the unchanged evidence-complete exact head through the normal seven-job Staging matrix before beginning pointer capture.
+T152 is active. Implement singular explicit pointer capture through RED -> GREEN tests, including signed out-of-bounds local targeting and automatic release on matching button release or invalidation. Qualify the unchanged evidence-complete exact head through the seven-job Staging matrix before beginning spatial focus.
