@@ -156,18 +156,24 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 		this.focusedRegion = null;
 	}
 
-	/// <summary>Moves logical focus through eligible regions using deterministic traversal order.</summary>
-	/// <param name="direction">The traversal direction.</param>
-	/// <returns>The newly focused region, or <see langword="null"/> when no eligible region exists.</returns>
+	/// <summary>Moves logical focus using sequential or deterministic spatial navigation.</summary>
+	/// <param name="direction">The focus-navigation direction.</param>
+	/// <returns>The newly focused region, or <see langword="null"/> when no candidate exists.</returns>
 	public CursesInteractionRegion? MoveFocus(
 		CursesFocusDirection direction
 	) {
-		if ( CursesFocusDirection.Forward != direction
-			&& CursesFocusDirection.Backward != direction ) {
+		if ( !Enum.IsDefined( direction ) ) {
 			throw new ArgumentOutOfRangeException( nameof( direction ) );
 		}
 		this.ThrowIfDisposed();
 		this.RepairFocusIfNeeded();
+
+		if ( CursesFocusDirection.Up == direction
+			|| CursesFocusDirection.Down == direction
+			|| CursesFocusDirection.Left == direction
+			|| CursesFocusDirection.Right == direction ) {
+			return this.MoveSpatialFocus( direction );
+		}
 
 		CursesInteractionRegion? next;
 		if ( this.focusedRegion is null ) {
