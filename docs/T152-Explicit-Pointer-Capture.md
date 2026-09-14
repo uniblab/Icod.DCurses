@@ -6,7 +6,9 @@
 **Starting accepted tranche:** T151  
 **Starting accepted head:** `ac0bfcbf38800a94533cc4ada4caf3b8feee4fb1`  
 **Starting accepted workflow:** #829 / `34879561466`  
-**Status:** implementation/API candidate complete; final evidence-complete exact-head Staging qualification pending
+**Accepted T152 head:** `b1e9e60df7ee6cfc3e2af10c4f3f819273c299fb`  
+**Accepted T152 workflow:** #839 / `34881203594`  
+**Status:** complete; exact-head seven-job Staging qualification passed
 
 ---
 
@@ -110,7 +112,7 @@ This head additionally wires immediate region-owned capture repair for enablemen
 
 ## Compiler-derived API candidate
 
-The exact compiler-derived T152 candidate surface is:
+The accepted compiler-derived T152 surface is:
 
 ```text
 67 exported types
@@ -118,7 +120,7 @@ The exact compiler-derived T152 candidate surface is:
 sha256 30684c9670b9fb3df418648f6a7bb90b749065ae618b6b3198b86a93b5ececc5
 ```
 
-`docs/Public-API-Fingerprint-1.5.json` has been promoted to this `1.5.0-alpha.3` candidate while preserving all historical stable fingerprints.
+`docs/Public-API-Fingerprint-1.5.json` is promoted to this `1.5.0-alpha.3` candidate while preserving all historical stable fingerprints.
 
 ## Compatibility and boundaries
 
@@ -135,9 +137,16 @@ T152 deliberately does **not** add:
 - automatic logical focus changes;
 - more than one simultaneous router capture.
 
-## Final gate
+## Final qualification
 
-T152 is accepted only after the evidence-complete exact head containing this document and the promoted fingerprint passes the normal seven-job Staging matrix:
+Evidence-complete head:
+
+```text
+b1e9e60df7ee6cfc3e2af10c4f3f819273c299fb
+workflow #839 / 34881203594
+```
+
+All seven Staging jobs passed:
 
 - package candidate;
 - Windows x64;
@@ -147,4 +156,4 @@ T152 is accepted only after the evidence-complete exact head containing this doc
 - macOS x64;
 - macOS ARM64.
 
-After that gate, T153 may begin deterministic spatial focus navigation.
+T152 is therefore accepted. T153 may begin deterministic spatial focus navigation.
