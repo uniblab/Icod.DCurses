@@ -86,6 +86,7 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 
 			this.isEnabled = value;
 			this.owner.HandleRegionEligibilityChanged( this );
+			this.owner.HandlePointerCaptureRegionChanged( this );
 		}
 	}
 
@@ -146,6 +147,7 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 
 		this.bounds = bounds;
 		this.owner.HandleRegionEligibilityChanged( this );
+		this.owner.HandlePointerCaptureRegionChanged( this );
 	}
 
 	/// <summary>Permanently removes this region from its owning interaction router.</summary>
@@ -154,6 +156,7 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 			return;
 		}
 
+		this.owner.ReleasePointerCaptureForRegion( this );
 		this.owner.RemoveRegion( this );
 		this.disposed = true;
 	}
