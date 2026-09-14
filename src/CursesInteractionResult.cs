@@ -29,7 +29,8 @@ public sealed class CursesInteractionResult {
 		CursesInteractionRegion? region,
 		CursesCommand? command,
 		CursesInteractionHit? hit,
-		CursesPointerTarget? pointerTarget
+		CursesPointerTarget? pointerTarget,
+		CursesPointerGesture? pointerGesture
 	) {
 		ArgumentNullException.ThrowIfNull( input );
 		this.Kind = kind;
@@ -38,6 +39,7 @@ public sealed class CursesInteractionResult {
 		this.Command = command;
 		this.Hit = hit;
 		this.PointerTarget = pointerTarget;
+		this.PointerGesture = pointerGesture;
 	}
 
 	/// <summary>Gets the semantic routing outcome.</summary>
@@ -70,8 +72,14 @@ public sealed class CursesInteractionResult {
 		get;
 	}
 
+	/// <summary>Gets the normalized clock-free pointer gesture for mouse outcomes.</summary>
+	public CursesPointerGesture? PointerGesture {
+		get;
+	}
+
 	internal static CursesInteractionResult Unrouted(
-		CursesInputEvent input
+		CursesInputEvent input,
+		CursesPointerGesture? pointerGesture = null
 	) {
 		ArgumentNullException.ThrowIfNull( input );
 		return new CursesInteractionResult(
@@ -80,7 +88,8 @@ public sealed class CursesInteractionResult {
 			region: null,
 			command: null,
 			hit: null,
-			pointerTarget: null
+			pointerTarget: null,
+			pointerGesture
 		);
 	}
 
@@ -88,7 +97,8 @@ public sealed class CursesInteractionResult {
 		CursesInputEvent input,
 		CursesInteractionRegion region,
 		CursesInteractionHit? hit = null,
-		CursesPointerTarget? pointerTarget = null
+		CursesPointerTarget? pointerTarget = null,
+		CursesPointerGesture? pointerGesture = null
 	) {
 		ArgumentNullException.ThrowIfNull( input );
 		ArgumentNullException.ThrowIfNull( region );
@@ -98,7 +108,8 @@ public sealed class CursesInteractionResult {
 			region,
 			command: null,
 			hit,
-			pointerTarget
+			pointerTarget,
+			pointerGesture
 		);
 	}
 
@@ -115,7 +126,8 @@ public sealed class CursesInteractionResult {
 			region,
 			command,
 			hit: null,
-			pointerTarget: null
+			pointerTarget: null,
+			pointerGesture: null
 		);
 	}
 }
