@@ -1,3 +1,5 @@
+using System.Reflection;
+using System.Text;
 using Icod.DCurses;
 using Icod.Terminal;
 using Icod.TermInfo;
@@ -59,6 +61,7 @@ VerifyUnicodeWidthSurface();
 VerifyColumnTextSurface();
 VerifyWindowEditingSurface();
 VerifyPadSurface();
+VerifyInteractionSurface();
 
 if ( string.Equals(
 	Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_INTERACTIVE" ),
@@ -439,6 +442,178 @@ static void VerifyPadSurface() {
 		);
 	}
 	viewport.Present();
+}
+
+static void VerifyInteractionSurface() {
+	CursesScreen logical = new(
+		20,
+		8
+	);
+	using CursesInteractionRouter router = new( logical );
+	using CursesInteractionRegion first = router.RegisterRegion(
+		new CursesInteractionRegionOptions(
+			new CursesRectangle(
+				1,
+				2,
+				3,
+				5
+			)
+		) {
+			IsFocusable = true,
+			TraversalOrder = 10,
+			HitTestPriority = 2,
+			PointerShape = CursesPointerShape.Pointer
+		}
+	);
+	using CursesInteractionRegion second = router.RegisterRegion(
+		new CursesInteractionRegionOptions(
+			new CursesRectangle(
+				1,
+				8,
+				3,
+				5
+			)
+		) {
+			IsFocusable = true,
+			TraversalOrder = 20
+		}
+	);
+
+	if ( !ReferenceEquals(
+		logical,
+		router.Screen
+	) || !router.Focus( first )
+		|| !ReferenceEquals(
+			first,
+			router.FocusedRegion
+		) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only interaction focus surface failed validation."
+		);
+	}
+
+	if ( !ReferenceEquals(
+		second,
+		router.MoveFocus( CursesFocusDirection.Forward )
+	) || !ReferenceEquals(
+		first,
+		router.MoveFocus( CursesFocusDirection.Forward )
+	) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only interaction traversal surface failed validation."
+		);
+	}
+
+	CursesInteractionHit hit = router.HitTest(
+		2,
+		3
+	) ?? throw new InvalidOperationException(
+		"DCurses package-only interaction hit-test surface returned no hit."
+	);
+	if ( !ReferenceEquals(
+		first,
+		hit.Region
+	) || 1 != hit.LocalRow
+		|| 1 != hit.LocalColumn
+		|| CursesPointerShape.Pointer != hit.PointerShape ) {
+		throw new InvalidOperationException(
+			"DCurses package-only interaction hit-test surface failed validation."
+		);
+	}
+
+	CursesKeyGesture localGesture = CursesKeyGesture.ForCharacter(
+		new Rune( 'x' ),
+		CursesKeyModifiers.Control
+	);
+	CursesCommand localCommand = new( "package-smoke.local" );
+	first.BindGesture(
+		localGesture,
+		localCommand
+	);
+	if ( !first.UnbindGesture( localGesture ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only local gesture-binding surface failed validation."
+		);
+	}
+
+	CursesKeyGesture globalGesture = CursesKeyGesture.ForFunctionKey( 2 );
+	CursesCommand globalCommand = new( "package-smoke.global" );
+	router.BindGlobalGesture(
+		globalGesture,
+		globalCommand
+	);
+	if ( !router.UnbindGlobalGesture( globalGesture ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only global gesture-binding surface failed validation."
+		);
+	}
+
+	if ( 4096 != CursesInteractionRouter.MaximumRegions
+		|| 256 != CursesInteractionRouter.MaximumRegionGestureBindings
+		|| 1024 != CursesInteractionRouter.MaximumGlobalGestureBindings
+		|| 16384 != CursesInteractionRouter.MaximumGestureBindings
+		|| 30 != Enum.GetValues<CursesPointerShape>().Length ) {
+		throw new InvalidOperationException(
+			"DCurses package-only interaction bounds or pointer vocabulary changed."
+		);
+	}
+
+	MethodInfo? routeMethod = typeof( CursesInteractionRouter ).GetMethod(
+		nameof( CursesInteractionRouter.Route ),
+		[
+			typeof( CursesInputEvent )
+		]
+	);
+	if ( routeMethod is null
+		|| typeof( CursesInteractionResult ) != routeMethod.ReturnType ) {
+		throw new InvalidOperationException(
+			"DCurses package-only routing surface is unavailable."
+		);
+	}
+
+	MethodInfo? pointerMethod = typeof( CursesSession ).GetMethod(
+		nameof( CursesSession.AcquirePointerShapeAsync ),
+		[
+			typeof( CursesPointerShape ),
+			typeof( CancellationToken )
+		]
+	);
+	if ( pointerMethod is null
+		|| typeof( ValueTask<CursesPointerShapeLease> ) != pointerMethod.ReturnType
+		|| null == typeof( CursesPointerShapeLease ).GetProperty(
+			nameof( CursesPointerShapeLease.Shape )
+		) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only pointer-shape lease surface is unavailable."
+		);
+	}
+
+	Func<CursesInteractionRouter, CursesInputEvent, CursesInteractionResult> routeCompiler =
+		CompileRoutingSurface;
+	Func<CursesSession, CancellationToken, ValueTask<CursesPointerShapeLease>> pointerCompiler =
+		CompilePointerShapeSurfaceAsync;
+	_ = routeCompiler;
+	_ = pointerCompiler;
+}
+
+static CursesInteractionResult CompileRoutingSurface(
+	CursesInteractionRouter router,
+	CursesInputEvent input
+) {
+	ArgumentNullException.ThrowIfNull( router );
+	ArgumentNullException.ThrowIfNull( input );
+	return router.Route( input );
+}
+
+static ValueTask<CursesPointerShapeLease> CompilePointerShapeSurfaceAsync(
+	CursesSession session,
+	CancellationToken cancellationToken = default
+) {
+	ArgumentNullException.ThrowIfNull( session );
+	return session.AcquirePointerShapeAsync(
+		CursesPointerShape.Pointer,
+		cancellationToken
+	);
 }
 
 static async Task<int> RunInteractiveAsync() {

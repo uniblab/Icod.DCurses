@@ -151,6 +151,24 @@ public sealed class CursesScreen {
 		return panelOrder.SnapshotBottomToTop();
 	}
 
+	/// <summary>Gets the current bottom-to-top order index of one owned active panel.</summary>
+	/// <param name="panel">The panel whose current order index is requested.</param>
+	/// <returns>The zero-based order index, or -1 when the panel is no longer attached.</returns>
+	internal int GetPanelOrderIndex( CursesPanel panel ) {
+		ArgumentNullException.ThrowIfNull( panel );
+		if ( !ReferenceEquals(
+			panel.Owner,
+			this
+		) ) {
+			throw new ArgumentException(
+				"The panel belongs to another screen.",
+				nameof( panel )
+			);
+		}
+
+		return panelOrder.GetIndex( panel );
+	}
+
 	/// <summary>Permanently removes one owned panel from this screen's composition order.</summary>
 	/// <param name="panel">The owned panel to remove.</param>
 	internal void RemovePanel( CursesPanel panel ) {

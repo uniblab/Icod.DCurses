@@ -132,6 +132,14 @@ internal sealed class CursesPanelOrder<T>
 		);
 	}
 
+	/// <summary>Gets the current bottom-to-top index for one panel identity.</summary>
+	/// <param name="panel">The panel identity to locate.</param>
+	/// <returns>The zero-based order index, or -1 when the identity is not present.</returns>
+	internal int GetIndex( T panel ) {
+		ArgumentNullException.ThrowIfNull( panel );
+		return IndexOfReference( panel );
+	}
+
 	/// <summary>Creates a stable bottom-to-top snapshot of the current order.</summary>
 	/// <returns>A new array containing the current ordered identities.</returns>
 	internal T[] SnapshotBottomToTop() {
