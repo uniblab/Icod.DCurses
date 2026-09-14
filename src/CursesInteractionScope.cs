@@ -22,7 +22,7 @@
 namespace Icod.DCurses;
 
 /// <summary>Represents one bounded application interaction scope owned by a router.</summary>
-public sealed class CursesInteractionScope : IDisposable {
+public sealed partial class CursesInteractionScope : IDisposable {
 	private readonly CursesInteractionRouter owner;
 	private bool disposed;
 
