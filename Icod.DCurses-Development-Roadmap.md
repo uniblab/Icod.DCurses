@@ -9,7 +9,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.5.0` — advanced interaction control  
-**Status:** T150-T155 complete; T156 coherence and adversarial hardening is the next execution tranche
+**Status:** T150-T156 complete; T157 application acceptance and downstream/package consumer qualification is the next execution tranche
 
 ---
 
@@ -24,6 +24,7 @@
 - `docs/T153-Deterministic-Spatial-Focus.md`
 - `docs/T154-Deterministic-Pointer-Gesture-Normalization.md`
 - `docs/T155-Scoped-Command-Bindings-and-Precedence.md`
+- `docs/T156-Coherence-and-Adversarial-Hardening.md`
 - `docs/Public-API-Fingerprint-1.5.json`
 
 The 1.0-1.4 tranche, roadmap, and release-closure documents remain historical compatibility/release authorities and are not rewritten to simulate current development state.
@@ -63,7 +64,7 @@ The tagged compatibility baseline is `v1.4.0`, whose merged source is rooted at:
 48d591aa427096be78c173ad8ed85566d7f671bf
 ```
 
-Current 1.5 candidate fingerprint through T155:
+Current 1.5 candidate fingerprint through T156:
 
 ```text
 69 exported types
@@ -71,7 +72,7 @@ Current 1.5 candidate fingerprint through T155:
 sha256 8807aa15714b0b059f2aaa5ef1ff33bce3ed0bfc44455d8a352ee7ecff8313c0
 ```
 
-T153 was behavior-only and left the T152 fingerprint unchanged. T154 added exactly two exported gesture types plus the nullable `CursesInteractionResult.PointerGesture` result slot. T155 adds no exported type; it adds `BindGesture` and `UnbindGesture` to the existing `CursesInteractionScope` type.
+T153 was behavior-only and left the T152 fingerprint unchanged. T154 added exactly two exported gesture types plus the nullable `CursesInteractionResult.PointerGesture` result slot. T155 adds no exported type; it adds `BindGesture` and `UnbindGesture` to the existing `CursesInteractionScope` type. T156 is behavior-only and leaves the T155 fingerprint unchanged while closing stale pointer-ownership resurrection across scope, panel, and screen-resize lifecycle transitions.
 
 Version 1.5 remains additive by default. Any proposed break to the published 1.4 surface requires an explicit regret-gate finding, migration justification, and maintainer approval before implementation.
 
@@ -118,13 +119,15 @@ The 1.5 track is governed by these rules:
 - Forward/backward focus semantics remain unchanged; spatial navigation does not wrap.
 - Spatial ranking is integer-only and deterministic across platforms.
 - Pointer gesture normalization is clock-free; double-click timing and drag/drop policy remain outside core.
-- Pointer press/drag state is fixed-size per concrete mouse button and is repaired when region, scope, or capture ownership becomes invalid.
+- Pointer press/drag state is fixed-size per concrete mouse button and is repaired when region, scope, panel, screen, or capture ownership becomes invalid.
 - Command bindings return `CursesCommand` identities only; no callbacks, handlers, enabled predicates, or dependency-injection machinery are added.
 - Scope command bindings participate in the existing `MaximumGestureBindings` router-wide total rather than creating a parallel capacity domain.
-- Hit testing, focus navigation, capture, scope changes, gesture routing, and command resolution remain synchronous and perform no terminal I/O.
+- Hit testing, focus navigation, capture, scope changes, lifecycle repair, gesture routing, and command resolution remain synchronous and perform no terminal I/O.
+- Pointer ownership invalidation is terminal for the old ownership instance: later geometry/scope restoration cannot resurrect stale capture or press/drag state.
+- Logical focus keeps the established lazy-repair contract where appropriate; pointer-lifecycle propagation must not force eager focus repair merely because a panel or screen changed.
 - Public Terminal/TermInfo dependency exposure remains tightly allow-listed.
 - Interaction registries and state remain bounded and deterministic.
-- Existing single-writer expectations remain unless a tranche explicitly proves a safe additive concurrency contract.
+- Existing single-writer expectations remain; 1.5 adds no multi-writer/thread-safe guarantee.
 
 ## 1.5 tranche sequence
 
@@ -135,8 +138,8 @@ T152  explicit pointer capture and capture lifetime                             
 T153  deterministic spatial focus navigation                                    complete
 T154  deterministic pointer-gesture normalization                               complete
 T155  scoped command bindings and precedence                                    complete
-T156  resize/panel/scope/capture/disposal coherence and adversarial hardening   next
-T157  application acceptance sample and downstream/package consumer             planned
+T156  resize/panel/scope/capture/disposal coherence and adversarial hardening   complete
+T157  application acceptance sample and downstream/package consumer             next
 T158  performance/allocation/API/package/docs/dependency regret gate            planned
 T159  RC and stable-source 1.5.0 closure                                        planned
 ```
@@ -150,9 +153,10 @@ T152  b1e9e60df7ee6cfc3e2af10c4f3f819273c299fb  #839 / 34881203594
 T153  6f440a9feda628f1948d11008402a0064bbd645b  #844 / 34882549455
 T154  acae6104e7f0e4e431d7f5f836978be807008a40  #855 / 34892884559
 T155  3e59e7613e214a5eaa84df13bbedba56abfefb6d  #864 / 34899684038
+T156  e09324666bb6960d465f061d609a4fb53d8c5288  #876 / 34905503151
 ```
 
-Each listed implementation/API checkpoint passed the complete seven-job Staging matrix: package candidate plus Windows/Linux/macOS on x64 and ARM64. T153's documentation-complete head `ad04432d36fa48e29357fd78dc713d3bba7ac746` additionally passed #846 / `34883079248`. T154's initial implementation qualification required one unchanged Windows ARM64 retry after a non-reproducible 528-byte allocation-measurement overage; the later documentation gate exposed the same fixed 528-byte noise on another TFM, so the test was hardened with a 1 KiB fixed sample-window noise allowance while preserving the 192-bytes-per-operation production ceiling. T154's final documentation head `39cd424d78ef2f72f43a757081646f7625b1ab54` passed #859 / `34897754255` without rerun.
+Each listed implementation/API checkpoint passed the complete seven-job Staging matrix: package candidate plus Windows/Linux/macOS on x64 and ARM64. T153's documentation-complete head `ad04432d36fa48e29357fd78dc713d3bba7ac746` additionally passed #846 / `34883079248`. T154's initial implementation qualification required one unchanged Windows ARM64 retry after a non-reproducible 528-byte allocation-measurement overage; the later documentation gate exposed the same fixed 528-byte noise on another TFM, so the test was hardened with a 1 KiB fixed sample-window noise allowance while preserving the 192-bytes-per-operation production ceiling. T154's final documentation head `39cd424d78ef2f72f43a757081646f7625b1ab54` passed #859 / `34897754255` without rerun. T155's documentation-complete head `92958f5cc7583dbab64c19c40a12fe607115524a` passed #866 / `34900041904` across all seven jobs. T156 then closed three real stale-ownership defects—scope round-trip capture resurrection, panel lifecycle capture/gesture resurrection, and screen resize capture/gesture resurrection—before its final mixed deterministic replay/capture-churn checkpoint passed #876 / `34905503151` across all seven jobs.
 
 ## Deliberate 1.5 non-goals
 
@@ -177,4 +181,4 @@ Future widget or mixed-media layers should be able to build on the 1.5 mechanism
 
 ## Immediate next step
 
-Qualify the T155 documentation-complete head through the normal seven-job Staging matrix. Once green, T156 begins with RED combined-state tests covering resize, panel visibility/disposal, region mutation/disposal, nested scope leases, pointer capture and gesture ownership, scope-command resolution, router disposal, capacity boundaries, deterministic replay, and failure atomicity.
+Qualify the T156 evidence-and-roadmap documentation head through the normal seven-job Staging matrix. Once green, T157 extends the public interaction acceptance sample and adds packed-package consumer qualification for nested scopes, pointer capture, spatial focus, drag gesture results, and scoped command routing across net8/net9/net10, with no internal or Terminal protocol types in the consuming surface.
