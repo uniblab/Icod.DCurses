@@ -131,6 +131,7 @@ public sealed class CursesPanel : IDisposable {
 		}
 
 		IsVisible = true;
+		this.InteractionEligibilityChanged?.Invoke();
 	}
 
 	/// <summary>Hides this panel while retaining its content, position, and z-order membership.</summary>
@@ -141,6 +142,7 @@ public sealed class CursesPanel : IDisposable {
 		}
 
 		IsVisible = false;
+		this.InteractionEligibilityChanged?.Invoke();
 	}
 
 	/// <summary>Moves this panel to a new destination-screen origin without changing its content or z-order.</summary>
@@ -194,6 +196,7 @@ public sealed class CursesPanel : IDisposable {
 			rows,
 			columns
 		);
+		this.InteractionEligibilityChanged?.Invoke();
 	}
 
 	/// <summary>Atomically assigns this panel's final rectangle relative to its owning screen.</summary>
@@ -222,6 +225,7 @@ public sealed class CursesPanel : IDisposable {
 		}
 		Row = bounds.Row;
 		Column = bounds.Column;
+		this.InteractionEligibilityChanged?.Invoke();
 	}
 
 	/// <summary>Moves this panel to the top of its owning screen's panel order.</summary>
@@ -267,6 +271,7 @@ public sealed class CursesPanel : IDisposable {
 		owner.RemovePanel( this );
 		IsVisible = false;
 		disposed = true;
+		this.InteractionEligibilityChanged?.Invoke();
 	}
 
 	/// <summary>Gets the destination screen which owns this panel.</summary>
@@ -277,6 +282,8 @@ public sealed class CursesPanel : IDisposable {
 
 	/// <summary>Gets the panel-private virtual screen for logical composition.</summary>
 	internal CursesVirtualScreen VirtualScreen => surface.VirtualScreen;
+
+	internal event Action? InteractionEligibilityChanged;
 
 	private void ThrowIfDisposed() {
 		if ( disposed ) {
