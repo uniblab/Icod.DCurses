@@ -50,6 +50,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 	) {
 		ArgumentNullException.ThrowIfNull( screen );
 		this.Screen = screen;
+		this.Screen.Resized += this.HandleScreenResized;
 	}
 
 	/// <summary>Gets the logical screen associated with this router.</summary>
@@ -264,6 +265,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 			return;
 		}
 
+		this.Screen.Resized -= this.HandleScreenResized;
 		this.disposed = true;
 		this.focusedRegion = null;
 		CursesInteractionRegion[] snapshot = this.regions.ToArray();
@@ -510,6 +512,18 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 			traversalOrder,
 			registrationOrdinal
 		);
+	}
+
+	private void HandleScreenResized(
+		object? sender,
+		CursesScreenResizedEventArgs eventArgs
+	) {
+		if ( this.disposed ) {
+			return;
+		}
+
+		this.RepairPointerCaptureIfNeeded();
+		this.RepairPointerGestureStateIfNeeded();
 	}
 
 	private static bool IsTraversalAfter(
