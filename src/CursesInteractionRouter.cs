@@ -90,6 +90,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 				);
 			}
 		}
+		this.ValidateRegionScope( options.Scope );
 
 		if ( MaximumRegions <= this.regions.Count ) {
 			throw new InvalidOperationException(
@@ -216,7 +217,8 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 		int selectedLocalColumn = 0;
 
 		foreach ( CursesInteractionRegion region in this.regions ) {
-			if ( !region.IsEnabled ) {
+			if ( !this.IsRegionWithinActiveScope( region )
+				|| !region.IsEnabled ) {
 				continue;
 			}
 			if ( !TryGetLocalCoordinates(
@@ -250,7 +252,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 		;
 	}
 
-	/// <summary>Disposes all live regions and closes this router to further mutation.</summary>
+	/// <summary>Disposes all live regions and scopes and closes this router to further mutation.</summary>
 	public void Dispose() {
 		if ( this.disposed ) {
 			return;
@@ -263,6 +265,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 			region.Dispose();
 		}
 		this.regions.Clear();
+		this.DisposeScopeState();
 	}
 
 	internal void HandleRegionEligibilityChanged(
@@ -448,6 +451,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 		CursesInteractionRegion region
 	) {
 		if ( region.IsDisposed
+			|| !this.IsRegionWithinActiveScope( region )
 			|| !region.IsEnabled
 			|| !region.IsFocusable ) {
 			return false;
