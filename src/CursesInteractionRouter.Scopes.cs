@@ -98,6 +98,7 @@ public sealed partial class CursesInteractionRouter {
 		);
 		this.activeScopeLeases.Add( lease );
 		this.RepairFocusIfNeeded();
+		this.RepairPointerCaptureIfNeeded();
 		this.RepairPointerGestureStateIfNeeded();
 		return lease;
 	}
