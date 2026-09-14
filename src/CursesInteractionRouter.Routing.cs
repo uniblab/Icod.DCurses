@@ -170,25 +170,57 @@ public sealed partial class CursesInteractionRouter {
 			?? throw new InvalidOperationException(
 				"A mouse input event must carry a mouse payload."
 			);
+		this.RepairPointerGestureStateIfNeeded();
 
-		if ( this.TryRouteCapturedPointer(
-			input,
+		if ( this.TryGetCapturedPointerTarget(
 			mouse,
-			out CursesInteractionResult? capturedResult
+			out CursesPointerTarget? capturedTarget
 		) ) {
-			return capturedResult!;
+			CursesPointerGesture capturedGesture = this.ClassifyPointerGesture(
+				mouse,
+				capturedTarget
+			);
+			CursesInteractionResult capturedResult = CursesInteractionResult.Targeted(
+				input,
+				capturedTarget!.Region,
+				hit: null,
+				pointerTarget: capturedTarget,
+				pointerGesture: capturedGesture
+			);
+			if ( CursesMouseAction.Release == mouse.Action ) {
+				this.ClearPointerCapture();
+			}
+			return capturedResult;
 		}
 
 		CursesInteractionHit? hit = this.HitTest(
 			mouse.Row,
 			mouse.Column
 		);
+		CursesPointerTarget? target = hit is null
+			? null
+			: this.CreatePointerTarget(
+				hit.Region,
+				mouse.Row,
+				mouse.Column
+			)
+		;
+		CursesPointerGesture gesture = this.ClassifyPointerGesture(
+			mouse,
+			target
+		);
+
 		return hit is null
-			? CursesInteractionResult.Unrouted( input )
+			? CursesInteractionResult.Unrouted(
+				input,
+				gesture
+			)
 			: CursesInteractionResult.Targeted(
 				input,
 				hit.Region,
-				hit
+				hit,
+				pointerTarget: null,
+				pointerGesture: gesture
 			)
 		;
 	}
