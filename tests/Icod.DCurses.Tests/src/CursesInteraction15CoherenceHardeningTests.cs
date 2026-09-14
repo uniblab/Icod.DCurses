@@ -142,4 +142,80 @@ public sealed class CursesInteraction15CoherenceHardeningTests {
 		Assert.Same( region, release.Region );
 		Assert.Equal( CursesPointerGestureKind.Release, release.PointerGesture?.Kind );
 	}
+
+	[Fact]
+	public void CaptureCannotResurrectAcrossScreenResizeRoundTrip() {
+		CursesScreen screen = new( 20, 8 );
+		using CursesInteractionRouter router = new( screen );
+		using CursesInteractionRegion region = router.RegisterRegion(
+			new CursesInteractionRegionOptions(
+				new CursesRectangle( 6, 15, 1, 1 )
+			)
+		);
+		CursesPointerCaptureLease captureLease = router.CapturePointer(
+			region,
+			CursesMouseButton.Primary
+		);
+
+		screen.Resize( 10, 4 );
+		screen.Resize( 20, 8 );
+
+		CursesInteractionResult later = router.Route(
+			CursesInputEvent.FromMouse(
+				new CursesMouseEvent(
+					CursesMouseAction.Move,
+					CursesMouseButton.Primary,
+					column: 19,
+					row: 7
+				)
+			)
+		);
+
+		Assert.Equal( CursesInteractionResultKind.Unrouted, later.Kind );
+		Assert.Null( later.Region );
+		Assert.Null( later.PointerTarget );
+		captureLease.Dispose();
+		captureLease.Dispose();
+	}
+
+	[Fact]
+	public void ClickOwnershipCannotResurrectAcrossScreenResizeRoundTrip() {
+		CursesScreen screen = new( 20, 8 );
+		using CursesInteractionRouter router = new( screen );
+		using CursesInteractionRegion region = router.RegisterRegion(
+			new CursesInteractionRegionOptions(
+				new CursesRectangle( 6, 15, 1, 1 )
+			)
+		);
+
+		CursesInteractionResult press = router.Route(
+			CursesInputEvent.FromMouse(
+				new CursesMouseEvent(
+					CursesMouseAction.Press,
+					CursesMouseButton.Primary,
+					column: 15,
+					row: 6
+				)
+			)
+		);
+		Assert.Same( region, press.Region );
+		Assert.Equal( CursesPointerGestureKind.Press, press.PointerGesture?.Kind );
+
+		screen.Resize( 10, 4 );
+		screen.Resize( 20, 8 );
+
+		CursesInteractionResult release = router.Route(
+			CursesInputEvent.FromMouse(
+				new CursesMouseEvent(
+					CursesMouseAction.Release,
+					CursesMouseButton.Primary,
+					column: 15,
+					row: 6
+				)
+			)
+		);
+
+		Assert.Same( region, release.Region );
+		Assert.Equal( CursesPointerGestureKind.Release, release.PointerGesture?.Kind );
+	}
 }
