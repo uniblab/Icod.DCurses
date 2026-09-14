@@ -53,6 +53,7 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 		this.owner = owner;
 		this.bounds = options.Bounds;
 		this.Panel = options.Panel;
+		this.Scope = options.Scope;
 		this.isEnabled = options.IsEnabled;
 		this.isFocusable = options.IsFocusable;
 		this.traversalOrder = options.TraversalOrder;
@@ -66,6 +67,11 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 
 	/// <summary>Gets the optional panel whose coordinate space owns <see cref="Bounds"/>.</summary>
 	public CursesPanel? Panel {
+		get;
+	}
+
+	/// <summary>Gets the optional explicit interaction scope; null means the router's implicit root scope.</summary>
+	public CursesInteractionScope? Scope {
 		get;
 	}
 
