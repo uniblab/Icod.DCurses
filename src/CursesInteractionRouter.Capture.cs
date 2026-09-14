@@ -114,6 +114,7 @@ public sealed partial class CursesInteractionRouter {
 		CursesInteractionRegion region
 	) {
 		ArgumentNullException.ThrowIfNull( region );
+		this.HandlePointerGestureRegionChanged( region );
 		if ( ReferenceEquals(
 			this.capturedPointerRegion,
 			region
@@ -126,6 +127,7 @@ public sealed partial class CursesInteractionRouter {
 		CursesInteractionRegion region
 	) {
 		ArgumentNullException.ThrowIfNull( region );
+		this.CancelPointerGestureStateForRegion( region );
 		if ( ReferenceEquals(
 			this.capturedPointerRegion,
 			region
@@ -143,12 +145,10 @@ public sealed partial class CursesInteractionRouter {
 		this.ClearPointerCapture();
 	}
 
-	private bool TryRouteCapturedPointer(
-		CursesInputEvent input,
+	private bool TryGetCapturedPointerTarget(
 		CursesMouseEvent mouse,
-		out CursesInteractionResult? result
+		out CursesPointerTarget? target
 	) {
-		ArgumentNullException.ThrowIfNull( input );
 		ArgumentNullException.ThrowIfNull( mouse );
 		this.RepairPointerCaptureIfNeeded();
 
@@ -157,25 +157,15 @@ public sealed partial class CursesInteractionRouter {
 			|| mouse.Button != this.capturedPointerButton
 			|| mouse.Action is not CursesMouseAction.Move
 				and not CursesMouseAction.Release ) {
-			result = null;
+			target = null;
 			return false;
 		}
 
-		CursesPointerTarget target = this.CreatePointerTarget(
+		target = this.CreatePointerTarget(
 			region,
 			mouse.Row,
 			mouse.Column
 		);
-		result = CursesInteractionResult.Targeted(
-			input,
-			region,
-			hit: null,
-			target
-		);
-
-		if ( CursesMouseAction.Release == mouse.Action ) {
-			this.ClearPointerCapture();
-		}
 		return true;
 	}
 
@@ -260,6 +250,7 @@ public sealed partial class CursesInteractionRouter {
 
 	private void ClearPointerCapture() {
 		CursesPointerCaptureLease? lease = this.pointerCaptureLease;
+		this.CancelPointerGestureState( this.capturedPointerButton );
 		this.capturedPointerRegion = null;
 		this.capturedPointerButton = CursesMouseButton.None;
 		this.pointerCaptureLease = null;
