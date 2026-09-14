@@ -98,6 +98,7 @@ public sealed partial class CursesInteractionRouter {
 		);
 		this.activeScopeLeases.Add( lease );
 		this.RepairFocusIfNeeded();
+		this.RepairPointerGestureStateIfNeeded();
 		return lease;
 	}
 
@@ -124,6 +125,7 @@ public sealed partial class CursesInteractionRouter {
 
 		this.activeScopeLeases.RemoveAt( this.activeScopeLeases.Count - 1 );
 		lease.MarkReleased();
+		this.RepairPointerGestureStateIfNeeded();
 
 		CursesInteractionRegion? savedFocus = lease.SavedFocus;
 		if ( savedFocus is not null
