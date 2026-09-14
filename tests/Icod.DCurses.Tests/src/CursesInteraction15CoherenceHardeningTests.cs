@@ -19,6 +19,7 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+using System.Text;
 using Xunit;
 
 namespace Icod.DCurses.Tests;
@@ -217,5 +218,277 @@ public sealed class CursesInteraction15CoherenceHardeningTests {
 
 		Assert.Same( region, release.Region );
 		Assert.Equal( CursesPointerGestureKind.Release, release.PointerGesture?.Kind );
+	}
+
+	[Fact]
+	public void RegionBoundsRoundTripCannotResurrectPointerOwnership() {
+		CursesScreen screen = new( 20, 8 );
+		using CursesInteractionRouter router = new( screen );
+		using CursesInteractionRegion region = router.RegisterRegion(
+			new CursesInteractionRegionOptions(
+				new CursesRectangle( 2, 3, 1, 1 )
+			)
+		);
+		CursesPointerCaptureLease captureLease = router.CapturePointer(
+			region,
+			CursesMouseButton.Primary
+		);
+		_ = router.Route(
+			CursesInputEvent.FromMouse(
+				new CursesMouseEvent(
+					CursesMouseAction.Press,
+					CursesMouseButton.Primary,
+					column: 3,
+					row: 2
+				)
+			)
+		);
+
+		region.SetBounds( new CursesRectangle( 20, 20, 1, 1 ) );
+		region.SetBounds( new CursesRectangle( 2, 3, 1, 1 ) );
+
+		CursesInteractionResult release = router.Route(
+			CursesInputEvent.FromMouse(
+				new CursesMouseEvent(
+					CursesMouseAction.Release,
+					CursesMouseButton.Primary,
+					column: 3,
+					row: 2
+				)
+			)
+		);
+		Assert.Same( region, release.Region );
+		Assert.Null( release.PointerTarget );
+		Assert.Equal( CursesPointerGestureKind.Release, release.PointerGesture?.Kind );
+		captureLease.Dispose();
+		captureLease.Dispose();
+	}
+
+	[Fact]
+	public void PanelResizeRoundTripCannotResurrectPointerOwnership() {
+		CursesScreen screen = new( 20, 8 );
+		using CursesPanel panel = screen.CreatePanel( 1, 1, 4, 4 );
+		using CursesInteractionRouter router = new( screen );
+		using CursesInteractionRegion region = router.RegisterRegion(
+			new CursesInteractionRegionOptions(
+				new CursesRectangle( 3, 3, 1, 1 )
+			) {
+				Panel = panel
+			}
+		);
+		CursesPointerCaptureLease captureLease = router.CapturePointer(
+			region,
+			CursesMouseButton.Primary
+		);
+		_ = router.Route(
+			CursesInputEvent.FromMouse(
+				new CursesMouseEvent(
+					CursesMouseAction.Press,
+					CursesMouseButton.Primary,
+					column: 4,
+					row: 4
+				)
+			)
+		);
+
+		panel.Resize( 2, 2 );
+		panel.Resize( 4, 4 );
+
+		CursesInteractionResult release = router.Route(
+			CursesInputEvent.FromMouse(
+				new CursesMouseEvent(
+					CursesMouseAction.Release,
+					CursesMouseButton.Primary,
+					column: 4,
+					row: 4
+				)
+			)
+		);
+		Assert.Same( region, release.Region );
+		Assert.Null( release.PointerTarget );
+		Assert.Equal( CursesPointerGestureKind.Release, release.PointerGesture?.Kind );
+		captureLease.Dispose();
+		captureLease.Dispose();
+	}
+
+	[Fact]
+	public void PanelDisposalCancelsCaptureAndGestureOwnership() {
+		CursesScreen screen = new( 20, 8 );
+		CursesPanel panel = screen.CreatePanel( 1, 1, 3, 3 );
+		using CursesInteractionRouter router = new( screen );
+		using CursesInteractionRegion region = router.RegisterRegion(
+			new CursesInteractionRegionOptions(
+				new CursesRectangle( 0, 0, 2, 2 )
+			) {
+				Panel = panel
+			}
+		);
+		CursesPointerCaptureLease captureLease = router.CapturePointer(
+			region,
+			CursesMouseButton.Primary
+		);
+		_ = router.Route(
+			CursesInputEvent.FromMouse(
+				new CursesMouseEvent(
+					CursesMouseAction.Press,
+					CursesMouseButton.Primary,
+					column: 1,
+					row: 1
+				)
+			)
+		);
+
+		panel.Dispose();
+
+		CursesInteractionResult release = router.Route(
+			CursesInputEvent.FromMouse(
+				new CursesMouseEvent(
+					CursesMouseAction.Release,
+					CursesMouseButton.Primary,
+					column: 1,
+					row: 1
+				)
+			)
+		);
+		Assert.Equal( CursesInteractionResultKind.Unrouted, release.Kind );
+		Assert.Null( release.Region );
+		Assert.Null( release.PointerTarget );
+		Assert.Equal( CursesPointerGestureKind.Release, release.PointerGesture?.Kind );
+		captureLease.Dispose();
+		captureLease.Dispose();
+	}
+
+	[Fact]
+	public void NestedScopeRoundTripCancelsOuterPointerOwnership() {
+		CursesScreen screen = new( 20, 8 );
+		using CursesInteractionRouter router = new( screen );
+		using CursesInteractionScope outer = router.RegisterScope();
+		using CursesInteractionScope inner = router.RegisterScope(
+			new CursesInteractionScopeOptions {
+				Parent = outer
+			}
+		);
+		using CursesInteractionRegion region = router.RegisterRegion(
+			new CursesInteractionRegionOptions(
+				new CursesRectangle( 2, 3, 1, 1 )
+			) {
+				Scope = outer
+			}
+		);
+		using CursesInteractionScopeLease outerLease = router.ActivateScope( outer );
+		CursesPointerCaptureLease captureLease = router.CapturePointer(
+			region,
+			CursesMouseButton.Primary
+		);
+		_ = router.Route(
+			CursesInputEvent.FromMouse(
+				new CursesMouseEvent(
+					CursesMouseAction.Press,
+					CursesMouseButton.Primary,
+					column: 3,
+					row: 2
+				)
+			)
+		);
+
+		CursesInteractionScopeLease innerLease = router.ActivateScope( inner );
+		innerLease.Dispose();
+
+		CursesInteractionResult release = router.Route(
+			CursesInputEvent.FromMouse(
+				new CursesMouseEvent(
+					CursesMouseAction.Release,
+					CursesMouseButton.Primary,
+					column: 3,
+					row: 2
+				)
+			)
+		);
+		Assert.Same( region, release.Region );
+		Assert.Null( release.PointerTarget );
+		Assert.Equal( CursesPointerGestureKind.Release, release.PointerGesture?.Kind );
+		captureLease.Dispose();
+		captureLease.Dispose();
+	}
+
+	[Fact]
+	public void OutOfOrderScopeLeaseFailureIsAtomicForCaptureAndCommands() {
+		CursesScreen screen = new( 20, 8 );
+		using CursesInteractionRouter router = new( screen );
+		using CursesInteractionScope outer = router.RegisterScope();
+		using CursesInteractionScope inner = router.RegisterScope(
+			new CursesInteractionScopeOptions {
+				Parent = outer
+			}
+		);
+		using CursesInteractionRegion region = router.RegisterRegion(
+			new CursesInteractionRegionOptions(
+				new CursesRectangle( 2, 3, 1, 1 )
+			) {
+				Scope = inner
+			}
+		);
+		CursesCommand command = new( "inner.command" );
+		inner.BindGesture(
+			CursesKeyGesture.ForCharacter( new Rune( 'x' ) ),
+			command
+		);
+		CursesInteractionScopeLease outerLease = router.ActivateScope( outer );
+		CursesInteractionScopeLease innerLease = router.ActivateScope( inner );
+		CursesPointerCaptureLease captureLease = router.CapturePointer(
+			region,
+			CursesMouseButton.Primary
+		);
+
+		Assert.Throws<InvalidOperationException>( () => outerLease.Dispose() );
+
+		CursesInteractionResult captured = router.Route(
+			CursesInputEvent.FromMouse(
+				new CursesMouseEvent(
+					CursesMouseAction.Move,
+					CursesMouseButton.Primary,
+					column: 10,
+					row: 6
+				)
+			)
+		);
+		Assert.Same( region, captured.Region );
+		Assert.NotNull( captured.PointerTarget );
+		Assert.Equal(
+			command,
+			router.Route( CursesInputEvent.FromText( new Rune( 'x' ) ) ).Command
+		);
+
+		captureLease.Dispose();
+		innerLease.Dispose();
+		outerLease.Dispose();
+	}
+
+	[Fact]
+	public void RouterDisposalUnsubscribesResizeAndLeavesLeasesIdempotent() {
+		CursesScreen screen = new( 20, 8 );
+		CursesInteractionRouter router = new( screen );
+		CursesInteractionScope scope = router.RegisterScope();
+		CursesInteractionRegion region = router.RegisterRegion(
+			new CursesInteractionRegionOptions(
+				new CursesRectangle( 0, 0, 1, 1 )
+			) {
+				Scope = scope
+			}
+		);
+		CursesInteractionScopeLease scopeLease = router.ActivateScope( scope );
+		CursesPointerCaptureLease captureLease = router.CapturePointer(
+			region,
+			CursesMouseButton.Primary
+		);
+
+		router.Dispose();
+		screen.Resize( 10, 4 );
+		screen.Resize( 20, 8 );
+		captureLease.Dispose();
+		captureLease.Dispose();
+		scopeLease.Dispose();
+		scopeLease.Dispose();
+		router.Dispose();
 	}
 }
