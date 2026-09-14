@@ -170,6 +170,15 @@ public sealed partial class CursesInteractionRouter {
 			?? throw new InvalidOperationException(
 				"A mouse input event must carry a mouse payload."
 			);
+
+		if ( this.TryRouteCapturedPointer(
+			input,
+			mouse,
+			out CursesInteractionResult? capturedResult
+		) ) {
+			return capturedResult!;
+		}
+
 		CursesInteractionHit? hit = this.HitTest(
 			mouse.Row,
 			mouse.Column
