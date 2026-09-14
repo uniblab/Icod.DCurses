@@ -2,30 +2,27 @@
 
 **Project:** `Icod.DCurses`  
 **Repository:** `https://github.com/uniblab/Icod.DCurses`  
-**Published compatibility floor:** `1.3.0`  
-**Current published package:** `1.3.0`  
+**Published compatibility floor:** `1.4.0`  
+**Current published package:** `1.4.0`  
 **Assembly version:** `1.0.0.0`  
 **Current declared runtime dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Active development target:** `1.4.0` — deterministic interaction routing, focus, gestures, hit testing, and pointer semantics  
-**Status:** T1401-T1411 complete; T1412 stable-source exact-head qualification is active; merge remains pending explicit approval
+**Active development target:** `1.5.0` — advanced interaction control  
+**Status:** architecture approved; T150 planning/API-regret gate is next
 
 ---
 
 ## Current authorities
 
-- `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md`
-- `Icod.DCurses-1.4.0-Development-Roadmap.md`
-- `docs/superpowers/specs/2026-09-12-icod-dcurses-1.4-interaction-routing-design.md`
+- `Icod.DCurses-1.5.0-Development-Roadmap.md`
+- `docs/superpowers/specs/2026-09-14-icod-dcurses-1.5-advanced-interaction-control-design.md`
+- `docs/superpowers/plans/2026-09-14-icod-dcurses-1.5-advanced-interaction-control.md`
 - `docs/Public-API-Fingerprint-1.4.json`
-- `docs/T1401-Interaction-Contract-and-Public-API-Candidate.md`
-- `docs/T1409-Interaction-Acceptance-Sample.md`
-- `docs/T1410-Interaction-Performance-Allocation-and-Adversarial-Hardening.md`
-- `docs/T1411-Public-API-Package-Documentation-and-Regret-Gate.md`
-- `docs/T1412-RC-and-Stable-1.4.0-Closure.md`
+- `Icod.DCurses-1.4.0-Development-Roadmap.md` — historical 1.4 development authority
+- `docs/T1412-RC-and-Stable-1.4.0-Closure.md` — historical 1.4 release closure
 
-T1411 is complete. The final `1.4.0-rc.1` head passed the full seven-job matrix, and T1412 has promoted the unchanged accepted implementation/API to stable-source `1.4.0`. The stable-source exact head must pass the same matrix before explicit merge approval. The 1.0-1.3 tranche and closure documents remain historical compatibility/release authorities and are not rewritten to simulate current development state.
+The tagged `v1.4.0` source is the compatibility baseline for 1.5. Historical 1.0-1.4 tranche and release documents remain immutable evidence rather than being rewritten to simulate current development state.
 
 ## Release train
 
@@ -34,8 +31,9 @@ T1411 is complete. The final `1.4.0-rc.1` head passed the full seven-job matrix,
 | `1.0.0` | Stable core contract | Historical stable baseline |
 | `1.1.0` | Semantic metadata and hyperlinks | Historical stable baseline |
 | `1.2.0` | Panels/layers/z-order composition | Historical stable baseline |
-| `1.3.0` | Layout and resize primitives | Current published stable release |
-| `1.4.0` | Interaction routing/focus/gestures/hit testing/pointer semantics | Stable-source qualification active |
+| `1.3.0` | Layout and resize primitives | Historical stable baseline |
+| `1.4.0` | Interaction routing/focus/gestures/hit testing/pointer semantics | Current published stable release |
+| `1.5.0` | Advanced interaction control: scopes, pointer capture, spatial focus, pointer gestures, scoped commands | Active development target |
 
 The progression is intentionally cumulative:
 
@@ -43,24 +41,11 @@ The progression is intentionally cumulative:
 1.1  cells carry semantic meaning
 1.2  retained surfaces overlap deterministically
 1.3  surfaces have explicit immutable geometry and resize policy
-1.4  normalized input can target logical application regions deterministically
+1.4  normalized input targets logical application regions deterministically
+1.5  interaction ownership can be scoped, captured, spatially navigated, and composed
 ```
 
-## Published 1.3 API floor
-
-```text
-51 exported types
-406 canonical declared contract lines
-sha256 a655bd85e3c88f5bf38ad0d43a148e3bd06a9e943bbf3e3aa2e21575ffb07424
-```
-
-The tagged compatibility baseline is `v1.3.0`, which resolves to commit:
-
-```text
-c10ca043a666b85225f2d3b8955a1ac2075b0d31
-```
-
-Current 1.4 interaction fingerprint:
+## Published 1.4 API floor
 
 ```text
 62 exported types
@@ -68,98 +53,105 @@ Current 1.4 interaction fingerprint:
 sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
 ```
 
-Version 1.4 remains additive by default. Any proposed break to the published 1.3 surface requires an explicit regret-gate finding, migration justification, and user approval before implementation.
+The tagged compatibility baseline is `v1.4.0`, whose source was qualified before merge and whose merged `main` release build and tag release workflow were subsequently qualified.
 
-## 1.4 release objective
+Version 1.5 remains additive by default. Existing 1.4 region registration, hit testing, forward/backward focus traversal, gesture matching, global/local command routing, pointer-shape behavior, and structured routing results remain source- and binary-compatible unless an explicit T150 regret-gate finding proves a correction necessary and receives maintainer approval.
 
-`Icod.DCurses 1.4.0` adds deterministic, application-owned interaction routing over the existing semantic input, geometry, panel, and Terminal ownership foundations.
+## 1.5 release objective
 
-The intended flow is:
+`Icod.DCurses 1.5.0` completes the next layer of the interaction substrate without becoming a widget framework.
+
+The intended model is:
 
 ```text
-Terminal-owned input decoding
-        |
-        v
 CursesInputEvent
-        |
-        v
-DCurses interaction router
-   |            |
-   |            +--> semantic key gesture -> command identity
-   |
-   +--> mouse coordinate -> deterministic hit-test target
-                            -> region-local coordinates
-                            -> pointer-shape preference
-
-logical focus
-   -> focused region
-   -> forward/backward traversal
-   -> deterministic repair when eligibility changes
+      |
+      v
+CursesInteractionRouter
+      |
+      +--> active interaction scope boundary
+      |
+      +--> pointer capture ownership
+      |
+      +--> deterministic mouse gesture normalization
+      |
+      +--> hit testing / pointer targeting
+      |
+      +--> sequential or spatial logical focus
+      |
+      +--> region -> scope -> global command resolution
 ```
 
-The router is mechanism, not an application event loop. It does not read terminal bytes, create a second input owner, invoke arbitrary application callbacks, render widgets, retain layout rules, or perform hidden asynchronous terminal I/O.
+The router remains mechanism, not an application event loop. It does not invoke application callbacks, own widgets, parse terminal protocols, perform terminal I/O, or silently manufacture policy such as focus-on-click, drag/drop semantics, double-click timing, command handlers, or navigation stacks.
 
-## 1.4 architectural boundaries
+## 1.5 architectural boundaries
 
-The 1.4 track is governed by these rules:
+The 1.5 track is governed by these rules:
 
 - `Icod.Terminal` remains the single live terminal/input/protocol authority.
-- DCurses routes already-normalized `CursesInputEvent` values; it does not parse escape sequences or terminal-family protocols.
-- `CursesRectangle` remains the coordinate substrate; no second geometry model is introduced.
-- Interaction regions are application interaction objects, not widgets and not rendering surfaces.
-- Logical application focus is distinct from terminal/window-manager focus reports represented by `CursesFocusEvent`.
-- Screen-relative and panel-associated interaction use deterministic coordinate conversion and overlap precedence.
-- Panel z-order remains the authoritative precedence source for panel-associated hit targets.
-- Visual blank-cell transparency does not automatically imply input transparency.
-- Focus traversal in 1.4 is forward/backward deterministic traversal only; spatial focus navigation is deferred.
-- Gesture matching is semantic and protocol-independent.
-- Region-local and router-global command bindings produce command identities/results, not callback execution.
-- Hit testing and routing remain synchronous and perform no terminal I/O.
-- Pointer-shape protocol ownership stays inside `Icod.Terminal`; DCurses exposes its own curses-shaped semantic abstraction and lease.
-- Public Terminal/TermInfo dependency exposure remains tightly allow-listed.
-- Interaction registries, command bindings, and internal bookkeeping are bounded and deterministic.
-- Existing single-writer expectations remain unless a tranche explicitly proves a safe additive concurrency contract.
+- `Icod.TermInfo` remains the immutable capability-data authority.
+- 1.5 Family-1 work must not depend on unfinished raster-backend selection work in `Icod.TermInfo 1.14`.
+- Published `Icod.Terminal 1.14` may be qualified as a compatible downstream dependency, but Family 1 does not require its raster lifecycle API.
+- Interaction scopes are bounded routing/focus/command boundaries, not widgets or visual containers.
+- Scope parentage is immutable; active scope lifetime is explicit and LIFO.
+- Pointer capture is explicit, singular, bounded, and never implies logical focus.
+- Captured pointer routing may produce signed region-local coordinates outside region bounds; ordinary hit testing remains unchanged.
+- Spatial focus uses deterministic integer geometry over effective visible region rectangles.
+- `Forward = 0` and `Backward = 1` remain frozen; spatial directions are additive enum values.
+- Pointer gesture normalization is cell/event based and clock-free in 1.5; double-click/triple-click and timing thresholds remain deferred.
+- Command resolution remains identity-only and callback-free.
+- Scope command bindings compose between region-local and router-global bindings without introducing handlers, dependency injection, or enabled predicates.
+- All registries, scope nesting, binding counts, capture state, and gesture bookkeeping remain bounded.
+- Existing single-writer expectations remain unless a tranche explicitly proves an additive concurrency contract.
 
-## 1.4 tranche sequence
+## 1.5 tranche sequence
 
 ```text
-T1401  interaction architecture / terminology / contract freeze                 complete
-T1402  bounded interaction-region registry                                      complete
-T1403  deterministic hit testing and panel precedence                           complete
-T1404  logical focus and focus repair                                            complete
-T1405  semantic keyboard gesture model                                           complete
-T1406  command bindings and structured interaction routing                       complete
-T1407  pointer-shape abstraction and Terminal-owned lease integration             complete
-T1408  resize / panel / lifecycle coherence                                      complete
-T1409  application acceptance sample                                             complete
-T1410  hardening / performance / allocation / adversarial acceptance             complete
-T1411  public API / package / docs / licensing / dependency regret gate          complete
-T1412  RC and stable-source closure                                               active
+T150  architecture/API-regret gate, planning freeze, test-infrastructure housekeeping
+T151  bounded interaction scopes and active-scope eligibility
+T152  explicit pointer capture and capture lifetime
+T153  deterministic spatial focus navigation
+T154  deterministic pointer-gesture normalization
+T155  scoped command bindings and precedence
+T156  resize/panel/scope/capture/disposal coherence and adversarial hardening
+T157  application acceptance sample and downstream/package consumer qualification
+T158  performance/allocation/API/package/docs/dependency regret gate
+T159  RC and stable-source 1.5.0 closure
 ```
 
-Every implementation tranche must receive exact-head Staging qualification before being called complete. The final release retains package-only consumer validation, compiler-derived public API fingerprinting, Windows/Linux/macOS x64/ARM64 coverage, and `net8.0`/`net9.0`/`net10.0` validation.
+Every implementation tranche must receive exact-head Staging qualification before being called complete. Final qualification retains package-only consumer validation, compiler-derived public API fingerprinting, Windows/Linux/macOS x64/ARM64 coverage, and `net8.0`/`net9.0`/`net10.0` validation.
 
-## Deliberate 1.4 non-goals
+## Deliberate 1.5 non-goals
 
-Version 1.4 does not add:
+Version 1.5 does not add:
 
-- a widget framework;
-- buttons, text boxes, menus, controls, or application navigation;
-- a retained widget/event tree;
-- event capture/bubbling phases;
-- automatic focus-on-click policy;
-- generalized pointer/mouse capture unless a later explicit requirement proves it necessary;
+- a widget framework or controls;
+- retained capture/bubble event trees;
+- application callback dispatch;
+- automatic focus-on-click;
 - drag/drop framework semantics;
-- flexbox/grid/general constraint layout;
-- automatic layout ownership;
+- double-click/triple-click timing policy;
+- generalized clock ownership for interaction;
+- layout/grid/flex/constraint expansion;
 - accessibility-tree ownership;
-- command callback/dependency-injection machinery;
-- raster placement/scene-graph ownership;
+- raster scene/layout ownership;
+- raster backend selection or ranking;
 - animation;
 - PTY/process hosting.
 
-A future widget package should be able to build on the 1.4 mechanisms without bypassing Terminal ownership or reimplementing focus/hit-test/gesture routing.
+These remain candidates for later score-taking after Family 1 is complete and the lower-layer Terminal/TermInfo development picture has advanced.
+
+## Dependency stance
+
+The 1.5 Family-1 implementation does not require a production dependency bump. The starting package graph remains:
+
+```text
+Icod.Terminal 1.13.0
+Icod.TermInfo  1.12.0
+```
+
+Published newer compatible dependencies may be exercised in dedicated qualification lanes or adopted later through an explicit dependency-maintenance/regret gate. No Family-1 public API may expose TermInfo/Terminal types merely to consume a newer package.
 
 ## Immediate next step
 
-T1412 is the active gate. Qualify the stable-source `1.4.0` exact head through the normal package candidate plus Windows/Linux/macOS x64/ARM64 matrix. If that exact head is green, the branch is release-ready source and PR #29 may be presented for explicit merge approval. After merge, qualify the resulting `main` Release build before tagging or publishing.
+Execute T150 from the approved design and implementation plan. T150 must freeze the candidate 1.5 public interaction surface, record exact bounds and enum numerics, harden the known zero-allocation measurement test against unrelated thread-allocation noise, establish the first 1.5 API fingerprint, and qualify the exact planning/API head before T151 implementation begins.
