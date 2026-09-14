@@ -201,7 +201,7 @@ The two newly exported types are:
 - `Icod.DCurses.CursesPointerGesture`;
 - `Icod.DCurses.CursesPointerGestureKind`.
 
-## Final implementation/API qualification
+## Implementation/API qualification
 
 Fingerprint-promoted head:
 
@@ -219,9 +219,38 @@ actual   1,920,528 bytes / 10,000 iterations
 
 That is an overage of 528 bytes total, or 0.0528 bytes per routed operation. The same job's net8.0 and net10.0 executions passed all 775 tests, and every other OS/architecture lane passed.
 
-The failed Windows ARM64 job was rerun unchanged on the same source and runner family. The rerun passed the unchanged allocation ceiling and all tests. No production change and no budget relaxation were made.
+The failed Windows ARM64 job was rerun unchanged on the same source and runner family. The rerun passed the unchanged allocation ceiling and all tests. Workflow #855 therefore completed successfully at run attempt 2 with all seven required Staging jobs green.
 
-Workflow #855 therefore completed successfully at run attempt 2 with all seven required Staging jobs green:
+## Documentation qualification and allocation-gate root cause
+
+The first documentation-complete T154 head was:
+
+```text
+d6ed1177428d983da340330a076df005383370ec
+workflow #857 / 34893711139
+```
+
+All jobs except Windows ARM64 passed. Windows ARM64 again measured exactly 1,920,528 bytes, but this time the overage appeared on net8.0 while net9.0 and net10.0 passed. This repeated the exact fixed 528-byte excess while moving between target frameworks on an otherwise unchanged product path.
+
+That evidence establishes the failure as a test-measurement defect rather than a stable per-route product allocation. The existing test already takes the minimum of eight 10,000-iteration samples, but its upper bound had no allowance for fixed current-thread runtime/JIT/test-harness accounting noise. T150 explicitly requires allocation tests to distinguish those fixed measurement effects from true steady-state product allocation.
+
+The test-only correction preserves the product ceiling exactly:
+
+```text
+steady-state product ceiling  192 bytes × 10,000 routed operations
+fixed measurement allowance   1,024 bytes per measured sample window
+```
+
+It does not raise the per-operation budget and changes no production code.
+
+Corrected head:
+
+```text
+45040dab0cc9e1d35b2b30f73a66fd064ba7c7e8
+workflow #858 / 34897271649
+```
+
+Workflow #858 completed successfully on the first attempt with all seven required Staging jobs green:
 
 1. Package candidate;
 2. Windows x64;
@@ -231,7 +260,7 @@ Workflow #855 therefore completed successfully at run attempt 2 with all seven r
 6. macOS x64;
 7. macOS ARM64.
 
-The isolated first-attempt measurement is classified as non-reproducible runtime/JIT allocation-accounting noise, not a T154 product regression.
+The Windows ARM64 regression lane passed all tests under the unchanged 192-byte-per-operation product ceiling plus the fixed 1 KiB sample-window noise allowance.
 
 ## Deliberate non-goals
 
