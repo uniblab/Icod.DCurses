@@ -60,6 +60,9 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 		this.hitTestPriority = options.HitTestPriority;
 		this.pointerShape = options.PointerShape;
 		this.RegistrationOrdinal = registrationOrdinal;
+		if ( this.Panel is not null ) {
+			this.Panel.InteractionEligibilityChanged += this.HandlePanelInteractionEligibilityChanged;
+		}
 	}
 
 	/// <summary>Gets the declared region rectangle.</summary>
@@ -156,6 +159,9 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 			return;
 		}
 
+		if ( this.Panel is not null ) {
+			this.Panel.InteractionEligibilityChanged -= this.HandlePanelInteractionEligibilityChanged;
+		}
 		this.owner.ReleasePointerCaptureForRegion( this );
 		this.owner.RemoveRegion( this );
 		this.disposed = true;
@@ -168,6 +174,15 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 	}
 
 	internal bool IsDisposed => this.disposed;
+
+	private void HandlePanelInteractionEligibilityChanged() {
+		if ( this.disposed ) {
+			return;
+		}
+
+		this.owner.HandleRegionEligibilityChanged( this );
+		this.owner.HandlePointerCaptureRegionChanged( this );
+	}
 
 	private void ThrowIfDisposed() {
 		if ( this.disposed ) {
