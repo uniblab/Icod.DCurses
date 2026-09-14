@@ -9,7 +9,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.5.0` — advanced interaction control  
-**Status:** T150-T153 complete; T154 deterministic pointer gestures is the next execution tranche
+**Status:** T150-T154 complete; T155 scoped command bindings is the next execution tranche
 
 ---
 
@@ -22,6 +22,7 @@
 - `docs/T151-Bounded-Interaction-Scopes.md`
 - `docs/T152-Explicit-Pointer-Capture.md`
 - `docs/T153-Deterministic-Spatial-Focus.md`
+- `docs/T154-Deterministic-Pointer-Gesture-Normalization.md`
 - `docs/Public-API-Fingerprint-1.5.json`
 
 The 1.0-1.4 tranche, roadmap, and release-closure documents remain historical compatibility/release authorities and are not rewritten to simulate current development state.
@@ -61,15 +62,15 @@ The tagged compatibility baseline is `v1.4.0`, whose merged source is rooted at:
 48d591aa427096be78c173ad8ed85566d7f671bf
 ```
 
-Current 1.5 candidate fingerprint through T153:
+Current 1.5 candidate fingerprint through T154:
 
 ```text
-67 exported types
-515 canonical declared contract lines
-sha256 30684c9670b9fb3df418648f6a7bb90b749065ae618b6b3198b86a93b5ececc5
+69 exported types
+523 canonical declared contract lines
+sha256 2894e3c210f001dfed525c2d50c00d06aebfcc13c3fed32a44c264157173fd05
 ```
 
-T153 is behavior-only, so the accepted T152 fingerprint remains unchanged.
+T153 was behavior-only and left the T152 fingerprint unchanged. T154 adds exactly two exported gesture types plus the nullable `CursesInteractionResult.PointerGesture` result slot.
 
 Version 1.5 remains additive by default. Any proposed break to the published 1.4 surface requires an explicit regret-gate finding, migration justification, and maintainer approval before implementation.
 
@@ -116,6 +117,7 @@ The 1.5 track is governed by these rules:
 - Forward/backward focus semantics remain unchanged; spatial navigation does not wrap.
 - Spatial ranking is integer-only and deterministic across platforms.
 - Pointer gesture normalization is clock-free; double-click timing and drag/drop policy remain outside core.
+- Pointer press/drag state is fixed-size per concrete mouse button and is repaired when region, scope, or capture ownership becomes invalid.
 - Command bindings return `CursesCommand` identities only; no callbacks, handlers, enabled predicates, or dependency-injection machinery are added.
 - Hit testing, focus navigation, capture, scope changes, gesture routing, and command resolution remain synchronous and perform no terminal I/O.
 - Public Terminal/TermInfo dependency exposure remains tightly allow-listed.
@@ -129,24 +131,25 @@ T150  architecture/API-regret gate, planning freeze, test housekeeping          
 T151  bounded interaction scopes and active-scope eligibility                   complete
 T152  explicit pointer capture and capture lifetime                             complete
 T153  deterministic spatial focus navigation                                    complete
-T154  deterministic pointer-gesture normalization                               next
-T155  scoped command bindings and precedence                                    planned
+T154  deterministic pointer-gesture normalization                               complete
+T155  scoped command bindings and precedence                                    next
 T156  resize/panel/scope/capture/disposal coherence and adversarial hardening   planned
 T157  application acceptance sample and downstream/package consumer             planned
 T158  performance/allocation/API/package/docs/dependency regret gate            planned
 T159  RC and stable-source 1.5.0 closure                                        planned
 ```
 
-Qualified implementation checkpoints:
+Qualified implementation/API checkpoints:
 
 ```text
 T150  eb34c8236a9e6c008b7ff486df177e8b52cba274  #818 / 34878235207
 T151  ac0bfcbf38800a94533cc4ada4caf3b8feee4fb1  #829 / 34879561466
 T152  b1e9e60df7ee6cfc3e2af10c4f3f819273c299fb  #839 / 34881203594
 T153  6f440a9feda628f1948d11008402a0064bbd645b  #844 / 34882549455
+T154  acae6104e7f0e4e431d7f5f836978be807008a40  #855 / 34892884559
 ```
 
-Each listed implementation checkpoint passed the complete seven-job Staging matrix: package candidate plus Windows/Linux/macOS on x64 and ARM64. T153 additionally requires the current documentation-complete head to pass before T154 production implementation begins.
+Each listed implementation/API checkpoint passed the complete seven-job Staging matrix: package candidate plus Windows/Linux/macOS on x64 and ARM64. T153's documentation-complete head `ad04432d36fa48e29357fd78dc713d3bba7ac746` additionally passed #846 / `34883079248`. T154's #855 qualification required one unchanged Windows ARM64 retry after a non-reproducible 528-byte net9 allocation-measurement overage; attempt 2 completed successfully without modifying production code or the existing allocation ceiling.
 
 ## Deliberate 1.5 non-goals
 
@@ -171,4 +174,4 @@ Future widget or mixed-media layers should be able to build on the 1.5 mechanism
 
 ## Immediate next step
 
-Qualify the current documentation-complete T153 head through the normal seven-job Staging matrix. Once green, T154 begins with RED tests for press/release/move/wheel normalization, same-target click classification, drag start/move/end, capture-aware targeting, and cancellation when interaction ownership becomes invalid.
+Qualify the current documentation-complete T154 head through the normal seven-job Staging matrix. Once green, T155 begins with RED tests for bounded scope-level gesture bindings, duplicate/capacity/failure-atomicity behavior, and command precedence from the focused region through its eligible scope chain to router-global bindings.
