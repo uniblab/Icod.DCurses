@@ -180,7 +180,6 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 			return;
 		}
 
-		this.owner.HandleRegionEligibilityChanged( this );
 		this.owner.HandlePointerCaptureRegionChanged( this );
 	}
 
