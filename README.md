@@ -17,7 +17,7 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 Stable-source release: `Icod.DCurses 1.5.0`.
 
-`Icod.DCurses 1.5.0` is complete in stable-source form in PR #30. The unchanged RC head `23113b130d674da315ccbbcd384a60a0e6b47baa` passed workflow #899 / `34993884108` across the complete seven-job Staging matrix. Stable-source head `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` passed workflow #905 / `34994761777` across package candidate plus Windows/Linux/macOS x64/ARM64. Subsequent release-facing documentation changes do not alter the qualified production source or frozen public API. Merge, tagging, and publication remain separate maintainer actions.
+`Icod.DCurses 1.5.0` is complete in stable-source form in PR #30. The unchanged RC head `23113b130d674da315ccbbcd384a60a0e6b47baa` passed workflow #899 / `34993884108` across the complete seven-job Staging matrix. Stable-source head `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` passed workflow #905 / `34994761777`, and the final evidence-only PR head `269c595678563cc031be3372a5560c29101eafb8` passed workflow #909 / `34995361106`, each across package candidate plus Windows/Linux/macOS x64/ARM64. Merge, tagging, and publication remain separate maintainer actions.
 
 Current source/package identity:
 
@@ -25,8 +25,8 @@ Current source/package identity:
 Version         1.5.0
 PackageVersion  1.5.0
 AssemblyVersion 1.0.0.0
-Icod.Terminal   1.13.0
-Icod.TermInfo   1.12.0
+Icod.Terminal   1.15.0
+Icod.TermInfo   1.14.0
 ```
 
 Published 1.4 contract:
@@ -163,271 +163,4 @@ Logical focus now supports deterministic spatial movement as well as the publish
 
 ```csharp
 _ = router.MoveFocus( CursesFocusDirection.Right );
-_ = router.MoveFocus( CursesFocusDirection.Down );
-```
-
-Spatial ranking uses clipped terminal-cell rectangles and integer-only ordering. It does not wrap and does not manufacture initial focus when no region is currently focused.
-
-Pointer capture is explicit and singular:
-
-```csharp
-using CursesPointerCaptureLease capture =
-    router.CapturePointer( popup, CursesMouseButton.Primary );
-```
-
-Captured pointer motion continues to target the captured region outside its current bounds. `CursesInteractionResult.PointerTarget` then exposes signed region-local row/column coordinates plus `IsInside` rather than weakening the ordinary in-bounds `CursesInteractionHit` contract.
-
-Mouse routing also exposes clock-free `CursesPointerGesture` snapshots for `Press`, `Release`, `Move`, `Click`, `DragStart`, `DragMove`, `DragEnd`, and four wheel directions. Click/drag classification is based on normalized cell movement rather than timing; double/triple-click policy, timing thresholds, and drag/drop payload semantics remain application concerns.
-
-Explicit scopes may own semantic key-command bindings. With a focused region, lookup is:
-
-```text
-region local
--> region scope
--> parent scopes through the active modal boundary
--> router global
-```
-
-Commands remain `CursesCommand` identities. The router does not invoke callbacks or execute application behavior.
-
-The complete interaction registries remain bounded:
-
-```text
-MaximumRegions                  4096
-MaximumScopes                    256
-MaximumScopeDepth                 32
-MaximumRegionGestureBindings     256
-MaximumScopeGestureBindings      256
-MaximumGlobalGestureBindings    1024
-MaximumGestureBindings         16384 total
-Active pointer captures            1
-```
-
-The `Icod.DCurses.Interaction.Sample` demonstrates nested scopes, sequential/spatial focus, scoped/global commands, explicit capture, drag gesture results, application-owned popup movement, pointer-shape preferences, resize handling, and the mechanism/policy split using public DCurses APIs only.
-
-## 1.4 interaction routing
-
-Version 1.4 adds deterministic interaction routing without taking ownership of the application event loop. Applications register bounded logical regions, decide which regions may receive logical focus, bind semantic key gestures to command identities, and route already-normalized `CursesInputEvent` values returned by the ordinary session reader.
-
-A compact application pattern is:
-
-```csharp
-using CursesInteractionRouter router = new( session.Screen );
-using CursesInteractionRegion body = router.RegisterRegion(
-    new CursesInteractionRegionOptions(
-        new CursesRectangle( 1, 0, 20, 80 )
-    ) {
-        IsFocusable = true,
-        TraversalOrder = 0,
-        PointerShape = CursesPointerShape.Text
-    }
-);
-
-CursesCommand focusNext = new( "focus.next" );
-router.BindGlobalGesture(
-    CursesKeyGesture.ForKey( CursesKey.Tab ),
-    focusNext
-);
-_ = router.Focus( body );
-
-CursesEvent current = await session.ReadEventAsync();
-if ( CursesEventKind.Input == current.Kind
-    && current.Input is not null ) {
-    CursesInteractionResult routed = router.Route( current.Input );
-
-    if ( routed.Command is not null
-        && "focus.next" == routed.Command.Name ) {
-        _ = router.MoveFocus( CursesFocusDirection.Forward );
-    }
-
-    // routed.Hit contains region-local mouse coordinates and the
-    // region's pointer-shape preference, if one was configured.
-}
-```
-
-The router deliberately returns structured routing data instead of invoking callbacks. Focus changes are explicit application decisions. Mouse hit testing therefore does **not** automatically change logical focus, and logical focus is independent of terminal/window-manager focus reports.
-
-Panel-associated regions participate in the retained panel stack, so current panel z-order is part of mouse hit-test precedence. Successful mouse hits carry region-local row/column coordinates in addition to the original normalized input. A region's `PointerShape` is only a semantic preference surfaced by hit/routing results; applying that preference requires the application to explicitly acquire and retain a `CursesPointerShapeLease` from the session for as long as the physical preference should remain active:
-
-```csharp
-CursesPointerShapeLease pointerLease =
-    await session.AcquirePointerShapeAsync( CursesPointerShape.Text );
-
-// Keep pointerLease while the preference applies, then restore prior state.
-await pointerLease.DisposeAsync();
-```
-
-Region and gesture-binding registries are intentionally bounded and fail before partial mutation when capacity is exhausted. The router owns no background work, event loop, terminal parser, protocol negotiation, or hidden terminal I/O. It routes only the semantic input and geometry state already owned by DCurses/Terminal.
-
-## 1.3 geometry, layout, and resize
-
-`CursesRectangle` and `CursesInsets` are immutable terminal-cell value types. Empty rectangles are valid geometry results; applying bounds to a window or panel still requires positive dimensions.
-
-`CursesLayout` is a stateless utility for fixed splits, proportional splits, docking, and clipping:
-
-```csharp
-CursesRectangle bounds = session.Screen.Bounds;
-
-CursesLayout.Dock(
-    bounds,
-    CursesDockEdge.Top,
-    2,
-    out CursesRectangle headerBounds,
-    out CursesRectangle remaining
-);
-CursesLayout.SplitColumnsProportional(
-    remaining,
-    1,
-    3,
-    out CursesRectangle sidebarBounds,
-    out CursesRectangle bodyBounds
-);
-```
-
-Geometry is applied explicitly to ordinary windows and retained panels:
-
-```csharp
-header.SetBounds( headerBounds );
-sidebar.SetBounds( sidebarBounds );
-body.SetBounds( bodyBounds );
-dialog.SetBounds(
-    bodyBounds.Inset(
-        new CursesInsets( 2, 4, 2, 4 )
-    )
-);
-```
-
-`CursesPanel.Resize` and `SetBounds` preserve surviving upper-left retained content and semantic metadata, clamp the retained cursor after shrink, repair width-two footprints at resize boundaries, preserve visibility/z-order/transparency, and validate the final screen-relative rectangle before mutation.
-
-For live resize, DCurses deliberately does not retain layout rules. The application recomputes from the synchronized logical screen:
-
-```csharp
-CursesRectangle current = session.Screen.Bounds;
-// derive rectangles from current
-// apply them with SetBounds / Resize
-await session.RefreshAsync();
-```
-
-The `Icod.DCurses.Layout.Sample` project demonstrates this explicit lifecycle-driven recomputation model with ordinary windows plus a retained panel.
-
-## 1.2 retained panels and layers
-
-Ordinary `CursesWindow` instances remain shared logical views. `CursesPanel` is intentionally different: it owns an independent retained surface and participates in a deterministic screen-owned z-order stack.
-
-```csharp
-using CursesPanel dialog = session.Screen.CreatePanel(
-    row: 3,
-    column: 6,
-    rows: 8,
-    columns: 36
-);
-
-dialog.ContentWindow.Write( "Retained dialog content" );
-dialog.MoveToTop();
-await session.RefreshAsync();
-```
-
-Panels are opaque by default. A panel can instead make ordinary blank cells transparent:
-
-```csharp
-using CursesPanel overlay = session.Screen.CreatePanel(
-    row: 2,
-    column: 4,
-    rows: 3,
-    columns: 20
-);
-overlay.Transparency = CursesPanelTransparency.BlankCellsTransparent;
-overlay.ContentWindow.Write( "overlay" );
-```
-
-The published 1.2 panel contract includes independent retained content, show/hide with remembered z-order, movement and relative ordering, clipping, opaque/blank-transparent composition, Unicode width-two and semantic-metadata coherence, damage-bounded recomposition, live session refresh/lifecycle integration, and deterministic one-way `Dispose()` removal.
-
-Disposal removes a transient panel from its owning screen so repeatedly-created popups/dialogs are not retained for the screen lifetime. A disposed panel cannot be reattached or manipulated.
-
-Version 1.3 extends this published model with retained resizing; it does not replace panel ownership or composition semantics.
-
-## 1.1 semantic metadata and hyperlinks
-
-Version 1.1 added semantic meaning attached to retained content, beginning with hyperlinks, while keeping visual rendition in `CursesStyle`.
-
-```csharp
-CursesCellMetadata metadata = new(
-    new CursesHyperlink(
-        "https://example.test/docs",
-        "docs"
-    )
-);
-
-screen.WriteWithMetadata(
-    "documentation",
-    metadata
-);
-```
-Metadata is retained independently of visible glyph/style equality, follows content through supported editing/composition operations, remains coherent across two-column leader/continuation footprints, and is emitted physically through Terminal-owned semantic hyperlink operations. DCurses does not construct OSC 8 directly.
-
-## Pads, Unicode, and semantic drawing
-
-`CursesPad` is an off-screen logical surface that reuses ordinary `CursesWindow` editing semantics. Multiple viewports may observe one pad independently.
-
-The built-in width provider is pinned to Unicode 17.0.0. East Asian Ambiguous characters are narrow by default and can be made wide explicitly with `UnicodeCursesTextWidthProvider.WideAmbiguousInstance`.
-
-`CursesText.MeasureColumns`, `TruncateToColumns`, and `SliceByColumns` operate on complete terminal text elements and never return half of a two-column element. Semantic line cells remain distinct from ordinary Unicode box-drawing text.
-
-## Concurrency and lifecycle
-
-The library deliberately uses a narrow ownership model rather than pervasive per-cell locking:
-
-- logical screens, windows, pads, viewports, panels, and interaction routers are single-writer unless documented otherwise;
-- one Terminal-owned event wait may coexist with serialized refresh/output work;
-- caller cancellation does not discard Terminal decoder state;
-- disposal unblocks pending DCurses waits while preserving authoritative restoration;
-- output uncertainty invalidates retained physical knowledge so a later refresh can repaint safely;
-- suspend/resume invalidates physical knowledge but retains logical panel and interaction registration state;
-- lifecycle resize synchronizes the logical screen, while application layout recomputation remains explicit;
-- interaction routing never creates a competing input reader or terminal-output path.
-
-## Validation and packaging
-
-Local wrappers use Debug configuration. Pull requests use Staging with warnings-as-errors. Pushes to `main` and release tags use Release.
-
-Runtime validation covers Windows/Linux/macOS x64 and ARM64; the library/test matrix covers `net8.0`, `net9.0`, and `net10.0`.
-
-Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. The package consumer compiles and executes the complete additive 1.5 interaction surface directly from the packed artifact on net8/net9/net10, including scopes, spatial focus, scoped commands, explicit capture lifetime, and public pointer target/gesture/result contracts. Package validation does not impose hard-coded sibling dependency versions.
-
-## Release documentation
-
-Current authorities:
-
-- `Icod.DCurses-Development-Roadmap.md`
-- `Icod.DCurses-1.5.0-Development-Roadmap.md`
-- `docs/Public-API-Fingerprint-1.5.json`
-- `docs/T150-1.5.0-Architecture-API-Regret-and-Contract-Freeze.md`
-- `docs/T151-Bounded-Interaction-Scopes.md`
-- `docs/T152-Explicit-Pointer-Capture.md`
-- `docs/T153-Deterministic-Spatial-Focus.md`
-- `docs/T154-Deterministic-Pointer-Gesture-Normalization.md`
-- `docs/T155-Scoped-Command-Bindings-and-Precedence.md`
-- `docs/T156-Coherence-and-Adversarial-Hardening.md`
-- `docs/T157-Application-Acceptance-and-Package-Consumer.md`
-- `docs/T158-Advanced-Interaction-Regret-and-Qualification-Gate.md`
-- `docs/T159-RC-and-Stable-1.5.0-Closure.md`
-
-Published 1.4 compatibility/release authorities remain historical evidence and are not rewritten to simulate current 1.5 development state.
-
-T158 final evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`. RC head `23113b130d674da315ccbbcd384a60a0e6b47baa` passed #899 / `34993884108`, all seven jobs. Stable-source head `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` passed #905 / `34994761777`, all seven jobs. Production source and the frozen public API remained unchanged through RC/stable-source promotion.
-
-## Authors
-
-Inspired by original work from Bill Joy, author of the original `termcap`; Mary Ann (born Mark) Horton, author of `terminfo`; Pavel Curtis, author of `pcurses`; and Zeyd Ben-Halim, Eric S. Raymond, and Thomas Dickey, whose work developed and maintained `libtinfo` and `ncurses`.
-
-Managed .NET implementation by Timothy J. Bruce <uniblab@hotmail.com>.
-
-## Copyright
-
-Copyright (c) 2026 Timothy J. Bruce
-
-## License
-
-Licensed under the GNU Lesser General Public License v3.0 or later. See `LICENSE`.
-
-The NuGet package declares license acceptance as required. Package clients which honor NuGet's `requireLicenseAcceptance` metadata must obtain acceptance of the license terms before installation.
+_ = router.MoveFocus( CursesFocusDirection.Do²È="25Õ¹‘Ì€¤ì)Í¥‘•‰…È¹M•Ñ	½Õ¹‘Ì Í¥‘•‰…É	½Õ¹‘Ì€¤ì)‰½‘ä¹M•Ñ	½Õ¹‘Ì ‰½‘å	½Õ¹‘Ì€¤ì)‘¥…±½œ¹M•Ñ	½Õ¹‘Ì (€€€‰½‘å	½Õ¹‘Ì¹%¹Í•Ğ (€€€€€€€¹•ÜÕÉÍ•Í%¹Í•ÑÌ €È°€Ğ°€È°€Ğ€¤(€€€€¤(¤ì)€()ÕÉÍ•ÍA…¹•°¹I•Í¥é•€…¹M•Ñ	½Õ¹‘Í€ÁÉ•Í•ÉÙ”ÍÕÉÙ¥Ù¥¹œÕÁÁ•Èµ±•™ĞÉ•Ñ…¥¹•½¹Ñ•¹Ğ…¹Í•µ…¹Ñ¥Œµ•Ñ…‘…Ñ„°±…µÀÑ¡”É•Ñ…¥¹•ÕÉÍ½È…™Ñ•ÈÍ¡É¥¹¬°É•Á…¥Èİ¥‘Ñ µÑİ¼™½½ÑÁÉ¥¹ÑÌ…ĞÉ•Í¥é”‰½Õ¹‘…É¥•Ì°ÁÉ•Í•ÉÙ”Ù¥Í¥‰¥±¥Ñä½èµ½É‘•È½ÑÉ…¹ÍÁ…É•¹ä°…¹Ù…±¥‘…Ñ”Ñ¡”™¥¹…°ÍÉ••¸µÉ•±…Ñ¥Ù”É•Ñ…¹±”‰•™½É”µÕÑ…Ñ¥½¸¸()½È±¥Ù”É•Í¥é”°ÕÉÍ•Ì‘•±¥‰•É…Ñ•±ä‘½•Ì¹½ĞÉ•Ñ…¥¸±…å½ÕĞÉÕ±•Ì¸Q¡”…ÁÁ±¥…Ñ¥½¸É•½µÁÕÑ•Ì™É½´Ñ¡”Íå¹¡É½¹¥é•±½¥…°ÍÉ••¸è()Í¡…ÉÀ)ÕÉÍ•ÍI•Ñ…¹±”ÕÉÉ•¹Ğ€ôÍ•ÍÍ¥½¸¹MÉ••¸¹	½Õ¹‘Ìì(¼¼‘•É¥Ù”É•Ñ…¹±•Ì™É½´ÕÉÉ•¹Ğ(¼¼…ÁÁ±äÑ¡•´İ¥Ñ M•Ñ	½Õ¹‘Ì€¼I•Í¥é”)…İ…¥ĞÍ•ÍÍ¥½¸¹I•™É•Í¡Íå¹Œ ¤ì)€()Q¡”%½¹ÕÉÍ•Ì¹1…å½ÕĞ¹M…µÁ±•€ÁÉ½©•Ğ‘•µ½¹ÍÑÉ…Ñ•ÌÑ¡¥Ì•áÁ±¥¥Ğ±¥™•å±”µ‘É¥Ù•¸É•½µÁÕÑ…Ñ¥½¸µ½‘•°İ¥Ñ ½É‘¥¹…Éäİ¥¹‘½İÌÁ±ÕÌ„É•Ñ…¥¹•Á…¹•°¸((ŒŒ€Ä¸ÈÉ•Ñ…¥¹•Á…¹•±Ì…¹±…å•ÉÌ()=É‘¥¹…ÉäÕÉÍ•Í]¥¹‘½İ€¥¹ÍÑ…¹•ÌÉ•µ…¥¸Í¡…É•±½¥…°Ù¥•İÌ¸ÕÉÍ•ÍA…¹•±€¥Ì¥¹Ñ•¹Ñ¥½¹…±±ä‘¥™™•É•¹Ğè¥Ğ½İ¹Ì…¸¥¹‘•Á•¹‘•¹ĞÉ•Ñ…¥¹•ÍÕÉ™…”…¹Á…ÉÑ¥¥Á…Ñ•Ì¥¸„‘•Ñ•Éµ¥¹¥ÍÑ¥ŒÍÉ••¸µ½İ¹•èµ½É‘•ÈÍÑ…¬¸()Í¡…ÉÀ)ÕÍ¥¹œÕÉÍ•ÍA…¹•°‘¥…±½œ€ôÍ•ÍÍ¥½¸¹MÉ••¸¹É•…Ñ•A…¹•° (€€€É½Üè€Ì°(€€€½±Õµ¸è€Ø°(€€€É½İÌè€à°(€€€½±Õµ¹Ìè€ÌØ(¤ì()‘¥…±½œ¹½¹Ñ•¹Ñ]¥¹‘½Ü¹]É¥Ñ” €‰I•Ñ…¥¹•‘¥…±½œ½¹Ñ•¹Ğˆ€¤ì)‘¥…±½œ¹5½Ù•Q½Q½À ¤ì)…İ…¥ĞÍ•ÍÍ¥½¸¹I•™É•Í¡Íå¹Œ ¤ì)€()A…¹•±Ì…É”½Á…ÅÕ”‰ä‘•™…Õ±Ğ¸Á…¹•°…¸¥¹ÍÑ•…µ…­”½É‘¥¹…Éä‰±…¹¬•±±ÌÑÉ…¹ÍÁ…É•¹Ğè()Í¡…ÉÀ)ÕÍ¥¹œÕÉÍ•ÍA…¹•°½Ù•É±…ä€ôÍ•ÍÍ¥½¸¹MÉ••¸¹É•…Ñ•A…¹•° (€€€É½Üè€È°(€€€½±Õµ¸è€Ğ°(€€€É½İÌè€Ì°(€€€½±Õµ¹Ìè€ÈÀ(¤ì)½Ù•É±…ä¹QÉ…¹ÍÁ…É•¹ä€ôÕÉÍ•ÍA…¹•±QÉ…¹ÍÁ…É•¹ä¹	±…¹­•±±ÍQÉ…¹ÍÁ…É•¹Ğì)½Ù•É±…ä¹½¹Ñ•¹Ñ]¥¹‘½Ü¹]É¥Ñ” €‰½Ù•É±…äˆ€¤ì)€()Q¡”ÁÕ‰±¥Í¡•€Ä¸ÈÁ…¹•°½¹ÑÉ…Ğ¥¹±Õ‘•Ì¥¹‘•Á•¹‘•¹ĞÉ•Ñ…¥¹•½¹Ñ•¹Ğ°Í¡½Ü½¡¥‘”İ¥Ñ É•µ•µ‰•É•èµ½É‘•È°µ½Ù•µ•¹Ğ…¹É•±…Ñ¥Ù”½É‘•É¥¹œ°±¥ÁÁ¥¹œ°½Á…ÅÕ”½‰±…¹¬µÑÉ…¹ÍÁ…É•¹Ğ½µÁ½Í¥Ñ¥½¸°U¹¥½‘”İ¥‘Ñ µÑİ¼…¹Í•µ…¹Ñ¥Œµµ•Ñ…‘…Ñ„½¡•É•¹”°‘…µ…”µ‰½Õ¹‘•É•½µÁ½Í¥Ñ¥½¸°±¥Ù”Í•ÍÍ¥½¸É•™É•Í ½±¥™•å±”¥¹Ñ•É…Ñ¥½¸°…¹‘•Ñ•Éµ¥¹¥ÍÑ¥Œ½¹”µİ…ä¥ÍÁ½Í” ¥€É•µ½Ù…°¸()¥ÍÁ½Í…°É•µ½Ù•Ì„ÑÉ…¹Í¥•¹ĞÁ…¹•°™É½´¥ÑÌ½İ¹¥¹œÍÉ••¸Í¼É•Á•…Ñ•‘±äµÉ•…Ñ•Á½ÁÕÁÌ½‘¥…±½Ì…É”¹½ĞÉ•Ñ…¥¹•™½ÈÑ¡”ÍÉ••¸±¥™•Ñ¥µ”¸‘¥ÍÁ½Í•Á…¹•°…¹¹½Ğ‰”É•…ÑÑ…¡•½Èµ…¹¥ÁÕ±…Ñ•¸()Y•ÉÍ¥½¸€Ä¸Ì•áÑ•¹‘ÌÑ¡¥ÌÁÕ‰±¥Í¡•µ½‘•°İ¥Ñ É•Ñ…¥¹•É•Í¥é¥¹œì¥Ğ‘½•Ì¹½ĞÉ•Á±…”Á…¹•°½İ¹•ÉÍ¡¥À½È½µÁ½Í¥Ñ¥½¸Í•µ…¹Ñ¥Ì¸((ŒŒ€Ä¸ÄÍ•µ…¹Ñ¥Œµ•Ñ…‘…Ñ„…¹¡åÁ•É±¥¹­Ì()Y•ÉÍ¥½¸€Ä¸Ä…‘‘•Í•µ…¹Ñ¥Œµ•…¹¥¹œ…ÑÑ…¡•Ñ¼É•Ñ…¥¹•½¹Ñ•¹Ğ°‰•¥¹¹¥¹œİ¥Ñ ¡åÁ•É±¥¹­Ì°İ¡¥±”­••Á¥¹œÙ¥ÍÕ…°É•¹‘¥Ñ¥½¸¥¸ÕÉÍ•ÍMÑå±•€¸()Í¡…ÉÀ)ÕÉÍ•Í•±±5•Ñ…‘…Ñ„µ•Ñ…‘…Ñ„€ô¹•Ü (€€€¹•ÜÕÉÍ•Í!åÁ•É±¥¹¬ (€€€€€€€€‰¡ÑÑÁÌè¼½•á…µÁ±”¹Ñ•ÍĞ½‘½Ìˆ°(€€€€€€€€‰‘½Ìˆ(€€€€¤(¤ì()ÍÉ••¸¹]É¥Ñ•]¥Ñ¡5•Ñ…‘…Ñ„ (€€€€‰‘½Õµ•¹Ñ…Ñ¥½¸ˆ°(€€€µ•Ñ…‘…Ñ„(¤ì)€()5•Ñ…‘…Ñ„¥ÌÉ•Ñ…¥¹•¥¹‘•Á•¹‘•¹Ñ±ä½˜Ù¥Í¥‰±”±åÁ ½ÍÑå±”•ÅÕ…±¥Ñä°™½±±½İÌ½¹Ñ•¹ĞÑ¡É½Õ ÍÕÁÁ½ÉÑ••‘¥Ñ¥¹œ½½µÁ½Í¥Ñ¥½¸½Á•É…Ñ¥½¹Ì°É•µ…¥¹Ì½¡•É•¹Ğ…É½ÍÌÑİ¼µ½±Õµ¸±•…‘•È½½¹Ñ¥¹Õ…Ñ¥½¸™½½ÑÁÉ¥¹ÑÌ°…¹¥Ì•µ¥ÑÑ•Á¡åÍ¥…±±äÑ¡É½Õ Q•Éµ¥¹…°µ½İ¹•Í•µ…¹Ñ¥Œ¡åÁ•É±¥¹¬½Á•É…Ñ¥½¹Ì¸ÕÉÍ•Ì‘½•Ì¹½Ğ½¹ÍÑÉÕĞ=M€à‘¥É•Ñ±ä¸((ŒŒA…‘Ì°U¹¥½‘”°…¹Í•µ…¹Ñ¥Œ‘É…İ¥¹œ()ÕÉÍ•ÍA…‘€¥Ì…¸½™˜µÍÉ••¸±½¥…°ÍÕÉ™…”Ñ¡…ĞÉ•ÕÍ•Ì½É‘¥¹…ÉäÕÉÍ•Í]¥¹‘½İ€•‘¥Ñ¥¹œÍ•µ…¹Ñ¥Ì¸5Õ±Ñ¥Á±”Ù¥•İÁ½ÉÑÌµ…ä½‰Í•ÉÙ”½¹”Á…¥¹‘•Á•¹‘•¹Ñ±ä¸()Q¡”‰Õ¥±Ğµ¥¸İ¥‘Ñ ÁÉ½Ù¥‘•È¥ÌÁ¥¹¹•Ñ¼U¹¥½‘”€ÄÜ¸À¸À¸…ÍĞÍ¥…¸µ‰¥Õ½ÕÌ¡…É…Ñ•ÉÌ…É”¹…ÉÉ½Ü‰ä‘•™…Õ±Ğ…¹…¸‰”µ…‘”İ¥‘”•áÁ±¥¥Ñ±äİ¥Ñ U¹¥½‘•ÕÉÍ•ÍQ•áÑ]¥‘Ñ¡AÉ½Ù¥‘•È¹]¥‘•µ‰¥Õ½ÕÍ%¹ÍÑ…¹•€¸()ÕÉÍ•ÍQ•áĞ¹5•…ÍÕÉ•½±Õµ¹Í€°QÉÕ¹…Ñ•Q½½±Õµ¹Í€°…¹M±¥•	å½±Õµ¹Í€½Á•É…Ñ”½¸½µÁ±•Ñ”Ñ•Éµ¥¹…°Ñ•áĞ•±•µ•¹ÑÌ…¹¹•Ù•ÈÉ•ÑÕÉ¸¡…±˜½˜„Ñİ¼µ½±Õµ¸•±•µ•¹Ğ¸M•µ…¹Ñ¥Œ±¥¹”•±±ÌÉ•µ…¥¸‘¥ÍÑ¥¹Ğ™É½´½É‘¥¹…ÉäU¹¥½‘”‰½àµ‘É…İ¥¹œÑ•áĞ¸((ŒŒ½¹ÕÉÉ•¹ä…¹±¥™•å±”()Q¡”±¥‰É…Éä‘•±¥‰•É…Ñ•±äÕÍ•Ì„¹…ÉÉ½Ü½İ¹•ÉÍ¡¥Àµ½‘•°É…Ñ¡•ÈÑ¡…¸Á•ÉÙ…Í¥Ù”Á•Èµ•±°±½­¥¹œè((´±½¥…°ÍÉ••¹Ì°İ¥¹‘½İÌ°Á…‘Ì°Ù¥•İÁ½ÉÑÌ°Á…¹•±Ì°…¹¥¹Ñ•É…Ñ¥½¸É½ÕÑ•ÉÌ…É”Í¥¹±”µİÉ¥Ñ•ÈÕ¹±•ÍÌ‘½Õµ•¹Ñ•½Ñ¡•Éİ¥Í”ì(´½¹”Q•Éµ¥¹…°µ½İ¹••Ù•¹Ğİ…¥Ğµ…ä½•á¥ÍĞİ¥Ñ Í•É¥…±¥é•É•™É•Í ½½ÕÑÁÕĞİ½É¬ì(´…±±•È…¹•±±…Ñ¥½¸‘½•Ì¹½Ğ‘¥Í…ÉQ•Éµ¥¹…°‘•½‘•ÈÍÑ…Ñ”ì(´‘¥ÍÁ½Í…°Õ¹‰±½­ÌÁ•¹‘¥¹œÕÉÍ•Ìİ…¥ÑÌİ¡¥±”ÁÉ•Í•ÉÙ¥¹œ…ÕÑ¡½É¥Ñ…Ñ¥Ù”É•ÍÑ½É…Ñ¥½¸ì(´½ÕÑÁÕĞÕ¹•ÉÑ…¥¹Ñä¥¹Ù…±¥‘…Ñ•ÌÉ•Ñ…¥¹•Á¡åÍ¥…°­¹½İ±•‘”Í¼„±…Ñ•ÈÉ•™É•Í …¸É•Á…¥¹ĞÍ…™•±äì(´ÍÕÍÁ•¹½É•ÍÕµ”¥¹Ù…±¥‘…Ñ•ÌÁ¡åÍ¥…°­¹½İ±•‘”‰ÕĞÉ•Ñ…¥¹Ì±½¥…°Á…¹•°…¹¥¹Ñ•É…Ñ¥½¸É•¥ÍÑÉ…Ñ¥½¸ÍÑ…Ñ”ì(´±¥™•å±”É•Í¥é”Íå¹¡É½¹¥é•ÌÑ¡”±½¥…°ÍÉ••¸°İ¡¥±”…ÁÁ±¥…Ñ¥½¸±…å½ÕĞÉ•½µÁÕÑ…Ñ¥½¸É•µ…¥¹Ì•áÁ±¥¥Ğì(´¥¹Ñ•É…Ñ¥½¸É½ÕÑ¥¹œ¹•Ù•ÈÉ•…Ñ•Ì„½µÁ•Ñ¥¹œ¥¹ÁÕĞÉ•…‘•È½ÈÑ•Éµ¥¹…°µ½ÕÑÁÕĞÁ…Ñ ¸((ŒŒY…±¥‘…Ñ¥½¸…¹Á…­…¥¹œ()1½…°İÉ…ÁÁ•ÉÌÕÍ”•‰Õœ½¹™¥ÕÉ…Ñ¥½¸¸AÕ±°É•ÅÕ•ÍÑÌÕÍ”MÑ…¥¹œİ¥Ñ İ…É¹¥¹Ìµ…Ìµ•ÉÉ½ÉÌ¸AÕÍ¡•ÌÑ¼µ…¥¹€…¹É•±•…Í”Ñ…ÌÕÍ”I•±•…Í”¸()IÕ¹Ñ¥µ”Ù…±¥‘…Ñ¥½¸½Ù•ÉÌ]¥¹‘½İÌ½1¥¹Õà½µ…=LàØĞ…¹I4ØĞìÑ¡”±¥‰É…Éä½Ñ•ÍĞµ…ÑÉ¥à½Ù•ÉÌ¹•Ğà¸Á€°¹•Ğä¸Á€°…¹¹•ĞÄÀ¸Á€¸()A…­…”Ù…±¥‘…Ñ¥½¸Ù•É¥™¥•Ì€¹¹ÕÁ­€½€¹Í¹ÕÁ­€°Á…­…”½…ÍÍ•µ‰±ä¥‘•¹Ñ¥Ñä°‘•Á•¹‘•¹äÉ½ÕÁÌ‘•É¥Ù•™É½´ÁÉ½©•Ğ‘•±…É…Ñ¥½¹Ì°I5½±¥•¹Í”½¥½¸½É•Á½Í¥Ñ½Éäµ•Ñ…‘…Ñ„°a50‘½Õµ•¹Ñ…Ñ¥½¸°Á½ÉÑ…‰±”Íåµ‰½±Ì°…¹„™É•Í 9Õ•Ğµ½¹±ä½¹ÍÕµ•È¸Q¡”Á…­…”½¹ÍÕµ•È½µÁ¥±•Ì…¹•á•ÕÑ•ÌÑ¡”½µÁ±•Ñ”…‘‘¥Ñ¥Ù”€Ä¸Ô¥¹Ñ•É…Ñ¥½¸ÍÕÉ™…”‘¥É•Ñ±ä™É½´Ñ¡”Á…­•…ÉÑ¥™…Ğ½¸¹•Ğà½¹•Ğä½¹•ĞÄÀ°¥¹±Õ‘¥¹œÍ½Á•Ì°ÍÁ…Ñ¥…°™½ÕÌ°Í½Á•½µµ…¹‘Ì°•áÁ±¥¥Ğ…ÁÑÕÉ”±¥™•Ñ¥µ”°…¹ÁÕ‰±¥ŒÁ½¥¹Ñ•ÈÑ…É•Ğ½•ÍÑÕÉ”½É•ÍÕ±Ğ½¹ÑÉ…ÑÌ¸A…­…”Ù…±¥‘…Ñ¥½¸‘½•Ì¹½Ğ¥µÁ½Í”¡…Éµ½‘•Í¥‰±¥¹œ‘•Á•¹‘•¹äÙ•ÉÍ¥½¹Ì¸((ŒŒI•±•…Í”‘½Õµ•¹Ñ…Ñ¥½¸()ÕÉÉ•¹Ğ…ÕÑ¡½É¥Ñ¥•Ìè((´%½¹ÕÉÍ•Ìµ•Ù•±½Áµ•¹ĞµI½…‘µ…À¹µ‘€(´%½¹ÕÉÍ•Ì´Ä¸Ô¸Àµ•Ù•±½Áµ•¹ĞµI½…‘µ…À¹µ‘€(´‘½Ì½AÕ‰±¥ŒµA$µ¥¹•ÉÁÉ¥¹Ğ´Ä¸Ô¹©Í½¹€(´‘½Ì½PÄÔÀ´Ä¸Ô¸ÀµÉ¡¥Ñ•ÑÕÉ”µA$µI•É•Ğµ…¹µ½¹ÑÉ…ĞµÉ••é”¹µ‘€(´‘½Ì½PÄÔÄµ	½Õ¹‘•µ%¹Ñ•É…Ñ¥½¸µM½Á•Ì¹µ‘€(´‘½Ì½PÄÔÈµáÁ±¥¥ĞµA½¥¹Ñ•Èµ…ÁÑÕÉ”¹µ‘€(´‘½Ì½PÄÔÌµ•Ñ•Éµ¥¹¥ÍÑ¥ŒµMÁ…Ñ¥…°µ½ÕÌ¹µ‘€(´‘½Ì½PÄÔĞµ•Ñ•Éµ¥¹¥ÍÑ¥ŒµA½¥¹Ñ•Èµ•ÍÑÕÉ”µ9½Éµ…±¥é…Ñ¥½¸¹µ‘€(´‘½Ì½PÄÔÔµM½Á•µ½µµ…¹µ	¥¹‘¥¹Ìµ…¹µAÉ••‘•¹”¹µ‘€(´‘½Ì½PÄÔØµ½¡•É•¹”µ…¹µ‘Ù•ÉÍ…É¥…°µ!…É‘•¹¥¹œ¹µ‘€(´‘½Ì½PÄÔÜµÁÁ±¥…Ñ¥½¸µ•ÁÑ…¹”µ…¹µA…­…”µ½¹ÍÕµ•È¹µ‘€(´‘½Ì½PÄÔàµ‘Ù…¹•µ%¹Ñ•É…Ñ¥½¸µI•É•Ğµ…¹µEÕ…±¥™¥…Ñ¥½¸µ…Ñ”¹µ‘€(´‘½Ì½PÄÔäµIµ…¹µMÑ…‰±”´Ä¸Ô¸Àµ±½ÍÕÉ”¹µ‘€()AÕ‰±¥Í¡•€Ä¸Ğ½µÁ…Ñ¥‰¥±¥Ñä½É•±•…Í”…ÕÑ¡½É¥Ñ¥•ÌÉ•µ…¥¸¡¥ÍÑ½É¥…°•Ù¥‘•¹”…¹…É”¹½ĞÉ•İÉ¥ÑÑ•¸Ñ¼Í¥µÕ±…Ñ”ÕÉÉ•¹Ğ€Ä¸Ô‘•Ù•±½Áµ•¹ĞÍÑ…Ñ”¸()PÄÔà™¥¹…°•Ù¥‘•¹”¡•…€ÈÄá˜äÀÁ……˜ØàäÀÈå˜á˜Õ‘”ÈØäÀÙ˜àØÜÈÑÀÈå•‰€Á…ÍÍ•€ŒàäÌ€¼€ÌĞäÄÔÌäÀÌàÅ€¸I¡•…€ÈÌÄÄÍˆÄÌÁØÜÑ‘„ÌÄÕ‰‰ÌàÑ„ØÁ„Á”ÙˆĞİ‰……€Á…ÍÍ•€Œàää€¼€ÌĞääÌààĞÄÀá€°…±°Í•Ù•¸©½‰Ì¸MÑ…‰±”µÍ½ÕÉ”¡•……˜ÌÁ„ÙŒÉ‘˜àĞÉÜÙˆáˆå”åˆÜàÔÕ…•ˆÍ„ÄÙ”å™˜å€Á…ÍÍ•€ŒäÀÔ€¼€ÌĞääĞÜØÄÜÜİ€°…±°Í•Ù•¸©½‰Ì¸AÉ½‘ÕÑ¥½¸Í½ÕÉ”…¹Ñ¡”™É½é•¸ÁÕ‰±¥ŒA$É•µ…¥¹•Õ¹¡…¹•Ñ¡É½Õ I½ÍÑ…‰±”µÍ½ÕÉ”ÁÉ½µ½Ñ¥½¸¸((ŒŒÕÑ¡½ÉÌ()%¹ÍÁ¥É•‰ä½É¥¥¹…°İ½É¬™É½´	¥±°)½ä°…ÕÑ¡½È½˜Ñ¡”½É¥¥¹…°Ñ•Éµ…Á€ì5…Éä¹¸€¡‰½É¸5…É¬¤!½ÉÑ½¸°…ÕÑ¡½È½˜Ñ•Éµ¥¹™½€ìA…Ù•°ÕÉÑ¥Ì°…ÕÑ¡½È½˜ÁÕÉÍ•Í€ì…¹i•å	•¸µ!…±¥´°É¥ŒL¸I…åµ½¹°…¹Q¡½µ…Ì¥­•ä°İ¡½Í”İ½É¬‘•Ù•±½Á•…¹µ…¥¹Ñ…¥¹•±¥‰Ñ¥¹™½€…¹¹ÕÉÍ•Í€¸()5…¹…•€¹9P¥µÁ±•µ•¹Ñ…Ñ¥½¸‰äQ¥µ½Ñ¡ä(¸	ÉÕ”€ñÕ¹¥‰±…‰¡½Ñµ…¥°¹½´ø¸((ŒŒ½ÁåÉ¥¡Ğ()½ÁåÉ¥¡Ğ€¡Œ¤€ÈÀÈØQ¥µ½Ñ¡ä(¸	ÉÕ”((ŒŒ1¥•¹Í”()1¥•¹Í•Õ¹‘•ÈÑ¡”9T1•ÍÍ•È•¹•É…°AÕ‰±¥Œ1¥•¹Í”ØÌ¸À½È±…Ñ•È¸M•”1%9M€¸()Q¡”9Õ•ĞÁ…­…”‘•±…É•Ì±¥•¹Í”…•ÁÑ…¹”…ÌÉ•ÅÕ¥É•¸A…­…”±¥•¹ÑÌİ¡¥ ¡½¹½È9Õ•ĞÌÉ•ÅÕ¥É•1¥•¹Í••ÁÑ…¹•€µ•Ñ…‘…Ñ„µÕÍĞ½‰Ñ…¥¸…•ÁÑ…¹”½˜Ñ¡”±¥•¹Í”Ñ•ÉµÌ‰•™½É”¥¹ÍÑ…±±…Ñ¥½¸¸(
