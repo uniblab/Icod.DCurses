@@ -9,7 +9,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.5.0` — advanced interaction control  
-**Status:** T150-T158 complete; T159 RC and stable-source 1.5.0 closure is next
+**Status:** T150-T158 complete; T159 `1.5.0-rc.1` exact-head qualification is active
 
 ---
 
@@ -27,6 +27,7 @@
 - `docs/T156-Coherence-and-Adversarial-Hardening.md`
 - `docs/T157-Application-Acceptance-and-Package-Consumer.md`
 - `docs/T158-Advanced-Interaction-Regret-and-Qualification-Gate.md`
+- `docs/T159-RC-and-Stable-1.5.0-Closure.md`
 - `docs/Public-API-Fingerprint-1.5.json`
 
 The 1.0-1.4 tranche, roadmap, and release-closure documents remain historical compatibility/release authorities and are not rewritten to simulate current development state.
@@ -40,7 +41,7 @@ The 1.0-1.4 tranche, roadmap, and release-closure documents remain historical co
 | `1.2.0` | Panels/layers/z-order composition | Historical stable baseline |
 | `1.3.0` | Layout and resize primitives | Historical stable baseline |
 | `1.4.0` | Interaction routing/focus/gestures/hit testing/pointer semantics | Current published stable release |
-| `1.5.0` | Advanced interaction control | Active development |
+| `1.5.0` | Advanced interaction control | RC qualification active |
 
 The progression is intentionally cumulative:
 
@@ -66,7 +67,7 @@ The tagged compatibility baseline is `v1.4.0`, whose merged source is rooted at:
 48d591aa427096be78c173ad8ed85566d7f671bf
 ```
 
-Current 1.5 candidate fingerprint through T158:
+Frozen 1.5 candidate fingerprint through T159 RC promotion:
 
 ```text
 69 exported types
@@ -74,7 +75,7 @@ Current 1.5 candidate fingerprint through T158:
 sha256 8807aa15714b0b059f2aaa5ef1ff33bce3ed0bfc44455d8a352ee7ecff8313c0
 ```
 
-T153 was behavior-only and left the T152 fingerprint unchanged. T154 added exactly two exported gesture types plus the nullable `CursesInteractionResult.PointerGesture` result slot. T155 added no exported type; it added `BindGesture` and `UnbindGesture` to the existing `CursesInteractionScope` type and promoted the current candidate fingerprint to `1.5.0-alpha.5`. T156 is behavior-only and leaves the T155 fingerprint unchanged while closing stale pointer-ownership resurrection across scope, panel, and screen-resize lifecycle transitions. T157 is acceptance-only: it advances the public interaction sample, package-only consumer, and user documentation without modifying `src/` or the public fingerprint. T158 is qualification-only: it adds performance/capacity regression gates and completes the public API/package/docs/dependency regret review without modifying production source or the compiler-derived fingerprint.
+T153 was behavior-only and left the T152 fingerprint unchanged. T154 added exactly two exported gesture types plus the nullable `CursesInteractionResult.PointerGesture` result slot. T155 added no exported type; it added `BindGesture` and `UnbindGesture` to the existing `CursesInteractionScope` type and promoted the current candidate fingerprint to `1.5.0-alpha.5`. T156 is behavior-only and leaves the T155 fingerprint unchanged while closing stale pointer-ownership resurrection across scope, panel, and screen-resize lifecycle transitions. T157 is acceptance-only: it advances the public interaction sample, package-only consumer, and user documentation without modifying `src/` or the public fingerprint. T158 is qualification-only: it adds performance/capacity regression gates and completes the public API/package/docs/dependency regret review without modifying production source or the compiler-derived fingerprint. T159 RC promotion changes release identity/documentation only.
 
 Version 1.5 remains additive. The final T158 regret gate found no break or corrective API addition justified before RC.
 
@@ -144,7 +145,7 @@ T155  scoped command bindings and precedence                                    
 T156  resize/panel/scope/capture/disposal coherence and adversarial hardening   complete
 T157  application acceptance sample and downstream/package consumer             complete
 T158  performance/allocation/API/package/docs/dependency regret gate            complete
-T159  RC and stable-source 1.5.0 closure                                        next
+T159  RC and stable-source 1.5.0 closure                                        RC qualification active
 ```
 
 Qualified implementation/API checkpoints:
@@ -161,7 +162,7 @@ T157  596843f798999573162be7883051030db353b940  #884 / 34908524571
 T158  9a8d0b2e2439bf4a936a5602d846a0c1bd20781f  #888 / 34914622882
 ```
 
-Each listed implementation/API checkpoint passed the complete seven-job Staging matrix: package candidate plus Windows/Linux/macOS on x64 and ARM64. T153's documentation-complete head `ad04432d36fa48e29357fd78dc713d3bba7ac746` additionally passed #846 / `34883079248`. T154's initial implementation qualification required one unchanged Windows ARM64 retry after a non-reproducible 528-byte allocation-measurement overage; the later documentation gate exposed the same fixed 528-byte noise on another TFM, so the test was hardened with a 1 KiB fixed sample-window noise allowance while preserving the 192-bytes-per-operation production ceiling. T154's final documentation head `39cd424d78ef2f72f43a757081646f7625b1ab54` passed #859 / `34897754255` without rerun. T155's documentation-complete head `92958f5cc7583dbab64c19c40a12fe607115524a` passed #866 / `34900041904` across all seven jobs. T156 then closed three real stale-ownership defects—scope round-trip capture resurrection, panel lifecycle capture/gesture resurrection, and screen resize capture/gesture resurrection—before its final mixed deterministic replay/capture-churn checkpoint passed #876 / `34905503151` across all seven jobs; T156's documentation-complete head `9a448aee6e987fe71549525af66aa7078234c46f` passed #878 / `34905872767`. T157's first isolated-package attempt correctly exposed that the repository's synthetic `CursesInputEvent.FromText`/`FromMouse` factories are internal rather than consumer API. The package smoke was corrected instead of widening the public API, and #884 proved the fresh `.nupkg` consumer compiled and executed successfully on net8.0, net9.0, and net10.0 while all six runtime lanes also passed. T157's documentation-complete head `9014bc8721ea8bde7248973d7d2d34e9ed2a8109` then passed #886 / `34908876499` across all seven jobs. T158 introduced five advanced-interaction allocation gates plus broad maximum-capacity churn. Its first head exposed a test-only scope teardown-order mistake; corrected head `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` passed #888 / `34914622882` across all seven jobs without production or threshold changes.
+Each listed implementation/API checkpoint passed the complete seven-job Staging matrix: package candidate plus Windows/Linux/macOS on x64 and ARM64. T153's documentation-complete head `ad04432d36fa48e29357fd78dc713d3bba7ac746` additionally passed #846 / `34883079248`. T154's initial implementation qualification required one unchanged Windows ARM64 retry after a non-reproducible 528-byte allocation-measurement overage; the later documentation gate exposed the same fixed 528-byte noise on another TFM, so the test was hardened with a 1 KiB fixed sample-window noise allowance while preserving the 192-bytes-per-operation production ceiling. T154's final documentation head `39cd424d78ef2f72f43a757081646f7625b1ab54` passed #859 / `34897754255` without rerun. T155's documentation-complete head `92958f5cc7583dbab64c19c40a12fe607115524a` passed #866 / `34900041904` across all seven jobs. T156 then closed three real stale-ownership defects—scope round-trip capture resurrection, panel lifecycle capture/gesture resurrection, and screen resize capture/gesture resurrection—before its final mixed deterministic replay/capture-churn checkpoint passed #876 / `34905503151` across all seven jobs; T156's documentation-complete head `9a448aee6e987fe71549525af66aa7078234c46f` passed #878 / `34905872767`. T157's first isolated-package attempt correctly exposed that the repository's synthetic `CursesInputEvent.FromText`/`FromMouse` factories are internal rather than consumer API. The package smoke was corrected instead of widening the public API, and #884 proved the fresh `.nupkg` consumer compiled and executed successfully on net8.0, net9.0, and net10.0 while all six runtime lanes also passed. T157's documentation-complete head `9014bc8721ea8bde7248973d7d2d34e9ed2a8109` then passed #886 / `34908876499` across all seven jobs. T158 introduced five advanced-interaction allocation gates plus broad maximum-capacity churn. Its first head exposed a test-only scope teardown-order mistake; corrected head `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` passed #888 / `34914622882` across all seven jobs without production or threshold changes. T158 documentation head `6336defe0fe0594301c1d20c0542ca1d8b8babd3` passed #892 / `34915072200`, and final evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`, all seven jobs.
 
 ## Deliberate 1.5 non-goals
 
@@ -186,4 +187,4 @@ Future widget or mixed-media layers should be able to build on the 1.5 mechanism
 
 ## Immediate next step
 
-Qualify the T158 documentation-complete head through the normal seven-job Staging matrix. Once green, T159 promotes the unchanged accepted implementation/API first to `1.5.0-rc.1`, qualifies that exact RC source, then promotes the same implementation/API to stable-source `1.5.0` for final pre-merge qualification. Merge, post-merge Release validation, tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions.
+Qualify the exact `1.5.0-rc.1` source through the normal package candidate plus Windows/Linux/macOS x64/ARM64 Staging matrix. If that exact RC head is green, T159 may promote the unchanged implementation/API to stable-source `1.5.0` for final pre-merge qualification. Merge, post-merge Release validation, tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions.
