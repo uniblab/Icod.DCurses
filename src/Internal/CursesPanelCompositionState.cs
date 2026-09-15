@@ -346,7 +346,7 @@ internal sealed class CursesPanelCompositionState {
 			row,
 			column
 		);
-		CursesRasterCellReference? currentRaster = destination.GetRasterCellReference(
+		CursesRasterCell? currentRaster = destination.GetRasterCell(
 			row,
 			column
 		);
@@ -355,7 +355,7 @@ internal sealed class CursesPanelCompositionState {
 				currentMetadata,
 				desired.Metadata
 			)
-			&& RasterReferencesEqual(
+			&& Nullable.Equals(
 				currentRaster,
 				desired.Raster
 			) ) {
@@ -375,11 +375,11 @@ internal sealed class CursesPanelCompositionState {
 					desired.Metadata
 				);
 			}
-			if ( desired.Raster is not null ) {
+			if ( desired.Raster.HasValue ) {
 				destination.SetRasterCell(
 					row,
 					column,
-					desired.Raster.Cell
+					desired.Raster
 				);
 			}
 			return true;
@@ -395,14 +395,14 @@ internal sealed class CursesPanelCompositionState {
 				desired.Metadata
 			);
 		}
-		if ( !RasterReferencesEqual(
+		if ( !Nullable.Equals(
 			currentRaster,
 			desired.Raster
 		) ) {
 			destination.SetRasterCell(
 				row,
 				column,
-				desired.Raster?.Cell
+				desired.Raster
 			);
 		}
 		return true;
@@ -437,7 +437,7 @@ internal sealed class CursesPanelCompositionState {
 				sourceRow,
 				sourceColumn
 			);
-			CursesRasterCellReference? panelRaster = panelScreen.GetRasterCellReference(
+			CursesRasterCell? panelRaster = panelScreen.GetRasterCell(
 				sourceRow,
 				sourceColumn
 			);
@@ -466,22 +466,6 @@ internal sealed class CursesPanelCompositionState {
 			producerRow,
 			producerColumn
 		) > previousProducerRevision;
-	}
-
-	private static bool RasterReferencesEqual(
-		CursesRasterCellReference? left,
-		CursesRasterCellReference? right
-	) {
-		if ( ReferenceEquals(
-			left,
-			right
-		) ) {
-			return true;
-		}
-		if ( left is null || right is null ) {
-			return false;
-		}
-		return left.Cell.Equals( right.Cell );
 	}
 
 	private void CaptureState(
