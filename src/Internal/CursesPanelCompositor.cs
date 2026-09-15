@@ -46,6 +46,10 @@ internal static class CursesPanelCompositor {
 			baseScreen,
 			result
 		);
+		CopyBaseRaster(
+			baseScreen,
+			result
+		);
 
 		foreach ( CursesPanel panel in panels ) {
 			if ( panel is null ) {
@@ -66,6 +70,10 @@ internal static class CursesPanelCompositor {
 				panel,
 				result
 			);
+			OverlayPanelRaster(
+				panel,
+				result
+			);
 		}
 
 		CursesCellFootprint.Repair( result );
@@ -77,7 +85,7 @@ internal static class CursesPanelCompositor {
 	/// <param name="panels">The complete remembered panel order from bottom to top.</param>
 	/// <param name="row">The zero-based destination row.</param>
 	/// <param name="column">The zero-based destination column.</param>
-	/// <returns>The logical cell and semantic metadata contributed at the coordinate.</returns>
+	/// <returns>The logical cell, semantic metadata, and retained raster contributed at the coordinate.</returns>
 	internal static CursesLogicalCellState ResolveCell(
 		CursesVirtualScreen baseScreen,
 		CursesPanel[] panels,
@@ -93,6 +101,10 @@ internal static class CursesPanelCompositor {
 				column
 			),
 			baseScreen.GetMetadata(
+				row,
+				column
+			),
+			baseScreen.GetRasterCellReference(
 				row,
 				column
 			)
@@ -114,26 +126,45 @@ internal static class CursesPanelCompositor {
 
 			int sourceRow = row - panel.Row;
 			int sourceColumn = column - panel.Column;
-			CursesCell cell = panel.VirtualScreen.GetCell(
+			CursesVirtualScreen panelScreen = panel.VirtualScreen;
+			CursesCell cell = panelScreen.GetCell(
+				sourceRow,
+				sourceColumn
+			);
+			CursesRasterCellReference? raster = panelScreen.GetRasterCellReference(
 				sourceRow,
 				sourceColumn
 			);
 			if ( IsTransparent(
 				panel,
-				cell
+				cell,
+				raster
 			) ) {
 				continue;
 			}
 
 			result = new CursesLogicalCellState(
 				cell,
-				panel.VirtualScreen.GetMetadata(
+				panelScreen.GetMetadata(
 					sourceRow,
 					sourceColumn
-				)
+				),
+				raster
 			);
 		}
 		return result;
+	}
+
+	/// <summary>Gets whether one panel coordinate is transparent to lower logical layers.</summary>
+	internal static bool IsTransparent(
+		CursesPanel panel,
+		CursesCell cell,
+		CursesRasterCellReference? raster
+	) {
+		ArgumentNullException.ThrowIfNull( panel );
+		return CursesPanelTransparency.BlankCellsTransparent == panel.Transparency
+			&& cell.IsBlank
+			&& raster is null;
 	}
 
 	private static void CopyBaseCells(
@@ -177,6 +208,29 @@ internal static class CursesPanelCompositor {
 		}
 	}
 
+	private static void CopyBaseRaster(
+		CursesVirtualScreen source,
+		CursesVirtualScreen destination
+	) {
+		for ( int row = 0; row < source.Rows; row++ ) {
+			for ( int column = 0; column < source.Columns; column++ ) {
+				CursesRasterCellReference? raster = source.GetRasterCellReference(
+					row,
+					column
+				);
+				if ( raster is null ) {
+					continue;
+				}
+
+				destination.SetRasterCell(
+					row,
+					column,
+					raster.Cell
+				);
+			}
+		}
+	}
+
 	private static void OverlayPanelCells(
 		CursesPanel panel,
 		CursesVirtualScreen destination
@@ -194,13 +248,19 @@ internal static class CursesPanelCompositor {
 
 		for ( int sourceRow = 0; sourceRow < sourceRowEnd; sourceRow++ ) {
 			for ( int sourceColumn = 0; sourceColumn < sourceColumnEnd; sourceColumn++ ) {
-				CursesCell cell = panel.VirtualScreen.GetCell(
+				CursesVirtualScreen source = panel.VirtualScreen;
+				CursesCell cell = source.GetCell(
+					sourceRow,
+					sourceColumn
+				);
+				CursesRasterCellReference? raster = source.GetRasterCellReference(
 					sourceRow,
 					sourceColumn
 				);
 				if ( IsTransparent(
 					panel,
-					cell
+					cell,
+					raster
 				) ) {
 					continue;
 				}
@@ -231,18 +291,24 @@ internal static class CursesPanelCompositor {
 
 		for ( int sourceRow = 0; sourceRow < sourceRowEnd; sourceRow++ ) {
 			for ( int sourceColumn = 0; sourceColumn < sourceColumnEnd; sourceColumn++ ) {
-				CursesCell cell = panel.VirtualScreen.GetCell(
+				CursesVirtualScreen source = panel.VirtualScreen;
+				CursesCell cell = source.GetCell(
+					sourceRow,
+					sourceColumn
+				);
+				CursesRasterCellReference? raster = source.GetRasterCellReference(
 					sourceRow,
 					sourceColumn
 				);
 				if ( IsTransparent(
 					panel,
-					cell
+					cell,
+					raster
 				) ) {
 					continue;
 				}
 
-				CursesCellMetadata? metadata = panel.VirtualScreen.GetMetadata(
+				CursesCellMetadata? metadata = source.GetMetadata(
 					sourceRow,
 					sourceColumn
 				);
@@ -254,6 +320,40 @@ internal static class CursesPanelCompositor {
 					panel.Row + sourceRow,
 					panel.Column + sourceColumn,
 					metadata
+				);
+			}
+		}
+	}
+
+	private static void OverlayPanelRaster(
+		CursesPanel panel,
+		CursesVirtualScreen destination
+	) {
+		GetIntersection(
+			panel,
+			destination,
+			out int sourceRowEnd,
+			out int sourceColumnEnd
+		);
+		if ( 0 >= sourceRowEnd
+			|| 0 >= sourceColumnEnd ) {
+			return;
+		}
+
+		for ( int sourceRow = 0; sourceRow < sourceRowEnd; sourceRow++ ) {
+			for ( int sourceColumn = 0; sourceColumn < sourceColumnEnd; sourceColumn++ ) {
+				CursesRasterCellReference? raster = panel.VirtualScreen.GetRasterCellReference(
+					sourceRow,
+					sourceColumn
+				);
+				if ( raster is null ) {
+					continue;
+				}
+
+				destination.SetRasterCell(
+					panel.Row + sourceRow,
+					panel.Column + sourceColumn,
+					raster.Cell
 				);
 			}
 		}
@@ -273,13 +373,5 @@ internal static class CursesPanelCompositor {
 			panel.Columns,
 			destination.Columns - panel.Column
 		);
-	}
-
-	private static bool IsTransparent(
-		CursesPanel panel,
-		CursesCell cell
-	) {
-		return CursesPanelTransparency.BlankCellsTransparent == panel.Transparency
-			&& cell.IsBlank;
 	}
 }
