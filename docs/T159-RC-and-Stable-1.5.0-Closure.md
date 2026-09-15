@@ -5,10 +5,12 @@
 **Published baseline:** `1.4.0`  
 **Qualified T158 evidence head:** `218f900aaf689029f8f5de26906f86724d029ebc`  
 **Qualified T158 evidence workflow:** #893 / `34915390381` — all seven jobs green  
-**RC identity:** `1.5.0-rc.1`  
+**Qualified RC head:** `23113b130d674da315ccbbcd384a60a0e6b47baa`  
+**Qualified RC workflow:** #899 / `34993884108` — all seven jobs green  
+**Stable-source identity:** `1.5.0`  
 **AssemblyVersion:** `1.0.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
-**Status:** RC identity promoted; exact-head RC Staging qualification pending; merge/tag/release/publication remain explicitly unauthorized
+**Status:** stable-source identity promoted; final exact-head Staging qualification pending; merge/tag/release/publication remain explicitly unauthorized
 
 ---
 
@@ -77,9 +79,9 @@ T159 does not reopen the implementation or public API. The accepted 1.5 mechanis
 - bounded capacity, deterministic repair, stale-ownership invalidation, and callback-free results;
 - no widget framework, hidden event loop, drag/drop policy, multi-click timing policy, raster scene ownership, or terminal protocol ownership.
 
-## RC promotion
+## RC promotion and qualification
 
-The T158-qualified implementation/API has been promoted unchanged to:
+The T158-qualified implementation/API was promoted unchanged to:
 
 ```text
 Version         1.5.0-rc.1
@@ -87,22 +89,29 @@ PackageVersion  1.5.0-rc.1
 AssemblyVersion 1.0.0.0
 ```
 
-RC promotion changes release identity and release-facing documentation only. Production interaction code, the compiler-derived public API, target frameworks, and declared runtime dependencies remain unchanged.
+RC promotion changed release identity and release-facing documentation only. Production interaction code, the compiler-derived public API, target frameworks, and declared runtime dependencies remained unchanged.
 
-The RC exact head must pass:
+The exact RC head was:
 
-- package candidate validation, including the fresh package-only net8/net9/net10 consumer;
-- Windows x64 and ARM64 runtime tests;
-- Linux x64 and ARM64 runtime tests;
-- macOS x64 and ARM64 runtime tests;
-- the T158 allocation/capacity gates;
-- the existing compiler-derived public API guard.
+```text
+23113b130d674da315ccbbcd384a60a0e6b47baa
+```
 
-Any failure must be diagnosed from evidence. An unchanged rerun may only be accepted when a failure is demonstrated to be environmental/test-harness noise rather than used as a substitute for root-cause analysis.
+Workflow #899 / `34993884108` passed the complete seven-job Staging matrix without rerun or correction:
 
-## Stable-source promotion plan
+- Package candidate;
+- Runtime Windows x64;
+- Runtime Windows ARM64;
+- Runtime Linux x64;
+- Runtime Linux ARM64;
+- Runtime macOS x64;
+- Runtime macOS ARM64.
 
-Only after an exact RC head passes all seven required Staging jobs may the unchanged implementation/API be promoted to:
+That qualifies the RC package identity, isolated package-only net8/net9/net10 consumer, T158 allocation/capacity gates, runtime suites, and compiler-derived API guard on the exact RC source.
+
+## Stable-source promotion
+
+Because the exact RC head passed all seven required jobs, the unchanged implementation/API has been promoted to:
 
 ```text
 Version         1.5.0
@@ -110,15 +119,19 @@ PackageVersion  1.5.0
 AssemblyVersion 1.0.0.0
 ```
 
-At stable-source promotion:
+Stable-source promotion changes stable package identity and release-facing documentation only. The seven new exported types, additive members, algorithms, capacity rules, and dependency graph are unchanged from the qualified RC.
 
-- release notes/status wording becomes stable-source wording;
-- the 1.5 API fingerprint metadata may be promoted from its last API-changing alpha label to final `1.5.0` / stable while retaining the same 69/525/hash contract;
-- roadmaps and this closure record capture the qualified RC head/workflow;
-- package/runtime dependencies remain unchanged unless a new independently justified compatibility/security requirement appears;
-- no production behavior change is permitted without reopening the appropriate test/regret gate.
+The fingerprint metadata is promoted from the last API-changing alpha label to:
 
-The stable-source exact head must then pass the same complete seven-job Staging matrix.
+```text
+release 1.5.0
+status stable
+69 exported types
+525 canonical declared contract lines
+sha256 8807aa15714b0b059f2aaa5ef1ff33bce3ed0bfc44455d8a352ee7ecff8313c0
+```
+
+The current stable-source exact head must pass the same complete seven-job Staging matrix before the branch may be described as release-ready source.
 
 ## Release boundary
 
@@ -139,7 +152,7 @@ Those remain separate explicit maintainer approval/actions after stable-source q
 | T158 measured implementation | `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` | #888 / `34914622882` | seven jobs green |
 | T158 documentation-complete | `6336defe0fe0594301c1d20c0542ca1d8b8babd3` | #892 / `34915072200` | seven jobs green |
 | T158 final evidence | `218f900aaf689029f8f5de26906f86724d029ebc` | #893 / `34915390381` | seven jobs green |
-| `1.5.0-rc.1` | current branch | pending | exact-head RC qualification pending |
-| stable-source `1.5.0` | pending | pending | blocked on qualified RC |
+| `1.5.0-rc.1` | `23113b130d674da315ccbbcd384a60a0e6b47baa` | #899 / `34993884108` | seven jobs green |
+| stable-source `1.5.0` | current branch | pending | final exact-head qualification pending |
 | PR #30 merge | pending explicit approval | — | not merged |
 | `main` Release | pending post-merge | pending | not run |
