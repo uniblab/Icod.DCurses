@@ -17,7 +17,7 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 Current published stable release: `Icod.DCurses 1.4.0`.
 
-`Icod.DCurses 1.5.0` is in stable-source qualification in PR #30. T150-T158 are complete. The unchanged `1.5.0-rc.1` source at `23113b130d674da315ccbbcd384a60a0e6b47baa` passed workflow #899 / `34993884108` across the complete seven-job Staging matrix. T159 has now promoted that same implementation/API to stable-source `1.5.0`; final exact-head qualification is active before the PR can be presented for explicit merge approval.
+`Icod.DCurses 1.5.0` is complete in stable-source form in PR #30. The unchanged RC head `23113b130d674da315ccbbcd384a60a0e6b47baa` passed workflow #899 / `34993884108` across the complete seven-job Staging matrix. Stable-source head `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` then passed workflow #905 / `34994761777` across package candidate plus Windows/Linux/macOS x64/ARM64. The current documentation/evidence-only PR head remains subject to the ordinary final checks before explicit merge approval.
 
 Current branch source identity:
 
@@ -65,7 +65,7 @@ Install the current published stable package selected by your normal NuGet polic
 dotnet add package Icod.DCurses
 ```
 
-Normal stable package resolution still selects the published 1.4 line until PR #30 is explicitly merged, the resulting `main` Release workflow is qualified, and the maintainer separately tags/publishes 1.5. The current branch is stable-source candidate material, not a published package.
+Normal stable package resolution still selects the published 1.4 line until PR #30 is explicitly merged, the resulting `main` Release workflow is qualified, and the maintainer separately tags/publishes 1.5. The current branch is qualified stable-source candidate material, not a published package.
 
 ## Architecture
 
@@ -387,7 +387,7 @@ Local wrappers use Debug configuration. Pull requests use Staging with warnings-
 
 Runtime validation covers Windows/Linux/macOS x64 and ARM64; the library/test matrix covers `net8.0`, `net9.0`, and `net10.0`.
 
-Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. The package consumer now compiles and executes the complete additive 1.5 interaction surface directly from the packed artifact on net8/net9/net10, including scopes, spatial focus, scoped commands, explicit capture lifetime, and public pointer target/gesture/result contracts. Package validation does not impose hard-coded sibling dependency versions.
+Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. The package consumer compiles and executes the complete additive 1.5 interaction surface directly from the packed artifact on net8/net9/net10, including scopes, spatial focus, scoped commands, explicit capture lifetime, and public pointer target/gesture/result contracts. Package validation does not impose hard-coded sibling dependency versions.
 
 ## Release documentation
 
@@ -407,9 +407,9 @@ Current authorities:
 - `docs/T158-Advanced-Interaction-Regret-and-Qualification-Gate.md`
 - `docs/T159-RC-and-Stable-1.5.0-Closure.md`
 
-Published 1.4 compatibility/release authorities remain in the repository, including `Icod.DCurses-1.4.0-Development-Roadmap.md`, `docs/Public-API-Fingerprint-1.4.json`, and the T1401-T1412 tranche records. They are historical evidence and are not rewritten to simulate current 1.5 development state.
+Published 1.4 compatibility/release authorities remain historical evidence and are not rewritten to simulate current 1.5 development state.
 
-T157 implementation head `596843f798999573162be7883051030db353b940` passed workflow #884 / `34908524571` across all seven jobs, including isolated `.nupkg` consumers on net8/net9/net10. T157 documentation head `9014bc8721ea8bde7248973d7d2d34e9ed2a8109` passed workflow #886 / `34908876499` across all seven jobs. T158 performance head `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` passed workflow #888 / `34914622882` across all seven jobs after one test-fixture ownership correction; T158 documentation head `6336defe0fe0594301c1d20c0542ca1d8b8babd3` passed #892 / `34915072200`, and final evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`. RC head `23113b130d674da315ccbbcd384a60a0e6b47baa` passed #899 / `34993884108`, all seven jobs, with no production/API correction or rerun.
+T158 final evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`. RC head `23113b130d674da315ccbbcd384a60a0e6b47baa` passed #899 / `34993884108`, all seven jobs. Stable-source head `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` passed #905 / `34994761777`, all seven jobs. Production source and the frozen public API remained unchanged through RC/stable-source promotion.
 
 ## Authors
 
