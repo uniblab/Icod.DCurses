@@ -34,6 +34,7 @@ public sealed class PublicDependencyBoundaryTests {
 	) {
 		"Icod.Terminal.TerminalControlResult`1",
 		"Icod.Terminal.TerminalEndpoint",
+		"Icod.Terminal.TerminalRasterImage",
 		"Icod.Terminal.TerminalSession",
 		"Icod.TermInfo.TerminalDescription",
 		"Icod.TermInfo.TerminalSize"

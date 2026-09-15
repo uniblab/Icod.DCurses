@@ -19,18 +19,19 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-namespace Icod.DCurses.Internal;
+namespace Icod.DCurses;
 
-/// <summary>
-/// Captures one retained logical cell together with its optional semantic metadata and retained
-/// raster token for temporary editing, composition, and structural-copy operations.
-/// </summary>
-/// <remarks>
-/// This is intentionally an internal transient value. The stable public <see cref="CursesCell"/>
-/// representation remains independent of surface-owned semantic metadata and retained raster state.
-/// </remarks>
-internal readonly record struct CursesLogicalCellState(
-	CursesCell Cell,
-	CursesCellMetadata? Metadata,
-	CursesRasterCell? Raster = null
-);
+/// <summary>Identifies DCurses' current view of retained raster ownership.</summary>
+public enum CursesRasterOwnershipStatus {
+	/// <summary>The wrapped Terminal ownership remains current for its live session generation.</summary>
+	Current = 0,
+
+	/// <summary>The terminal-resident ownership certainty has been lost.</summary>
+	Stale = 1,
+
+	/// <summary>The ownership relationship has been released by another owner or lifecycle transition.</summary>
+	Released = 2,
+
+	/// <summary>The DCurses ownership facade itself has been explicitly disposed.</summary>
+	Disposed = 3
+}

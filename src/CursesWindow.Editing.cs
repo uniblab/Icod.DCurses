@@ -55,7 +55,7 @@ public sealed partial class CursesWindow {
 	/// <remarks>
 	/// The cursor is preserved. If the selected rectangle intersects either half of an existing two-column
 	/// footprint, the owning screen repairs the other half before storing the replacement cells. Existing
-	/// semantic metadata in the filled coordinates is removed with the replaced content.
+	/// semantic metadata and retained raster state in the filled coordinates are removed with the replaced content.
 	/// </remarks>
 	public void FillRectangle(
 		int row,
@@ -98,8 +98,8 @@ public sealed partial class CursesWindow {
 	/// <param name="count">The positive number of terminal columns to insert.</param>
 	/// <remarks>
 	/// The operation is confined to the current window row, preserves the cursor, discards shifted-out
-	/// content, moves semantic metadata with surviving content, and never retains half of a two-column
-	/// footprint at an edit boundary.
+	/// content, moves semantic metadata and retained raster state with surviving content, and never retains
+	/// half of a two-column footprint at an edit boundary.
 	/// </remarks>
 	public void InsertCells( int count = 1 ) {
 		ValidateEditCount( count );
@@ -137,8 +137,8 @@ public sealed partial class CursesWindow {
 	/// <param name="count">The positive number of terminal columns to delete.</param>
 	/// <remarks>
 	/// The operation is confined to the current window row, preserves the cursor, fills vacated columns
-	/// with <see cref="BackgroundCell"/>, moves semantic metadata with surviving content, and never retains
-	/// half of a two-column footprint.
+	/// with <see cref="BackgroundCell"/>, moves semantic metadata and retained raster state with surviving
+	/// content, and never retains half of a two-column footprint.
 	/// </remarks>
 	public void DeleteCells( int count = 1 ) {
 		ValidateEditCount( count );
@@ -176,7 +176,7 @@ public sealed partial class CursesWindow {
 	/// <param name="count">The positive number of rows to insert.</param>
 	/// <remarks>
 	/// The operation preserves the cursor, discards rows shifted below the window, and moves semantic
-	/// metadata with surviving row content.
+	/// metadata and retained raster state with surviving row content.
 	/// </remarks>
 	public void InsertLines( int count = 1 ) {
 		ValidateEditCount( count );
@@ -213,7 +213,8 @@ public sealed partial class CursesWindow {
 	/// <param name="count">The positive number of rows to delete.</param>
 	/// <remarks>
 	/// The operation preserves the cursor, fills vacated rows at the bottom with
-	/// <see cref="BackgroundCell"/>, and moves semantic metadata with surviving row content.
+	/// <see cref="BackgroundCell"/>, and moves semantic metadata and retained raster state with surviving
+	/// row content.
 	/// </remarks>
 	public void DeleteLines( int count = 1 ) {
 		ValidateEditCount( count );
@@ -267,6 +268,10 @@ public sealed partial class CursesWindow {
 				column
 			),
 			GetMetadata(
+				row,
+				column
+			),
+			GetRasterCell(
 				row,
 				column
 			)
@@ -400,9 +405,11 @@ public sealed partial class CursesWindow {
 				continue;
 			}
 
+			CursesRasterCell? continuationRaster = states[ column + 1 ].Raster;
 			states[ column + 1 ] = new CursesLogicalCellState(
 				CursesCell.Continuation( cell.Style ),
-				state.Metadata
+				state.Metadata,
+				continuationRaster
 			);
 			column++;
 		}
@@ -428,6 +435,13 @@ public sealed partial class CursesWindow {
 				screenRow,
 				screenColumn,
 				state.Metadata
+			);
+		}
+		if ( state.Raster.HasValue ) {
+			screen.VirtualScreen.SetRasterCell(
+				screenRow,
+				screenColumn,
+				state.Raster.Value
 			);
 		}
 	}

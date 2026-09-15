@@ -34,16 +34,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>1.5.0</Version>
+		<Version>1.6.0-alpha.2</Version>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>1.5.0</PackageVersion>
+		<PackageVersion>1.6.0-alpha.2</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>1.5.0 adds advanced deterministic interaction control over the published 1.4 router: bounded immutable-parent interaction scopes with LIFO activation, explicit singular pointer capture with signed out-of-bounds targets, deterministic spatial logical focus, clock-free pointer gesture normalization, and bounded scope-level command bindings with region-to-scope-to-global precedence. The release preserves callback-free synchronous routing, application-owned policy, the published 1.4 root/unscoped behavior, and AssemblyVersion 1.0.0.0. Runtime dependencies are Icod.Terminal 1.15.0 and Icod.TermInfo 1.14.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>1.6.0-alpha.2 extends retained mixed-media presentation with a lazy row-sparse retained-raster logical plane. It adds public raster-cell get/set operations on CursesVirtualScreen and CursesWindow plus current-cursor WriteRasterCell, integrates raster changes with existing logical damage/revision tracking, clears retained raster state on ordinary replacement and fill, and preserves the T1602 session-owned raster facade and Terminal-owned protocol/lifecycle boundary. AssemblyVersion remains 1.0.0.0. Runtime dependencies remain Icod.Terminal 1.15.0 and Icod.TermInfo 1.14.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -54,7 +54,7 @@
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<Deterministic>true</Deterministic>
-		<PackageTags>cli;command-line;console;cross-platform;csharp;curses;dcurses;dotnet;full-screen;icod;linux;macos;ncurses;pcurses;posix;screen;termcap;terminal;terminal-info;terminfo;text;tui;ui;windows</PackageTags>
+		<PackageTags>cli;command-line;console;console-ui;cross-platform;csharp;curses;dcurses;dotnet;full-screen;icod;interfacce;linux;macos;ncurses;pcurses;pdcurses;posix;screen;termcap;terminal;terminal-info;terminal-ui;terminfo;text;text-ui;tui;ui;user-interface;windows</PackageTags>
 		<RepositoryUrl>https://github.com/uniblab/Icod.DCurses</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>

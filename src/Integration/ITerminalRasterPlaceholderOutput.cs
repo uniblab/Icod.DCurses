@@ -19,18 +19,15 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-namespace Icod.DCurses.Internal;
+namespace Icod.DCurses.Terminal;
 
-/// <summary>
-/// Captures one retained logical cell together with its optional semantic metadata and retained
-/// raster token for temporary editing, composition, and structural-copy operations.
-/// </summary>
-/// <remarks>
-/// This is intentionally an internal transient value. The stable public <see cref="CursesCell"/>
-/// representation remains independent of surface-owned semantic metadata and retained raster state.
-/// </remarks>
-internal readonly record struct CursesLogicalCellState(
-	CursesCell Cell,
-	CursesCellMetadata? Metadata,
-	CursesRasterCell? Raster = null
-);
+/// <summary>Optional typed raster-placeholder output implemented by Terminal-backed refresh output.</summary>
+internal interface ITerminalRasterPlaceholderOutput {
+	/// <summary>Writes one retained raster-placeholder cell at the current terminal cursor.</summary>
+	/// <param name="cell">The opaque retained raster cell to emit.</param>
+	/// <param name="cancellationToken">Cancellation observed before Terminal commits placeholder output.</param>
+	ValueTask WriteRasterPlaceholderCellAsync(
+		CursesRasterCell cell,
+		CancellationToken cancellationToken = default
+	);
+}

@@ -33,6 +33,7 @@ internal sealed class CursesRefreshEngine {
 	private readonly TerminalDescription terminal;
 	private readonly ITerminalOutput output;
 	private readonly ITerminalHyperlinkOutput? hyperlinkOutput;
+	private readonly ITerminalRasterPlaceholderOutput? rasterPlaceholderOutput;
 	private readonly CursesPresentationResolver presentationResolver;
 	private readonly CursesLinePresentationResolver linePresentationResolver;
 	private readonly CursesCursorMotionResolver cursorMotionResolver;
@@ -62,6 +63,7 @@ internal sealed class CursesRefreshEngine {
 		this.terminal = terminal;
 		this.output = output;
 		this.hyperlinkOutput = output as ITerminalHyperlinkOutput;
+		this.rasterPlaceholderOutput = output as ITerminalRasterPlaceholderOutput;
 		presentationResolver = new CursesPresentationResolver( terminal );
 		linePresentationResolver = new CursesLinePresentationResolver( terminal );
 		cursorMotionResolver = new CursesCursorMotionResolver( terminal );
@@ -244,9 +246,18 @@ internal sealed class CursesRefreshEngine {
 			cursorColumn = null;
 		}
 
-		bool semanticStatePresent = 0 < desired.SemanticMetadataCount
-			|| 0 < physicalScreen!.SemanticMetadataCount;
-		CursesLineShiftPlan? lineShift = semanticStatePresent
+		if ( 0 < desired.RasterCellCount
+			&& rasterPlaceholderOutput is null ) {
+			throw new InvalidOperationException(
+				"Retained raster rendering requires Terminal-backed raster-placeholder output."
+			);
+		}
+
+		bool retainedStatePresent = 0 < desired.SemanticMetadataCount
+			|| 0 < physicalScreen!.SemanticMetadataCount
+			|| 0 < desired.RasterCellCount
+			|| 0 < physicalScreen.RasterCellCount;
+		CursesLineShiftPlan? lineShift = retainedStatePresent
 			? null
 			: lineShiftResolver.Resolve(
 				desired,
@@ -266,7 +277,7 @@ internal sealed class CursesRefreshEngine {
 		} else {
 			bool eraseCompletedRefresh = false;
 			for ( int row = 0; row < desired.Rows && !eraseCompletedRefresh; row++ ) {
-				CursesCharacterShiftPlan? characterShift = semanticStatePresent
+				CursesCharacterShiftPlan? characterShift = retainedStatePresent
 					? null
 					: characterShiftResolver.Resolve(
 						desired,
@@ -301,7 +312,7 @@ internal sealed class CursesRefreshEngine {
 						column
 					);
 
-					CursesErasePlan? erasePlan = semanticStatePresent
+					CursesErasePlan? erasePlan = retainedStatePresent
 						? null
 						: eraseResolver.Resolve(
 							desired,
@@ -386,12 +397,24 @@ internal sealed class CursesRefreshEngine {
 			return true;
 		}
 
-		return !Equals(
+		if ( !Equals(
 			physicalScreen.GetMetadata(
 				row,
 				column
 			),
 			desired.GetMetadata(
+				row,
+				column
+			) ) ) {
+			return true;
+		}
+
+		return !Equals(
+			physicalScreen.GetRasterCell(
+				row,
+				column
+			),
+			desired.GetRasterCell(
 				row,
 				column
 			)
@@ -689,6 +712,10 @@ internal sealed class CursesRefreshEngine {
 				desired.GetMetadata(
 					row,
 					column
+				),
+				desired.GetRasterCell(
+					row,
+					column
 				)
 			);
 		}
@@ -711,6 +738,22 @@ internal sealed class CursesRefreshEngine {
 
 		int segmentStart = start;
 		while ( segmentStart <= end ) {
+			CursesRasterCell? rasterCell = desired.GetRasterCell(
+				row,
+				segmentStart
+			);
+			if ( rasterCell.HasValue ) {
+				await RenderRasterCellAsync(
+					desired,
+					row,
+					segmentStart,
+					rasterCell.Value,
+					cancellationToken
+				).ConfigureAwait( false );
+				segmentStart++;
+				continue;
+			}
+
 			CursesStyle style = desired[ row, segmentStart ].Style;
 			CursesCellMetadata? metadata = desired.GetMetadata(
 				row,
@@ -718,6 +761,10 @@ internal sealed class CursesRefreshEngine {
 			);
 			int segmentEnd = segmentStart;
 			while ( segmentEnd + 1 <= end
+				&& !desired.GetRasterCell(
+					row,
+					segmentEnd + 1
+				).HasValue
 				&& desired[ row, segmentEnd + 1 ].Style == style
 				&& Equals(
 					desired.GetMetadata(
@@ -740,6 +787,53 @@ internal sealed class CursesRefreshEngine {
 				cancellationToken
 			).ConfigureAwait( false );
 			segmentStart = segmentEnd + 1;
+		}
+	}
+
+	private async ValueTask RenderRasterCellAsync(
+		CursesVirtualScreen desired,
+		int row,
+		int column,
+		CursesRasterCell rasterCell,
+		CancellationToken cancellationToken
+	) {
+		ITerminalRasterPlaceholderOutput semanticOutput = rasterPlaceholderOutput
+			?? throw new InvalidOperationException(
+				"Retained raster rendering requires Terminal-backed raster-placeholder output."
+			);
+
+		await MoveCursorAsync(
+			row,
+			column,
+			cancellationToken
+		).ConfigureAwait( false );
+		await ApplyStyleAsync(
+			desired[ row, column ].Style,
+			cancellationToken
+		).ConfigureAwait( false );
+		await semanticOutput.WriteRasterPlaceholderCellAsync(
+			rasterCell,
+			cancellationToken
+		).ConfigureAwait( false );
+
+		physicalScreen!.SetCell(
+			row,
+			column,
+			desired[ row, column ],
+			desired.GetMetadata(
+				row,
+				column
+			),
+			rasterCell
+		);
+
+		currentStyle = null;
+		if ( column + 1 < desired.Columns ) {
+			cursorRow = row;
+			cursorColumn = column + 1;
+		} else {
+			cursorRow = null;
+			cursorColumn = null;
 		}
 	}
 
@@ -777,7 +871,8 @@ internal sealed class CursesRefreshEngine {
 				desired.GetMetadata(
 					row,
 					column
-				)
+				),
+				rasterCell: null
 			);
 		}
 

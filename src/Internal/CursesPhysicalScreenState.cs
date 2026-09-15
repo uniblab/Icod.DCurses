@@ -32,6 +32,7 @@ internal sealed class CursesPhysicalScreenState {
 	private readonly CursesCell[] cells;
 	private readonly bool[] knownCells;
 	private CursesSparseCellPlane<CursesCellMetadata>? semanticMetadata;
+	private CursesSparseCellPlane<CursesRasterCellReference>? retainedRaster;
 
 	/// <summary>Initializes physical-screen state with every cell initially unknown.</summary>
 	/// <param name="columns">The positive terminal column count.</param>
@@ -70,6 +71,9 @@ internal sealed class CursesPhysicalScreenState {
 
 	/// <summary>Gets the number of retained coordinates carrying semantic metadata.</summary>
 	internal int SemanticMetadataCount => semanticMetadata?.Count ?? 0;
+
+	/// <summary>Gets the number of retained coordinates carrying raster state.</summary>
+	internal int RasterCellCount => retainedRaster?.Count ?? 0;
 
 	/// <summary>Gets a known physical cell when one has been recorded.</summary>
 	/// <param name="row">The zero-based row.</param>
@@ -119,7 +123,31 @@ internal sealed class CursesPhysicalScreenState {
 		);
 	}
 
-	/// <summary>Records one physical cell as known and unlinked.</summary>
+	/// <summary>Gets retained physical raster state for one known coordinate.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <returns>The retained raster cell, or <see langword="null"/> when none is known at the coordinate.</returns>
+	internal CursesRasterCell? GetRasterCell(
+		int row,
+		int column
+	) {
+		int offset = GetOffset(
+			row,
+			column
+		);
+		if ( !knownCells[ offset ] ) {
+			throw new InvalidOperationException(
+				"Raster state cannot be read for an unknown physical coordinate."
+			);
+		}
+
+		return retainedRaster?.Get(
+			row,
+			column
+		)?.Cell;
+	}
+
+	/// <summary>Records one physical cell as known and without retained semantic or raster state.</summary>
 	/// <param name="row">The zero-based row.</param>
 	/// <param name="column">The zero-based column.</param>
 	/// <param name="cell">The physical cell value.</param>
@@ -132,11 +160,12 @@ internal sealed class CursesPhysicalScreenState {
 			row,
 			column,
 			cell,
-			metadata: null
+			metadata: null,
+			rasterCell: null
 		);
 	}
 
-	/// <summary>Records one physical cell and semantic value as known.</summary>
+	/// <summary>Records one physical cell and semantic value as known without retained raster state.</summary>
 	/// <param name="row">The zero-based row.</param>
 	/// <param name="column">The zero-based column.</param>
 	/// <param name="cell">The physical cell value.</param>
@@ -147,13 +176,66 @@ internal sealed class CursesPhysicalScreenState {
 		CursesCell cell,
 		CursesCellMetadata? metadata
 	) {
+		SetCell(
+			row,
+			column,
+			cell,
+			metadata,
+			rasterCell: null
+		);
+	}
+
+	/// <summary>Records one physical cell, semantic value, and retained raster value as known.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <param name="cell">The physical cell value.</param>
+	/// <param name="metadata">The semantic metadata, or <see langword="null"/> for unlinked content.</param>
+	/// <param name="rasterCell">The retained raster cell, or <see langword="null"/> when none is physically represented.</param>
+	internal void SetCell(
+		int row,
+		int column,
+		CursesCell cell,
+		CursesCellMetadata? metadata,
+		CursesRasterCell? rasterCell
+	) {
 		int offset = GetOffset(
 			row,
 			column
 		);
+		if ( rasterCell.HasValue
+			&& !rasterCell.Value.IsValid ) {
+			throw new ArgumentException(
+				"The default CursesRasterCell value cannot be retained.",
+				nameof( rasterCell )
+			);
+		}
 
 		cells[ offset ] = cell;
 		knownCells[ offset ] = true;
+		SetMetadata(
+			row,
+			column,
+			metadata
+		);
+		SetRasterCell(
+			row,
+			column,
+			rasterCell
+		);
+	}
+
+	/// <summary>Marks every retained physical cell, semantic value, and raster value unknown.</summary>
+	internal void Invalidate() {
+		Array.Clear( knownCells );
+		semanticMetadata = null;
+		retainedRaster = null;
+	}
+
+	private void SetMetadata(
+		int row,
+		int column,
+		CursesCellMetadata? metadata
+	) {
 		if ( metadata is null ) {
 			if ( semanticMetadata is null ) {
 				return;
@@ -180,10 +262,35 @@ internal sealed class CursesPhysicalScreenState {
 		);
 	}
 
-	/// <summary>Marks every retained physical cell and semantic value unknown.</summary>
-	internal void Invalidate() {
-		Array.Clear( knownCells );
-		semanticMetadata = null;
+	private void SetRasterCell(
+		int row,
+		int column,
+		CursesRasterCell? rasterCell
+	) {
+		if ( !rasterCell.HasValue ) {
+			if ( retainedRaster is null ) {
+				return;
+			}
+			retainedRaster.Set(
+				row,
+				column,
+				null
+			);
+			if ( retainedRaster.IsEmpty ) {
+				retainedRaster = null;
+			}
+			return;
+		}
+
+		retainedRaster ??= new CursesSparseCellPlane<CursesRasterCellReference>(
+			Columns,
+			Rows
+		);
+		retainedRaster.Set(
+			row,
+			column,
+			new CursesRasterCellReference( rasterCell.Value )
+		);
 	}
 
 	private int GetOffset(

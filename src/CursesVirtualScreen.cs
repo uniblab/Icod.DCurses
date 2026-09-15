@@ -35,6 +35,7 @@ public sealed class CursesVirtualScreen {
 	private readonly CursesCell[] cells;
 	private readonly bool[] dirtyCells;
 	private CursesSparseCellPlane<CursesCellMetadata>? semanticMetadata;
+	private CursesSparseCellPlane<CursesRasterCellReference>? retainedRaster;
 	private ulong[]? cellChangeRevisions;
 	private int dirtyCellCount;
 	private ulong changeRevision;
@@ -184,14 +185,60 @@ public sealed class CursesVirtualScreen {
 		);
 	}
 
+	/// <summary>Gets one retained raster cell associated with a logical coordinate.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <returns>The retained raster cell, or <see langword="null"/> when none is associated.</returns>
+	public CursesRasterCell? GetRasterCell(
+		int row,
+		int column
+	) {
+		_ = GetOffset(
+			row,
+			column
+		);
+		return retainedRaster?.Get(
+			row,
+			column
+		)?.Cell;
+	}
+
+	/// <summary>Associates one retained raster cell with a logical coordinate.</summary>
+	/// <param name="row">The zero-based row.</param>
+	/// <param name="column">The zero-based column.</param>
+	/// <param name="rasterCell">The raster cell to retain, or <see langword="null"/> to remove it.</param>
+	public void SetRasterCell(
+		int row,
+		int column,
+		CursesRasterCell? rasterCell
+	) {
+		int offset = GetOffset(
+			row,
+			column
+		);
+		if ( rasterCell.HasValue
+			&& !rasterCell.Value.IsValid ) {
+			throw new ArgumentException(
+				"The default CursesRasterCell value cannot be retained.",
+				nameof( rasterCell )
+			);
+		}
+		SetRasterCellRaw(
+			row,
+			column,
+			offset,
+			rasterCell
+		);
+	}
+
 	/// <summary>Sets one logical cell.</summary>
 	/// <param name="row">The zero-based row.</param>
 	/// <param name="column">The zero-based column.</param>
 	/// <param name="cell">The replacement logical cell.</param>
 	/// <remarks>
 	/// Replacing a logical cell removes semantic metadata associated with the existing text-element
-	/// footprint. Use <see cref="SetMetadata(int,int,CursesCellMetadata?)"/> after replacement when the
-	/// new content should carry metadata.
+	/// footprint and retained raster state at the replaced coordinate. Use metadata/raster setters after
+	/// replacement when the new content should carry those independent retained axes.
 	/// </remarks>
 	public void SetCell(
 		int row,
@@ -206,6 +253,12 @@ public sealed class CursesVirtualScreen {
 			row,
 			column,
 			offset
+		);
+		SetRasterCellRaw(
+			row,
+			column,
+			offset,
+			null
 		);
 		if ( cells[ offset ] == cell ) {
 			return;
@@ -241,14 +294,16 @@ public sealed class CursesVirtualScreen {
 	/// <param name="cell">The cell value copied to every coordinate.</param>
 	public void Fill( CursesCell cell ) {
 		bool removedSemanticMetadata = semanticMetadata is not null;
+		bool removedRaster = retainedRaster is not null;
 		semanticMetadata = null;
+		retainedRaster = null;
 		for ( int offset = 0; offset < cells.Length; offset++ ) {
 			SetCellRaw(
 				offset,
 				cell
 			);
 		}
-		if ( removedSemanticMetadata ) {
+		if ( removedSemanticMetadata || removedRaster ) {
 			Invalidate();
 		}
 	}
@@ -264,6 +319,30 @@ public sealed class CursesVirtualScreen {
 
 	/// <summary>Gets the number of coordinates carrying semantic metadata.</summary>
 	internal int SemanticMetadataCount => semanticMetadata?.Count ?? 0;
+
+	/// <summary>Gets the number of coordinates carrying retained raster state.</summary>
+	internal int RasterCellCount => retainedRaster?.Count ?? 0;
+
+	/// <summary>Gets whether sparse retained-raster storage is currently materialized.</summary>
+	internal bool RasterStorageAllocated => retainedRaster is not null;
+
+	/// <summary>Gets the number of rows with materialized retained-raster reference storage.</summary>
+	internal int RasterAllocatedRowCount => retainedRaster?.AllocatedRowCount ?? 0;
+
+	/// <summary>Gets the internal retained-raster reference for structural logical operations.</summary>
+	internal CursesRasterCellReference? GetRasterCellReference(
+		int row,
+		int column
+	) {
+		_ = GetOffset(
+			row,
+			column
+		);
+		return retainedRaster?.Get(
+			row,
+			column
+		);
+	}
 
 	/// <summary>
 	/// Gets or sets whether ordinary replacement writes repair an existing wide-cell footprint.
@@ -459,9 +538,65 @@ public sealed class CursesVirtualScreen {
 		MarkDirty( offset );
 	}
 
+	private void SetRasterCellRaw(
+		int row,
+		int column,
+		int offset,
+		CursesRasterCell? rasterCell
+	) {
+		CursesRasterCellReference? current = retainedRaster?.Get(
+			row,
+			column
+		);
+		if ( rasterCell.HasValue
+			&& current is not null
+			&& current.Cell.Equals( rasterCell.Value ) ) {
+			return;
+		}
+		if ( !rasterCell.HasValue
+			&& current is null ) {
+			return;
+		}
+
+		if ( !rasterCell.HasValue ) {
+			retainedRaster!.Set(
+				row,
+				column,
+				null
+			);
+			if ( retainedRaster.IsEmpty ) {
+				retainedRaster = null;
+			}
+		} else {
+			CursesRasterCellReference value = new( rasterCell.Value );
+			retainedRaster ??= new CursesSparseCellPlane<CursesRasterCellReference>(
+				Columns,
+				Rows
+			);
+			retainedRaster.Set(
+				row,
+				column,
+				value
+			);
+		}
+
+		RecordChange( offset );
+		MarkDirty( offset );
+	}
+
 	private void SetCellRaw(
 		int offset,
 		CursesCell cell ) {
+		if ( retainedRaster is not null ) {
+			int row = offset / Columns;
+			int column = offset % Columns;
+			SetRasterCellRaw(
+				row,
+				column,
+				offset,
+				null
+			);
+		}
 		if ( cells[ offset ] == cell ) {
 			return;
 		}
