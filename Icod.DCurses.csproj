@@ -43,7 +43,7 @@
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-like terminal UI library for .NET, built on Icod.TermInfo and Icod.Terminal.</Description>
-		<PackageReleaseNotes>1.5.0 adds advanced deterministic interaction control over the published 1.4 router: bounded immutable-parent interaction scopes with LIFO activation, explicit singular pointer capture with signed out-of-bounds targets, deterministic spatial logical focus, clock-free pointer gesture normalization, and bounded scope-level command bindings with region-to-scope-to-global precedence. The release preserves callback-free synchronous routing, application-owned policy, the published 1.4 root/unscoped behavior, and AssemblyVersion 1.0.0.0. Runtime dependencies remain Icod.Terminal 1.13.0 and Icod.TermInfo 1.12.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>1.5.0 adds advanced deterministic interaction control over the published 1.4 router: bounded immutable-parent interaction scopes with LIFO activation, explicit singular pointer capture with signed out-of-bounds targets, deterministic spatial logical focus, clock-free pointer gesture normalization, and bounded scope-level command bindings with region-to-scope-to-global precedence. The release preserves callback-free synchronous routing, application-owned policy, the published 1.4 root/unscoped behavior, and AssemblyVersion 1.0.0.0. Runtime dependencies are Icod.Terminal 1.15.0 and Icod.TermInfo 1.14.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -116,7 +116,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Icod.Terminal" Version="1.13.0" />
-		<PackageReference Include="Icod.TermInfo" Version="1.12.0" />
+		<PackageReference Include="Icod.Terminal" Version="1.15.0" />
+		<PackageReference Include="Icod.TermInfo" Version="1.14.0" />
 	</ItemGroup>
 </Project>
