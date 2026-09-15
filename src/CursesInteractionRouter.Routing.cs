@@ -102,6 +102,14 @@ public sealed partial class CursesInteractionRouter {
 				);
 			}
 		}
+		foreach ( CursesInteractionScope scope in this.scopes ) {
+			count += scope.GestureBindingCount;
+			if ( MaximumGestureBindings <= count ) {
+				throw new InvalidOperationException(
+					$"An interaction router cannot own more than {MaximumGestureBindings} total gesture bindings."
+				);
+			}
+		}
 
 		if ( MaximumGestureBindings <= count ) {
 			throw new InvalidOperationException(
@@ -125,6 +133,17 @@ public sealed partial class CursesInteractionRouter {
 				input,
 				this.focusedRegion,
 				localCommand!
+			);
+		}
+
+		if ( this.TryGetScopeCommand(
+			input,
+			out CursesCommand? scopeCommand
+		) ) {
+			return CursesInteractionResult.CommandMatch(
+				input,
+				this.focusedRegion,
+				scopeCommand!
 			);
 		}
 
@@ -170,18 +189,100 @@ public sealed partial class CursesInteractionRouter {
 			?? throw new InvalidOperationException(
 				"A mouse input event must carry a mouse payload."
 			);
+		this.RepairPointerGestureStateIfNeeded();
+
+		if ( this.TryGetCapturedPointerTarget(
+			mouse,
+			out CursesPointerTarget? capturedTarget
+		) ) {
+			CursesPointerGesture capturedGesture = this.ClassifyPointerGesture(
+				mouse,
+				capturedTarget
+			);
+			CursesInteractionResult capturedResult = CursesInteractionResult.Targeted(
+				input,
+				capturedTarget!.Region,
+				hit: null,
+				pointerTarget: capturedTarget,
+				pointerGesture: capturedGesture
+			);
+			if ( CursesMouseAction.Release == mouse.Action ) {
+				this.ClearPointerCapture();
+			}
+			return capturedResult;
+		}
+
 		CursesInteractionHit? hit = this.HitTest(
 			mouse.Row,
 			mouse.Column
 		);
+		CursesPointerTarget? target = hit is null
+			? null
+			: this.CreatePointerTarget(
+				hit.Region,
+				mouse.Row,
+				mouse.Column
+			)
+		;
+		CursesPointerGesture gesture = this.ClassifyPointerGesture(
+			mouse,
+			target
+		);
+
 		return hit is null
-			? CursesInteractionResult.Unrouted( input )
+			? CursesInteractionResult.Unrouted(
+				input,
+				gesture
+			)
 			: CursesInteractionResult.Targeted(
 				input,
 				hit.Region,
-				hit
+				hit,
+				pointerTarget: null,
+				pointerGesture: gesture
 			)
 		;
+	}
+
+	private bool TryGetScopeCommand(
+		CursesInputEvent input,
+		out CursesCommand? command
+	) {
+		ArgumentNullException.ThrowIfNull( input );
+		CursesInteractionScope? activeScope = this.ActiveScope;
+		CursesInteractionRegion? region = this.focusedRegion;
+		if ( region is null ) {
+			if ( activeScope is not null
+				&& activeScope.TryGetCommand(
+					input,
+					out command
+				) ) {
+				return true;
+			}
+
+			command = null;
+			return false;
+		}
+
+		CursesInteractionScope? scope = region.Scope;
+		while ( scope is not null ) {
+			if ( scope.TryGetCommand(
+				input,
+				out command
+			) ) {
+				return true;
+			}
+			if ( ReferenceEquals(
+				scope,
+				activeScope
+			) ) {
+				break;
+			}
+			scope = scope.Parent;
+		}
+
+		command = null;
+		return false;
 	}
 
 	private bool TryGetGlobalCommand(

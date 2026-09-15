@@ -62,6 +62,7 @@ VerifyColumnTextSurface();
 VerifyWindowEditingSurface();
 VerifyPadSurface();
 VerifyInteractionSurface();
+VerifyAdvancedInteractionSurface();
 
 if ( string.Equals(
 	Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_INTERACTIVE" ),
@@ -594,6 +595,166 @@ static void VerifyInteractionSurface() {
 		CompilePointerShapeSurfaceAsync;
 	_ = routeCompiler;
 	_ = pointerCompiler;
+}
+
+static void VerifyAdvancedInteractionSurface() {
+	CursesScreen logical = new(
+		40,
+		12
+	);
+	using CursesInteractionRouter router = new( logical );
+	using CursesInteractionRegion root = router.RegisterRegion(
+		new CursesInteractionRegionOptions(
+			new CursesRectangle( 1, 1, 2, 4 )
+		) {
+			IsFocusable = true,
+			TraversalOrder = 0
+		}
+	);
+	using CursesInteractionScope scope = router.RegisterScope();
+	using CursesInteractionScope nestedScope = router.RegisterScope(
+		new CursesInteractionScopeOptions {
+			Parent = scope
+		}
+	);
+	using CursesInteractionRegion scopedLeft = router.RegisterRegion(
+		new CursesInteractionRegionOptions(
+			new CursesRectangle( 4, 4, 2, 4 )
+		) {
+			Scope = nestedScope,
+			IsFocusable = true,
+			TraversalOrder = 10
+		}
+	);
+	using CursesInteractionRegion scopedRight = router.RegisterRegion(
+		new CursesInteractionRegionOptions(
+			new CursesRectangle( 4, 12, 2, 4 )
+		) {
+			Scope = nestedScope,
+			IsFocusable = true,
+			TraversalOrder = 20
+		}
+	);
+
+	CursesKeyGesture scopeGesture = CursesKeyGesture.ForCharacter( new Rune( 's' ) );
+	CursesKeyGesture nestedGesture = CursesKeyGesture.ForCharacter( new Rune( 'n' ) );
+	scope.BindGesture(
+		scopeGesture,
+		new CursesCommand( "package-smoke.scope" )
+	);
+	nestedScope.BindGesture(
+		nestedGesture,
+		new CursesCommand( "package-smoke.nested" )
+	);
+	if ( !scope.UnbindGesture( scopeGesture )
+		|| !nestedScope.UnbindGesture( nestedGesture ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only scope-binding surface failed validation."
+		);
+	}
+
+	if ( !router.Focus( root ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only root focus setup failed."
+		);
+	}
+
+	CursesInteractionScopeLease outerLease = router.ActivateScope( scope );
+	if ( !router.Focus( scopedLeft )
+		|| !ReferenceEquals(
+			scopedRight,
+			router.MoveFocus( CursesFocusDirection.Right )
+		)
+		|| !ReferenceEquals(
+			scopedLeft,
+			router.MoveFocus( CursesFocusDirection.Left )
+		) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only scoped spatial-focus surface failed validation."
+		);
+	}
+
+	CursesPointerCaptureLease captureLease = router.CapturePointer(
+		scopedLeft,
+		CursesMouseButton.Primary
+	);
+	scopedLeft.IsEnabled = false;
+	captureLease.Dispose();
+	captureLease.Dispose();
+	scopedLeft.IsEnabled = true;
+	CursesPointerCaptureLease secondCapture = router.CapturePointer(
+		scopedLeft,
+		CursesMouseButton.Primary
+	);
+	secondCapture.Dispose();
+	secondCapture.Dispose();
+
+	CursesInteractionScopeLease nestedLease = router.ActivateScope( nestedScope );
+	if ( !router.Focus( scopedLeft ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only nested-scope focus setup failed."
+		);
+	}
+	nestedLease.Dispose();
+	outerLease.Dispose();
+	if ( !ReferenceEquals(
+		root,
+		router.FocusedRegion
+	) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only scope focus restoration failed validation."
+		);
+	}
+
+	if ( 256 != CursesInteractionRouter.MaximumScopes
+		|| 32 != CursesInteractionRouter.MaximumScopeDepth
+		|| 256 != CursesInteractionRouter.MaximumScopeGestureBindings
+		|| 5 != (int)CursesFocusDirection.Right ) {
+		throw new InvalidOperationException(
+			"DCurses package-only advanced interaction bounds changed."
+		);
+	}
+
+	PropertyInfo? pointerTargetProperty = typeof( CursesInteractionResult ).GetProperty(
+		nameof( CursesInteractionResult.PointerTarget )
+	);
+	PropertyInfo? pointerGestureProperty = typeof( CursesInteractionResult ).GetProperty(
+		nameof( CursesInteractionResult.PointerGesture )
+	);
+	PropertyInfo? targetRegionProperty = typeof( CursesPointerTarget ).GetProperty(
+		nameof( CursesPointerTarget.Region )
+	);
+	PropertyInfo? gestureTargetProperty = typeof( CursesPointerGesture ).GetProperty(
+		nameof( CursesPointerGesture.Target )
+	);
+	if ( pointerTargetProperty is null
+		|| typeof( CursesPointerTarget ) != pointerTargetProperty.PropertyType
+		|| pointerGestureProperty is null
+		|| typeof( CursesPointerGesture ) != pointerGestureProperty.PropertyType
+		|| targetRegionProperty is null
+		|| gestureTargetProperty is null ) {
+		throw new InvalidOperationException(
+			"DCurses package-only pointer target/gesture result surface is unavailable."
+		);
+	}
+
+	_ = CursesPointerGestureKind.DragStart;
+	_ = CursesPointerGestureKind.DragMove;
+	_ = CursesPointerGestureKind.DragEnd;
+
+	MethodInfo? captureMethod = typeof( CursesInteractionRouter ).GetMethod(
+		nameof( CursesInteractionRouter.CapturePointer ),
+		[
+			typeof( CursesInteractionRegion ),
+			typeof( CursesMouseButton )
+		]
+	);
+	if ( captureMethod is null
+		|| typeof( CursesPointerCaptureLease ) != captureMethod.ReturnType ) {
+		throw new InvalidOperationException(
+			"DCurses package-only explicit pointer-capture surface is unavailable."
+		);
+	}
 }
 
 static CursesInteractionResult CompileRoutingSurface(

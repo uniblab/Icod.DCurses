@@ -21,18 +21,40 @@
 
 namespace Icod.DCurses;
 
-/// <summary>Identifies one logical-focus traversal direction.</summary>
-public enum CursesFocusDirection {
-	/// <summary>Moves to the next eligible interaction region.</summary>
-	Forward = 0,
-	/// <summary>Moves to the previous eligible interaction region.</summary>
-	Backward = 1,
-	/// <summary>Moves to the nearest eligible interaction region above the current region.</summary>
-	Up = 2,
-	/// <summary>Moves to the nearest eligible interaction region below the current region.</summary>
-	Down = 3,
-	/// <summary>Moves to the nearest eligible interaction region left of the current region.</summary>
-	Left = 4,
-	/// <summary>Moves to the nearest eligible interaction region right of the current region.</summary>
-	Right = 5
+/// <summary>Owns one explicit pointer-capture lifetime.</summary>
+public sealed class CursesPointerCaptureLease : IDisposable {
+	private readonly CursesInteractionRouter owner;
+	private bool released;
+
+	internal CursesPointerCaptureLease(
+		CursesInteractionRouter owner,
+		long generation
+	) {
+		ArgumentNullException.ThrowIfNull( owner );
+		if ( 0 > generation ) {
+			throw new ArgumentOutOfRangeException( nameof( generation ) );
+		}
+
+		this.owner = owner;
+		this.Generation = generation;
+	}
+
+	/// <summary>Releases this capture when it is still current.</summary>
+	public void Dispose() {
+		if ( this.released ) {
+			return;
+		}
+
+		this.owner.ReleasePointerCapture( this );
+	}
+
+	internal long Generation {
+		get;
+	}
+
+	internal bool IsReleased => this.released;
+
+	internal void MarkReleased() {
+		this.released = true;
+	}
 }

@@ -11,7 +11,7 @@ All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the rep
 | Minimal session lifecycle and retained drawing | `Icod.DCurses.Sample` |
 | Retained panels, z-order, transparency, and disposal | `Icod.DCurses.Panel.Sample` |
 | Explicit geometry/layout and resize recomputation | `Icod.DCurses.Layout.Sample` |
-| Interaction regions, logical focus, commands, mouse routing, and pointer preferences | `Icod.DCurses.Interaction.Sample` |
+| Interaction scopes, capture, spatial focus, gestures, commands, and pointer preferences | `Icod.DCurses.Interaction.Sample` |
 | General interactive API showcase | `Icod.DCurses.Showcase` |
 | Raw semantic input inspection | `Icod.DCurses.Input.Showcase` |
 | Application-shaped periodic-command acceptance | `Icod.DCurses.Watch.Acceptance` |
@@ -59,28 +59,36 @@ Resize the terminal while the sample is running to see the two windows and retai
 
 ## Icod.DCurses.Interaction.Sample
 
-`Icod.DCurses.Interaction.Sample` is the 1.4 interaction-routing acceptance sample. It composes public DCurses geometry, retained panels, focus traversal, semantic command bindings, mouse hit testing, pointer-shape preferences, and resize handling inside one application-owned event loop. The sample does not use a widget framework, direct Terminal APIs, callback-driven command execution, automatic layout ownership, or a second input reader.
+`Icod.DCurses.Interaction.Sample` is the 1.5 advanced-interaction acceptance sample. It composes only public DCurses APIs inside one application-owned event loop: ordinary root interaction regions, a modal popup scope, a nested scope, sequential and spatial focus, scoped/global command identities, explicit pointer capture, clock-free pointer gesture snapshots, pointer-shape preferences, retained panel movement, and resize handling. It does not use direct `Icod.Terminal` or `Icod.TermInfo` APIs, internal DCurses APIs, callback-driven command execution, a widget framework, automatic layout ownership, or a second input reader.
 
 Controls:
 
 ```text
-Tab          Move logical focus forward
-Shift+Tab    Move logical focus backward
-F2           Show/hide the retained popup; showing it explicitly focuses the popup
-x            Left-local action while the left pane has focus; otherwise global x
-r            Right-pane local action
-Escape       Close the popup first; otherwise exit
-q            Exit
-Mouse        Report screen and region-local coordinates and apply the routed pointer preference
+Tab / Shift+Tab    Move logical focus forward/backward
+Arrow keys         Move logical focus with deterministic spatial focus
+F2                 Open/close the retained popup and its modal interaction scope
+S                  Resolve the outer popup-scope command while that boundary is visible
+N                  Enter/leave the nested scope; entering it excludes the outer S binding
+x                  Left-local action while the left pane has focus; otherwise global x
+r                  Right-pane local action
+Primary mouse drag Drag the popup using explicit pointer capture and normalized gestures
+Escape             Close the popup first; otherwise exit
+q                  Exit
 ```
 
-The left-pane local `x` binding deliberately shadows the router-global `x` binding, demonstrating focused local-command precedence. The retained popup overlaps the body panes and wins mouse routing through the normal panel z-order rules. Mouse routing itself does not change logical focus.
+Opening the popup first shows the retained panel and then activates its explicit interaction scope. The popup region belongs to a child scope, so it remains eligible while the outer popup scope is active. Pressing `N` activates that nested scope; pressing it again disposes the nested lease and restores the saved popup focus. Closing the outer scope restores the previously saved eligible root focus. The `S` and `N` bindings demonstrate the scope-command boundary: the outer `S` binding resolves while the outer scope is active, but does not leak inward while the nested scope itself is the active modal boundary.
 
-The application explicitly applies pointer-shape preferences with `CursesPointerShapeLease` rather than performing terminal I/O inside hit testing or routing. It also acquires keyboard event types, focus reporting, and mouse button events through DCurses input-protocol leases only.
+The arrow-key commands call `MoveFocus(Up/Down/Left/Right)` and therefore demonstrate spatial focus independently of the existing Tab/Shift+Tab sequential traversal. Mouse routing itself still does not change logical focus automatically.
 
-Mouse, focus, keyboard-protocol behavior, and visible pointer-shape changes ultimately depend on terminal support. A terminal that does not visibly change the pointer shape can still be routing mouse hits and commands correctly; the sample's routed target/local-coordinate status is the relevant routing evidence.
+On a primary-button press over the popup, the application explicitly acquires `CursesPointerCaptureLease`. Captured moves keep targeting that region even when the pointer leaves its bounds and expose signed `CursesPointerTarget` coordinates. The first moved cell normalizes to `DragStart`, subsequent moves to `DragMove`, and release to `DragEnd`; matching release automatically ends router capture, after which disposing the stale lease remains safe. The sample chooses to move the retained popup in response to those results.
 
-Resize handling remains application-owned: the sample synchronizes the current terminal dimensions, recomputes header/footer and equal left/right pane rectangles, reapplies window/panel/interaction bounds, and repaints. If the terminal falls below `64x16`, retained router/binding identity survives while the application displays a resize message; growing the terminal restores the normal layout. Terminal focus reports update status text but remain distinct from logical `CursesInteractionRouter` focus.
+That split is intentional: DCurses provides the **mechanism**—scope boundaries, focus decisions, capture targets, gesture classification, and command identity—while the application owns **policy**, such as whether a drag should move a panel or what a command should do. No callback dispatcher, hidden event loop, automatic focus-on-click rule, or drag/drop policy is introduced.
+
+The left-pane local `x` binding deliberately shadows the router-global `x` binding, preserving the 1.4 focused local-command precedence. The retained popup still wins ordinary mouse routing through panel z-order. Pointer-shape preferences remain explicit application behavior through `CursesPointerShapeLease`; routing itself performs no terminal I/O.
+
+Mouse, focus, keyboard-protocol behavior, and visible pointer-shape changes ultimately depend on terminal support. A terminal that does not visibly change the pointer shape can still be routing mouse hits, capture, gestures, scopes, and commands correctly; the sample's routed target/local-coordinate and gesture status is the relevant routing evidence.
+
+Resize handling remains application-owned: the sample synchronizes terminal dimensions, recomputes header/footer and equal left/right pane rectangles, reapplies window/panel/interaction bounds, and repaints. If the terminal falls below `64x16`, any live popup scope/capture is closed in LIFO order before geometry becomes unavailable. Growing the terminal restores the ordinary root layout. Terminal focus reports remain distinct from logical `CursesInteractionRouter` focus.
 
 ```text
 dotnet run --project samples/Icod.DCurses.Interaction.Sample/Icod.DCurses.Interaction.Sample.csproj

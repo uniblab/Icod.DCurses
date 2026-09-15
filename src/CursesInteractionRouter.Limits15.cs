@@ -21,18 +21,13 @@
 
 namespace Icod.DCurses;
 
-/// <summary>Identifies one logical-focus traversal direction.</summary>
-public enum CursesFocusDirection {
-	/// <summary>Moves to the next eligible interaction region.</summary>
-	Forward = 0,
-	/// <summary>Moves to the previous eligible interaction region.</summary>
-	Backward = 1,
-	/// <summary>Moves to the nearest eligible interaction region above the current region.</summary>
-	Up = 2,
-	/// <summary>Moves to the nearest eligible interaction region below the current region.</summary>
-	Down = 3,
-	/// <summary>Moves to the nearest eligible interaction region left of the current region.</summary>
-	Left = 4,
-	/// <summary>Moves to the nearest eligible interaction region right of the current region.</summary>
-	Right = 5
+public sealed partial class CursesInteractionRouter {
+	/// <summary>Gets the maximum number of live explicit interaction scopes owned by one router.</summary>
+	public const int MaximumScopes = 256;
+
+	/// <summary>Gets the maximum explicit interaction-scope depth below the implicit root scope.</summary>
+	public const int MaximumScopeDepth = 32;
+
+	/// <summary>Gets the maximum number of gesture bindings owned by one explicit interaction scope.</summary>
+	public const int MaximumScopeGestureBindings = 256;
 }

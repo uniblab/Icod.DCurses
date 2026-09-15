@@ -21,18 +21,11 @@
 
 namespace Icod.DCurses;
 
-/// <summary>Identifies one logical-focus traversal direction.</summary>
-public enum CursesFocusDirection {
-	/// <summary>Moves to the next eligible interaction region.</summary>
-	Forward = 0,
-	/// <summary>Moves to the previous eligible interaction region.</summary>
-	Backward = 1,
-	/// <summary>Moves to the nearest eligible interaction region above the current region.</summary>
-	Up = 2,
-	/// <summary>Moves to the nearest eligible interaction region below the current region.</summary>
-	Down = 3,
-	/// <summary>Moves to the nearest eligible interaction region left of the current region.</summary>
-	Left = 4,
-	/// <summary>Moves to the nearest eligible interaction region right of the current region.</summary>
-	Right = 5
+/// <summary>Describes one explicit interaction scope before registration.</summary>
+public sealed class CursesInteractionScopeOptions {
+	/// <summary>Gets the optional explicit parent scope; null means the implicit root scope.</summary>
+	public CursesInteractionScope? Parent {
+		get;
+		init;
+	}
 }

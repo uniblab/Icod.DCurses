@@ -109,22 +109,71 @@ public sealed class InteractionSampleProjectContractTests {
 			"CursesPointerShapeLease",
 			"SynchronizeDimensions",
 			"CursesLayout.SplitColumnsProportional",
+			"CursesInteractionScopeOptions",
+			"RegisterScope",
+			"ActivateScope",
+			"Parent = popupScope",
+			"CapturePointer",
+			"CursesPointerCaptureLease",
+			"CursesPointerTarget",
+			"CursesPointerGestureKind.DragStart",
+			"CursesPointerGestureKind.DragMove",
+			"CursesPointerGestureKind.DragEnd",
+			"CursesFocusDirection.Up",
+			"CursesFocusDirection.Down",
+			"CursesFocusDirection.Left",
+			"CursesFocusDirection.Right",
 			"focus.next",
 			"focus.previous",
+			"focus.up",
+			"focus.down",
+			"focus.left",
+			"focus.right",
 			"popup.toggle",
+			"popup.scope",
+			"popup.nested",
 			"left.action",
 			"right.action",
 			"global.x",
 			"quit"
 		];
 
-		foreach ( string marker in requiredMarkers ) {
-			Assert.Contains(
-				marker,
-				source,
-				StringComparison.Ordinal
-			);
-		}
+		AssertContainsMarkers(
+			source,
+			requiredMarkers
+		);
+	}
+
+	[Fact]
+	public void PackedConsumerExercisesTheAdvancedInteractionSurface() {
+		string root = FindRepositoryRoot();
+		string source = File.ReadAllText(
+			Path.Combine(
+				root,
+				"tools",
+				"package-smoke",
+				"Program.cs"
+			)
+		);
+
+		string[] requiredMarkers = [
+			"CursesInteractionScopeOptions",
+			"RegisterScope",
+			"ActivateScope",
+			"CapturePointer",
+			"CursesPointerCaptureLease",
+			"CursesPointerTarget",
+			"CursesPointerGestureKind.DragStart",
+			"CursesPointerGestureKind.DragMove",
+			"CursesPointerGestureKind.DragEnd",
+			"CursesFocusDirection.Right",
+			"scope.BindGesture"
+		];
+
+		AssertContainsMarkers(
+			source,
+			requiredMarkers
+		);
 	}
 
 	[Fact]
@@ -138,36 +187,41 @@ public sealed class InteractionSampleProjectContractTests {
 			)
 		);
 
-		Assert.Contains(
+		string[] requiredMarkers = [
 			"## Icod.DCurses.Interaction.Sample",
-			readme,
-			StringComparison.Ordinal
-		);
-		Assert.Contains(
 			"dotnet run --project samples/Icod.DCurses.Interaction.Sample/Icod.DCurses.Interaction.Sample.csproj",
-			readme,
-			StringComparison.Ordinal
-		);
-		Assert.Contains(
 			"Tab",
-			readme,
-			StringComparison.Ordinal
-		);
-		Assert.Contains(
 			"Shift+Tab",
-			readme,
-			StringComparison.Ordinal
-		);
-		Assert.Contains(
 			"F2",
+			"nested scope",
+			"pointer capture",
+			"DragStart",
+			"spatial focus",
+			"mechanism",
+			"policy"
+		];
+
+		AssertContainsMarkers(
 			readme,
-			StringComparison.Ordinal
-		);
-		Assert.Contains(
-			"pointer",
-			readme,
+			requiredMarkers,
 			StringComparison.OrdinalIgnoreCase
 		);
+	}
+
+	private static void AssertContainsMarkers(
+		string source,
+		IEnumerable<string> markers,
+		StringComparison comparison = StringComparison.Ordinal
+	) {
+		ArgumentNullException.ThrowIfNull( source );
+		ArgumentNullException.ThrowIfNull( markers );
+		foreach ( string marker in markers ) {
+			Assert.Contains(
+				marker,
+				source,
+				comparison
+			);
+		}
 	}
 
 	private static string FindRepositoryRoot() {

@@ -53,12 +53,16 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 		this.owner = owner;
 		this.bounds = options.Bounds;
 		this.Panel = options.Panel;
+		this.Scope = options.Scope;
 		this.isEnabled = options.IsEnabled;
 		this.isFocusable = options.IsFocusable;
 		this.traversalOrder = options.TraversalOrder;
 		this.hitTestPriority = options.HitTestPriority;
 		this.pointerShape = options.PointerShape;
 		this.RegistrationOrdinal = registrationOrdinal;
+		if ( this.Panel is not null ) {
+			this.Panel.InteractionEligibilityChanged += this.HandlePanelInteractionEligibilityChanged;
+		}
 	}
 
 	/// <summary>Gets the declared region rectangle.</summary>
@@ -66,6 +70,11 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 
 	/// <summary>Gets the optional panel whose coordinate space owns <see cref="Bounds"/>.</summary>
 	public CursesPanel? Panel {
+		get;
+	}
+
+	/// <summary>Gets the optional explicit interaction scope; null means the router's implicit root scope.</summary>
+	public CursesInteractionScope? Scope {
 		get;
 	}
 
@@ -80,6 +89,7 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 
 			this.isEnabled = value;
 			this.owner.HandleRegionEligibilityChanged( this );
+			this.owner.HandlePointerCaptureRegionChanged( this );
 		}
 	}
 
@@ -140,6 +150,7 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 
 		this.bounds = bounds;
 		this.owner.HandleRegionEligibilityChanged( this );
+		this.owner.HandlePointerCaptureRegionChanged( this );
 	}
 
 	/// <summary>Permanently removes this region from its owning interaction router.</summary>
@@ -148,6 +159,10 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 			return;
 		}
 
+		if ( this.Panel is not null ) {
+			this.Panel.InteractionEligibilityChanged -= this.HandlePanelInteractionEligibilityChanged;
+		}
+		this.owner.ReleasePointerCaptureForRegion( this );
 		this.owner.RemoveRegion( this );
 		this.disposed = true;
 	}
@@ -159,6 +174,14 @@ public sealed partial class CursesInteractionRegion : IDisposable {
 	}
 
 	internal bool IsDisposed => this.disposed;
+
+	private void HandlePanelInteractionEligibilityChanged() {
+		if ( this.disposed ) {
+			return;
+		}
+
+		this.owner.HandlePointerCaptureRegionChanged( this );
+	}
 
 	private void ThrowIfDisposed() {
 		if ( this.disposed ) {

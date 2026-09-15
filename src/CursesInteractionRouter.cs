@@ -50,6 +50,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 	) {
 		ArgumentNullException.ThrowIfNull( screen );
 		this.Screen = screen;
+		this.Screen.Resized += this.HandleScreenResized;
 	}
 
 	/// <summary>Gets the logical screen associated with this router.</summary>
@@ -90,6 +91,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 				);
 			}
 		}
+		this.ValidateRegionScope( options.Scope );
 
 		if ( MaximumRegions <= this.regions.Count ) {
 			throw new InvalidOperationException(
@@ -155,18 +157,24 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 		this.focusedRegion = null;
 	}
 
-	/// <summary>Moves logical focus through eligible regions using deterministic traversal order.</summary>
-	/// <param name="direction">The traversal direction.</param>
-	/// <returns>The newly focused region, or <see langword="null"/> when no eligible region exists.</returns>
+	/// <summary>Moves logical focus using sequential or deterministic spatial navigation.</summary>
+	/// <param name="direction">The focus-navigation direction.</param>
+	/// <returns>The newly focused region, or <see langword="null"/> when no candidate exists.</returns>
 	public CursesInteractionRegion? MoveFocus(
 		CursesFocusDirection direction
 	) {
-		if ( CursesFocusDirection.Forward != direction
-			&& CursesFocusDirection.Backward != direction ) {
+		if ( !Enum.IsDefined( direction ) ) {
 			throw new ArgumentOutOfRangeException( nameof( direction ) );
 		}
 		this.ThrowIfDisposed();
 		this.RepairFocusIfNeeded();
+
+		if ( CursesFocusDirection.Up == direction
+			|| CursesFocusDirection.Down == direction
+			|| CursesFocusDirection.Left == direction
+			|| CursesFocusDirection.Right == direction ) {
+			return this.MoveSpatialFocus( direction );
+		}
 
 		CursesInteractionRegion? next;
 		if ( this.focusedRegion is null ) {
@@ -216,7 +224,8 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 		int selectedLocalColumn = 0;
 
 		foreach ( CursesInteractionRegion region in this.regions ) {
-			if ( !region.IsEnabled ) {
+			if ( !this.IsRegionWithinActiveScope( region )
+				|| !region.IsEnabled ) {
 				continue;
 			}
 			if ( !TryGetLocalCoordinates(
@@ -250,12 +259,13 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 		;
 	}
 
-	/// <summary>Disposes all live regions and closes this router to further mutation.</summary>
+	/// <summary>Disposes all live regions and scopes and closes this router to further mutation.</summary>
 	public void Dispose() {
 		if ( this.disposed ) {
 			return;
 		}
 
+		this.Screen.Resized -= this.HandleScreenResized;
 		this.disposed = true;
 		this.focusedRegion = null;
 		CursesInteractionRegion[] snapshot = this.regions.ToArray();
@@ -263,6 +273,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 			region.Dispose();
 		}
 		this.regions.Clear();
+		this.DisposeScopeState();
 	}
 
 	internal void HandleRegionEligibilityChanged(
@@ -448,6 +459,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 		CursesInteractionRegion region
 	) {
 		if ( region.IsDisposed
+			|| !this.IsRegionWithinActiveScope( region )
 			|| !region.IsEnabled
 			|| !region.IsFocusable ) {
 			return false;
@@ -500,6 +512,18 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 			traversalOrder,
 			registrationOrdinal
 		);
+	}
+
+	private void HandleScreenResized(
+		object? sender,
+		CursesScreenResizedEventArgs eventArgs
+	) {
+		if ( this.disposed ) {
+			return;
+		}
+
+		this.RepairPointerCaptureIfNeeded();
+		this.RepairPointerGestureStateIfNeeded();
 	}
 
 	private static bool IsTraversalAfter(

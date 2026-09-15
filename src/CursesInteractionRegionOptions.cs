@@ -46,6 +46,12 @@ public sealed class CursesInteractionRegionOptions {
 		init;
 	}
 
+	/// <summary>Gets the optional explicit interaction scope; null means the router's implicit root scope.</summary>
+	public CursesInteractionScope? Scope {
+		get;
+		init;
+	}
+
 	/// <summary>Gets whether the region initially participates in interaction routing.</summary>
 	public bool IsEnabled {
 		get;
