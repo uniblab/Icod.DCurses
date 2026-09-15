@@ -7,8 +7,8 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Assembly version:** `1.0.0.0`  
-**Production dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
-**Status:** T150-T159 implementation/RC/stable-source qualification complete; final evidence-only PR-head gate pending
+**Production dependencies:** `Icod.Terminal 1.15.0`; `Icod.TermInfo 1.14.0`  
+**Status:** T150-T159 implementation/RC/stable-source qualification complete; final dependency-refresh qualification active
 
 ---
 
@@ -60,7 +60,7 @@ CursesPointerGesture
 CursesPointerGestureKind
 ```
 
-T155 was the final API-changing tranche. T156-T159 preserve this exact fingerprint; RC and stable-source promotion changed release identity/documentation/fingerprint status metadata only.
+T155 was the final API-changing tranche. T156-T159 preserve this exact fingerprint; RC and stable-source promotion changed release identity/documentation/fingerprint status metadata only. The final dependency refresh changes package references and release-facing documentation only and does not alter this public contract.
 
 ## 3. Dependency and layering stance
 
@@ -85,9 +85,11 @@ Rules:
 - DCurses does not inspect raw escape sequences or terminal families.
 - `Icod.Terminal` remains the single live terminal/input/protocol authority.
 - No 1.5 public interaction type exposes Terminal or TermInfo implementation types.
-- Terminal 1.14 raster-lifecycle observability is not required by Family 1.
-- TermInfo 1.13/1.14 raster-evidence/backend-planning work is not required by Family 1.
-- T158 re-evaluated the published lower layers and retained `Icod.Terminal 1.13.0` / `Icod.TermInfo 1.12.0`; no freshness-only dependency bump is warranted.
+- The final publication graph uses `Icod.Terminal 1.15.0` and direct `Icod.TermInfo 1.14.0`.
+- `Icod.Terminal 1.15.0` itself depends on `Icod.TermInfo 1.14.0`, so the same TermInfo version is also present transitively through Terminal.
+- DCurses nevertheless keeps its own direct `Icod.TermInfo 1.14.0` reference because production DCurses source consumes TermInfo APIs directly; TermInfo is not merely a Terminal implementation detail for this package.
+- The final dependency refresh is compatibility/package qualification work and does not introduce a new DCurses interaction API or lower-layer raster dependency into Family 1.
+- Earlier tranche records retain the dependency versions that were true when those checkpoints were qualified and are historical evidence rather than the final publication graph.
 
 ## 4. Interaction-scope contract
 
@@ -251,7 +253,7 @@ Maximum-capacity churn covers all 256 explicit scope slots, the full 16,384 tota
 
 `Icod.DCurses.Interaction.Sample` demonstrates modal + nested scopes, sequential/spatial focus, scoped/global command identities, explicit pointer capture, drag phases, signed captured pointer targets, application-owned popup movement, pointer-shape preferences, explicit resize/re-layout, and terminal focus versus logical focus separation using public DCurses APIs only.
 
-The package-only consumer restores from the generated `.nupkg` and compiles/executes the public additive surface on net8.0, net9.0, and net10.0. Internal synthetic input factories remain internal.
+The package-only consumer restores from the generated `.nupkg` and compiles/executes the public additive surface on net8.0, net9.0, and net10.0. Internal synthetic input factories remain internal. Final publication qualification must additionally prove that the generated package declares direct dependency groups for `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0` on all three target frameworks.
 
 ## 13. Tranche program
 
@@ -265,7 +267,7 @@ T155  scoped command bindings and precedence                                    
 T156  resize/panel/scope/capture/disposal coherence and adversarial hardening   complete
 T157  application acceptance sample and downstream/package consumer             complete
 T158  performance/allocation/API/package/docs/dependency regret gate            complete
-T159  RC and stable-source 1.5.0 closure                                        complete; final evidence-only PR-head gate pending
+T159  RC and stable-source 1.5.0 closure                                        complete; final dependency refresh requires qualification
 ```
 
 Qualified checkpoints include:
@@ -284,7 +286,7 @@ T159 RC    23113b130d674da315ccbbcd384a60a0e6b47baa  #899 / 34993884108
 T159 stable af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9 #905 / 34994761777
 ```
 
-T158 documentation head `6336defe0fe0594301c1d20c0542ca1d8b8babd3` passed #892 / `34915072200`; final T158 evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`. T159 RC and stable-source heads passed their complete seven-job matrices without rerun or production/API correction.
+T158 documentation head `6336defe0fe0594301c1d20c0542ca1d8b8babd3` passed #892 / `34915072200`; final T158 evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`. T159 RC and stable-source heads passed their complete seven-job matrices without rerun or production/API correction. Later publication-prep documentation/package-readiness heads also passed before the dependency refresh. The refreshed dependency graph must now receive its own exact-head package/runtime qualification before merge approval.
 
 ## 14. Deliberate non-goals
 
@@ -298,6 +300,8 @@ T158 found no public API, ownership, package, documentation, licensing, or depen
 
 T159 qualified the unchanged implementation/API first as `1.5.0-rc.1` at `23113b130d674da315ccbbcd384a60a0e6b47baa` in #899 / `34993884108`, then as stable-source `1.5.0` at `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` in #905 / `34994761777`.
 
-The API fingerprint is final `1.5.0` / stable and retains the exact 69/525/hash contract. The current documentation/evidence-only PR head is the final pre-merge gate. If that head passes the normal seven-job Staging matrix, no further source change is planned before presenting PR #30 for explicit maintainer merge approval.
+After that initial stable-source qualification, publication preparation deliberately advanced the final direct runtime dependencies from `Icod.Terminal 1.13.0` / `Icod.TermInfo 1.12.0` to `Icod.Terminal 1.15.0` / `Icod.TermInfo 1.14.0`. Terminal 1.15 itself depends on TermInfo 1.14, but DCurses retains a direct TermInfo reference because its production source consumes TermInfo APIs. This dependency refresh does not change the frozen 69/525/hash public API, but it invalidates the earlier package/dependency qualification as the final merge gate and therefore requires a new exact-head Staging matrix.
+
+Once the refreshed dependency graph passes package candidate plus Windows/Linux/macOS x64/ARM64—and the generated package proves the new direct dependency groups on net8/net9/net10—no further source change is planned before presenting PR #30 for explicit maintainer merge approval.
 
 Merge, post-merge Release validation, tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions.
