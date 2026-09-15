@@ -8,7 +8,7 @@
 **Starting documentation workflow:** #886 / `34908876499`  
 **AssemblyVersion:** `1.0.0.0`  
 **Production dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
-**Status:** static and performance regret review complete; documentation-complete exact-head qualification required before T159
+**Status:** complete; T159 RC and stable-source closure is next
 
 ---
 
@@ -245,7 +245,7 @@ T158 found no packed-artifact mismatch requiring source/API correction.
 
 The root/package `README.md` was stale at T158 entry: it still described 1.3 as current stable and 1.4 as awaiting merge/publication even though 1.4 is published. T158 corrects that release-facing inconsistency and adds the active 1.5 mechanism summary. The source `Version` / `PackageVersion` intentionally remain `1.4.0` until T159 performs the planned RC promotion; the README distinguishes published package identity from the current development target rather than pretending the branch is already publishable as 1.5.
 
-The active roadmaps are also synchronized from “T158 next” to “T158 complete / T159 next” only after this gate’s evidence is recorded.
+The active roadmaps are synchronized from “T158 next” to “T158 complete / T159 next”.
 
 ## Source/header and licensing audit
 
@@ -311,7 +311,7 @@ No correction is warranted for:
 - package layout or XML documentation;
 - licensing/header policy.
 
-The accepted implementation/API should therefore advance unchanged to T159 after the documentation-complete T158 head passes the normal seven-job Staging matrix.
+The accepted implementation/API therefore advances unchanged to T159.
 
 ## Version-state note
 
@@ -334,16 +334,31 @@ This is intentional under the checked-in plan, not a release-ready 1.5 identity.
 
 The assembly version remains `1.0.0.0`. No merge, tag, GitHub Release, or NuGet publication is authorized by T158/T159 source work.
 
+## Documentation-complete qualification
+
+The T158 documentation-complete head before this evidence-only closure edit was:
+
+```text
+6336defe0fe0594301c1d20c0542ca1d8b8babd3
+workflow #892 / 34915072200
+```
+
+Workflow #892 passed all seven required Staging jobs on that exact head:
+
+1. Package candidate;
+2. Windows x64;
+3. Windows ARM64;
+4. Linux x64;
+5. Linux ARM64;
+6. macOS x64;
+7. macOS ARM64.
+
+This exact-head matrix re-ran the package validator, the complete net8/net9/net10 test suites, the T158 allocation/capacity gates, the compiler-derived public-API guard, and the package-only consumer after the final README and roadmap corrections.
+
 ## Exit gate
 
-T158 is complete only when the exact documentation-complete head containing this record, the performance gate, corrected root/package README, and synchronized active roadmaps passes:
+The T158 behavioral/performance gate is qualified on `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` by #888 / `34914622882`, and the documentation-complete tree is qualified on `6336defe0fe0594301c1d20c0542ca1d8b8babd3` by #892 / `34915072200`.
 
-- Package candidate;
-- Runtime Windows x64;
-- Runtime Windows ARM64;
-- Runtime Linux x64;
-- Runtime Linux ARM64;
-- Runtime macOS x64;
-- Runtime macOS ARM64.
+This evidence-only closure edit introduces no production, test, package, dependency, or public-API change. Its exact head must pass the same seven-job Staging matrix before T159 begins.
 
-After that exact-head qualification, T159 may promote the **unchanged accepted implementation/API** to `1.5.0-rc.1`, qualify it, then promote the same implementation/API to stable-source `1.5.0` for final pre-merge qualification.
+After that final evidence-head qualification, T159 may promote the **unchanged accepted implementation/API** to `1.5.0-rc.1`, qualify it, then promote the same implementation/API to stable-source `1.5.0` for final pre-merge qualification.
