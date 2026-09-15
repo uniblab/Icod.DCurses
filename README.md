@@ -11,15 +11,15 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 - `Icod.TermInfo` owns immutable terminal capability descriptions and expansion;
 - `Icod.Terminal` owns the live terminal session, host mode, dimensions, lifecycle, input decoding, semantic terminal protocols, physical pointer protocol/state, and output serialization;
-- `Icod.DCurses` owns curses-shaped events, logical screens/windows, pads/viewports, retained panels/layers, cells/styles/metadata, composition, retained refresh policy, terminal-cell layout primitives, interaction regions, logical focus, gesture/command routing, and pointer-shape preferences.
+- `Icod.DCurses` owns curses-shaped events, logical screens/windows, pads/viewports, retained panels/layers, cells/styles/metadata, composition, retained refresh policy, terminal-cell layout primitives, interaction regions/scopes, logical focus, pointer capture, pointer-gesture/command routing, and pointer-shape preferences.
 
 ## Status
 
-Current published stable release: `Icod.DCurses 1.3.0`.
+Current published stable release: `Icod.DCurses 1.4.0`.
 
-`Icod.DCurses 1.4.0` is complete in stable-source form in PR #29. T1401-T1412 are complete, the final RC exact head passed the full seven-job matrix, and stable-source head `571af7e1904eb20233ec4fa66c6b76d86478a3b7` passed workflow #808 / `34774590867` across the package candidate plus Windows/Linux/macOS x64/ARM64. The branch is release-ready source pending explicit merge approval. After merge, the resulting `main` Release workflow must pass before tagging or publication.
+`Icod.DCurses 1.5.0` is the active development line in PR #30. T150-T157 are complete and T158 is the pre-RC performance/allocation/API/package/documentation/dependency regret gate. The accepted 1.5 interaction implementation remains additive over the published 1.4 contract and continues to avoid widget/application policy.
 
-Current source identity:
+Current branch source identity remains intentionally at the published package version until T159 performs the explicit RC promotion:
 
 ```text
 Version         1.4.0
@@ -29,15 +29,7 @@ Icod.Terminal   1.13.0
 Icod.TermInfo   1.12.0
 ```
 
-Published 1.3 contract:
-
-```text
-51 exported types
-406 canonical declared contract lines
-sha256 a655bd85e3c88f5bf38ad0d43a148e3bd06a9e943bbf3e3aa2e21575ffb07424
-```
-
-Frozen 1.4 interaction contract:
+Published 1.4 contract:
 
 ```text
 62 exported types
@@ -45,7 +37,17 @@ Frozen 1.4 interaction contract:
 sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
 ```
 
-Version 1.4 adds the interaction-routing surface over the published 1.3 geometry foundation: bounded interaction regions, panel-aware hit testing, logical focus/traversal/repair, semantic key gestures and command identities, structured routing results, pointer-shape preferences, and a DCurses pointer-shape lease wrapper over Terminal-owned state.
+Current 1.5 candidate contract:
+
+```text
+69 exported types
+525 canonical declared contract lines
+sha256 8807aa15714b0b059f2aaa5ef1ff33bce3ed0bfc44455d8a352ee7ecff8313c0
+```
+
+Version 1.4 established deterministic interaction routing: bounded interaction regions, panel-aware hit testing, logical focus/traversal/repair, semantic key gestures and command identities, structured routing results, pointer-shape preferences, and a DCurses pointer-shape lease wrapper over Terminal-owned state.
+
+Version 1.5 extends that mechanism with bounded interaction scopes, explicit singular pointer capture, deterministic spatial logical focus, clock-free pointer gesture normalization, and scope-level command bindings. It does not add widgets, callbacks, automatic focus-on-click, drag/drop policy, a retained event tree, or a hidden application event loop.
 
 ## Support the Project
 
@@ -57,13 +59,13 @@ Version 1.4 adds the interaction-routing surface over the published 1.3 geometry
 
 ## Installation
 
-Install the current published package selected by your normal NuGet policy:
+Install the current published stable package selected by your normal NuGet policy:
 
 ```text
 dotnet add package Icod.DCurses
 ```
 
-Normal stable package resolution currently selects the published 1.3 line until 1.4 has been merged, release-qualified on `main`, tagged, and published.
+Normal stable package resolution selects the published 1.4 line. The 1.5 branch is development source until its RC/stable-source qualification and explicit maintainer merge/release actions are complete.
 
 ## Architecture
 
@@ -73,7 +75,8 @@ applications / future widgets / compatibility facades
                     Icod.DCurses
  windows / pads / panels / cells / semantic metadata
  immutable geometry / pure layout / retained refresh / events
- interaction regions / logical focus / gesture-command routing
+ interaction regions / scopes / logical + spatial focus
+ capture / pointer gestures / gesture-command routing
               pointer-shape preferences
                          |
                     Icod.Terminal
@@ -88,7 +91,7 @@ applications / future widgets / compatibility facades
 
 `Icod.DCurses` does not maintain a second terminal capability database, install a competing raw-input loop, own terminal modes independently of `Icod.Terminal`, emit private OSC/CSI/DCS/APC framing for Terminal-owned protocols, emulate a terminal, or create/manage PTYs.
 
-Version 1.4 also does not add a widget framework, hidden event loop, callback dispatcher, retained layout tree, automatic layout owner, automatic mouse-to-focus policy, or independent pointer-protocol owner. Applications remain responsible for their event loop and command execution. Terminal remains authoritative for physical terminal state and reversible protocol leases.
+Versions 1.4 and 1.5 also do not add a widget framework, hidden event loop, callback dispatcher, retained event tree, automatic layout owner, automatic mouse-to-focus policy, drag/drop framework, or independent pointer-protocol owner. Applications remain responsible for their event loop and command execution. Terminal remains authoritative for physical terminal state and reversible protocol leases.
 
 ## Targets
 
@@ -127,6 +130,74 @@ CursesEvent terminalEvent = await session.ReadEventAsync();
 ```
 
 A `CursesSession` restores the presentation and Terminal-owned state it acquires when disposed. Applications should consume terminal input and lifecycle activity through the curses/Terminal ownership model rather than adding a parallel byte reader.
+
+## 1.5 advanced interaction control
+
+Version 1.5 extends the 1.4 router with additional bounded mechanisms while preserving the existing root/unscoped behavior for applications that do not opt in.
+
+Explicit scopes establish modal interaction boundaries without introducing widgets:
+
+```csharp
+using CursesInteractionRouter router = new( session.Screen );
+using CursesInteractionScope popupScope = router.RegisterScope();
+using CursesInteractionRegion popup = router.RegisterRegion(
+    new CursesInteractionRegionOptions(
+        new CursesRectangle( 3, 8, 8, 32 )
+    ) {
+        Scope = popupScope,
+        IsFocusable = true
+    }
+);
+using CursesInteractionScopeLease active = router.ActivateScope( popupScope );
+```
+
+While an explicit scope is active, hit testing and logical focus are restricted to its subtree. Nested activation is descendant-only and LIFO. Ending a scope activation restores saved logical focus when it is eligible again; otherwise ordinary deterministic focus repair applies.
+
+Logical focus now supports deterministic spatial movement as well as the published forward/backward traversal:
+
+```csharp
+_ = router.MoveFocus( CursesFocusDirection.Right );
+_ = router.MoveFocus( CursesFocusDirection.Down );
+```
+
+Spatial ranking uses clipped terminal-cell rectangles and integer-only ordering. It does not wrap and does not manufacture initial focus when no region is currently focused.
+
+Pointer capture is explicit and singular:
+
+```csharp
+using CursesPointerCaptureLease capture =
+    router.CapturePointer( popup, CursesMouseButton.Primary );
+```
+
+Captured pointer motion continues to target the captured region outside its current bounds. `CursesInteractionResult.PointerTarget` then exposes signed region-local row/column coordinates plus `IsInside` rather than weakening the ordinary in-bounds `CursesInteractionHit` contract.
+
+Mouse routing also exposes clock-free `CursesPointerGesture` snapshots for `Press`, `Release`, `Move`, `Click`, `DragStart`, `DragMove`, `DragEnd`, and four wheel directions. Click/drag classification is based on normalized cell movement rather than timing; double/triple-click policy, timing thresholds, and drag/drop payload semantics remain application concerns.
+
+Explicit scopes may own semantic key-command bindings. With a focused region, lookup is:
+
+```text
+region local
+-> region scope
+-> parent scopes through the active modal boundary
+-> router global
+```
+
+Commands remain `CursesCommand` identities. The router does not invoke callbacks or execute application behavior.
+
+The complete interaction registries remain bounded:
+
+```text
+MaximumRegions                  4096
+MaximumScopes                    256
+MaximumScopeDepth                 32
+MaximumRegionGestureBindings     256
+MaximumScopeGestureBindings      256
+MaximumGlobalGestureBindings    1024
+MaximumGestureBindings         16384 total
+Active pointer captures            1
+```
+
+The `Icod.DCurses.Interaction.Sample` demonstrates nested scopes, sequential/spatial focus, scoped/global commands, explicit capture, drag gesture results, application-owned popup movement, pointer-shape preferences, resize handling, and the mechanism/policy split using public DCurses APIs only.
 
 ## 1.4 interaction routing
 
@@ -181,8 +252,6 @@ await pointerLease.DisposeAsync();
 ```
 
 Region and gesture-binding registries are intentionally bounded and fail before partial mutation when capacity is exhausted. The router owns no background work, event loop, terminal parser, protocol negotiation, or hidden terminal I/O. It routes only the semantic input and geometry state already owned by DCurses/Terminal.
-
-The `Icod.DCurses.Interaction.Sample` project demonstrates focused local-versus-global bindings, forward/backward traversal, retained popup overlap, panel-aware mouse precedence, screen and region-local coordinates, explicit pointer leases, resize/re-layout, and the distinction between terminal focus reports and logical interaction focus.
 
 ## 1.3 geometry, layout, and resize
 
@@ -318,23 +387,28 @@ Local wrappers use Debug configuration. Pull requests use Staging with warnings-
 
 Runtime validation covers Windows/Linux/macOS x64 and ARM64; the library/test matrix covers `net8.0`, `net9.0`, and `net10.0`.
 
-Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. The package consumer compiles and executes both the 1.3 geometry/layout/panel-resize surface and the 1.4 interaction surface directly from the packed artifact: regions, logical focus/traversal, hit testing, semantic gestures and command bindings, routing API presence, pointer-shape vocabulary, and pointer-lease surface. Package validation does not impose hard-coded sibling dependency versions.
+Package validation verifies `.nupkg`/`.snupkg`, package/assembly identity, dependency groups derived from project declarations, README/license/icon/repository metadata, XML documentation, portable symbols, and a fresh NuGet-only consumer. The package consumer now compiles and executes the complete additive 1.5 interaction surface directly from the packed artifact on net8/net9/net10, including scopes, spatial focus, scoped commands, explicit capture lifetime, and public pointer target/gesture/result contracts. Package validation does not impose hard-coded sibling dependency versions.
 
 ## Release documentation
 
 Current authorities:
 
 - `Icod.DCurses-Development-Roadmap.md`
-- `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md`
-- `Icod.DCurses-1.4.0-Development-Roadmap.md`
-- `docs/Public-API-Fingerprint-1.4.json`
-- `docs/T1401-Interaction-Contract-and-Public-API-Candidate.md`
-- `docs/T1409-Interaction-Acceptance-Sample.md`
-- `docs/T1410-Interaction-Performance-Allocation-and-Adversarial-Hardening.md`
-- `docs/T1411-Public-API-Package-Documentation-and-Regret-Gate.md`
-- `docs/T1412-RC-and-Stable-1.4.0-Closure.md`
+- `Icod.DCurses-1.5.0-Development-Roadmap.md`
+- `docs/Public-API-Fingerprint-1.5.json`
+- `docs/T150-1.5.0-Architecture-API-Regret-and-Contract-Freeze.md`
+- `docs/T151-Bounded-Interaction-Scopes.md`
+- `docs/T152-Explicit-Pointer-Capture.md`
+- `docs/T153-Deterministic-Spatial-Focus.md`
+- `docs/T154-Deterministic-Pointer-Gesture-Normalization.md`
+- `docs/T155-Scoped-Command-Bindings-and-Precedence.md`
+- `docs/T156-Coherence-and-Adversarial-Hardening.md`
+- `docs/T157-Application-Acceptance-and-Package-Consumer.md`
+- `docs/T158-Advanced-Interaction-Regret-and-Qualification-Gate.md`
 
-T1411 is complete on head `570715e0764f9791fe197462a953df6eccf6105a`, qualified by workflow #797 / `34773668892` across all seven jobs. The final RC head `7f6bcedf70b9cd5cd15bf2a2a53437e23dac3c2f` passed workflow #802 / `34774226736` across all seven jobs after a test-only timeout hardening correction; production code and the frozen public API were unchanged. Stable-source head `571af7e1904eb20233ec4fa66c6b76d86478a3b7` then passed workflow #808 / `34774590867` across all seven jobs. T1412 is complete and PR #29 is release-ready source pending explicit merge approval. Historical 1.0-1.3 closure records remain compatibility authorities and are not rewritten merely to reflect later development state.
+Published 1.4 compatibility/release authorities remain in the repository, including `Icod.DCurses-1.4.0-Development-Roadmap.md`, `docs/Public-API-Fingerprint-1.4.json`, and the T1401-T1412 tranche records. They are historical evidence and are not rewritten to simulate current 1.5 development state.
+
+T157 implementation head `596843f798999573162be7883051030db353b940` passed workflow #884 / `34908524571` across all seven jobs, including isolated `.nupkg` consumers on net8/net9/net10. T157 documentation head `9014bc8721ea8bde7248973d7d2d34e9ed2a8109` passed workflow #886 / `34908876499` across all seven jobs. T158 performance head `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` passed workflow #888 / `34914622882` across all seven jobs after one test-fixture ownership correction; production source and the frozen public API were unchanged.
 
 ## Authors
 
