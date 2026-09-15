@@ -127,7 +127,7 @@ public sealed class CursesRasterEditingPropagationTests {
 		CursesWindow destination = destinationScreen.StandardWindow;
 		CursesRasterCell token = CreateToken();
 		source.SetRasterCell( 0, 1, token );
-		destination.SetCell( 0, 1, new CursesCell( "X", default ) );
+		destinationScreen.VirtualScreen.SetCell( 0, 1, new CursesCell( "X", default ) );
 
 		source.CopyRectangleTo(
 			destination,
@@ -151,7 +151,7 @@ public sealed class CursesRasterEditingPropagationTests {
 		CursesWindow destination = destinationScreen.StandardWindow;
 		CursesRasterCell token = CreateToken();
 		source.SetRasterCell( 0, 1, token );
-		destination.SetCell( 0, 1, new CursesCell( "D", default ) );
+		destinationScreen.VirtualScreen.SetCell( 0, 1, new CursesCell( "D", default ) );
 
 		source.OverlayRectangleTo(
 			destination,
@@ -222,7 +222,7 @@ public sealed class CursesRasterEditingPropagationTests {
 		CursesRasterCell foreign = CreateToken( sourceOwner );
 		sourceScreen.StandardWindow.SetRasterCell( 0, 0, foreign );
 		CursesCell sentinel = new( "D", default );
-		destinationScreen.StandardWindow.SetCell( 0, 0, sentinel );
+		destinationScreen.VirtualScreen.SetCell( 0, 0, sentinel );
 
 		Assert.Throws<InvalidOperationException>(
 			() => sourceScreen.StandardWindow.CopyRectangleTo(
