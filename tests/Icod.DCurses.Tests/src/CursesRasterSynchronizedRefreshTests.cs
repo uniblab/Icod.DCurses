@@ -57,8 +57,7 @@ public sealed class CursesRasterSynchronizedRefreshTests {
 		SharedRefreshOutput refreshOutput = new( rawOutput );
 		CursesRefreshEngine refreshEngine = new(
 			session.Terminal,
-			refreshOutput,
-			terminalSession.ApplicationEncoding
+			refreshOutput
 		);
 		FieldInfo refreshEngineField = Assert.IsAssignableFrom<FieldInfo>(
 			typeof( CursesSession ).GetField(
@@ -143,7 +142,7 @@ public sealed class CursesRasterSynchronizedRefreshTests {
 	}
 
 	private sealed class SharedRefreshOutput
-		: ITerminalOutput,
+		: Icod.DCurses.Terminal.ITerminalOutput,
 		  ITerminalRasterPlaceholderOutput {
 		private readonly RecordingRawOutput output;
 
