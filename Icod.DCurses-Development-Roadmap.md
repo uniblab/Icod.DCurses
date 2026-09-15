@@ -9,7 +9,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.5.0` — advanced interaction control  
-**Status:** T150-T159 implementation/RC/stable-source qualification complete; final dependency-refresh qualification is active before explicit merge approval
+**Status:** T150-T159 and final dependency refresh complete; current evidence/documentation head undergoing final exact-head qualification before explicit merge approval
 
 ---
 
@@ -41,7 +41,7 @@ The 1.0-1.4 tranche, roadmap, and release-closure documents remain historical co
 | `1.2.0` | Panels/layers/z-order composition | Historical stable baseline |
 | `1.3.0` | Layout and resize primitives | Historical stable baseline |
 | `1.4.0` | Interaction routing/focus/gestures/hit testing/pointer semantics | Current published stable release |
-| `1.5.0` | Advanced interaction control | Stable-source candidate qualified; final dependency-refresh qualification active |
+| `1.5.0` | Advanced interaction control | Stable-source + final dependency graph qualified; final evidence-only PR-head gate active |
 
 The progression is intentionally cumulative:
 
@@ -75,9 +75,9 @@ Frozen stable-source 1.5 contract:
 sha256 8807aa15714b0b059f2aaa5ef1ff33bce3ed0bfc44455d8a352ee7ecff8313c0
 ```
 
-T153 was behavior-only and left the T152 fingerprint unchanged. T154 added exactly two exported gesture types plus the nullable `CursesInteractionResult.PointerGesture` result slot. T155 added no exported type; it added `BindGesture` and `UnbindGesture` to the existing `CursesInteractionScope` type and promoted the candidate fingerprint to `1.5.0-alpha.5`. T156 is behavior-only and leaves the T155 fingerprint unchanged while closing stale pointer-ownership resurrection across scope, panel, and screen-resize lifecycle transitions. T157 is acceptance-only. T158 is qualification-only. T159 promoted the unchanged implementation/API through `1.5.0-rc.1` and then stable-source `1.5.0`; only release identity/documentation/fingerprint status metadata changed during that promotion. The final publication-prep dependency refresh then advances the direct runtime references to `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0` without changing the DCurses public API.
+T153 was behavior-only and left the T152 fingerprint unchanged. T154 added exactly two exported gesture types plus the nullable `CursesInteractionResult.PointerGesture` result slot. T155 added no exported type; it added `BindGesture` and `UnbindGesture` to the existing `CursesInteractionScope` type and promoted the candidate fingerprint to `1.5.0-alpha.5`. T156 is behavior-only and leaves the T155 fingerprint unchanged while closing stale pointer-ownership resurrection across scope, panel, and screen-resize lifecycle transitions. T157 is acceptance-only. T158 is qualification-only. T159 promoted the unchanged implementation/API through `1.5.0-rc.1` and then stable-source `1.5.0`. Publication preparation then advanced the final direct runtime references to `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0` without changing the DCurses public API.
 
-Version 1.5 remains additive. The final T158 regret gate found no break or corrective API addition justified before RC; the later dependency refresh is compatibility/package qualification work rather than an API redesign.
+Version 1.5 remains additive. The final dependency refresh is compatibility/package qualification work rather than an API redesign.
 
 ## 1.5 release objective
 
@@ -146,7 +146,8 @@ T155  scoped command bindings and precedence                                    
 T156  resize/panel/scope/capture/disposal coherence and adversarial hardening   complete
 T157  application acceptance sample and downstream/package consumer             complete
 T158  performance/allocation/API/package/docs/dependency regret gate            complete
-T159  RC and stable-source 1.5.0 closure                                        complete; final dependency refresh requires exact-head qualification
+T159  RC and stable-source 1.5.0 closure                                        complete
+final dependency refresh                                                        complete / qualified #915
 ```
 
 Qualified implementation/API checkpoints:
@@ -163,9 +164,10 @@ T157  596843f798999573162be7883051030db353b940  #884 / 34908524571
 T158  9a8d0b2e2439bf4a936a5602d846a0c1bd20781f  #888 / 34914622882
 T159 RC      23113b130d674da315ccbbcd384a60a0e6b47baa  #899 / 34993884108
 T159 stable  af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9  #905 / 34994761777
+Dependency refresh bc583d5ded07c0784bab27fe389f4bdab690394e #915 / 35003069419
 ```
 
-Every listed checkpoint passed the complete seven-job Staging matrix: package candidate plus Windows/Linux/macOS on x64 and ARM64. T158 documentation head `6336defe0fe0594301c1d20c0542ca1d8b8babd3` passed #892 / `34915072200`, and final T158 evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`. T159 RC head `23113b130d674da315ccbbcd384a60a0e6b47baa` passed #899 / `34993884108` without rerun or correction. Stable-source head `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` passed #905 / `34994761777`. Later documentation/package-readiness heads also passed their seven-job matrices before the dependency refresh. Because the final dependency graph is now `Icod.Terminal 1.15.0` plus direct `Icod.TermInfo 1.14.0`, the refreshed exact head must pass the complete matrix again before merge approval.
+Every listed checkpoint passed the complete seven-job Staging matrix: package candidate plus Windows/Linux/macOS on x64 and ARM64. The #915 package artifact was inspected directly: its net8.0, net9.0, and net10.0 dependency groups each declare direct `Icod.Terminal 1.15.0` and direct `Icod.TermInfo 1.14.0`, and the isolated package consumer passed. The compiler-derived public API remains the frozen 69/525/hash contract.
 
 ## Deliberate 1.5 non-goals
 
@@ -190,4 +192,4 @@ Future widget or mixed-media layers should be able to build on the 1.5 mechanism
 
 ## Immediate next step
 
-Qualify the refreshed `Icod.Terminal 1.15.0` / `Icod.TermInfo 1.14.0` dependency graph through the normal package candidate plus Windows/Linux/macOS x64/ARM64 Staging matrix. Package validation must prove the generated `.nupkg` declares the new direct dependency versions and the isolated consumer still compiles/executes on net8/net9/net10. Once that exact head is green, no further source change is planned before presenting PR #30 for explicit maintainer merge approval. Merge, post-merge Release validation, tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions.
+The implementation, package identity, public API, and final dependency graph are qualified. Qualify the current evidence/documentation-only PR head through the same seven-job Staging matrix. If that exact head is green, no further branch change is planned before presenting PR #30 for explicit maintainer merge approval. Merge, post-merge Release validation, tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions.
