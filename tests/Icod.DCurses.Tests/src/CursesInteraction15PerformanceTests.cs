@@ -113,7 +113,7 @@ public sealed class CursesInteraction15PerformanceTests {
 	public void SpatialFocusIsAllocationFreeApartFromMeasurementNoise() {
 		CursesScreen screen = new( 40, 40 );
 		using CursesInteractionRouter router = new( screen );
-		using CursesInteractionScope scope = router.RegisterScope();
+		CursesInteractionScope scope = router.RegisterScope();
 		CursesInteractionRegion? origin = null;
 
 		for ( int row = 0; row < SpatialRegionCountPerAxis; row++ ) {
