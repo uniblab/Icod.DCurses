@@ -7,8 +7,8 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Assembly version:** `1.0.0.0`  
-**Production dependencies:** `Icod.Terminal 1.15.0`; `Icod.TermInfo 1.14.0`  
-**Status:** T150-T159 implementation/RC/stable-source qualification complete; final dependency-refresh qualification active
+**Production dependencies:** `Icod.Terminal 1.15.0`; direct `Icod.TermInfo 1.14.0`  
+**Status:** T150-T159 and final dependency refresh complete; current evidence/documentation head undergoing final exact-head qualification before explicit merge approval
 
 ---
 
@@ -253,7 +253,16 @@ Maximum-capacity churn covers all 256 explicit scope slots, the full 16,384 tota
 
 `Icod.DCurses.Interaction.Sample` demonstrates modal + nested scopes, sequential/spatial focus, scoped/global command identities, explicit pointer capture, drag phases, signed captured pointer targets, application-owned popup movement, pointer-shape preferences, explicit resize/re-layout, and terminal focus versus logical focus separation using public DCurses APIs only.
 
-The package-only consumer restores from the generated `.nupkg` and compiles/executes the public additive surface on net8.0, net9.0, and net10.0. Internal synthetic input factories remain internal. Final publication qualification must additionally prove that the generated package declares direct dependency groups for `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0` on all three target frameworks.
+The package-only consumer restores from the generated `.nupkg` and compiles/executes the public additive surface on net8.0, net9.0, and net10.0. Internal synthetic input factories remain internal.
+
+The final dependency-refresh package at exact head `bc583d5ded07c0784bab27fe389f4bdab690394e` passed workflow #915 / `35003069419`. Direct inspection of its `Icod.DCurses.1.5.0.nupkg` confirmed that all three dependency groups declare:
+
+```text
+Icod.TermInfo  1.14.0
+Icod.Terminal  1.15.0
+```
+
+The isolated package-only consumer also passed as part of that package-candidate job.
 
 ## 13. Tranche program
 
@@ -267,7 +276,8 @@ T155  scoped command bindings and precedence                                    
 T156  resize/panel/scope/capture/disposal coherence and adversarial hardening   complete
 T157  application acceptance sample and downstream/package consumer             complete
 T158  performance/allocation/API/package/docs/dependency regret gate            complete
-T159  RC and stable-source 1.5.0 closure                                        complete; final dependency refresh requires qualification
+T159  RC and stable-source 1.5.0 closure                                        complete
+final dependency refresh                                                        complete / qualified #915
 ```
 
 Qualified checkpoints include:
@@ -284,9 +294,10 @@ T157       596843f798999573162be7883051030db353b940  #884 / 34908524571
 T158       9a8d0b2e2439bf4a936a5602d846a0c1bd20781f  #888 / 34914622882
 T159 RC    23113b130d674da315ccbbcd384a60a0e6b47baa  #899 / 34993884108
 T159 stable af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9 #905 / 34994761777
+Dependency  bc583d5ded07c0784bab27fe389f4bdab690394e #915 / 35003069419
 ```
 
-T158 documentation head `6336defe0fe0594301c1d20c0542ca1d8b8babd3` passed #892 / `34915072200`; final T158 evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`. T159 RC and stable-source heads passed their complete seven-job matrices without rerun or production/API correction. Later publication-prep documentation/package-readiness heads also passed before the dependency refresh. The refreshed dependency graph must now receive its own exact-head package/runtime qualification before merge approval.
+T158 documentation head `6336defe0fe0594301c1d20c0542ca1d8b8babd3` passed #892 / `34915072200`; final T158 evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`. T159 RC and initial stable-source heads passed their complete seven-job matrices without rerun or production/API correction. The final dependency-refresh head also passed all seven jobs without rerun, and its package dependency graph was independently inspected. The current evidence/documentation-only head receives one final exact-head matrix before merge approval.
 
 ## 14. Deliberate non-goals
 
@@ -296,12 +307,10 @@ Future widget or mixed-media layers should be able to build on these mechanisms 
 
 ## 15. Closure state
 
-T158 found no public API, ownership, package, documentation, licensing, or dependency correction requiring a change before RC.
-
 T159 qualified the unchanged implementation/API first as `1.5.0-rc.1` at `23113b130d674da315ccbbcd384a60a0e6b47baa` in #899 / `34993884108`, then as stable-source `1.5.0` at `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` in #905 / `34994761777`.
 
-After that initial stable-source qualification, publication preparation deliberately advanced the final direct runtime dependencies from `Icod.Terminal 1.13.0` / `Icod.TermInfo 1.12.0` to `Icod.Terminal 1.15.0` / `Icod.TermInfo 1.14.0`. Terminal 1.15 itself depends on TermInfo 1.14, but DCurses retains a direct TermInfo reference because its production source consumes TermInfo APIs. This dependency refresh does not change the frozen 69/525/hash public API, but it invalidates the earlier package/dependency qualification as the final merge gate and therefore requires a new exact-head Staging matrix.
+Publication preparation then advanced the final direct runtime dependencies from `Icod.Terminal 1.13.0` / `Icod.TermInfo 1.12.0` to `Icod.Terminal 1.15.0` / `Icod.TermInfo 1.14.0`. Terminal 1.15 itself depends on TermInfo 1.14, but DCurses retains a direct TermInfo reference because its production source consumes TermInfo APIs. Exact dependency-refresh head `bc583d5ded07c0784bab27fe389f4bdab690394e` passed workflow #915 / `35003069419`, all seven jobs, and its `.nupkg` directly declares both requested versions on net8/net9/net10.
 
-Once the refreshed dependency graph passes package candidate plus Windows/Linux/macOS x64/ARM64—and the generated package proves the new direct dependency groups on net8/net9/net10—no further source change is planned before presenting PR #30 for explicit maintainer merge approval.
+The dependency refresh does not change the frozen 69/525/hash public API. The current evidence/documentation-only PR head is the final pre-merge gate. Once that exact head is green, no further source change is planned before explicit maintainer merge approval.
 
 Merge, post-merge Release validation, tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions.
