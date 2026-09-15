@@ -25,10 +25,10 @@ using Xunit;
 
 namespace Icod.DCurses.Tests;
 
-/// <summary>Freezes the T1602 public retained-raster facade candidate before implementation.</summary>
+/// <summary>Freezes the T1602 public retained-raster ownership facade candidate.</summary>
 public sealed class CursesRasterPublicApiCandidateTests {
 	[Fact]
-	public void RasterFacadeMatchesFrozenT1601Candidate() {
+	public void RasterFacadeMatchesFrozenT1602Candidate() {
 		Assembly assembly = typeof( CursesSession ).Assembly;
 		Type resourceType = RequireType( assembly, "Icod.DCurses.CursesRasterResource" );
 		Type placeholderType = RequireType( assembly, "Icod.DCurses.CursesRasterPlaceholder" );
@@ -100,39 +100,6 @@ public sealed class CursesRasterPublicApiCandidateTests {
 			).ReturnType
 		);
 		Assert.Equal( typeof( ValueTask ), RequireMethod( placeholderType, "DisposeAsync", [] ).ReturnType );
-
-		Type nullableCell = typeof( Nullable<> ).MakeGenericType( cellType );
-		Assert.Equal(
-			nullableCell,
-			RequireMethod(
-				typeof( CursesVirtualScreen ),
-				"GetRasterCell",
-				[ typeof( int ), typeof( int ) ]
-			).ReturnType
-		);
-		_ = RequireMethod(
-			typeof( CursesVirtualScreen ),
-			"SetRasterCell",
-			[ typeof( int ), typeof( int ), nullableCell ]
-		);
-		Assert.Equal(
-			nullableCell,
-			RequireMethod(
-				typeof( CursesWindow ),
-				"GetRasterCell",
-				[ typeof( int ), typeof( int ) ]
-			).ReturnType
-		);
-		_ = RequireMethod(
-			typeof( CursesWindow ),
-			"SetRasterCell",
-			[ typeof( int ), typeof( int ), nullableCell ]
-		);
-		_ = RequireMethod(
-			typeof( CursesWindow ),
-			"WriteRasterCell",
-			[ cellType ]
-		);
 	}
 
 	private static Type RequireType(

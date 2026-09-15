@@ -133,9 +133,9 @@ public sealed class CursesRasterOwnershipFacadeTests {
 			MethodInfo? dispose = facadeType.GetMethod( "DisposeAsync" );
 			Assert.NotNull( dispose );
 			ValueTask first = Assert.IsType<ValueTask>( dispose!.Invoke( facade, null ) );
-			await first.ConfigureAwait( false );
+			await first;
 			ValueTask second = Assert.IsType<ValueTask>( dispose.Invoke( facade, null ) );
-			await second.ConfigureAwait( false );
+			await second;
 		}
 	}
 
