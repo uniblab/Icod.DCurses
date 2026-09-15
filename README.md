@@ -15,11 +15,11 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 ## Status
 
-Current published stable release: `Icod.DCurses 1.4.0`.
+Stable-source release: `Icod.DCurses 1.5.0`.
 
-`Icod.DCurses 1.5.0` is complete in stable-source form in PR #30. The unchanged RC head `23113b130d674da315ccbbcd384a60a0e6b47baa` passed workflow #899 / `34993884108` across the complete seven-job Staging matrix. Stable-source head `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` then passed workflow #905 / `34994761777` across package candidate plus Windows/Linux/macOS x64/ARM64. The current documentation/evidence-only PR head remains subject to the ordinary final checks before explicit merge approval.
+`Icod.DCurses 1.5.0` is complete in stable-source form in PR #30. The unchanged RC head `23113b130d674da315ccbbcd384a60a0e6b47baa` passed workflow #899 / `34993884108` across the complete seven-job Staging matrix. Stable-source head `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` passed workflow #905 / `34994761777` across package candidate plus Windows/Linux/macOS x64/ARM64. Subsequent release-facing documentation changes do not alter the qualified production source or frozen public API. Merge, tagging, and publication remain separate maintainer actions.
 
-Current branch source identity:
+Current source/package identity:
 
 ```text
 Version         1.5.0
@@ -59,13 +59,19 @@ Version 1.5 extends that mechanism with bounded interaction scopes, explicit sin
 
 ## Installation
 
-Install the current published stable package selected by your normal NuGet policy:
+Install the latest published stable package selected by your normal NuGet policy:
 
 ```text
 dotnet add package Icod.DCurses
 ```
 
-Normal stable package resolution still selects the published 1.4 line until PR #30 is explicitly merged, the resulting `main` Release workflow is qualified, and the maintainer separately tags/publishes 1.5. The current branch is qualified stable-source candidate material, not a published package.
+To install this release explicitly:
+
+```text
+dotnet add package Icod.DCurses --version 1.5.0
+```
+
+Source qualification and package publication are separate operations. The NuGet package page and GitHub Releases page are authoritative for distribution availability.
 
 ## Architecture
 
@@ -357,7 +363,6 @@ screen.WriteWithMetadata(
     metadata
 );
 ```
-
 Metadata is retained independently of visible glyph/style equality, follows content through supported editing/composition operations, remains coherent across two-column leader/continuation footprints, and is emitted physically through Terminal-owned semantic hyperlink operations. DCurses does not construct OSC 8 directly.
 
 ## Pads, Unicode, and semantic drawing
