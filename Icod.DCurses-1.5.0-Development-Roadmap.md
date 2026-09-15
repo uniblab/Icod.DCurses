@@ -8,7 +8,7 @@
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Assembly version:** `1.0.0.0`  
 **Production dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
-**Status:** T150-T158 complete; T159 stable-source `1.5.0` exact-head qualification active
+**Status:** T150-T159 implementation/RC/stable-source qualification complete; final evidence-only PR-head gate pending
 
 ---
 
@@ -26,7 +26,7 @@ The release adds five coordinated capabilities:
 
 The release remains callback-free and terminal-I/O-free at the routing layer. It does not introduce buttons, text boxes, menus, modal-dialog widgets, a retained event tree, application navigation, timing-based click policy, or drag/drop policy.
 
-## 2. Published baseline and stable-source contract
+## 2. Published baseline and final contract
 
 Published 1.4 interaction API fingerprint:
 
@@ -36,7 +36,7 @@ Published 1.4 interaction API fingerprint:
 sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
 ```
 
-Stable-source 1.5 fingerprint:
+Final stable-source 1.5 fingerprint:
 
 ```text
 release 1.5.0
@@ -60,7 +60,7 @@ CursesPointerGesture
 CursesPointerGestureKind
 ```
 
-T155 was the final API-changing tranche. T156-T159 preserve this exact fingerprint. T159's RC and stable-source promotions change release identity/documentation/fingerprint status metadata only.
+T155 was the final API-changing tranche. T156-T159 preserve this exact fingerprint; RC and stable-source promotion changed release identity/documentation/fingerprint status metadata only.
 
 ## 3. Dependency and layering stance
 
@@ -116,17 +116,11 @@ Exactly one explicit pointer capture may exist per router.
 
 `CapturePointer(...)` binds one owned eligible region to one concrete mouse button and returns `CursesPointerCaptureLease`.
 
-Capture never:
-
-- implies or changes logical focus;
-- synthesizes a press;
-- moves a window/panel;
-- acquires Terminal mouse tracking;
-- executes application behavior.
+Capture never implies logical focus, synthesizes a press, moves a window/panel, acquires Terminal mouse tracking, or executes application behavior.
 
 Capture ends on matching release, explicit disposal, target invalidation, modal exclusion, or router disposal. Stale lease disposal after automatic release is idempotent.
 
-Captured routing uses immutable `CursesPointerTarget` rather than weakening the published `CursesInteractionHit` contract. It exposes:
+Captured routing uses immutable `CursesPointerTarget` rather than weakening the published `CursesInteractionHit` contract:
 
 ```text
 Region
@@ -152,16 +146,7 @@ Right    = 5
 
 Forward/Backward published behavior remains unchanged.
 
-Spatial candidates must be focus-eligible within the active scope subtree and have a non-empty effective visible rectangle after screen/panel clipping.
-
-Candidates are ranked deterministically and without floating point by:
-
-1. requested half-plane eligibility;
-2. perpendicular-axis overlap preference;
-3. primary-axis edge distance;
-4. perpendicular doubled-center distance;
-5. `TraversalOrder`;
-6. registration ordinal.
+Spatial candidates must be focus-eligible within the active scope subtree and have a non-empty effective visible rectangle after screen/panel clipping. Candidates are ranked deterministically and without floating point by requested half-plane eligibility, perpendicular-axis overlap preference, primary-axis edge distance, perpendicular doubled-center distance, `TraversalOrder`, then registration ordinal.
 
 Spatial movement does not wrap. With no current focus or no candidate, it returns `null` rather than manufacturing focus.
 
@@ -183,22 +168,9 @@ WheelLeft
 WheelRight
 ```
 
-Classification is clock-free:
+Classification is clock-free. Same-target press/release without intervening cell movement yields `Click`; first held-button cell movement yields `DragStart`; later movement yields `DragMove`; release after drag yields `DragEnd`; wheel input maps one-to-one to wheel gesture kinds.
 
-- same-target press/release with no intervening cell movement -> `Click`;
-- first held-button cell movement -> `DragStart`;
-- later movement -> `DragMove`;
-- release after drag -> `DragEnd` without an additional click;
-- wheel input maps one-to-one to wheel gesture kinds.
-
-Excluded policy remains outside core:
-
-- double/triple click;
-- click-duration thresholds;
-- sub-cell movement thresholds;
-- inertial scrolling;
-- drag/drop payloads/acceptance;
-- hover dwell timing.
+Double/triple click, timing thresholds, inertial scrolling, drag/drop payloads/acceptance, and hover dwell timing remain outside core.
 
 ## 8. Scoped command resolution
 
@@ -221,30 +193,11 @@ region-local
 -> otherwise ordinary targeted result
 ```
 
-With no focused region and an explicit active scope, only that active scope is considered before router-global lookup; inactive outer bindings do not leak through the modal boundary.
-
-Commands remain `CursesCommand` identities only. There are no handlers, callbacks, enabled predicates, dependency injection, or automatic command execution.
+With no focused region and an explicit active scope, only that active scope is considered before router-global lookup. Commands remain `CursesCommand` identities only; there are no handlers, callbacks, enabled predicates, dependency injection, or automatic command execution.
 
 ## 9. Structured result evolution
 
-`CursesInteractionResult` remains the sole structured routing output.
-
-Published properties remain valid:
-
-```text
-Kind
-Input
-Region
-Command
-Hit
-```
-
-1.5 adds nullable immutable:
-
-```text
-PointerTarget
-PointerGesture
-```
+`CursesInteractionResult` remains the sole structured routing output. Published `Kind`, `Input`, `Region`, `Command`, and `Hit` remain valid. Version 1.5 adds nullable immutable `PointerTarget` and `PointerGesture`.
 
 `CursesInteractionResultKind` remains unchanged:
 
@@ -254,8 +207,6 @@ Targeted = 1
 Command  = 2
 ```
 
-The original normalized input object remains available in every result.
-
 ## 10. Lifecycle, mutation, and coherence rules
 
 The accepted 1.5 implementation is governed by these invariants:
@@ -264,7 +215,7 @@ The accepted 1.5 implementation is governed by these invariants:
 - focus save/restore/repair remains deterministic;
 - region disposal releases its capture and local bindings;
 - panel hide/disposal, bounds mutation, screen resize, and scope transitions cannot leave dangling pointer ownership;
-- once pointer ownership is invalidated, later geometry/scope restoration cannot resurrect that old capture or press/drag state;
+- invalidated pointer ownership cannot resurrect after later geometry/scope restoration;
 - stale capture/scope leases remain deterministic and idempotent where documented;
 - no disposed object is returned as a later routing target;
 - no automatic focus-on-click is introduced;
@@ -273,7 +224,7 @@ The accepted 1.5 implementation is governed by these invariants:
 
 ## 11. Performance and capacity qualification
 
-T158 froze warmed repeated-sample regression tripwires using the existing 1.4 measurement methodology:
+T158 froze warmed repeated-sample regression tripwires:
 
 ```text
 warmup iterations       4096
@@ -294,24 +245,11 @@ captured out-of-bounds mouse routing   <= 256 bytes / operation + fixed sample n
 maximum-capacity combined churn        <= 60 seconds broad regression tripwire
 ```
 
-Maximum-capacity churn covers all 256 explicit scope slots, the full 16,384 total binding budget with returned/reused capacity, and repeated capture/press/drag/release ownership.
-
-These are regression tripwires, not latency or throughput SLAs.
+Maximum-capacity churn covers all 256 explicit scope slots, the full 16,384 total binding budget with returned/reused capacity, and repeated capture/press/drag/release ownership. These are regression tripwires, not latency or throughput SLAs.
 
 ## 12. Application/package acceptance
 
-`Icod.DCurses.Interaction.Sample` demonstrates the complete 1.5 mechanism using public DCurses API only:
-
-- modal + nested scope activation;
-- Forward/Backward and spatial focus;
-- scoped/global command identities;
-- explicit pointer capture;
-- `DragStart` / `DragMove` / `DragEnd` routing;
-- signed captured pointer targets;
-- application-owned popup movement policy;
-- pointer-shape preferences;
-- explicit resize/re-layout;
-- terminal focus versus logical focus separation.
+`Icod.DCurses.Interaction.Sample` demonstrates modal + nested scopes, sequential/spatial focus, scoped/global command identities, explicit pointer capture, drag phases, signed captured pointer targets, application-owned popup movement, pointer-shape preferences, explicit resize/re-layout, and terminal focus versus logical focus separation using public DCurses APIs only.
 
 The package-only consumer restores from the generated `.nupkg` and compiles/executes the public additive surface on net8.0, net9.0, and net10.0. Internal synthetic input factories remain internal.
 
@@ -327,67 +265,39 @@ T155  scoped command bindings and precedence                                    
 T156  resize/panel/scope/capture/disposal coherence and adversarial hardening   complete
 T157  application acceptance sample and downstream/package consumer             complete
 T158  performance/allocation/API/package/docs/dependency regret gate            complete
-T159  RC and stable-source 1.5.0 closure                                        stable-source qualification active
+T159  RC and stable-source 1.5.0 closure                                        complete; final evidence-only PR-head gate pending
 ```
 
-Qualified implementation/API checkpoints:
+Qualified checkpoints include:
 
 ```text
-T150  eb34c8236a9e6c008b7ff486df177e8b52cba274  #818 / 34878235207
-T151  ac0bfcbf38800a94533cc4ada4caf3b8feee4fb1  #829 / 34879561466
-T152  b1e9e60df7ee6cfc3e2af10c4f3f819273c299fb  #839 / 34881203594
-T153  6f440a9feda628f1948d11008402a0064bbd645b  #844 / 34882549455
-T154  acae6104e7f0e4e431d7f5f836978be807008a40  #855 / 34892884559
-T155  3e59e7613e214a5eaa84df13bbedba56abfefb6d  #864 / 34899684038
-T156  e09324666bb6960d465f061d609a4fb53d8c5288  #876 / 34905503151
-T157  596843f798999573162be7883051030db353b940  #884 / 34908524571
-T158  9a8d0b2e2439bf4a936a5602d846a0c1bd20781f  #888 / 34914622882
-T159 RC 23113b130d674da315ccbbcd384a60a0e6b47baa  #899 / 34993884108
+T150       eb34c8236a9e6c008b7ff486df177e8b52cba274  #818 / 34878235207
+T151       ac0bfcbf38800a94533cc4ada4caf3b8feee4fb1  #829 / 34879561466
+T152       b1e9e60df7ee6cfc3e2af10c4f3f819273c299fb  #839 / 34881203594
+T153       6f440a9feda628f1948d11008402a0064bbd645b  #844 / 34882549455
+T154       acae6104e7f0e4e431d7f5f836978be807008a40  #855 / 34892884559
+T155       3e59e7613e214a5eaa84df13bbedba56abfefb6d  #864 / 34899684038
+T156       e09324666bb6960d465f061d609a4fb53d8c5288  #876 / 34905503151
+T157       596843f798999573162be7883051030db353b940  #884 / 34908524571
+T158       9a8d0b2e2439bf4a936a5602d846a0c1bd20781f  #888 / 34914622882
+T159 RC    23113b130d674da315ccbbcd384a60a0e6b47baa  #899 / 34993884108
+T159 stable af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9 #905 / 34994761777
 ```
 
-T157 documentation head `9014bc8721ea8bde7248973d7d2d34e9ed2a8109` additionally passed #886 / `34908876499` across all seven jobs.
-
-T158's first performance head `8fecfbd8f69555adfa469528105ba841f0d2b6e4` exposed a test-only disposal-order mistake: the spatial fixture attempted to dispose an explicit scope before its 256 router-owned regions. Corrected head `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` changed only fixture ownership and passed #888 / `34914622882` across all seven jobs; no production source, API, algorithm, or threshold changed. T158 documentation head `6336defe0fe0594301c1d20c0542ca1d8b8babd3` passed #892 / `34915072200`, and final evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`, all seven jobs. T159 RC head `23113b130d674da315ccbbcd384a60a0e6b47baa` passed #899 / `34993884108` across all seven jobs without rerun or correction.
+T158 documentation head `6336defe0fe0594301c1d20c0542ca1d8b8babd3` passed #892 / `34915072200`; final T158 evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`. T159 RC and stable-source heads passed their complete seven-job matrices without rerun or production/API correction.
 
 ## 14. Deliberate non-goals
 
-Version 1.5 does not add:
-
-- widgets or controls;
-- buttons, text boxes, menus, dialogs, or application navigation;
-- retained event trees or capture/bubble phases;
-- automatic focus-on-click;
-- callback dispatch;
-- drag/drop payloads or targets;
-- timing-based multi-click gestures;
-- layout-system expansion;
-- accessibility ownership;
-- raster presentation/scene ownership;
-- raster backend selection;
-- animation;
-- PTY/ConPTY hosting.
+Version 1.5 does not add widgets/controls, application navigation, retained event trees/capture-bubble phases, automatic focus-on-click, callback dispatch, drag/drop payloads/targets, timing-based multi-click gestures, layout-system expansion, accessibility ownership, raster presentation/scene ownership, raster backend selection, animation, or PTY/ConPTY hosting.
 
 Future widget or mixed-media layers should be able to build on these mechanisms without bypassing Terminal ownership or reimplementing scopes, focus, capture, gesture routing, or command identity.
 
-## 15. T158 regret decision and T159 closure
+## 15. Closure state
 
-T158 found no public API, ownership, package, documentation, licensing, or dependency correction that warrants changing the accepted implementation before RC.
+T158 found no public API, ownership, package, documentation, licensing, or dependency correction requiring a change before RC.
 
-T159 promoted the unchanged accepted implementation/API to `1.5.0-rc.1`. Exact RC head:
+T159 qualified the unchanged implementation/API first as `1.5.0-rc.1` at `23113b130d674da315ccbbcd384a60a0e6b47baa` in #899 / `34993884108`, then as stable-source `1.5.0` at `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` in #905 / `34994761777`.
 
-```text
-23113b130d674da315ccbbcd384a60a0e6b47baa
-workflow #899 / 34993884108
-```
+The API fingerprint is final `1.5.0` / stable and retains the exact 69/525/hash contract. The current documentation/evidence-only PR head is the final pre-merge gate. If that head passes the normal seven-job Staging matrix, no further source change is planned before presenting PR #30 for explicit maintainer merge approval.
 
-All seven Staging jobs passed without rerun or correction. T159 has therefore promoted the same implementation/API to stable-source:
-
-```text
-Version         1.5.0
-PackageVersion  1.5.0
-AssemblyVersion 1.0.0.0
-```
-
-The API fingerprint metadata is now final `1.5.0` / stable while retaining the exact same 69/525/hash contract. The current gate is final stable-source exact-head Staging qualification.
-
-T159 may update release-facing README/release notes/final fingerprint metadata and closure records, but it must not silently change the accepted production interaction contract. Merge, post-merge Release validation, tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions.
+Merge, post-merge Release validation, tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions.
