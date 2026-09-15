@@ -5,32 +5,17 @@
 **Development identity:** `1.6.0-alpha.2`  
 **AssemblyVersion:** `1.0.0.0`  
 **Dependencies:** `Icod.Terminal 1.15.0`; `Icod.TermInfo 1.14.0`  
-**Status:** implementation qualification pending
+**Status:** accepted
 
 ## Objective
 
 T1604 carries retained raster state through the existing logical editing and rectangular-transfer machinery rather than creating raster-specific editing algorithms.
 
-The tranche covers:
-
-- insert/delete cells;
-- insert/delete lines;
-- explicit scroll up/down;
-- subwindow projection;
-- destructive rectangular copy;
-- blank-cell overlay semantics;
-- overlapping copy snapshots;
-- pad presentation;
-- viewport pan/re-presentation and change tracking;
-- clipping;
-- same-session transfer; and
-- pre-mutation rejection of a known foreign-session raster reference when the destination is bound to a live `CursesSession`.
+The tranche covers insert/delete cells and lines, explicit scrolling, subwindow projection, destructive and overlapping copy, raster-aware blank overlay, pad/viewports, clipping, same-session transfer, screen-resize preservation, and pre-mutation rejection of a known foreign-session raster reference when the destination is bound to a live `CursesSession`.
 
 ## RED evidence
 
-The first test-only head exposed a harness compile mistake and was not accepted as RED.
-
-The corrected test-only RED head is:
+The first test-only head exposed a harness compile mistake and was not accepted as RED. The corrected test-only RED head is:
 
 ```text
 79152c0d6108a31ba38484f09bf25eadb6d94dd6
@@ -46,7 +31,7 @@ Workflow **#937 / 35016106603** built successfully with zero warnings/errors on 
 
 The failures were retained-raster loss across editing/copy/pad paths plus the intentionally absent destination-session ownership seam. The package candidate passed.
 
-## GREEN candidate
+## GREEN implementation
 
 The minimal production candidate is:
 
@@ -54,17 +39,32 @@ The minimal production candidate is:
 27cd4bd5f1be4ed1285e4524af0f8cf4fe8e5504
 ```
 
-It:
+The exact qualified documentation/source head is:
 
-- includes the raster token in `CursesLogicalCellState` snapshots;
-- restores retained raster after ordinary-cell/metadata commit;
-- preserves per-coordinate raster on normalized wide-cell continuation state;
-- treats a blank+raster source coordinate as present during overlay while metadata-only blank coordinates remain transparent;
-- validates the complete source snapshot against a session-bound destination before the first destination mutation;
-- binds session-created logical screens to the canonical `CursesSession` raster owner;
-- preserves retained raster state in the overlapping upper-left region during `CursesScreen.Resize(..., preserveContents: true)`; and
-- lets pad and viewport presentation inherit the corrected rectangular-copy behavior.
+```text
+281b58e51041dc55793635a0aa1f164be0334873
+```
 
-No public API was added, so the T1603 `1.6.0-alpha.2` API fingerprint remains the expected public baseline.
+It includes raster in `CursesLogicalCellState` snapshots, restores raster after ordinary-cell/metadata commit, preserves coordinate raster during valid wide-cell normalization, treats blank+raster as opaque during overlay, validates a complete transfer before destination mutation, binds session-created screens to their canonical raster owner, and preserves raster in the overlapping region of a preserving logical-screen resize. Pads and viewports inherit the corrected rectangular transfer path.
 
-The exact post-documentation head must pass the ordinary seven-job Staging matrix before T1604 is accepted.
+No public API was added; the T1603 `1.6.0-alpha.2` fingerprint remains the public baseline.
+
+## Qualification evidence
+
+Workflow **#939 / 35016800082** passed all seven jobs on the exact qualified head:
+
+```text
+Package candidate       success
+Runtime Windows x64     success
+Runtime Windows ARM64   success
+Runtime Linux x64       success
+Runtime Linux ARM64     success
+Runtime macOS x64       success
+Runtime macOS ARM64     success
+```
+
+Linux x64 reported a Staging build with **0 warnings / 0 errors** and **841/841 tests passing on each of net8.0, net9.0, and net10.0**.
+
+## Handoff to T1605
+
+T1605 now owns retained-raster panel composition: base-frame copying, panel overlay, `BlankCellsTransparent` behavior, topmost z-order resolution, visibility/move/dispose damage behavior, clipping, and panel resize preservation/discard. The compositor must use the same three-axis logical state model rather than treating raster content as metadata or text.
