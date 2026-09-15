@@ -7,12 +7,12 @@
 **Qualified T158 evidence workflow:** #893 / `34915390381` — all seven jobs green  
 **Qualified RC head:** `23113b130d674da315ccbbcd384a60a0e6b47baa`  
 **Qualified RC workflow:** #899 / `34993884108` — all seven jobs green  
-**Qualified stable-source head:** `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9`  
-**Qualified stable-source workflow:** #905 / `34994761777` — all seven jobs green  
+**Initially qualified stable-source head:** `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9`  
+**Initially qualified stable-source workflow:** #905 / `34994761777` — all seven jobs green  
 **Stable-source identity:** `1.5.0`  
 **AssemblyVersion:** `1.0.0.0`  
-**Runtime dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
-**Status:** T159 complete; release-ready source pending explicit PR #30 merge approval; merge/tag/release/publication remain explicitly unauthorized
+**Final runtime dependencies:** `Icod.Terminal 1.15.0`; direct `Icod.TermInfo 1.14.0`  
+**Status:** implementation/API closure complete; final dependency-refresh exact-head qualification is required before PR #30 merge approval; merge/tag/release/publication remain explicitly unauthorized
 
 ---
 
@@ -36,7 +36,7 @@ Workflow #893 / `34915390381` passed the complete Staging matrix:
 
 That evidence-only head followed the qualified T158 performance/API checkpoint `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` (#888 / `34914622882`) and documentation-complete checkpoint `6336defe0fe0594301c1d20c0542ca1d8b8babd3` (#892 / `34915072200`), both also seven-job green.
 
-T158 found no production/API, ownership, packaging, documentation, licensing, or dependency-boundary regret requiring a correction before RC.
+T158 found no production/API, ownership, packaging, documentation, licensing, or dependency-boundary regret requiring a correction before RC at that time.
 
 ## Frozen 1.5 contract carried through closure
 
@@ -56,7 +56,7 @@ Published 1.4 remains the compatibility floor:
 sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
 ```
 
-T159 did not reopen the implementation or public API. The accepted 1.5 mechanisms remain:
+T159 did not reopen the interaction implementation or public API. The accepted 1.5 mechanisms remain:
 
 - bounded interaction scopes with immutable parentage and explicit LIFO activation leases;
 - explicit singular pointer capture without implicit logical focus;
@@ -83,7 +83,7 @@ Exact RC head:
 23113b130d674da315ccbbcd384a60a0e6b47baa
 ```
 
-Workflow #899 / `34993884108` passed the complete seven-job Staging matrix without rerun or correction. RC promotion changed release identity and release-facing documentation only; production interaction code, the compiler-derived public API, target frameworks, and declared runtime dependencies remained unchanged.
+Workflow #899 / `34993884108` passed the complete seven-job Staging matrix without rerun or correction. RC promotion changed release identity and release-facing documentation only; production interaction code, the compiler-derived public API, target frameworks, and then-declared runtime dependencies remained unchanged.
 
 ## Stable-source promotion and qualification
 
@@ -105,7 +105,7 @@ status stable
 sha256 8807aa15714b0b059f2aaa5ef1ff33bce3ed0bfc44455d8a352ee7ecff8313c0
 ```
 
-Exact stable-source candidate head:
+Exact initially qualified stable-source candidate head:
 
 ```text
 af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9
@@ -121,13 +121,34 @@ Workflow #905 / `34994761777` passed the complete seven-job Staging matrix:
 - Runtime macOS x64;
 - Runtime macOS ARM64.
 
-The RC-to-stable compare contains only release-facing files: `Icod.DCurses.csproj`, README, the two active roadmaps, `docs/Public-API-Fingerprint-1.5.json`, and this closure record. No `src/`, tests, samples, workflows, target frameworks, or dependency files changed between the qualified RC and stable-source candidate.
+The RC-to-stable compare contained only release-facing files: `Icod.DCurses.csproj`, README, the two active roadmaps, `docs/Public-API-Fingerprint-1.5.json`, and this closure record. No `src/`, tests, samples, workflows, target frameworks, or dependency declarations changed between the qualified RC and that stable-source candidate.
 
-## Final evidence-head gate
+## Final dependency refresh
 
-This closure update and the synchronized release-ready README/roadmaps are documentation-only changes after the qualified stable-source candidate. The resulting PR head remains subject to one final normal seven-job Staging matrix before the current branch head itself is presented as release-ready source.
+Publication preparation after the initial stable-source qualification deliberately advanced the final package dependency graph to:
 
-That final evidence-head qualification does not reopen the implementation/API decision.
+```text
+Icod.Terminal 1.15.0
+Icod.TermInfo  1.14.0   direct
+```
+
+`Icod.Terminal 1.15.0` itself directly depends on `Icod.TermInfo 1.14.0`, so TermInfo also appears transitively through Terminal. DCurses nevertheless retains its own direct TermInfo reference because production DCurses source directly consumes TermInfo namespaces/types in its capability, presentation, refresh, cursor-motion, erase, lifecycle, and Terminal-integration layers. TermInfo is therefore a direct DCurses dependency, not merely a transitive dependency inherited from Terminal.
+
+This refresh changes no DCurses public API, target framework, assembly version, interaction behavior, or ownership contract. It does change the package dependency graph, so the earlier #905 stable-source qualification is no longer sufficient as the final merge gate. The refreshed exact head must pass the complete package/runtime matrix again.
+
+Package validation for the refreshed head must prove:
+
+- `.nupkg` and `.snupkg` identity remains `1.5.0`;
+- net8.0, net9.0, and net10.0 dependency groups declare direct `Icod.Terminal 1.15.0` and direct `Icod.TermInfo 1.14.0`;
+- the isolated package-only consumer still restores, compiles, and executes on all three TFMs;
+- the compiler-derived public API fingerprint remains 69 types / 525 lines / the frozen SHA-256;
+- Windows/Linux/macOS x64/ARM64 runtime suites remain green.
+
+## Final dependency-refresh gate
+
+The dependency refresh and synchronized release-facing documentation are the final pre-merge changes. Once the refreshed exact head passes the normal seven-job Staging matrix and the packed artifact is inspected, no further source change is planned before explicit PR #30 merge approval.
+
+That dependency qualification does not reopen the implementation/API decision.
 
 ## Release boundary
 
@@ -151,7 +172,7 @@ After explicit PR merge approval and merge, the resulting `main` Release workflo
 | T158 documentation-complete | `6336defe0fe0594301c1d20c0542ca1d8b8babd3` | #892 / `34915072200` | seven jobs green |
 | T158 final evidence | `218f900aaf689029f8f5de26906f86724d029ebc` | #893 / `34915390381` | seven jobs green |
 | `1.5.0-rc.1` | `23113b130d674da315ccbbcd384a60a0e6b47baa` | #899 / `34993884108` | seven jobs green |
-| stable-source `1.5.0` | `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` | #905 / `34994761777` | seven jobs green |
-| final evidence-only PR head | current branch | pending | final exact-head qualification pending |
+| initial stable-source `1.5.0` | `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` | #905 / `34994761777` | seven jobs green |
+| dependency-refresh `1.5.0` | current branch | pending | exact-head package/runtime qualification required |
 | PR #30 merge | pending explicit approval | — | not merged |
 | `main` Release | pending post-merge | pending | not run |
