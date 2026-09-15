@@ -7,14 +7,14 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Assembly version:** `1.0.0.0`  
-**Starting production dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
-**Status:** architecture approved; T150 next
+**Production dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
+**Status:** T150-T158 complete; T159 RC and stable-source closure next
 
 ---
 
 ## 1. Purpose
 
-Version 1.5.0 extends the 1.4 deterministic interaction router with the mechanisms required for more demanding applications while preserving the library's non-widget character.
+Version 1.5.0 extends the published 1.4 deterministic interaction router with the mechanisms required for more demanding applications while preserving the library's non-widget character.
 
 The release adds five coordinated capabilities:
 
@@ -24,9 +24,9 @@ The release adds five coordinated capabilities:
 4. deterministic clock-free pointer-gesture normalization;
 5. scope-level command bindings between region-local and router-global bindings.
 
-The release remains callback-free and terminal-I/O-free at the routing layer. It does not introduce buttons, text boxes, menus, modal-dialog widgets, a retained event tree, application navigation, or drag/drop policy.
+The release remains callback-free and terminal-I/O-free at the routing layer. It does not introduce buttons, text boxes, menus, modal-dialog widgets, a retained event tree, application navigation, timing-based click policy, or drag/drop policy.
 
-## 2. Baseline and compatibility
+## 2. Published baseline and accepted candidate
 
 Published 1.4 interaction API fingerprint:
 
@@ -36,27 +36,34 @@ Published 1.4 interaction API fingerprint:
 sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
 ```
 
-The following 1.4 behavior is frozen unless T150 records an approved correction:
+Current accepted 1.5 candidate fingerprint:
 
-- `CursesInteractionRouter` owns one logical screen and a bounded flat region registry;
-- `MaximumRegions = 4096`;
-- `MaximumRegionGestureBindings = 256`;
-- `MaximumGlobalGestureBindings = 1024`;
-- `MaximumGestureBindings = 16384`;
-- ordinary mouse routing performs deterministic hit testing;
-- hit precedence remains panel z-order, then `HitTestPriority`, then registration ordinal;
-- logical focus remains separate from terminal/window-manager focus reports;
-- `CursesFocusDirection.Forward = 0` and `Backward = 1` remain frozen;
-- region-local gesture commands precede router-global gesture commands;
-- command routing returns identities/results and invokes no application callbacks;
-- pointer-shape ownership remains delegated to Terminal through the existing DCurses abstraction/lease;
-- router disposal disposes owned regions and closes further mutation.
+```text
+release 1.5.0-alpha.5
+69 exported types
+525 canonical declared contract lines
+sha256 8807aa15714b0b059f2aaa5ef1ff33bce3ed0bfc44455d8a352ee7ecff8313c0
+```
 
-1.5 is additive by default. No existing public member is removed, renamed, or semantically repurposed.
+The candidate is additive over 1.4. No published 1.4 public type/member is removed, renamed, or repurposed.
+
+The seven new exported types are:
+
+```text
+CursesInteractionScope
+CursesInteractionScopeOptions
+CursesInteractionScopeLease
+CursesPointerCaptureLease
+CursesPointerTarget
+CursesPointerGesture
+CursesPointerGestureKind
+```
+
+T155 was the final API-changing tranche. T156-T158 preserve this exact fingerprint.
 
 ## 3. Dependency and layering stance
 
-Family 1 is intentionally independent of unfinished lower-layer graphics work.
+Family 1 is intentionally independent of lower-layer raster work.
 
 ```text
 Icod.TermInfo
@@ -75,103 +82,63 @@ Rules:
 
 - DCurses routes already-normalized `CursesInputEvent` values only.
 - DCurses does not inspect raw escape sequences or terminal families.
-- No 1.5 public interaction type exposes `Icod.Terminal` or `Icod.TermInfo` types.
-- Published Terminal 1.14 may be exercised for compatibility, but its raster lifecycle surface is not required by Family 1.
-- TermInfo 1.14 raster-backend selection/planning is explicitly out of scope for 1.5 Family 1.
+- `Icod.Terminal` remains the single live terminal/input/protocol authority.
+- No 1.5 public interaction type exposes Terminal or TermInfo implementation types.
+- Terminal 1.14 raster-lifecycle observability is not required by Family 1.
+- TermInfo 1.13/1.14 raster-evidence/backend-planning work is not required by Family 1.
+- T158 re-evaluated the published lower layers and retained `Icod.Terminal 1.13.0` / `Icod.TermInfo 1.12.0`; no freshness-only dependency bump is warranted.
 
-## 4. Interaction-scope model
+## 4. Interaction-scope contract
 
-### 4.1 Scope identity and ownership
-
-One `CursesInteractionRouter` owns a bounded scope registry.
-
-The intended public model is centered on:
+One `CursesInteractionRouter` owns one implicit root scope plus a bounded explicit scope registry.
 
 ```text
-CursesInteractionScope
-CursesInteractionScopeOptions
-CursesInteractionScopeLease
+MaximumScopes      = 256 explicit live scopes
+MaximumScopeDepth  = 32 explicit levels below root
 ```
 
-The router has an implicit root scope which always exists and is never disposed by the caller. Explicit scopes have immutable parentage and are permanently owned by one router.
+An explicit scope has immutable parentage and belongs permanently to one router. A region belongs to one scope for its lifetime; omitted/null scope means the implicit root and preserves published 1.4 behavior.
 
-Candidate bounds to freeze in T150:
+Scope disposal is deliberately non-cascading. It is legal only when the scope has no live regions or child scopes and is not active or required by a live activation chain. Invalid disposal fails atomically.
+
+Scope activation:
+
+- returns `CursesInteractionScopeLease`;
+- is descendant-only and strictly LIFO;
+- makes the active scope a modal hit/focus/command eligibility boundary;
+- saves logical focus for deterministic restoration;
+- invokes no callback and performs no terminal operation.
+
+## 5. Pointer-capture contract
+
+Exactly one explicit pointer capture may exist per router.
+
+`CapturePointer(...)` binds one owned eligible region to one concrete mouse button and returns `CursesPointerCaptureLease`.
+
+Capture never:
+
+- implies or changes logical focus;
+- synthesizes a press;
+- moves a window/panel;
+- acquires Terminal mouse tracking;
+- executes application behavior.
+
+Capture ends on matching release, explicit disposal, target invalidation, modal exclusion, or router disposal. Stale lease disposal after automatic release is idempotent.
+
+Captured routing uses immutable `CursesPointerTarget` rather than weakening the published `CursesInteractionHit` contract. It exposes:
 
 ```text
-MaximumScopes               = 256 explicit live scopes
-MaximumScopeDepth           = 32 including an explicit scope chain below root
-MaximumScopeGestureBindings = 256 per explicit scope
+Region
+LocalRow      signed int
+LocalColumn   signed int
+IsInside      bool
 ```
 
-A region belongs to exactly one scope for its lifetime. Existing 1.4 registration without a scope means the root scope and therefore preserves 1.4 behavior.
+Captured targets may remain valid with `IsInside == false`, including negative or beyond-edge local coordinates.
 
-### 4.2 Active-scope lifetime
+## 6. Spatial logical-focus contract
 
-The root scope is active when no explicit scope lease is held.
-
-Activating a scope returns a disposable `CursesInteractionScopeLease`. Activation is LIFO and bounded by `MaximumScopeDepth`. Nested activation must identify a descendant of the currently active scope. Disposing only the top lease is legal; out-of-order disposal fails deterministically rather than silently corrupting scope state.
-
-The active scope forms a modal routing/focus boundary:
-
-- regions outside the active scope subtree do not participate in hit testing;
-- regions outside the active scope subtree are not focus eligible;
-- capture owned by an excluded region is released;
-- focus is repaired into the active subtree;
-- when a lease ends, the router restores the previously focused region when it is again eligible, otherwise ordinary deterministic focus repair applies.
-
-Scope activation itself never invokes callbacks and never changes terminal focus state.
-
-## 5. Pointer-capture model
-
-### 5.1 Explicit capture
-
-The intended public model includes a disposable `CursesPointerCaptureLease` obtained from the router for one owned eligible region and one concrete mouse button.
-
-Exactly one capture may be active per router.
-
-Capture does not:
-
-- imply logical focus;
-- synthesize a mouse press;
-- move a panel/window;
-- acquire Terminal mouse tracking;
-- invoke application code.
-
-### 5.2 Capture lifetime
-
-Capture ends on the first applicable condition:
-
-- matching button release routed through the router;
-- explicit capture-lease disposal;
-- captured region disposal;
-- captured region becomes disabled;
-- captured region becomes ineligible because its panel is disposed/hidden or geometry leaves the effective screen;
-- active-scope change excludes the captured region;
-- router disposal.
-
-A stale lease may be disposed idempotently after automatic release.
-
-### 5.3 Captured pointer targeting
-
-Ordinary `CursesInteractionHit` remains an in-bounds hit snapshot and is not repurposed for capture.
-
-The 1.5 candidate model adds an immutable pointer-target snapshot, conceptually:
-
-```text
-CursesPointerTarget
-    Region
-    LocalRow      signed int
-    LocalColumn   signed int
-    IsInside      bool
-```
-
-Captured events route to the captured region even when `IsInside == false`. Local coordinates are computed relative to the region's effective screen origin and may be negative or greater than/equal to the declared region extent.
-
-## 6. Spatial logical-focus model
-
-### 6.1 Enum compatibility
-
-The intended additive numeric contract is:
+The additive numeric contract is:
 
 ```text
 Forward  = 0
@@ -182,35 +149,24 @@ Left     = 4
 Right    = 5
 ```
 
-### 6.2 Candidate geometry
+Forward/Backward published behavior remains unchanged.
 
-Spatial focus considers only focus-eligible regions in the active scope subtree. Geometry is based on each region's effective visible screen rectangle after screen and panel clipping.
+Spatial candidates must be focus-eligible within the active scope subtree and have a non-empty effective visible rectangle after screen/panel clipping.
 
-A region whose effective visible rectangle is empty is ineligible.
+Candidates are ranked deterministically and without floating point by:
 
-### 6.3 Deterministic ranking
+1. requested half-plane eligibility;
+2. perpendicular-axis overlap preference;
+3. primary-axis edge distance;
+4. perpendicular doubled-center distance;
+5. `TraversalOrder`;
+6. registration ordinal.
 
-For a requested spatial direction, the candidate must lie in the requested half-plane relative to the currently focused effective rectangle.
-
-Candidates are ordered lexicographically by:
-
-1. perpendicular-axis overlap preference (`overlaps` before `does not overlap`);
-2. primary-axis edge distance;
-3. perpendicular center distance using doubled integer centers to avoid floating point;
-4. existing `TraversalOrder`;
-5. registration ordinal.
-
-No Euclidean distance, floating-point arithmetic, randomization, culture-dependent comparison, or panel-brand policy is permitted.
-
-Spatial movement has no wrapping. If no current region is focused or no candidate qualifies, `MoveFocus(Up/Down/Left/Right)` returns `null` without manufacturing initial focus. Existing Forward/Backward bootstrap and wrap semantics remain unchanged.
+Spatial movement does not wrap. With no current focus or no candidate, it returns `null` rather than manufacturing focus.
 
 ## 7. Pointer-gesture normalization
 
-### 7.1 Purpose
-
-1.5 derives deterministic application-facing pointer interaction phases from the already-normalized mouse stream without introducing a clock.
-
-The intended gesture kinds are:
+The immutable 1.5 pointer gesture vocabulary is:
 
 ```text
 Press
@@ -226,64 +182,53 @@ WheelLeft
 WheelRight
 ```
 
-The candidate immutable snapshot is `CursesPointerGesture` carrying at minimum kind, button, modifiers, target, and original `CursesMouseEvent` identity through the enclosing interaction result/input.
+Classification is clock-free:
 
-### 7.2 Click semantics
+- same-target press/release with no intervening cell movement -> `Click`;
+- first held-button cell movement -> `DragStart`;
+- later movement -> `DragMove`;
+- release after drag -> `DragEnd` without an additional click;
+- wheel input maps one-to-one to wheel gesture kinds.
 
-A click is emitted when:
+Excluded policy remains outside core:
 
-- a concrete button press targets one region;
-- the corresponding release targets the same region through hit testing or capture;
-- no cell movement for that button was routed between press and release.
-
-No time window is used.
-
-### 7.3 Drag semantics
-
-The first routed cell movement while a pressed concrete button owns pointer interaction emits `DragStart`; subsequent movements emit `DragMove`; the corresponding release emits `DragEnd`.
-
-A release after drag does not also emit `Click`.
-
-Wheel reports map one-to-one to wheel gesture kinds and do not participate in capture lifetime.
-
-### 7.4 Deliberate exclusions
-
-1.5 does not define:
-
-- double-click or triple-click;
+- double/triple click;
 - click-duration thresholds;
-- movement thresholds beyond cell-coordinate change;
+- sub-cell movement thresholds;
 - inertial scrolling;
-- drag/drop payloads or acceptance;
+- drag/drop payloads/acceptance;
 - hover dwell timing.
 
 ## 8. Scoped command resolution
 
-Scopes may own semantic key-gesture bindings.
-
-The total router binding ceiling remains `MaximumGestureBindings = 16384`; scope bindings participate in that same total rather than creating an unbounded parallel registry.
-
-For keyboard input with a focused region, command resolution is:
+Explicit scopes may own semantic key-gesture bindings.
 
 ```text
-1. focused-region local binding
-2. focused region's scope binding
-3. successive parent-scope bindings up to and including the active scope boundary
-4. router-global binding
-5. otherwise Targeted to focused region
+MaximumRegionGestureBindings  = 256 per region
+MaximumScopeGestureBindings   = 256 per scope
+MaximumGlobalGestureBindings  = 1024
+MaximumGestureBindings        = 16384 total across all three layers
 ```
 
-Bindings above the active scope boundary are not consulted. Router-global bindings remain global by explicit design.
+With a focused region, lookup is:
 
-For keyboard input with no focused region, scope bindings are resolved from the active scope upward only to itself, followed by router-global bindings; inactive outer scope bindings do not leak through a modal boundary.
+```text
+region-local
+-> region scope
+-> parent scopes through active modal boundary
+-> router-global
+-> otherwise ordinary targeted result
+```
 
-Command binding still returns `CursesCommand` identity only. There are no handlers, delegates, callbacks, enabled predicates, dependency injection, or automatic command execution.
+With no focused region and an explicit active scope, only that active scope is considered before router-global lookup; inactive outer bindings do not leak through the modal boundary.
 
-## 9. Structured routing result evolution
+Commands remain `CursesCommand` identities only. There are no handlers, callbacks, enabled predicates, dependency injection, or automatic command execution.
+
+## 9. Structured result evolution
 
 `CursesInteractionResult` remains the sole structured routing output.
 
-Existing properties remain valid:
+Published properties remain valid:
 
 ```text
 Kind
@@ -293,188 +238,124 @@ Command
 Hit
 ```
 
-1.5 may add nullable immutable properties for pointer targeting and pointer gestures. Existing 1.4 results remain representable exactly; keyboard/paste behavior need not allocate pointer snapshots.
+1.5 adds nullable immutable:
 
-T150 must freeze any new result-kind numerics and prove that no existing enum numeric changes.
+```text
+PointerTarget
+PointerGesture
+```
 
-## 10. Lifecycle, resize, panel, and mutation coherence
+`CursesInteractionResultKind` remains unchanged:
 
-All new mechanisms must remain coherent with existing mutable geometry and panel lifetime.
+```text
+Unrouted = 0
+Targeted = 1
+Command  = 2
+```
 
-Required invariants:
+The original normalized input object remains available in every result.
 
-- scope activation/deactivation performs deterministic focus repair;
-- scope disposal is rejected while live regions/child scopes/leases would make ownership ambiguous, unless T150 freezes a safe cascading rule;
-- region disposal automatically releases its capture and removes its local bindings as today;
-- panel hide/disposal or region bounds change can invalidate focus/capture immediately through the existing eligibility pathways;
-- screen resize lazily or explicitly repairs focus/capture before observable routing decisions;
-- no disposed object may be returned as a routing target;
+## 10. Lifecycle, mutation, and coherence rules
+
+The accepted 1.5 implementation is governed by these invariants:
+
+- active scope eligibility participates in hit testing, focus, capture, and scoped commands;
+- focus save/restore/repair remains deterministic;
+- region disposal releases its capture and local bindings;
+- panel hide/disposal, bounds mutation, screen resize, and scope transitions cannot leave dangling pointer ownership;
+- once pointer ownership is invalidated, later geometry/scope restoration cannot resurrect that old capture or press/drag state;
+- stale capture/scope leases remain deterministic and idempotent where documented;
+- no disposed object is returned as a later routing target;
 - no automatic focus-on-click is introduced;
-- capture and scope lifetime are deterministic under repeated disposal;
-- routing remains synchronous and performs no terminal I/O.
+- routing remains synchronous and performs no terminal I/O;
+- the existing single-writer interaction model remains the concurrency contract.
 
-## 11. Performance and bounds
+## 11. Performance and capacity qualification
 
-1.5 retains the 1.4 bounded philosophy.
+T158 froze warmed repeated-sample regression tripwires using the existing 1.4 measurement methodology:
 
-The hardening gate must cover:
+```text
+warmup iterations       4096
+allocation samples         8
+normal iterations       10000
+spatial iterations       1000
+fixed sample noise       1024 bytes
+```
 
-- `MaximumRegions` region routing with nested scopes;
-- maximum scope count/depth;
-- maximum local/scope/global binding counts and total count;
-- capture churn and automatic-release churn;
-- repeated spatial-focus movement over maximum practical region populations;
-- repeated press/move/release gesture streams;
-- resize/panel visibility churn during capture and nested scopes;
-- deterministic replay of identical input/state transitions;
-- registration ordinal exhaustion and binding-capacity failure atomicity;
-- allocation ceilings for steady-state hit testing, spatial focus, command lookup, and mouse routing.
+Qualified ceilings:
 
-Exact performance ceilings are frozen only after measurement in T158; tests must distinguish true production allocations from unrelated runtime/JIT/test-framework thread-allocation noise.
+```text
+root-scope local command routing       <= 96 bytes / operation + fixed sample noise
+nested-scope successful HitTest        <= 96 bytes / operation + fixed sample noise
+spatial Right/Left focus pair          <= 1024 bytes total in minimum 1000-iteration sample
+deep scoped-command lookup             <= 96 bytes / operation + fixed sample noise
+captured out-of-bounds mouse routing   <= 256 bytes / operation + fixed sample noise
+maximum-capacity combined churn        <= 60 seconds broad regression tripwire
+```
 
-## 12. Test-infrastructure housekeeping
+Maximum-capacity churn covers all 256 explicit scope slots, the full 16,384 total binding budget with returned/reused capacity, and repeated capture/press/drag/release ownership.
 
-T150 includes one targeted correction carried forward from the 1.4 release gate:
+These are regression tripwires, not latency or throughput SLAs.
 
-`CursesPanelApplicationAcceptanceTests.NoPanelPresenceCheckIsAllocationFree` measured an isolated 24-byte Windows ARM64/net10 thread allocation once even though the production path is exactly `HasPanels -> panelOrder.Count -> List<T>.Count`; the unchanged rerun passed.
+## 12. Application/package acceptance
 
-The test must be hardened so it still proves the production property without treating unrelated runtime/JIT/test-harness allocation noise as product allocation. Production `HasPanels` behavior is not changed unless an independent failing product test proves a defect.
+`Icod.DCurses.Interaction.Sample` demonstrates the complete 1.5 mechanism using public DCurses API only:
+
+- modal + nested scope activation;
+- Forward/Backward and spatial focus;
+- scoped/global command identities;
+- explicit pointer capture;
+- `DragStart` / `DragMove` / `DragEnd` routing;
+- signed captured pointer targets;
+- application-owned popup movement policy;
+- pointer-shape preferences;
+- explicit resize/re-layout;
+- terminal focus versus logical focus separation.
+
+The package-only consumer restores from the generated `.nupkg` and compiles/executes the public additive surface on net8.0, net9.0, and net10.0. Internal synthetic input factories remain internal.
 
 ## 13. Tranche program
 
-### T150 — Architecture/API-regret gate, planning freeze, and test housekeeping
+```text
+T150  architecture/API-regret gate, planning freeze, test housekeeping          complete
+T151  bounded interaction scopes and active-scope eligibility                   complete
+T152  explicit pointer capture and capture lifetime                             complete
+T153  deterministic spatial focus navigation                                    complete
+T154  deterministic pointer-gesture normalization                               complete
+T155  scoped command bindings and precedence                                    complete
+T156  resize/panel/scope/capture/disposal coherence and adversarial hardening   complete
+T157  application acceptance sample and downstream/package consumer             complete
+T158  performance/allocation/API/package/docs/dependency regret gate            complete
+T159  RC and stable-source 1.5.0 closure                                        next
+```
 
-Deliverables:
+Qualified implementation/API checkpoints:
 
-- publish this roadmap, approved design, and implementation plan;
-- update the main roadmap to make 1.5 active;
-- inventory the 1.4 public interaction API and enum numerics;
-- freeze candidate names, bounds, ownership rules, and result evolution;
-- add compiler-derived 1.5 candidate API fingerprinting without replacing historical 1.4 evidence;
-- harden the old exact-zero allocation acceptance test;
-- verify current dependencies and confirm no Family-1 production bump is required.
+```text
+T150  eb34c8236a9e6c008b7ff486df177e8b52cba274  #818 / 34878235207
+T151  ac0bfcbf38800a94533cc4ada4caf3b8feee4fb1  #829 / 34879561466
+T152  b1e9e60df7ee6cfc3e2af10c4f3f819273c299fb  #839 / 34881203594
+T153  6f440a9feda628f1948d11008402a0064bbd645b  #844 / 34882549455
+T154  acae6104e7f0e4e431d7f5f836978be807008a40  #855 / 34892884559
+T155  3e59e7613e214a5eaa84df13bbedba56abfefb6d  #864 / 34899684038
+T156  e09324666bb6960d465f061d609a4fb53d8c5288  #876 / 34905503151
+T157  596843f798999573162be7883051030db353b940  #884 / 34908524571
+T158  9a8d0b2e2439bf4a936a5602d846a0c1bd20781f  #888 / 34914622882
+```
 
-**Gate:** exact-head Staging matrix green; no unresolved API-regret finding.
+T157 documentation head `9014bc8721ea8bde7248973d7d2d34e9ed2a8109` additionally passed #886 / `34908876499` across all seven jobs.
 
-### T151 — Bounded interaction scopes and active-scope eligibility
-
-Deliverables:
-
-- root-scope compatibility path;
-- explicit scope registry, parentage, bounds, and disposal rules;
-- LIFO active-scope lease stack;
-- region-to-scope association at registration;
-- scope-aware hit testing and focus eligibility;
-- deterministic focus save/restore/repair.
-
-**Gate:** existing 1.4 unscoped behavior remains byte/semantic compatible at the public routing level; nested scope tests cover boundaries and failure atomicity.
-
-### T152 — Explicit pointer capture and capture lifetime
-
-Deliverables:
-
-- one active capture lease;
-- button identity and eligibility validation;
-- captured routing outside region bounds with signed local coordinates;
-- automatic release on matching release, region/panel/scope/lifecycle loss, and router disposal;
-- idempotent stale-lease disposal.
-
-**Gate:** ordinary uncaptured hit testing is unchanged; capture never changes logical focus implicitly.
-
-### T153 — Deterministic spatial focus navigation
-
-Deliverables:
-
-- freeze additive focus-direction numerics;
-- effective visible region rectangle helper;
-- Up/Down/Left/Right half-plane filtering and lexicographic ranking;
-- active-scope restriction;
-- adversarial tie and clipping tests.
-
-**Gate:** integer-only deterministic results across repeated runs/TFMs/OSes; Forward/Backward behavior unchanged.
-
-### T154 — Deterministic pointer-gesture normalization
-
-Deliverables:
-
-- immutable pointer gesture vocabulary/snapshot;
-- per-button press ownership sufficient for click/drag classification;
-- click, drag start/move/end, move, release, and wheel routing;
-- capture-aware gesture targeting;
-- cancellation/reset behavior when ownership becomes invalid.
-
-**Gate:** no clock dependency and no double-click/drag-drop policy; raw input identity remains available in every structured result.
-
-### T155 — Scoped command bindings and precedence
-
-Deliverables:
-
-- bounded scope gesture registry;
-- total-binding ceiling integration;
-- deterministic region -> scope chain -> global resolution;
-- modal active-scope boundary enforcement;
-- command identity remains callback-free.
-
-**Gate:** 1.4 region/global precedence remains unchanged when all regions remain in root scope and no explicit scope is active.
-
-### T156 — Coherence and adversarial hardening
-
-Deliverables:
-
-- combined scope/capture/focus/gesture/command state-machine tests;
-- resize, panel hide/show/disposal, region mutation/disposal, nested lease disposal, router disposal;
-- maximum-capacity and ordinal-boundary tests;
-- deterministic replay and failure-atomicity coverage;
-- concurrency audit preserving the documented single-writer model unless explicitly expanded.
-
-**Gate:** no dangling capture/focus/scope target can survive invalidation into a later routing result.
-
-### T157 — Application acceptance sample and downstream/package consumer
-
-Deliverables:
-
-- extend or add a focused interaction sample demonstrating nested scope activation, pointer capture, spatial focus, drag gesture results, and scoped commands;
-- sample consumes public DCurses API only;
-- fresh packed-package consumer exercises the complete additive surface on net8/net9/net10;
-- documentation explains mechanism/policy separation.
-
-**Gate:** sample and fresh consumer compile/run from the packed artifact; no internal or Terminal protocol types leak into public use.
-
-### T158 — Performance/allocation/API/package/docs/dependency regret gate
-
-Deliverables:
-
-- steady-state allocation/performance measurements and justified ceilings;
-- maximum-capacity churn;
-- compiler-derived exact public API inventory/fingerprint;
-- XML docs/package README/release-document review;
-- LGPL/GPL header audit;
-- dependency review against then-current stable Terminal/TermInfo releases;
-- explicit public API regret review.
-
-**Gate:** exact-head full Staging matrix green and no outstanding release-facing inconsistency.
-
-### T159 — RC and stable-source 1.5.0 closure
-
-Deliverables:
-
-- promote accepted implementation to `1.5.0-rc.1` and qualify exact head;
-- promote unchanged accepted implementation/API to stable-source `1.5.0`;
-- update root README, release notes, roadmaps, package metadata, and final API evidence;
-- qualify stable-source exact head through the complete matrix;
-- leave merge, post-merge Release validation, tag, GitHub Release, and NuGet publication as explicit maintainer actions.
-
-**Gate:** release-ready source with immutable qualification evidence.
+T158's first performance head `8fecfbd8f69555adfa469528105ba841f0d2b6e4` exposed a test-only disposal-order mistake: the spatial fixture attempted to dispose an explicit scope before its 256 router-owned regions. Corrected head `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` changed only fixture ownership and passed #888 / `34914622882` across all seven jobs; no production source, API, algorithm, or threshold changed.
 
 ## 14. Deliberate non-goals
 
-1.5 does not add:
+Version 1.5 does not add:
 
 - widgets or controls;
+- buttons, text boxes, menus, dialogs, or application navigation;
 - retained event trees or capture/bubble phases;
 - automatic focus-on-click;
 - callback dispatch;
-- application navigation;
 - drag/drop payloads or targets;
 - timing-based multi-click gestures;
 - layout-system expansion;
@@ -484,16 +365,22 @@ Deliverables:
 - animation;
 - PTY/ConPTY hosting.
 
-## 15. Success criteria
+Future widget or mixed-media layers should be able to build on these mechanisms without bypassing Terminal ownership or reimplementing scopes, focus, capture, gesture routing, or command identity.
 
-1.5 is successful when an application can use only public DCurses APIs to:
+## 15. T158 regret decision and T159 closure
 
-1. register ordinary and scoped interaction regions;
-2. enter and leave nested interaction scopes deterministically;
-3. capture one pressed pointer to a region across out-of-bounds motion;
-4. move focus sequentially or spatially with deterministic results;
-5. receive clock-free click/drag/wheel gesture snapshots;
-6. resolve commands through region, scope, and global precedence without callbacks;
-7. survive resize, panel, region, scope, and disposal changes without dangling ownership;
-8. do all of the above without DCurses parsing protocol bytes or performing hidden terminal I/O;
-9. preserve all published 1.4 behavior for consumers that do not use the new features.
+T158 found no public API, ownership, package, documentation, licensing, or dependency correction that warrants changing the accepted implementation before RC.
+
+The source still intentionally declares/packages `1.4.0`; this is not the final 1.5 release identity. Under the checked-in plan, T159 now performs:
+
+```text
+accepted unchanged implementation/API
+    -> Version / PackageVersion 1.5.0-rc.1
+    -> exact-head seven-job Staging qualification
+    -> unchanged Version / PackageVersion 1.5.0
+    -> final stable-source seven-job Staging qualification
+```
+
+`AssemblyVersion` remains `1.0.0.0`.
+
+T159 may update release-facing README/release notes/final fingerprint metadata and closure records, but it must not silently change the accepted production interaction contract. Merge, post-merge Release validation, tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions.
