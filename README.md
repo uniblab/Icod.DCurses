@@ -17,13 +17,13 @@ It sits above `Icod.Terminal` and `Icod.TermInfo`:
 
 Current published stable release: `Icod.DCurses 1.4.0`.
 
-`Icod.DCurses 1.5.0` is the active development line in PR #30. T150-T157 are complete and T158 is the pre-RC performance/allocation/API/package/documentation/dependency regret gate. The accepted 1.5 interaction implementation remains additive over the published 1.4 contract and continues to avoid widget/application policy.
+`Icod.DCurses 1.5.0` is in release-candidate qualification in PR #30. T150-T158 are complete. T159 has promoted the unchanged accepted implementation/API to `1.5.0-rc.1`; stable-source `1.5.0` promotion remains blocked until this exact RC source passes the complete seven-job Staging matrix.
 
-Current branch source identity remains intentionally at the published package version until T159 performs the explicit RC promotion:
+Current branch source identity:
 
 ```text
-Version         1.4.0
-PackageVersion  1.4.0
+Version         1.5.0-rc.1
+PackageVersion  1.5.0-rc.1
 AssemblyVersion 1.0.0.0
 Icod.Terminal   1.13.0
 Icod.TermInfo   1.12.0
@@ -37,7 +37,7 @@ Published 1.4 contract:
 sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
 ```
 
-Current 1.5 candidate contract:
+Frozen 1.5 candidate contract:
 
 ```text
 69 exported types
@@ -65,7 +65,7 @@ Install the current published stable package selected by your normal NuGet polic
 dotnet add package Icod.DCurses
 ```
 
-Normal stable package resolution selects the published 1.4 line. The 1.5 branch is development source until its RC/stable-source qualification and explicit maintainer merge/release actions are complete.
+Normal stable package resolution selects the published 1.4 line. The 1.5 RC branch remains development source until RC/stable-source qualification and explicit maintainer merge/release actions are complete.
 
 ## Architecture
 
@@ -405,10 +405,11 @@ Current authorities:
 - `docs/T156-Coherence-and-Adversarial-Hardening.md`
 - `docs/T157-Application-Acceptance-and-Package-Consumer.md`
 - `docs/T158-Advanced-Interaction-Regret-and-Qualification-Gate.md`
+- `docs/T159-RC-and-Stable-1.5.0-Closure.md`
 
 Published 1.4 compatibility/release authorities remain in the repository, including `Icod.DCurses-1.4.0-Development-Roadmap.md`, `docs/Public-API-Fingerprint-1.4.json`, and the T1401-T1412 tranche records. They are historical evidence and are not rewritten to simulate current 1.5 development state.
 
-T157 implementation head `596843f798999573162be7883051030db353b940` passed workflow #884 / `34908524571` across all seven jobs, including isolated `.nupkg` consumers on net8/net9/net10. T157 documentation head `9014bc8721ea8bde7248973d7d2d34e9ed2a8109` passed workflow #886 / `34908876499` across all seven jobs. T158 performance head `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` passed workflow #888 / `34914622882` across all seven jobs after one test-fixture ownership correction; production source and the frozen public API were unchanged.
+T157 implementation head `596843f798999573162be7883051030db353b940` passed workflow #884 / `34908524571` across all seven jobs, including isolated `.nupkg` consumers on net8/net9/net10. T157 documentation head `9014bc8721ea8bde7248973d7d2d34e9ed2a8109` passed workflow #886 / `34908876499` across all seven jobs. T158 performance head `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` passed workflow #888 / `34914622882` across all seven jobs after one test-fixture ownership correction; T158 documentation head `6336defe0fe0594301c1d20c0542ca1d8b8babd3` passed #892 / `34915072200`, and final evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`. Production source and the frozen public API remained unchanged throughout T158.
 
 ## Authors
 
