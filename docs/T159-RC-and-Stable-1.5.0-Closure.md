@@ -5,9 +5,10 @@
 **Published baseline:** `1.4.0`  
 **Qualified T158 evidence head:** `218f900aaf689029f8f5de26906f86724d029ebc`  
 **Qualified T158 evidence workflow:** #893 / `34915390381` — all seven jobs green  
+**RC identity:** `1.5.0-rc.1`  
 **AssemblyVersion:** `1.0.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
-**Status:** RC promotion in progress; merge/tag/release/publication remain explicitly unauthorized
+**Status:** RC identity promoted; exact-head RC Staging qualification pending; merge/tag/release/publication remain explicitly unauthorized
 
 ---
 
@@ -76,9 +77,9 @@ T159 does not reopen the implementation or public API. The accepted 1.5 mechanis
 - bounded capacity, deterministic repair, stale-ownership invalidation, and callback-free results;
 - no widget framework, hidden event loop, drag/drop policy, multi-click timing policy, raster scene ownership, or terminal protocol ownership.
 
-## RC promotion plan
+## RC promotion
 
-The T158-qualified implementation/API is promoted unchanged to:
+The T158-qualified implementation/API has been promoted unchanged to:
 
 ```text
 Version         1.5.0-rc.1
@@ -86,7 +87,7 @@ PackageVersion  1.5.0-rc.1
 AssemblyVersion 1.0.0.0
 ```
 
-RC promotion may change only release identity and release-facing documentation. Production interaction code, the compiler-derived public API, and declared runtime dependencies remain unchanged.
+RC promotion changes release identity and release-facing documentation only. Production interaction code, the compiler-derived public API, target frameworks, and declared runtime dependencies remain unchanged.
 
 The RC exact head must pass:
 
@@ -138,7 +139,7 @@ Those remain separate explicit maintainer approval/actions after stable-source q
 | T158 measured implementation | `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` | #888 / `34914622882` | seven jobs green |
 | T158 documentation-complete | `6336defe0fe0594301c1d20c0542ca1d8b8babd3` | #892 / `34915072200` | seven jobs green |
 | T158 final evidence | `218f900aaf689029f8f5de26906f86724d029ebc` | #893 / `34915390381` | seven jobs green |
-| `1.5.0-rc.1` | pending | pending | RC promotion in progress |
+| `1.5.0-rc.1` | current branch | pending | exact-head RC qualification pending |
 | stable-source `1.5.0` | pending | pending | blocked on qualified RC |
 | PR #30 merge | pending explicit approval | — | not merged |
 | `main` Release | pending post-merge | pending | not run |
