@@ -34,10 +34,9 @@ public sealed partial class CursesWindow {
 	/// <param name="destinationRow">The zero-based destination row.</param>
 	/// <param name="destinationColumn">The zero-based destination column.</param>
 	/// <remarks>
-	/// Source cells and semantic metadata are snapshotted before any destination mutation, so overlapping
-	/// source/destination rectangles are deterministic. Source blanks are copied destructively, including
-	/// any semantic metadata associated with those coordinates. Source and destination cursor positions
-	/// are preserved.
+	/// Source cells, semantic metadata, and retained raster state are snapshotted before any destination
+	/// mutation, so overlapping source/destination rectangles are deterministic. Source blanks are copied
+	/// destructively together with their retained axes. Source and destination cursor positions are preserved.
 	/// </remarks>
 	public void CopyRectangleTo(
 		CursesWindow destination,
@@ -60,7 +59,7 @@ public sealed partial class CursesWindow {
 		);
 	}
 
-	/// <summary>Overlays a source rectangle onto a destination window without replacing destination cells with source blanks.</summary>
+	/// <summary>Overlays a source rectangle onto a destination window without replacing destination cells with ordinary source blanks.</summary>
 	/// <param name="destination">The destination window.</param>
 	/// <param name="sourceRow">The zero-based source row.</param>
 	/// <param name="sourceColumn">The zero-based source column.</param>
@@ -69,10 +68,9 @@ public sealed partial class CursesWindow {
 	/// <param name="destinationRow">The zero-based destination row.</param>
 	/// <param name="destinationColumn">The zero-based destination column.</param>
 	/// <remarks>
-	/// Ordinary source blank cells are transparent and therefore do not replace destination cells or
-	/// semantic metadata. Two-column continuation cells remain structural parts of their leading cell.
-	/// Source cells and semantic metadata are snapshotted before destination mutation, and both cursors
-	/// are preserved.
+	/// A source coordinate is transparent only when its ordinary cell is blank and it carries no retained
+	/// raster state. Semantic metadata alone does not make a blank coordinate opaque. Two-column continuation
+	/// cells remain structural parts of their leading cell. All retained axes are snapshotted before mutation.
 	/// </remarks>
 	public void OverlayRectangleTo(
 		CursesWindow destination,
@@ -127,6 +125,8 @@ public sealed partial class CursesWindow {
 			columns,
 			boundaryBlank
 		);
+		destination.ValidateRasterTransferSnapshot( snapshot );
+
 		CursesLogicalCellState destinationRepairState = new(
 			CursesCell.Blank( destination.backgroundCell.Style ),
 			null
@@ -140,7 +140,9 @@ public sealed partial class CursesWindow {
 				if ( sourceCell.IsContinuation ) {
 					continue;
 				}
-				if ( transparentBlanks && sourceCell.IsBlank ) {
+				if ( transparentBlanks
+					&& sourceCell.IsBlank
+					&& !sourceState.Raster.HasValue ) {
 					continue;
 				}
 
@@ -165,10 +167,7 @@ public sealed partial class CursesWindow {
 					destination.SetLogicalCellStateIfVisible(
 						targetRow,
 						targetColumn + 1,
-						new CursesLogicalCellState(
-							CursesCell.Continuation( sourceCell.Style ),
-							sourceState.Metadata
-						)
+						sourceStates[ columnOffset + 1 ]
 					);
 					columnOffset++;
 					continue;
@@ -179,6 +178,22 @@ public sealed partial class CursesWindow {
 					targetColumn,
 					sourceState
 				);
+			}
+		}
+	}
+
+	private void ValidateRasterTransferSnapshot(
+		CursesLogicalCellState[][] snapshot
+	) {
+		ArgumentNullException.ThrowIfNull( snapshot );
+		if ( screen.RasterSessionOwner is null ) {
+			return;
+		}
+
+		foreach ( CursesLogicalCellState[] row in snapshot ) {
+			ArgumentNullException.ThrowIfNull( row );
+			foreach ( CursesLogicalCellState state in row ) {
+				screen.ValidateRasterCellOwnership( state.Raster );
 			}
 		}
 	}
