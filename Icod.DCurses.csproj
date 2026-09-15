@@ -54,7 +54,7 @@
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<Deterministic>true</Deterministic>
-		<PackageTags>cli;command-line;console;cross-platform;csharp;curses;dcurses;dotnet;full-screen;icod;linux;macos;ncurses;pcurses;posix;screen;termcap;terminal;terminal-info;terminfo;text;tui;ui;windows</PackageTags>
+		<PackageTags>cli;command-line;console;console-ui;cross-platform;csharp;curses;dcurses;dotnet;full-screen;icod;linux;macos;ncurses;pcurses;posix;screen;termcap;terminal;terminal-info;terminfo;text;text-ui;tui;ui;windows</PackageTags>
 		<RepositoryUrl>https://github.com/uniblab/Icod.DCurses</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
