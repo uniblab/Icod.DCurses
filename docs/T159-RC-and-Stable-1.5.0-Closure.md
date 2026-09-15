@@ -7,10 +7,12 @@
 **Qualified T158 evidence workflow:** #893 / `34915390381` — all seven jobs green  
 **Qualified RC head:** `23113b130d674da315ccbbcd384a60a0e6b47baa`  
 **Qualified RC workflow:** #899 / `34993884108` — all seven jobs green  
+**Qualified stable-source head:** `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9`  
+**Qualified stable-source workflow:** #905 / `34994761777` — all seven jobs green  
 **Stable-source identity:** `1.5.0`  
 **AssemblyVersion:** `1.0.0.0`  
 **Runtime dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
-**Status:** stable-source identity promoted; final exact-head Staging qualification pending; merge/tag/release/publication remain explicitly unauthorized
+**Status:** T159 complete; release-ready source pending explicit PR #30 merge approval; merge/tag/release/publication remain explicitly unauthorized
 
 ---
 
@@ -32,27 +34,13 @@ Workflow #893 / `34915390381` passed the complete Staging matrix:
 - Runtime macOS x64;
 - Runtime macOS ARM64.
 
-That evidence-only head followed the qualified T158 performance/API checkpoint:
-
-```text
-9a8d0b2e2439bf4a936a5602d846a0c1bd20781f
-workflow #888 / 34914622882
-```
-
-and the documentation-complete pre-evidence checkpoint:
-
-```text
-6336defe0fe0594301c1d20c0542ca1d8b8babd3
-workflow #892 / 34915072200
-```
-
-Both also passed all seven required Staging jobs.
+That evidence-only head followed the qualified T158 performance/API checkpoint `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` (#888 / `34914622882`) and documentation-complete checkpoint `6336defe0fe0594301c1d20c0542ca1d8b8babd3` (#892 / `34915072200`), both also seven-job green.
 
 T158 found no production/API, ownership, packaging, documentation, licensing, or dependency-boundary regret requiring a correction before RC.
 
-## Frozen 1.5 contract carried into closure
+## Frozen 1.5 contract carried through closure
 
-The accepted public API remains:
+The final public API is:
 
 ```text
 69 exported types
@@ -68,7 +56,7 @@ Published 1.4 remains the compatibility floor:
 sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
 ```
 
-T159 does not reopen the implementation or public API. The accepted 1.5 mechanisms remain:
+T159 did not reopen the implementation or public API. The accepted 1.5 mechanisms remain:
 
 - bounded interaction scopes with immutable parentage and explicit LIFO activation leases;
 - explicit singular pointer capture without implicit logical focus;
@@ -89,29 +77,17 @@ PackageVersion  1.5.0-rc.1
 AssemblyVersion 1.0.0.0
 ```
 
-RC promotion changed release identity and release-facing documentation only. Production interaction code, the compiler-derived public API, target frameworks, and declared runtime dependencies remained unchanged.
-
-The exact RC head was:
+Exact RC head:
 
 ```text
 23113b130d674da315ccbbcd384a60a0e6b47baa
 ```
 
-Workflow #899 / `34993884108` passed the complete seven-job Staging matrix without rerun or correction:
+Workflow #899 / `34993884108` passed the complete seven-job Staging matrix without rerun or correction. RC promotion changed release identity and release-facing documentation only; production interaction code, the compiler-derived public API, target frameworks, and declared runtime dependencies remained unchanged.
 
-- Package candidate;
-- Runtime Windows x64;
-- Runtime Windows ARM64;
-- Runtime Linux x64;
-- Runtime Linux ARM64;
-- Runtime macOS x64;
-- Runtime macOS ARM64.
+## Stable-source promotion and qualification
 
-That qualifies the RC package identity, isolated package-only net8/net9/net10 consumer, T158 allocation/capacity gates, runtime suites, and compiler-derived API guard on the exact RC source.
-
-## Stable-source promotion
-
-Because the exact RC head passed all seven required jobs, the unchanged implementation/API has been promoted to:
+The qualified RC implementation/API was then promoted unchanged to:
 
 ```text
 Version         1.5.0
@@ -119,9 +95,7 @@ PackageVersion  1.5.0
 AssemblyVersion 1.0.0.0
 ```
 
-Stable-source promotion changes stable package identity and release-facing documentation only. The seven new exported types, additive members, algorithms, capacity rules, and dependency graph are unchanged from the qualified RC.
-
-The fingerprint metadata is promoted from the last API-changing alpha label to:
+The fingerprint metadata was promoted from the last API-changing alpha label to final stable identity while retaining the identical contract:
 
 ```text
 release 1.5.0
@@ -131,7 +105,29 @@ status stable
 sha256 8807aa15714b0b059f2aaa5ef1ff33bce3ed0bfc44455d8a352ee7ecff8313c0
 ```
 
-The current stable-source exact head must pass the same complete seven-job Staging matrix before the branch may be described as release-ready source.
+Exact stable-source candidate head:
+
+```text
+af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9
+```
+
+Workflow #905 / `34994761777` passed the complete seven-job Staging matrix:
+
+- Package candidate;
+- Runtime Windows x64;
+- Runtime Windows ARM64;
+- Runtime Linux x64;
+- Runtime Linux ARM64;
+- Runtime macOS x64;
+- Runtime macOS ARM64.
+
+The RC-to-stable compare contains only release-facing files: `Icod.DCurses.csproj`, README, the two active roadmaps, `docs/Public-API-Fingerprint-1.5.json`, and this closure record. No `src/`, tests, samples, workflows, target frameworks, or dependency files changed between the qualified RC and stable-source candidate.
+
+## Final evidence-head gate
+
+This closure update and the synchronized release-ready README/roadmaps are documentation-only changes after the qualified stable-source candidate. The resulting PR head remains subject to one final normal seven-job Staging matrix before the current branch head itself is presented as release-ready source.
+
+That final evidence-head qualification does not reopen the implementation/API decision.
 
 ## Release boundary
 
@@ -143,7 +139,9 @@ T159 source closure does **not** authorize:
 - publishing a NuGet package;
 - performing post-merge `main` release actions.
 
-Those remain separate explicit maintainer approval/actions after stable-source qualification.
+Those remain separate explicit maintainer approval/actions.
+
+After explicit PR merge approval and merge, the resulting `main` Release workflow must be inspected and accepted before any stable tag or publication action.
 
 ## Closure ledger
 
@@ -153,6 +151,7 @@ Those remain separate explicit maintainer approval/actions after stable-source q
 | T158 documentation-complete | `6336defe0fe0594301c1d20c0542ca1d8b8babd3` | #892 / `34915072200` | seven jobs green |
 | T158 final evidence | `218f900aaf689029f8f5de26906f86724d029ebc` | #893 / `34915390381` | seven jobs green |
 | `1.5.0-rc.1` | `23113b130d674da315ccbbcd384a60a0e6b47baa` | #899 / `34993884108` | seven jobs green |
-| stable-source `1.5.0` | current branch | pending | final exact-head qualification pending |
+| stable-source `1.5.0` | `af30a6c2df842d76b8cb9e9b7855aeb3a16e9ff9` | #905 / `34994761777` | seven jobs green |
+| final evidence-only PR head | current branch | pending | final exact-head qualification pending |
 | PR #30 merge | pending explicit approval | — | not merged |
 | `main` Release | pending post-merge | pending | not run |
