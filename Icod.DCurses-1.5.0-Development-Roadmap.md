@@ -8,7 +8,7 @@
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Assembly version:** `1.0.0.0`  
 **Production dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
-**Status:** T150-T158 complete; T159 RC and stable-source closure next
+**Status:** T150-T158 complete; T159 `1.5.0-rc.1` exact-head qualification active
 
 ---
 
@@ -36,10 +36,10 @@ Published 1.4 interaction API fingerprint:
 sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
 ```
 
-Current accepted 1.5 candidate fingerprint:
+Frozen accepted 1.5 candidate fingerprint:
 
 ```text
-release 1.5.0-alpha.5
+last API-changing label: 1.5.0-alpha.5
 69 exported types
 525 canonical declared contract lines
 sha256 8807aa15714b0b059f2aaa5ef1ff33bce3ed0bfc44455d8a352ee7ecff8313c0
@@ -59,7 +59,7 @@ CursesPointerGesture
 CursesPointerGestureKind
 ```
 
-T155 was the final API-changing tranche. T156-T158 preserve this exact fingerprint.
+T155 was the final API-changing tranche. T156-T159 preserve this exact fingerprint; RC promotion changes release identity/documentation only.
 
 ## 3. Dependency and layering stance
 
@@ -326,7 +326,7 @@ T155  scoped command bindings and precedence                                    
 T156  resize/panel/scope/capture/disposal coherence and adversarial hardening   complete
 T157  application acceptance sample and downstream/package consumer             complete
 T158  performance/allocation/API/package/docs/dependency regret gate            complete
-T159  RC and stable-source 1.5.0 closure                                        next
+T159  RC and stable-source 1.5.0 closure                                        RC qualification active
 ```
 
 Qualified implementation/API checkpoints:
@@ -345,7 +345,7 @@ T158  9a8d0b2e2439bf4a936a5602d846a0c1bd20781f  #888 / 34914622882
 
 T157 documentation head `9014bc8721ea8bde7248973d7d2d34e9ed2a8109` additionally passed #886 / `34908876499` across all seven jobs.
 
-T158's first performance head `8fecfbd8f69555adfa469528105ba841f0d2b6e4` exposed a test-only disposal-order mistake: the spatial fixture attempted to dispose an explicit scope before its 256 router-owned regions. Corrected head `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` changed only fixture ownership and passed #888 / `34914622882` across all seven jobs; no production source, API, algorithm, or threshold changed.
+T158's first performance head `8fecfbd8f69555adfa469528105ba841f0d2b6e4` exposed a test-only disposal-order mistake: the spatial fixture attempted to dispose an explicit scope before its 256 router-owned regions. Corrected head `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` changed only fixture ownership and passed #888 / `34914622882` across all seven jobs; no production source, API, algorithm, or threshold changed. T158 documentation head `6336defe0fe0594301c1d20c0542ca1d8b8babd3` passed #892 / `34915072200`, and final evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`, all seven jobs.
 
 ## 14. Deliberate non-goals
 
@@ -371,16 +371,22 @@ Future widget or mixed-media layers should be able to build on these mechanisms 
 
 T158 found no public API, ownership, package, documentation, licensing, or dependency correction that warrants changing the accepted implementation before RC.
 
-The source still intentionally declares/packages `1.4.0`; this is not the final 1.5 release identity. Under the checked-in plan, T159 now performs:
+T159 has promoted the unchanged accepted implementation/API to:
 
 ```text
-accepted unchanged implementation/API
-    -> Version / PackageVersion 1.5.0-rc.1
-    -> exact-head seven-job Staging qualification
-    -> unchanged Version / PackageVersion 1.5.0
-    -> final stable-source seven-job Staging qualification
+Version         1.5.0-rc.1
+PackageVersion  1.5.0-rc.1
+AssemblyVersion 1.0.0.0
 ```
 
-`AssemblyVersion` remains `1.0.0.0`.
+The current gate is exact-head seven-job Staging qualification of that RC identity. Only after the RC head passes may T159 promote the same implementation/API to:
+
+```text
+Version         1.5.0
+PackageVersion  1.5.0
+AssemblyVersion 1.0.0.0
+```
+
+The final stable-source step may promote fingerprint metadata from its last API-changing alpha label to final `1.5.0` / stable while retaining the exact same 69/525/hash contract.
 
 T159 may update release-facing README/release notes/final fingerprint metadata and closure records, but it must not silently change the accepted production interaction contract. Merge, post-merge Release validation, tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions.
