@@ -8,7 +8,7 @@
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Assembly version:** `1.0.0.0`  
 **Production dependencies:** `Icod.Terminal 1.13.0`; `Icod.TermInfo 1.12.0`  
-**Status:** T150-T158 complete; T159 `1.5.0-rc.1` exact-head qualification active
+**Status:** T150-T158 complete; T159 stable-source `1.5.0` exact-head qualification active
 
 ---
 
@@ -26,7 +26,7 @@ The release adds five coordinated capabilities:
 
 The release remains callback-free and terminal-I/O-free at the routing layer. It does not introduce buttons, text boxes, menus, modal-dialog widgets, a retained event tree, application navigation, timing-based click policy, or drag/drop policy.
 
-## 2. Published baseline and accepted candidate
+## 2. Published baseline and stable-source contract
 
 Published 1.4 interaction API fingerprint:
 
@@ -36,16 +36,17 @@ Published 1.4 interaction API fingerprint:
 sha256 8afe72deaa5354ee072de8ae17b04d8a1a0a8f730d5e3a737b4a47a539379147
 ```
 
-Frozen accepted 1.5 candidate fingerprint:
+Stable-source 1.5 fingerprint:
 
 ```text
-last API-changing label: 1.5.0-alpha.5
+release 1.5.0
+status stable
 69 exported types
 525 canonical declared contract lines
 sha256 8807aa15714b0b059f2aaa5ef1ff33bce3ed0bfc44455d8a352ee7ecff8313c0
 ```
 
-The candidate is additive over 1.4. No published 1.4 public type/member is removed, renamed, or repurposed.
+The contract is additive over 1.4. No published 1.4 public type/member is removed, renamed, or repurposed.
 
 The seven new exported types are:
 
@@ -59,7 +60,7 @@ CursesPointerGesture
 CursesPointerGestureKind
 ```
 
-T155 was the final API-changing tranche. T156-T159 preserve this exact fingerprint; RC promotion changes release identity/documentation only.
+T155 was the final API-changing tranche. T156-T159 preserve this exact fingerprint. T159's RC and stable-source promotions change release identity/documentation/fingerprint status metadata only.
 
 ## 3. Dependency and layering stance
 
@@ -326,7 +327,7 @@ T155  scoped command bindings and precedence                                    
 T156  resize/panel/scope/capture/disposal coherence and adversarial hardening   complete
 T157  application acceptance sample and downstream/package consumer             complete
 T158  performance/allocation/API/package/docs/dependency regret gate            complete
-T159  RC and stable-source 1.5.0 closure                                        RC qualification active
+T159  RC and stable-source 1.5.0 closure                                        stable-source qualification active
 ```
 
 Qualified implementation/API checkpoints:
@@ -341,11 +342,12 @@ T155  3e59e7613e214a5eaa84df13bbedba56abfefb6d  #864 / 34899684038
 T156  e09324666bb6960d465f061d609a4fb53d8c5288  #876 / 34905503151
 T157  596843f798999573162be7883051030db353b940  #884 / 34908524571
 T158  9a8d0b2e2439bf4a936a5602d846a0c1bd20781f  #888 / 34914622882
+T159 RC 23113b130d674da315ccbbcd384a60a0e6b47baa  #899 / 34993884108
 ```
 
 T157 documentation head `9014bc8721ea8bde7248973d7d2d34e9ed2a8109` additionally passed #886 / `34908876499` across all seven jobs.
 
-T158's first performance head `8fecfbd8f69555adfa469528105ba841f0d2b6e4` exposed a test-only disposal-order mistake: the spatial fixture attempted to dispose an explicit scope before its 256 router-owned regions. Corrected head `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` changed only fixture ownership and passed #888 / `34914622882` across all seven jobs; no production source, API, algorithm, or threshold changed. T158 documentation head `6336defe0fe0594301c1d20c0542ca1d8b8babd3` passed #892 / `34915072200`, and final evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`, all seven jobs.
+T158's first performance head `8fecfbd8f69555adfa469528105ba841f0d2b6e4` exposed a test-only disposal-order mistake: the spatial fixture attempted to dispose an explicit scope before its 256 router-owned regions. Corrected head `9a8d0b2e2439bf4a936a5602d846a0c1bd20781f` changed only fixture ownership and passed #888 / `34914622882` across all seven jobs; no production source, API, algorithm, or threshold changed. T158 documentation head `6336defe0fe0594301c1d20c0542ca1d8b8babd3` passed #892 / `34915072200`, and final evidence head `218f900aaf689029f8f5de26906f86724d029ebc` passed #893 / `34915390381`, all seven jobs. T159 RC head `23113b130d674da315ccbbcd384a60a0e6b47baa` passed #899 / `34993884108` across all seven jobs without rerun or correction.
 
 ## 14. Deliberate non-goals
 
@@ -371,15 +373,14 @@ Future widget or mixed-media layers should be able to build on these mechanisms 
 
 T158 found no public API, ownership, package, documentation, licensing, or dependency correction that warrants changing the accepted implementation before RC.
 
-T159 has promoted the unchanged accepted implementation/API to:
+T159 promoted the unchanged accepted implementation/API to `1.5.0-rc.1`. Exact RC head:
 
 ```text
-Version         1.5.0-rc.1
-PackageVersion  1.5.0-rc.1
-AssemblyVersion 1.0.0.0
+23113b130d674da315ccbbcd384a60a0e6b47baa
+workflow #899 / 34993884108
 ```
 
-The current gate is exact-head seven-job Staging qualification of that RC identity. Only after the RC head passes may T159 promote the same implementation/API to:
+All seven Staging jobs passed without rerun or correction. T159 has therefore promoted the same implementation/API to stable-source:
 
 ```text
 Version         1.5.0
@@ -387,6 +388,6 @@ PackageVersion  1.5.0
 AssemblyVersion 1.0.0.0
 ```
 
-The final stable-source step may promote fingerprint metadata from its last API-changing alpha label to final `1.5.0` / stable while retaining the exact same 69/525/hash contract.
+The API fingerprint metadata is now final `1.5.0` / stable while retaining the exact same 69/525/hash contract. The current gate is final stable-source exact-head Staging qualification.
 
 T159 may update release-facing README/release notes/final fingerprint metadata and closure records, but it must not silently change the accepted production interaction contract. Merge, post-merge Release validation, tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions.
