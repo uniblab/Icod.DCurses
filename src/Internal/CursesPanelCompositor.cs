@@ -104,7 +104,7 @@ internal static class CursesPanelCompositor {
 				row,
 				column
 			),
-			baseScreen.GetRasterCellReference(
+			baseScreen.GetRasterCell(
 				row,
 				column
 			)
@@ -131,7 +131,7 @@ internal static class CursesPanelCompositor {
 				sourceRow,
 				sourceColumn
 			);
-			CursesRasterCellReference? raster = panelScreen.GetRasterCellReference(
+			CursesRasterCell? raster = panelScreen.GetRasterCell(
 				sourceRow,
 				sourceColumn
 			);
@@ -159,12 +159,12 @@ internal static class CursesPanelCompositor {
 	internal static bool IsTransparent(
 		CursesPanel panel,
 		CursesCell cell,
-		CursesRasterCellReference? raster
+		CursesRasterCell? raster
 	) {
 		ArgumentNullException.ThrowIfNull( panel );
 		return CursesPanelTransparency.BlankCellsTransparent == panel.Transparency
 			&& cell.IsBlank
-			&& raster is null;
+			&& !raster.HasValue;
 	}
 
 	private static void CopyBaseCells(
@@ -214,18 +214,18 @@ internal static class CursesPanelCompositor {
 	) {
 		for ( int row = 0; row < source.Rows; row++ ) {
 			for ( int column = 0; column < source.Columns; column++ ) {
-				CursesRasterCellReference? raster = source.GetRasterCellReference(
+				CursesRasterCell? raster = source.GetRasterCell(
 					row,
 					column
 				);
-				if ( raster is null ) {
+				if ( !raster.HasValue ) {
 					continue;
 				}
 
 				destination.SetRasterCell(
 					row,
 					column,
-					raster.Cell
+					raster.Value
 				);
 			}
 		}
@@ -253,7 +253,7 @@ internal static class CursesPanelCompositor {
 					sourceRow,
 					sourceColumn
 				);
-				CursesRasterCellReference? raster = source.GetRasterCellReference(
+				CursesRasterCell? raster = source.GetRasterCell(
 					sourceRow,
 					sourceColumn
 				);
@@ -296,7 +296,7 @@ internal static class CursesPanelCompositor {
 					sourceRow,
 					sourceColumn
 				);
-				CursesRasterCellReference? raster = source.GetRasterCellReference(
+				CursesRasterCell? raster = source.GetRasterCell(
 					sourceRow,
 					sourceColumn
 				);
@@ -342,18 +342,18 @@ internal static class CursesPanelCompositor {
 
 		for ( int sourceRow = 0; sourceRow < sourceRowEnd; sourceRow++ ) {
 			for ( int sourceColumn = 0; sourceColumn < sourceColumnEnd; sourceColumn++ ) {
-				CursesRasterCellReference? raster = panel.VirtualScreen.GetRasterCellReference(
+				CursesRasterCell? raster = panel.VirtualScreen.GetRasterCell(
 					sourceRow,
 					sourceColumn
 				);
-				if ( raster is null ) {
+				if ( !raster.HasValue ) {
 					continue;
 				}
 
 				destination.SetRasterCell(
 					panel.Row + sourceRow,
 					panel.Column + sourceColumn,
-					raster.Cell
+					raster.Value
 				);
 			}
 		}
