@@ -57,6 +57,42 @@ public sealed class CursesRasterLifecycleTests {
 		Assert.Equal( 1, ReadInvalidationRequested( engine ) );
 	}
 
+	[Theory]
+	[InlineData( TerminalRasterOwnershipStatus.Stale, TerminalRasterOwnershipLossReason.SessionStateLost )]
+	[InlineData( TerminalRasterOwnershipStatus.Released, TerminalRasterOwnershipLossReason.ResourceReleased )]
+	[InlineData( TerminalRasterOwnershipStatus.Disposed, TerminalRasterOwnershipLossReason.ExplicitDisposal )]
+	public async Task NonCurrentRetainedRasterIsRejectedBeforeRefreshOutput(
+		TerminalRasterOwnershipStatus status,
+		TerminalRasterOwnershipLossReason reason
+	) {
+		RecordingRefreshOutput output = new();
+		CursesRefreshEngine engine = new(
+			CreateRefreshTerminal(),
+			output
+		);
+		CursesScreen screen = new( 1, 1 );
+		CursesRasterCell rasterCell = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+			status,
+			reason
+		);
+		screen.VirtualScreen.SetRasterCell(
+			0,
+			0,
+			rasterCell
+		);
+
+		await Assert.ThrowsAsync<InvalidOperationException>(
+			async () => await engine.RefreshAsync(
+				screen,
+				0,
+				0
+			)
+		);
+
+		Assert.Equal( 0, output.WriteCount );
+		Assert.Equal( 0, output.RasterWriteCount );
+	}
+
 	private static CursesRefreshEngine AttachKnownRefreshEngine(
 		CursesSession session
 	) {
@@ -122,10 +158,15 @@ public sealed class CursesRasterLifecycleTests {
 		return placeholder;
 	}
 
-	private static async ValueTask<CursesSession> OpenCursesSessionAsync() {
-		TerminalDescription terminal = new TerminalDescriptionBuilder( "raster-lifecycle-test" )
+	private static TerminalDescription CreateRefreshTerminal() {
+		return new TerminalDescriptionBuilder( "raster-lifecycle-refresh-test" )
 			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
+			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
+			.SetString( StringCapability.OriginalColorPair, "<op>" )
 			.Build();
+	}
+
+	private static async ValueTask<CursesSession> OpenCursesSessionAsync() {
 		TerminalSession terminalSession = await TerminalSession.OpenAsync(
 			new RecordingTerminalControlProvider(),
 			TerminalEndpoint.StandardInput,
@@ -133,7 +174,7 @@ public sealed class CursesRasterLifecycleTests {
 			new EmptyInput(),
 			new NullRawOutput(),
 			new TerminalSessionOptions {
-				TerminalOverride = terminal,
+				TerminalOverride = CreateRefreshTerminal(),
 				ConfigureOutput = false,
 				ObserveLifecycleEvents = false
 			}
@@ -147,6 +188,60 @@ public sealed class CursesRasterLifecycleTests {
 				UseSynchronizedOutput = false
 			}
 		);
+	}
+
+	private sealed class RecordingRefreshOutput
+		: Icod.DCurses.Terminal.ITerminalOutput,
+		  Icod.DCurses.Terminal.ITerminalRasterPlaceholderOutput {
+		internal int WriteCount {
+			get;
+			private set;
+		}
+
+		internal int RasterWriteCount {
+			get;
+			private set;
+		}
+
+		public ValueTask WriteTextAsync(
+			string value,
+			CancellationToken cancellationToken = default
+		) {
+			ArgumentNullException.ThrowIfNull( value );
+			cancellationToken.ThrowIfCancellationRequested();
+			this.WriteCount = checked( this.WriteCount + 1 );
+			return ValueTask.CompletedTask;
+		}
+
+		public ValueTask WriteTerminalStringAsync(
+			string value,
+			int affectedLines = 1,
+			CancellationToken cancellationToken = default
+		) {
+			ArgumentNullException.ThrowIfNull( value );
+			if ( 0 >= affectedLines ) {
+				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
+			}
+			cancellationToken.ThrowIfCancellationRequested();
+			this.WriteCount = checked( this.WriteCount + 1 );
+			return ValueTask.CompletedTask;
+		}
+
+		public ValueTask WriteRasterPlaceholderCellAsync(
+			CursesRasterCell cell,
+			CancellationToken cancellationToken = default
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			this.RasterWriteCount = checked( this.RasterWriteCount + 1 );
+			return ValueTask.CompletedTask;
+		}
+
+		public ValueTask FlushAsync(
+			CancellationToken cancellationToken = default
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			return ValueTask.CompletedTask;
+		}
 	}
 
 	private sealed class NullRefreshOutput : Icod.DCurses.Terminal.ITerminalOutput {

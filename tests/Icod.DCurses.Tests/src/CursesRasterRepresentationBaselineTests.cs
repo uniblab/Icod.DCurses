@@ -20,7 +20,9 @@
 */
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Icod.DCurses.Internal;
+using Icod.Terminal;
 using Xunit;
 
 namespace Icod.DCurses.Tests;
@@ -100,14 +102,159 @@ public sealed class CursesRasterRepresentationBaselineTests {
 	}
 
 	internal static CursesRasterCell CreateLogicalRasterCell() {
+		return CreateLogicalRasterCell(
+			TerminalRasterOwnershipStatus.Current,
+			TerminalRasterOwnershipLossReason.None
+		);
+	}
+
+	internal static CursesRasterCell CreateLogicalRasterCell(
+		TerminalRasterOwnershipStatus status,
+		TerminalRasterOwnershipLossReason reason
+	) {
+		if ( TerminalRasterOwnershipStatus.Disposed == status ) {
+			if ( TerminalRasterOwnershipLossReason.ExplicitDisposal != reason ) {
+				throw new ArgumentException(
+					"Disposed synthetic raster ownership requires ExplicitDisposal.",
+					nameof( reason )
+				);
+			}
+			return CreateDisposedLogicalRasterCell();
+		}
+
+		Assembly terminalAssembly = typeof( TerminalRasterPlaceholder ).Assembly;
+		Type resourceStateType = terminalAssembly.GetType(
+			"Icod.Terminal.TerminalPersistentRasterResourceState",
+			throwOnError: true
+		) ?? throw new InvalidOperationException( "Terminal persistent raster resource state type is unavailable." );
+		Type placeholderStateType = terminalAssembly.GetType(
+			"Icod.Terminal.TerminalPersistentRasterPlaceholderState",
+			throwOnError: true
+		) ?? throw new InvalidOperationException( "Terminal persistent raster placeholder state type is unavailable." );
+
+		object resourceState = RequireNonPublicConstructor(
+			resourceStateType,
+			[ typeof( uint ), typeof( long ) ]
+		).Invoke( [ 1u, 0L ] );
+		object placeholderState = RequireNonPublicConstructor(
+			placeholderStateType,
+			[
+				resourceStateType,
+				typeof( uint ),
+				typeof( long ),
+				typeof( int ),
+				typeof( int )
+			]
+		).Invoke( [ resourceState, 1u, 0L, 1, 1 ] );
+
+		switch ( status ) {
+			case TerminalRasterOwnershipStatus.Current:
+				if ( TerminalRasterOwnershipLossReason.None != reason ) {
+					throw new ArgumentException(
+						"Current synthetic raster ownership requires no loss reason.",
+						nameof( reason )
+					);
+				}
+				break;
+
+			case TerminalRasterOwnershipStatus.Stale:
+				Assert.True(
+					InvokeLifecycleTransition(
+						placeholderStateType,
+						placeholderState,
+						"TryMarkStale",
+						reason
+					)
+				);
+				break;
+
+			case TerminalRasterOwnershipStatus.Released:
+				Assert.True(
+					InvokeLifecycleTransition(
+						placeholderStateType,
+						placeholderState,
+						"TryMarkReleased",
+						reason
+					)
+				);
+				break;
+
+			default:
+				throw new ArgumentOutOfRangeException(
+					nameof( status ),
+					status,
+					"Unsupported synthetic raster ownership status."
+				);
+		}
+
+		TerminalSession terminalSession =
+			(TerminalSession)RuntimeHelpers.GetUninitializedObject(
+				typeof( TerminalSession )
+			);
+		TerminalRasterPlaceholder terminalPlaceholder =
+			(TerminalRasterPlaceholder)RequireNonPublicConstructor(
+				typeof( TerminalRasterPlaceholder ),
+				[ typeof( TerminalSession ), placeholderStateType ]
+			).Invoke( [ terminalSession, placeholderState ] );
+		Assert.Equal( status, terminalPlaceholder.OwnershipState.Status );
+		Assert.Equal( reason, terminalPlaceholder.OwnershipState.LossReason );
+
+		CursesSession owner = (CursesSession)RuntimeHelpers.GetUninitializedObject(
+			typeof( CursesSession )
+		);
+		CursesRasterPlaceholder placeholder = new(
+			owner,
+			terminalPlaceholder
+		);
+		return new CursesRasterCell(
+			placeholder,
+			default
+		);
+	}
+
+	internal static CursesRasterCell CreateDisposedLogicalRasterCell() {
 		CursesRasterPlaceholder placeholder =
-			(CursesRasterPlaceholder)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(
+			(CursesRasterPlaceholder)RuntimeHelpers.GetUninitializedObject(
 				typeof( CursesRasterPlaceholder )
 			);
 		return new CursesRasterCell(
 			placeholder,
 			default
 		);
+	}
+
+	private static bool InvokeLifecycleTransition(
+		Type stateType,
+		object state,
+		string methodName,
+		TerminalRasterOwnershipLossReason reason
+	) {
+		MethodInfo? method = stateType.GetMethod(
+			methodName,
+			BindingFlags.Instance | BindingFlags.NonPublic,
+			binder: null,
+			types: [ typeof( TerminalRasterOwnershipLossReason ) ],
+			modifiers: null
+		);
+		Assert.NotNull( method );
+		return Assert.IsType<bool>( method!.Invoke( state, [ reason ] ) );
+	}
+
+	private static ConstructorInfo RequireNonPublicConstructor(
+		Type type,
+		Type[] parameterTypes
+	) {
+		ConstructorInfo? constructor = type.GetConstructor(
+			BindingFlags.Instance | BindingFlags.NonPublic,
+			binder: null,
+			types: parameterTypes,
+			modifiers: null
+		);
+		Assert.True(
+			constructor is not null,
+			$"Required internal constructor on {type.FullName} is missing."
+		);
+		return constructor!;
 	}
 
 	private static PropertyInfo RequireInternalProperty(
