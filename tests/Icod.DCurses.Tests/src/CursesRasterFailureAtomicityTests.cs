@@ -35,16 +35,7 @@ public sealed class CursesRasterFailureAtomicityTests {
 			CreateTerminal(),
 			output
 		);
-		CursesScreen screen = new(
-			3,
-			1
-		);
-		CursesRasterCell token = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
-		screen.VirtualScreen.SetRasterCell(
-			0,
-			1,
-			token
-		);
+		CursesScreen screen = CreateRasterScreen();
 
 		await Assert.ThrowsAsync<IOException>(
 			() => engine.RefreshAsync(
@@ -84,15 +75,7 @@ public sealed class CursesRasterFailureAtomicityTests {
 			CreateTerminal(),
 			output
 		);
-		CursesScreen screen = new(
-			3,
-			1
-		);
-		screen.VirtualScreen.SetRasterCell(
-			0,
-			1,
-			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell()
-		);
+		CursesScreen screen = CreateRasterScreen();
 
 		await Assert.ThrowsAnyAsync<OperationCanceledException>(
 			() => engine.RefreshAsync(
@@ -115,6 +98,91 @@ public sealed class CursesRasterFailureAtomicityTests {
 
 		Assert.Equal( 2, output.RasterAttemptCount );
 		Assert.Equal( 1, output.RasterSuccessCount );
+	}
+
+	[Fact]
+	public async Task FlushFailureAfterRasterCommitInvalidatesPhysicalStateForExplicitRetry() {
+		FailOnceFlushOutput output = new();
+		CursesRefreshEngine engine = new(
+			CreateTerminal(),
+			output
+		);
+		CursesScreen screen = CreateRasterScreen();
+
+		await Assert.ThrowsAsync<IOException>(
+			() => engine.RefreshAsync(
+				screen,
+				0,
+				0
+			).AsTask()
+		);
+
+		Assert.Equal( 1, output.RasterAttemptCount );
+		Assert.Equal( 1, output.RasterSuccessCount );
+
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+
+		Assert.Equal( 2, output.RasterAttemptCount );
+		Assert.Equal( 2, output.RasterSuccessCount );
+
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+
+		Assert.Equal( 2, output.RasterAttemptCount );
+		Assert.Equal( 2, output.RasterSuccessCount );
+	}
+
+	[Fact]
+	public async Task FlushCancellationAfterRasterCommitInvalidatesPhysicalStateForExplicitRetry() {
+		using CancellationTokenSource cancellation = new();
+		CancelOnceFlushOutput output = new( cancellation );
+		CursesRefreshEngine engine = new(
+			CreateTerminal(),
+			output
+		);
+		CursesScreen screen = CreateRasterScreen();
+
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(
+			() => engine.RefreshAsync(
+				screen,
+				0,
+				0,
+				cancellation.Token
+			).AsTask()
+		);
+
+		Assert.Equal( 1, output.RasterAttemptCount );
+		Assert.Equal( 1, output.RasterSuccessCount );
+
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0,
+			CancellationToken.None
+		);
+
+		Assert.Equal( 2, output.RasterAttemptCount );
+		Assert.Equal( 2, output.RasterSuccessCount );
+	}
+
+	private static CursesScreen CreateRasterScreen() {
+		CursesScreen screen = new(
+			3,
+			1
+		);
+		screen.VirtualScreen.SetRasterCell(
+			0,
+			1,
+			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell()
+		);
+		return screen;
 	}
 
 	private static TerminalDescription CreateTerminal() {
@@ -161,12 +229,18 @@ public sealed class CursesRasterFailureAtomicityTests {
 			return ValueTask.CompletedTask;
 		}
 
-		public abstract ValueTask WriteRasterPlaceholderCellAsync(
+		public virtual ValueTask WriteRasterPlaceholderCellAsync(
 			CursesRasterCell cell,
 			CancellationToken cancellationToken = default
-		);
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			_ = cell.Placeholder;
+			this.RasterAttemptCount++;
+			this.RasterSuccessCount++;
+			return ValueTask.CompletedTask;
+		}
 
-		public ValueTask FlushAsync(
+		public virtual ValueTask FlushAsync(
 			CancellationToken cancellationToken = default
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
@@ -215,6 +289,42 @@ public sealed class CursesRasterFailureAtomicityTests {
 			}
 			cancellationToken.ThrowIfCancellationRequested();
 			this.RasterSuccessCount++;
+			return ValueTask.CompletedTask;
+		}
+	}
+
+	private sealed class FailOnceFlushOutput : RasterOutputBase {
+		private bool failurePending = true;
+
+		public override ValueTask FlushAsync(
+			CancellationToken cancellationToken = default
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			if ( this.failurePending ) {
+				this.failurePending = false;
+				throw new IOException( "injected post-raster flush failure" );
+			}
+			return ValueTask.CompletedTask;
+		}
+	}
+
+	private sealed class CancelOnceFlushOutput : RasterOutputBase {
+		private readonly CancellationTokenSource cancellation;
+		private bool cancellationPending = true;
+
+		internal CancelOnceFlushOutput( CancellationTokenSource cancellation ) {
+			ArgumentNullException.ThrowIfNull( cancellation );
+			this.cancellation = cancellation;
+		}
+
+		public override ValueTask FlushAsync(
+			CancellationToken cancellationToken = default
+		) {
+			if ( this.cancellationPending ) {
+				this.cancellationPending = false;
+				this.cancellation.Cancel();
+			}
+			cancellationToken.ThrowIfCancellationRequested();
 			return ValueTask.CompletedTask;
 		}
 	}
