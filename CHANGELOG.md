@@ -4,7 +4,7 @@ All notable `Icod.DCurses` release-line changes are summarized here. Detailed tr
 
 ## 1.6.0 — Retained Mixed-Media Presentation
 
-Status: development / pre-RC release gate.
+Status: `1.6.0-rc.1` release candidate qualification.
 
 ### Added
 
