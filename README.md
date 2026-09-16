@@ -11,7 +11,7 @@
 
 Published stable release: `Icod.DCurses 1.5.0`.
 
-Current development line: `Icod.DCurses 1.6.0`; package candidate `1.6.0-alpha.2`.
+Current 1.6 release candidate: `Icod.DCurses 1.6.0-rc.1`.
 
 Version 1.6 adds **retained mixed-media presentation** over the published `Icod.Terminal 1.15.0` persistent-raster / Unicode-placeholder ownership model. Raster placeholder cells participate in ordinary DCurses windows, pads, viewports, panels, clipping, scrolling, composition, damage, and refresh while Terminal remains the sole owner of live raster protocol identity, acknowledgement, encoding, and lifecycle certainty.
 
@@ -23,7 +23,7 @@ The frozen 1.6 candidate public contract is:
 sha256 266e23e6f3b4d5be98c81b5d5774f1de47d488d9ede7025877e46388cae6d458
 ```
 
-The retained mixed-media implementation has completed architecture/API freeze, logical propagation, panel composition, physical refresh integration, lifecycle hardening, application/package acceptance, and adversarial/allocation hardening. T1610 is the final public-API/package/documentation/dependency/licensing regret gate before RC promotion.
+T1610 completed the public-API, package, documentation, dependency, and licensing regret gate. T1611 is qualifying the unchanged implementation/API as `1.6.0-rc.1` before stable-source promotion.
 
 ## Support the Project
 
@@ -73,10 +73,10 @@ The broader question of whether DCurses should continue to reference TermInfo di
 
 ## Quick Start
 
-Install the current 1.6 development package:
+Install the 1.6 release candidate:
 
 ```text
-dotnet add package Icod.DCurses --version 1.6.0-alpha.2
+dotnet add package Icod.DCurses --version 1.6.0-rc.1
 ```
 
 Open a curses session, draw retained text, and refresh through the authoritative session path:
