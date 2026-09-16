@@ -73,7 +73,7 @@ public readonly struct CursesRasterCell {
 			&& this.placeholder.BelongsTo( session );
 	}
 
-	internal bool HasSameIdentity( CursesRasterCell other ) {
+	internal bool Equals( CursesRasterCell other ) {
 		return ReferenceEquals(
 			this.placeholder,
 			other.placeholder
