@@ -88,10 +88,12 @@ public sealed class CursesRasterResource : IAsyncDisposable {
 			ref this.resource,
 			null
 		);
-		return current is null
-			? ValueTask.CompletedTask
-			: current.DisposeAsync()
-		;
+		if ( current is null ) {
+			return ValueTask.CompletedTask;
+		}
+
+		this.owner.InvalidatePhysicalScreen();
+		return current.DisposeAsync();
 	}
 
 	internal bool BelongsTo( CursesSession session ) {
