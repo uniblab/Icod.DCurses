@@ -131,12 +131,12 @@ public sealed class CursesRasterFailureAtomicityTests {
 		  ITerminalRasterPlaceholderOutput {
 		internal int RasterAttemptCount {
 			get;
-			protected set;
+			set;
 		}
 
 		internal int RasterSuccessCount {
 			get;
-			protected set;
+			set;
 		}
 
 		public ValueTask WriteTextAsync(
