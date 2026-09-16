@@ -8,7 +8,23 @@
 **Starting runtime dependencies:** `Icod.Terminal 1.15.0`; `Icod.TermInfo 1.14.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** approved planning track; implementation has not begun
+**Status:** T1601-T1609 complete; T1610 pre-RC release-regret gate active; T1611 pending
+
+## Current implementation status
+
+The roadmap below preserves the approved design requirements and tranche goals in the future-tense form in which they were reviewed. The current release state is later: T1601 through T1609 have been implemented and accepted, T1610 is freezing the final public/package/documentation contract, and T1611 will promote the unchanged accepted implementation to RC and stable-source identities.
+
+The frozen pre-RC public candidate is:
+
+```text
+75 exported types
+559 canonical declared contract lines
+sha256 266e23e6f3b4d5be98c81b5d5774f1de47d488d9ede7025877e46388cae6d458
+```
+
+Direct dependencies remain `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0` for 1.6. The broader question of whether DCurses should remove its direct TermInfo dependency in favor of a strict `DCurses -> Terminal -> TermInfo` path is deferred to the 1.7 design track.
+
+Tranche records under `docs/` are the acceptance authorities for implemented behavior; this roadmap remains the scope/design authority.
 
 ---
 
@@ -355,6 +371,8 @@ In particular:
 - Sixel is not a transparent persistent-placeholder fallback;
 - Unicode-placeholder semantics are not falsely modeled as if TermInfo 1.14 already planned them;
 - no terminal-brand heuristic becomes support truth.
+
+The optional planning demonstration was not made part of 1.6 release closure. The broader direct-TermInfo dependency/planning-layer question is deferred to the 1.7 design track.
 
 ### 9.3 Dependency policy
 
