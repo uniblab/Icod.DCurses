@@ -10,19 +10,21 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.6.0` — retained mixed-media presentation  
-**Status:** 1.5.0 published; 1.6 architecture/roadmap planning active
+**Status:** 1.5.0 published; 1.6 T1610 pre-RC release-regret gate active
 
 ---
 
 ## Current authorities
 
-Active 1.6 planning is governed by:
+Active 1.6 development and release closure are governed by:
 
 - `Icod.DCurses-1.6.0-Development-Roadmap.md`;
-- `docs/superpowers/specs/2026-09-15-icod-dcurses-1.6-retained-mixed-media-presentation-design.md` once committed and approved;
-- T1601 architecture/API/representation evidence once implementation begins;
+- `docs/superpowers/specs/2026-09-15-icod-dcurses-1.6-retained-mixed-media-presentation-design.md`;
+- `docs/superpowers/plans/2026-09-15-icod-dcurses-1.6-retained-mixed-media-presentation.md`;
+- T1601-T1610 tranche evidence;
+- `docs/Public-API-Fingerprint-1.6.json` and `docs/Public-API-Baseline-1.6.md`;
 - the published `Icod.Terminal 1.15.0` persistent-raster/Unicode-placeholder contract;
-- the published `Icod.TermInfo 1.14.0` advisory raster-backend planning contract.
+- the published `Icod.TermInfo 1.14.0` capability/planning contract.
 
 The published 1.5 contract remains frozen by:
 
@@ -45,7 +47,7 @@ Historical 1.0-1.5 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.3.0` | Geometry, layout, panel resize, and explicit resize recomputation | Published |
 | `1.4.0` | Interaction regions, hit testing, focus, gestures, commands, pointer semantics | Published |
 | `1.5.0` | Advanced interaction control: scopes, capture, spatial focus, pointer gestures, scoped commands | **Current published release** |
-| `1.6.0` | Retained mixed-media presentation | **Active planning/development track** |
+| `1.6.0` | Retained mixed-media presentation | **Pre-RC; T1610 active** |
 
 The post-1.0 progression is intentionally cumulative:
 
@@ -81,11 +83,19 @@ Targets          net8.0; net9.0; net10.0
 
 Version 1.6 is additive over this published contract. Existing 1.5 behavior remains the compatibility witness when mixed-media features are not used.
 
+The frozen pre-RC 1.6 candidate contract is:
+
+```text
+75 exported types
+559 canonical declared contract lines
+sha256 266e23e6f3b4d5be98c81b5d5774f1de47d488d9ede7025877e46388cae6d458
+```
+
 ---
 
 ## Active 1.6 objective — retained mixed-media presentation
 
-The approved 1.6 direction integrates Terminal 1.15's opaque persistent-raster and Unicode-placeholder ownership with the presentation responsibilities DCurses already owns:
+The accepted 1.6 implementation integrates Terminal 1.15's opaque persistent-raster and Unicode-placeholder ownership with the presentation responsibilities DCurses already owns:
 
 ```text
 Terminal 1.15
@@ -116,36 +126,37 @@ The detailed architecture, lifecycle, testing, tranche sequencing, and non-goals
 
 ## 1.6 architectural decisions
 
-The following decisions are approved at roadmap level and must not be weakened accidentally during implementation:
+The following decisions are frozen by T1601-T1610 and must not be weakened accidentally during release closure:
 
 - `Icod.Terminal` remains the sole live terminal/protocol/raster identity authority.
 - DCurses does not parse or construct Kitty/Sixel/APC/DCS graphics commands.
 - DCurses does not expose protocol-private image, placement, placeholder, or session-generation ids.
 - Mixed-media retained state is distinct from `CursesCellMetadata`; semantic metadata remains terminal-independent while raster ownership is live/session-bound.
-- The leading representation is a separate lazily allocated row-sparse retained-media plane; T1601 must measure alternatives and freeze the exact contract.
-- Ordinary no-media screens and large pads must not pay a permanent per-cell media-reference cost without explicit measured justification.
+- The accepted representation is a separate lazily allocated row-sparse retained-media plane.
+- Ordinary no-media screens and large pads do not pay a permanent per-cell media-reference cost.
 - DCurses does not retain a hidden arbitrary source-image cache merely to recreate Terminal resources after lifecycle loss.
 - Suspend/resume or Terminal state invalidation may preserve logical intent but must never emit stale raster identity or silently recreate ownership.
 - No automatic Sixel fallback or hidden backend ranking enters 1.6.
-- `Icod.TermInfo 1.14` planning may be demonstrated as optional caller policy, but production DCurses does not turn advisory backend planning into hidden routing policy.
+- Production DCurses does not turn TermInfo advisory planning into hidden routing policy.
 - Existing event-loop, focus, command-execution, widget, and layout-policy ownership remain above DCurses.
+- The existing direct `Icod.TermInfo` production dependency remains unchanged for 1.6; whether it should be removed in favor of a strict `DCurses -> Terminal -> TermInfo` dependency path is deferred to the 1.7 design track.
 
 ---
 
 ## 1.6 tranche overview
 
 ```text
-T1601  architecture / representation / API / dependency regret gate
-T1602  session-owned raster resource and placeholder facade
-T1603  sparse retained-media plane and core logical operations
-T1604  editing / scrolling / copy / subwindow / pad / viewport propagation
-T1605  panel composition / transparency / clipping / z-order / resize coherence
-T1606  Terminal 1.15 placeholder refresh integration and physical/rendition state
-T1607  lifecycle / suspend-resume / stale-released ownership / disposal hardening
-T1608  application acceptance + package consumer + optional TermInfo planning sample
-T1609  adversarial / capacity / performance / allocation / failure-atomicity hardening
-T1610  public API / package / docs / dependency / licensing regret gate
-T1611  RC and stable-source 1.6.0 closure
+T1601  architecture / representation / API / dependency regret gate                 complete
+T1602  session-owned raster resource and placeholder facade                         complete
+T1603  sparse retained-media plane and core logical operations                      complete
+T1604  editing / scrolling / copy / subwindow / pad / viewport propagation          complete
+T1605  panel composition / transparency / clipping / z-order / resize coherence     complete
+T1606  Terminal 1.15 placeholder refresh integration and physical/rendition state   complete
+T1607  lifecycle / suspend-resume / stale-released ownership / disposal hardening   complete
+T1608  application acceptance + package consumer                                    complete
+T1609  adversarial / capacity / performance / allocation / failure-atomicity        complete
+T1610  public API / package / docs / dependency / licensing regret gate             active
+T1611  RC and stable-source 1.6.0 closure                                            pending
 ```
 
 No new feature family enters after T1610.
@@ -166,7 +177,7 @@ Across 1.x, these boundaries remain intentional unless a future roadmap explicit
 
 ### DCurses
 
-`Icod.DCurses` owns retained terminal-cell presentation: screens, windows, pads, viewports, panels, cells, semantic metadata, Unicode-aware text, geometry/layout primitives, composition, clipping, scrolling, damage/refresh, and deterministic interaction mechanisms.
+`Icod.DCurses` owns retained terminal-cell presentation: screens, windows, pads, viewports, panels, cells, semantic metadata, retained raster coordinates, Unicode-aware text, geometry/layout primitives, composition, clipping, scrolling, damage/refresh, and deterministic interaction mechanisms.
 
 ### Applications / future higher layers
 
@@ -205,7 +216,11 @@ These exclusions are deliberate scope control, not statements that the features 
 
 The following are the strongest candidates after a stable mixed-media substrate exists. Their ordering is not yet frozen.
 
-### Option A — `Icod.DCurses.Widgets`
+### Option A — 1.7 dependency/layering review
+
+Revisit whether DCurses should maintain a direct production dependency on `Icod.TermInfo` or whether all live-terminal capability/command concerns should flow through `Icod.Terminal`. This was deliberately deferred from 1.6 release closure to avoid changing dependency architecture after the mixed-media contract had frozen.
+
+### Option B — `Icod.DCurses.Widgets`
 
 A separate higher-level package could build controls over the stable DCurses mechanisms:
 
@@ -220,13 +235,13 @@ retained mixed-media presentation
 
 Keeping widgets in a sibling package would preserve DCurses core as a mechanism/presentation library rather than an opinionated application framework.
 
-### Option B — richer physical raster placement/scene coordination
+### Option C — richer physical raster placement/scene coordination
 
 If real applications require capabilities that Unicode-placeholder cells cannot express, a later track may evaluate higher-level coordination of Terminal physical placements, relative placement graphs, source cropping, and signed z-order.
 
 Such a track must remain distinct from 1.6 and must justify its scene/lifecycle model rather than retrofitting one accidentally into the placeholder integration.
 
-### Option C — higher-level layout/application framework facilities
+### Option D — higher-level layout/application framework facilities
 
 Retained layout trees, flex/grid/constraint systems, event capture/bubble, timed multi-click, drag/drop payloads, automatic focus policy, and navigation frameworks remain possible future work but are lower priority than stabilizing the presentation and widget substrate first.
 
@@ -234,7 +249,7 @@ Retained layout trees, flex/grid/constraint systems, event capture/bubble, timed
 
 ## Quality and release policy
 
-Every development tranche should preserve the established process:
+Every development tranche preserves the established process:
 
 - tests written before or with the behavior they qualify;
 - deterministic and bounded failure behavior;
@@ -253,6 +268,6 @@ Every development tranche should preserve the established process:
 
 ## Immediate next step
 
-Complete and review the 1.6 architecture/design authority, then begin T1601 as an architecture/representation/public-API candidate gate before writing the feature implementation.
+Complete T1610 on one exact green release-facing head, then begin T1611 by promoting the unchanged implementation/API to `1.6.0-rc.1` for full Staging qualification.
 
-T1601 must settle the sparse-media representation, public ownership facade, image-input boundary, cross-session behavior, panel transparency semantics, lifecycle vocabulary, capacity rules, and exact public API candidate before later 1.6 tranches proceed.
+After RC qualification, promote the unchanged accepted source to stable-source `1.6.0` and run one final exact-head branch qualification. Merge, post-merge Release validation, `v1.6.0` tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions and are **not** performed by the development branch workflow.
