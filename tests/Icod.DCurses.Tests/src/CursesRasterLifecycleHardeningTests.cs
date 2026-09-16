@@ -154,9 +154,10 @@ public sealed class CursesRasterLifecycleHardeningTests {
 				BindingFlags.Instance | BindingFlags.NonPublic
 			)
 		);
-		object state = Assert.NotNull( stateProperty.GetValue( terminalPlaceholder ) );
+		object? state = stateProperty.GetValue( terminalPlaceholder );
+		Assert.NotNull( state );
 		MethodInfo tryMarkStale = Assert.IsAssignableFrom<MethodInfo>(
-			state.GetType().GetMethod(
+			state!.GetType().GetMethod(
 				"TryMarkStale",
 				BindingFlags.Instance | BindingFlags.NonPublic,
 				binder: null,
