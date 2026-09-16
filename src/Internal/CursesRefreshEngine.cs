@@ -381,6 +381,14 @@ internal sealed class CursesRefreshEngine {
 		int row,
 		int column
 	) {
+		CursesRasterCell? desiredRasterCell = desired.GetRasterCell(
+			row,
+			column
+		);
+		if ( desiredRasterCell.HasValue ) {
+			ValidateRasterOwnershipForEmission( desiredRasterCell.Value );
+		}
+
 		if ( desired.IsDirty( row, column ) ) {
 			return true;
 		}
@@ -414,10 +422,7 @@ internal sealed class CursesRefreshEngine {
 				row,
 				column
 			),
-			desired.GetRasterCell(
-				row,
-				column
-			)
+			desiredRasterCell
 		);
 	}
 
@@ -797,6 +802,7 @@ internal sealed class CursesRefreshEngine {
 		CursesRasterCell rasterCell,
 		CancellationToken cancellationToken
 	) {
+		ValidateRasterOwnershipForEmission( rasterCell );
 		ITerminalRasterPlaceholderOutput semanticOutput = rasterPlaceholderOutput
 			?? throw new InvalidOperationException(
 				"Retained raster rendering requires Terminal-backed raster-placeholder output."
@@ -835,6 +841,19 @@ internal sealed class CursesRefreshEngine {
 			cursorRow = null;
 			cursorColumn = null;
 		}
+	}
+
+	private static void ValidateRasterOwnershipForEmission(
+		CursesRasterCell rasterCell
+	) {
+		CursesRasterOwnershipState ownership = rasterCell.Placeholder.OwnershipState;
+		if ( CursesRasterOwnershipStatus.Current == ownership.Status ) {
+			return;
+		}
+
+		throw new InvalidOperationException(
+			$"Retained raster ownership is {ownership.Status} ({ownership.LossReason}) and cannot be emitted."
+		);
 	}
 
 	private async ValueTask RenderStyleSegmentAsync(
