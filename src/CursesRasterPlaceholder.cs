@@ -86,10 +86,12 @@ public sealed class CursesRasterPlaceholder : IAsyncDisposable {
 			ref this.placeholder,
 			null
 		);
-		return current is null
-			? ValueTask.CompletedTask
-			: current.DisposeAsync()
-		;
+		if ( current is null ) {
+			return ValueTask.CompletedTask;
+		}
+
+		this.owner.InvalidatePhysicalScreen();
+		return current.DisposeAsync();
 	}
 
 	internal bool BelongsTo( CursesSession session ) {
