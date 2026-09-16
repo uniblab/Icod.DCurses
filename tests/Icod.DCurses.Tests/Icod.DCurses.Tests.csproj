@@ -72,7 +72,10 @@
     <None Include="..\..\docs\Public-API-Fingerprint-1.5.json"
           Link="Public-API-Fingerprint-1.5-stable.json"
           CopyToOutputDirectory="PreserveNewest" />
-    <!-- PublicApiFingerprintTests reads the current-development baseline through this stable filename. -->
+    <None Include="..\..\docs\Public-API-Fingerprint-1.6.json"
+          Link="Public-API-Fingerprint-1.6.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <!-- PublicApiFingerprintTests retains the development-time alias used since T1602. -->
     <None Include="..\..\docs\Public-API-Fingerprint-1.6.json"
           Link="Public-API-Fingerprint-1.2.json"
           CopyToOutputDirectory="PreserveNewest" />
