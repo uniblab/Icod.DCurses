@@ -46,6 +46,24 @@ public sealed class CursesMixedMediaApplicationAcceptanceTests {
 			"package-smoke",
 			"Program.cs"
 		);
+		string rasterSmoke = Path.Combine(
+			root,
+			"tools",
+			"package-smoke",
+			"RasterSmoke.cs"
+		);
+		string unixPackageValidator = Path.Combine(
+			root,
+			".github",
+			"scripts",
+			"verify-release-package.sh"
+		);
+		string windowsPackageValidator = Path.Combine(
+			root,
+			".github",
+			"scripts",
+			"verify-release-package.cmd"
+		);
 		string solution = Path.Combine(
 			root,
 			"Icod.DCurses.sln"
@@ -58,6 +76,10 @@ public sealed class CursesMixedMediaApplicationAcceptanceTests {
 		Assert.True(
 			File.Exists( sampleProgram ),
 			"T1608 requires the mixed-media sample program."
+		);
+		Assert.True(
+			File.Exists( rasterSmoke ),
+			"T1608 requires a package-only raster witness."
 		);
 
 		string solutionText = File.ReadAllText( solution );
@@ -77,7 +99,11 @@ public sealed class CursesMixedMediaApplicationAcceptanceTests {
 		Assert.DoesNotContain( "KittyGraphics", sampleText, StringComparison.Ordinal );
 		Assert.DoesNotContain( "Sixel", sampleText, StringComparison.Ordinal );
 
-		string packageSmokeText = File.ReadAllText( packageSmoke );
+		string packageSmokeText = string.Concat(
+			File.ReadAllText( packageSmoke ),
+			Environment.NewLine,
+			File.ReadAllText( rasterSmoke )
+		);
 		string[] requiredPackageWitnesses = [
 			"TerminalRasterImage",
 			"CursesRasterResource",
@@ -94,6 +120,17 @@ public sealed class CursesMixedMediaApplicationAcceptanceTests {
 				StringComparison.Ordinal
 			);
 		}
+
+		Assert.Contains(
+			"RasterSmoke.cs",
+			File.ReadAllText( unixPackageValidator ),
+			StringComparison.Ordinal
+		);
+		Assert.Contains(
+			"RasterSmoke.cs",
+			File.ReadAllText( windowsPackageValidator ),
+			StringComparison.Ordinal
+		);
 	}
 
 	private static string FindRepositoryRoot() {

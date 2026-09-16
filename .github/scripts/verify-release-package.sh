@@ -74,6 +74,9 @@ cp \
 cp \
   tools/package-smoke/Program.cs \
   "${smoke_root}/Program.cs"
+cp \
+  tools/package-smoke/RasterSmoke.cs \
+  "${smoke_root}/RasterSmoke.cs"
 
 (
   export NUGET_PACKAGES="${smoke_root}/packages"
