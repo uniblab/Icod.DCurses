@@ -249,11 +249,13 @@ static void WriteLabel(
 		available,
 		text.Length
 	);
-	for ( int index = 0; index < count; index++ ) {
-		window.SetCell(
-			row,
-			column + index,
-			new CursesCell( text[ index ].ToString() )
-		);
-	}
+	window.Move(
+		row,
+		column
+	);
+	window.Write(
+		count == text.Length
+			? text
+			: text[ ..count ]
+	);
 }
