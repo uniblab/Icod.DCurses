@@ -72,4 +72,12 @@ public readonly struct CursesRasterCell {
 		return this.placeholder is not null
 			&& this.placeholder.BelongsTo( session );
 	}
+
+	internal bool HasSameIdentity( CursesRasterCell other ) {
+		return ReferenceEquals(
+			this.placeholder,
+			other.placeholder
+		) && this.Row == other.Row
+			&& this.Column == other.Column;
+	}
 }
