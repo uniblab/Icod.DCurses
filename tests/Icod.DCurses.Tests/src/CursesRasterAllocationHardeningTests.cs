@@ -125,6 +125,56 @@ public sealed class CursesRasterAllocationHardeningTests {
 			toggle = !toggle;
 		};
 
+		long minimumAllocated = MeasureMinimumAllocatedBytes( operation );
+
+		Assert.InRange(
+			minimumAllocated,
+			0,
+			AllocationMeasurementNoiseAllowance
+		);
+		Assert.Equal( 0, screen.RasterCellCount );
+		Assert.Equal( 0, screen.RasterAllocatedRowCount );
+		Assert.False( screen.RasterStorageAllocated );
+	}
+
+	[Fact]
+	public void MaterializedSparseRasterReplacementStaysWithinOneSmallWrapperPerMutation() {
+		CursesVirtualScreen screen = new(
+			80,
+			24
+		);
+		CursesRasterCell first = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
+		CursesRasterCell second = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
+		screen.SetRasterCell(
+			7,
+			11,
+			first
+		);
+		bool toggle = false;
+		Action operation = () => {
+			screen.SetRasterCell(
+				7,
+				11,
+				toggle ? first : second
+			);
+			toggle = !toggle;
+		};
+
+		long minimumAllocated = MeasureMinimumAllocatedBytes( operation );
+
+		Assert.InRange(
+			minimumAllocated,
+			0,
+			( 128L * AllocationIterations ) + AllocationMeasurementNoiseAllowance
+		);
+		Assert.Equal( 1, screen.RasterCellCount );
+		Assert.Equal( 1, screen.RasterAllocatedRowCount );
+		Assert.True( screen.RasterStorageAllocated );
+	}
+
+	private static long MeasureMinimumAllocatedBytes( Action operation ) {
+		ArgumentNullException.ThrowIfNull( operation );
+
 		for ( int index = 0; index < WarmupIterations; index++ ) {
 			operation();
 		}
@@ -141,14 +191,6 @@ public sealed class CursesRasterAllocationHardeningTests {
 				allocated
 			);
 		}
-
-		Assert.InRange(
-			minimumAllocated,
-			0,
-			AllocationMeasurementNoiseAllowance
-		);
-		Assert.Equal( 0, screen.RasterCellCount );
-		Assert.Equal( 0, screen.RasterAllocatedRowCount );
-		Assert.False( screen.RasterStorageAllocated );
+		return minimumAllocated;
 	}
 }
