@@ -1,0 +1,221 @@
+/*
+	Icod.DCurses.Tests
+	Automated test suite for Icod.DCurses.
+	Copyright (C) 2026  Timothy J. Bruce <uniblab@hotmail.com>
+*/
+
+/*
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+using Icod.DCurses.Internal;
+using Icod.DCurses.Terminal;
+using Icod.TermInfo;
+using Xunit;
+
+namespace Icod.DCurses.Tests;
+
+/// <summary>Hardens retained-raster refresh failure and caller-driven retry semantics.</summary>
+public sealed class CursesRasterFailureAtomicityTests {
+	[Fact]
+	public async Task RasterOutputFailureDoesNotCommitPhysicalStateAndCallerRetryReemitsExactlyOnce() {
+		FailOnceRasterOutput output = new();
+		CursesRefreshEngine engine = new(
+			CreateTerminal(),
+			output
+		);
+		CursesScreen screen = new(
+			3,
+			1
+		);
+		CursesRasterCell token = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
+		screen.VirtualScreen.SetRasterCell(
+			0,
+			1,
+			token
+		);
+
+		await Assert.ThrowsAsync<IOException>(
+			() => engine.RefreshAsync(
+				screen,
+				0,
+				0
+			).AsTask()
+		);
+
+		Assert.Equal( 1, output.RasterAttemptCount );
+		Assert.Equal( 0, output.RasterSuccessCount );
+
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+
+		Assert.Equal( 2, output.RasterAttemptCount );
+		Assert.Equal( 1, output.RasterSuccessCount );
+
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0
+		);
+
+		Assert.Equal( 2, output.RasterAttemptCount );
+		Assert.Equal( 1, output.RasterSuccessCount );
+	}
+
+	[Fact]
+	public async Task CancellationDuringRasterEmissionRequiresExplicitCallerRetry() {
+		using CancellationTokenSource cancellation = new();
+		CancelOnceRasterOutput output = new( cancellation );
+		CursesRefreshEngine engine = new(
+			CreateTerminal(),
+			output
+		);
+		CursesScreen screen = new(
+			3,
+			1
+		);
+		screen.VirtualScreen.SetRasterCell(
+			0,
+			1,
+			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell()
+		);
+
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(
+			() => engine.RefreshAsync(
+				screen,
+				0,
+				0,
+				cancellation.Token
+			).AsTask()
+		);
+
+		Assert.Equal( 1, output.RasterAttemptCount );
+		Assert.Equal( 0, output.RasterSuccessCount );
+
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0,
+			CancellationToken.None
+		);
+
+		Assert.Equal( 2, output.RasterAttemptCount );
+		Assert.Equal( 1, output.RasterSuccessCount );
+	}
+
+	private static TerminalDescription CreateTerminal() {
+		return new TerminalDescriptionBuilder( "raster-failure-atomicity" )
+			.SetString(
+				StringCapability.CursorAddress,
+				"<cup:%p1%d,%p2%d>"
+			)
+			.Build();
+	}
+
+	private abstract class RasterOutputBase
+		: ITerminalOutput,
+		  ITerminalRasterPlaceholderOutput {
+		internal int RasterAttemptCount {
+			get;
+			protected set;
+		}
+
+		internal int RasterSuccessCount {
+			get;
+			protected set;
+		}
+
+		public ValueTask WriteTextAsync(
+			string value,
+			CancellationToken cancellationToken = default
+		) {
+			ArgumentNullException.ThrowIfNull( value );
+			cancellationToken.ThrowIfCancellationRequested();
+			return ValueTask.CompletedTask;
+		}
+
+		public ValueTask WriteTerminalStringAsync(
+			string value,
+			int affectedLines = 1,
+			CancellationToken cancellationToken = default
+		) {
+			ArgumentNullException.ThrowIfNull( value );
+			if ( 0 >= affectedLines ) {
+				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
+			}
+			cancellationToken.ThrowIfCancellationRequested();
+			return ValueTask.CompletedTask;
+		}
+
+		public abstract ValueTask WriteRasterPlaceholderCellAsync(
+			CursesRasterCell cell,
+			CancellationToken cancellationToken = default
+		);
+
+		public ValueTask FlushAsync(
+			CancellationToken cancellationToken = default
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			return ValueTask.CompletedTask;
+		}
+	}
+
+	private sealed class FailOnceRasterOutput : RasterOutputBase {
+		private bool failurePending = true;
+
+		public override ValueTask WriteRasterPlaceholderCellAsync(
+			CursesRasterCell cell,
+			CancellationToken cancellationToken = default
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			_ = cell.Placeholder;
+			this.RasterAttemptCount++;
+			if ( this.failurePending ) {
+				this.failurePending = false;
+				throw new IOException( "injected raster output failure" );
+			}
+			this.RasterSuccessCount++;
+			return ValueTask.CompletedTask;
+		}
+	}
+
+	private sealed class CancelOnceRasterOutput : RasterOutputBase {
+		private readonly CancellationTokenSource cancellation;
+		private bool cancellationPending = true;
+
+		internal CancelOnceRasterOutput( CancellationTokenSource cancellation ) {
+			ArgumentNullException.ThrowIfNull( cancellation );
+			this.cancellation = cancellation;
+		}
+
+		public override ValueTask WriteRasterPlaceholderCellAsync(
+			CursesRasterCell cell,
+			CancellationToken cancellationToken = default
+		) {
+			_ = cell.Placeholder;
+			this.RasterAttemptCount++;
+			if ( this.cancellationPending ) {
+				this.cancellationPending = false;
+				this.cancellation.Cancel();
+				cancellationToken.ThrowIfCancellationRequested();
+			}
+			cancellationToken.ThrowIfCancellationRequested();
+			this.RasterSuccessCount++;
+			return ValueTask.CompletedTask;
+		}
+	}
+}
