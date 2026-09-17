@@ -9,7 +9,7 @@
 
 ## Status
 
-Current stable-source release candidate: **`Icod.DCurses 1.6.0`**.
+Current stable release: **`Icod.DCurses 1.6.0`**.
 
 Version 1.6 adds retained mixed-media presentation over the published `Icod.Terminal 1.15.0` persistent-raster / Unicode-placeholder ownership model. Raster placeholder cells participate in ordinary DCurses windows, pads, viewports, panels, clipping, scrolling, composition, damage, and refresh while Terminal remains the sole owner of live raster protocol identity, acknowledgement, encoding, and lifecycle certainty.
 
@@ -170,7 +170,7 @@ CursesSession
 
 ## Samples and Documentation
 
-`Icod.DCurses.MixedMedia.Sample` demonstrates retained raster placeholders in pads/viewports, panel overlays, clipping, interaction geometry, and serialized refresh using public APIs only.
+`Icod.DCurses.MixedMedia.Sample` demonstrates all three retained presentation axes together—ordinary text, `CursesHyperlink` semantic metadata, and raster placeholder cells—inside a pannable pad, with panel overlays, clipping, interaction geometry, serialized refresh, and graceful continuation when raster ownership is unavailable.
 
 Recommended documentation entry points:
 
