@@ -2,12 +2,12 @@
 
 ## Status
 
-**Accepted functional/package checkpoint pending documentation-head requalification.**
+**Accepted.** Functional/package acceptance completed during T1608 and the sample was expanded during T1611 release audit to include retained hyperlink metadata beside text/raster presentation.
 
 T1608 validates the Icod.DCurses 1.6 retained mixed-media public surface from two independent consumer perspectives:
 
 1. an application-shaped repository sample built only from public DCurses/Terminal APIs; and
-2. an isolated package-only consumer restored from the generated `Icod.DCurses 1.6.0-alpha.2` artifact on `net8.0`, `net9.0`, and `net10.0`.
+2. an isolated package-only consumer restored from the generated Icod.DCurses 1.6 artifact on `net8.0`, `net9.0`, and `net10.0`.
 
 T1608 adds no production-library API and does not change the 1.6 package dependency graph.
 
@@ -19,6 +19,7 @@ The application sample uses:
 - `CursesSession.CreateRasterResourceAsync(...)` for session-owned live raster ownership;
 - `CursesRasterResource.CreatePlaceholderAsync(...)` and `CursesRasterPlaceholder.GetCell(...)` for placeholder semantics;
 - `CursesWindow.WriteRasterCell(...)` for retained logical raster placement;
+- `CursesWindow.WriteWithMetadata(...)` with `CursesHyperlink` for terminal-independent semantic metadata in the same retained pad;
 - `CursesPad` and `CursesPadViewport` for off-screen retained media plus panning/projection;
 - `CursesPanel` with blank-cell transparency for independent retained overlay composition;
 - `CursesInteractionRouter` and regions over the same presentation geometry; and
@@ -26,11 +27,11 @@ The application sample uses:
 
 The sample does **not** emit raw Kitty Graphics or Sixel commands, expose Terminal-private raster identities, create a hidden source-image cache, replay uploads after loss, rank backends, or silently switch protocols.
 
-Terminal remains authoritative for live raster identity, acknowledgement, encoding, lifecycle, and protocol output. DCurses remains authoritative for logical cells, retained raster coordinates, pads/viewports, panels, clipping, damage, composition, and refresh.
+Terminal remains authoritative for live raster identity, acknowledgement, encoding, lifecycle, and protocol output. DCurses remains authoritative for logical cells, semantic metadata, retained raster coordinates, pads/viewports, panels, clipping, damage, composition, and refresh.
 
 ## RED evidence
 
-The T1608 repository-acceptance RED was committed at:
+The original T1608 repository-acceptance RED was committed at:
 
 `bdb87e385ac26e4d596ece65017a67cbd3d9caf5`
 
@@ -102,15 +103,25 @@ net9.0   874 / 874
 net10.0  874 / 874
 ```
 
-The package candidate independently verified package structure, metadata, dependency closure, assembly identity, XML documentation, and portable symbols for `1.6.0-alpha.2`. It then restored the generated package into a fresh isolated consumer and successfully compiled/executed that consumer on all three target frameworks:
-
-```text
-net8.0   DCurses package-only consumer compiled and executed successfully.
-net9.0   DCurses package-only consumer compiled and executed successfully.
-net10.0  DCurses package-only consumer compiled and executed successfully.
-```
+The package candidate independently verified package structure, metadata, dependency closure, assembly identity, XML documentation, and portable symbols. It then restored the generated package into a fresh isolated consumer and successfully compiled/executed that consumer on all three target frameworks.
 
 `RasterSmoke.cs` executes inside that isolated consumer via a module initializer, so these runs also prove the packaged 1.6 raster facade and intentional `TerminalRasterImage` exposure compile and execute without repository project internals.
+
+## Release-audit sample expansion
+
+During T1611 publication audit, the sample was compared against the approved T1608 goal of a realistic **text + hyperlink + panel + raster-placeholder** composition. The accepted sample already covered text, raster, pads/viewports, panels, clipping, and interaction geometry, but did not yet include semantic hyperlink metadata.
+
+The acceptance test was strengthened first to require both `WriteWithMetadata` and `CursesHyperlink`. Exact RED head `e386665af39a19c98671c3d97dac5a1c3028a124` built cleanly and workflow #1010 failed only because those sample witnesses were absent while package validation remained green.
+
+The GREEN sample then added a retained project hyperlink inside the same pannable pad and a visible fallback message when raster resource/placeholder ownership is unavailable. The sample therefore demonstrates all three retained presentation axes together without changing production code or API:
+
+```text
+ordinary text/cell state
+semantic hyperlink metadata
+session-bound raster placeholder state
+```
+
+The sample continues rendering text/metadata/panel content when raster ownership is unavailable; it does not infer a terminal backend or silently switch protocols.
 
 ## TermInfo planning scope
 
@@ -120,6 +131,4 @@ Accordingly, the optional TermInfo planner demonstration is deferred rather than
 
 ## T1608 outcome
 
-T1608 proves that the retained mixed-media API can be consumed in an application-shaped composition and from the packed artifact while preserving the established package-consumer and interaction contracts. It introduces no new production API, protocol identity, backend-specific command surface, replay/cache behavior, or hidden backend policy.
-
-The next planned tranche is **T1609 — adversarial, capacity, allocation, performance, deterministic replay, cancellation, and failure-atomicity hardening**.
+T1608 and the final release-audit sample expansion prove that the retained mixed-media API can be consumed in an application-shaped composition and from the packed artifact while preserving the established package-consumer and interaction contracts. The final sample shows retained text, semantic hyperlink metadata, raster placeholders, pad/viewports, panel composition, interaction geometry, and graceful raster-unavailable behavior without introducing a new production API, protocol identity, backend-specific command surface, replay/cache behavior, or hidden backend policy.
