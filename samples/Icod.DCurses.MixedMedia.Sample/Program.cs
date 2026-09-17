@@ -57,7 +57,7 @@ WriteLabel(
 	standard,
 	1,
 	0,
-	"Pad: logical text + raster placeholder cells | Panel: independent overlay"
+	"Pad: text + hyperlink + raster cells | Panel: independent overlay"
 );
 
 int viewportRows = Math.Min( 9, screen.Rows - 5 );
@@ -81,6 +81,20 @@ for ( int row = 0; row < PadRows; row++ ) {
 		$"row {row:D2}  retained logical content --------------------------------"
 	);
 }
+
+padWindow.Move(
+	2,
+	7
+);
+padWindow.WriteWithMetadata(
+	"project: github.com/uniblab/Icod.DCurses",
+	new CursesCellMetadata(
+		new CursesHyperlink(
+			"https://github.com/uniblab/Icod.DCurses",
+			"mixed-media-sample"
+		)
+	)
+);
 
 byte[] pixels = CreateRasterPixels(
 	32,
@@ -120,7 +134,21 @@ try {
 					);
 				}
 			}
+		} else {
+			WriteLabel(
+				standard,
+				2,
+				0,
+				"Raster placeholder unavailable; retained text/metadata still render."
+			);
 		}
+	} else {
+		WriteLabel(
+			standard,
+			2,
+			0,
+			"Raster resource unavailable; retained text/metadata still render."
+		);
 	}
 
 	CursesPadViewport viewport = pad.CreateViewport(
@@ -203,7 +231,7 @@ try {
 			standard,
 			2,
 			0,
-			"Second frame pans the same retained raster through the logical viewport."
+			"Second frame pans retained text, metadata, and raster through the viewport."
 		);
 		await session.RefreshAsync();
 	}
