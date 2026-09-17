@@ -29,6 +29,7 @@ using Icod.DCurses.Internal;
 public sealed class CursesScreen {
 	private readonly CursesPanelOrder<CursesPanel> panelOrder = new();
 	private CursesVirtualScreen virtualScreen;
+	private CursesSession? rasterSessionOwner;
 
 	/// <summary>Initializes a logical screen with a standard window covering the complete frame.</summary>
 	/// <param name="columns">The positive number of terminal columns.</param>
@@ -144,6 +145,39 @@ public sealed class CursesScreen {
 
 	/// <summary>Gets whether this screen owns at least one panel without allocating an order snapshot.</summary>
 	internal bool HasPanels => 0 < panelOrder.Count;
+
+	/// <summary>Gets the live curses session which owns raster output for this screen, when any.</summary>
+	internal CursesSession? RasterSessionOwner => rasterSessionOwner;
+
+	/// <summary>Binds one live curses session as this screen's raster-output authority.</summary>
+	internal void BindRasterSessionOwner( CursesSession owner ) {
+		ArgumentNullException.ThrowIfNull( owner );
+		if ( rasterSessionOwner is null ) {
+			rasterSessionOwner = owner;
+			return;
+		}
+		if ( !ReferenceEquals(
+			rasterSessionOwner,
+			owner
+		) ) {
+			throw new InvalidOperationException(
+				"A logical screen cannot be rebound to a different raster session owner."
+			);
+		}
+	}
+
+	/// <summary>Rejects a raster token which belongs to another live session.</summary>
+	internal void ValidateRasterCellOwnership( CursesRasterCell? rasterCell ) {
+		if ( !rasterCell.HasValue
+			|| rasterSessionOwner is null ) {
+			return;
+		}
+		if ( !rasterCell.Value.BelongsTo( rasterSessionOwner ) ) {
+			throw new InvalidOperationException(
+				"The retained raster cell belongs to a different CursesSession."
+			);
+		}
+	}
 
 	/// <summary>Creates a stable bottom-to-top snapshot of this screen's complete panel order.</summary>
 	/// <returns>A new array containing visible and hidden panels in remembered z-order.</returns>
@@ -263,7 +297,7 @@ public sealed class CursesScreen {
 	/// </summary>
 	/// <param name="columns">The new positive column count.</param>
 	/// <param name="rows">The new positive row count.</param>
-	/// <param name="preserveContents">Whether overlapping logical cells and semantic metadata should be retained.</param>
+	/// <param name="preserveContents">Whether overlapping logical cells and retained axes should be retained.</param>
 	public void Resize(
 		int columns,
 		int rows,
@@ -301,6 +335,17 @@ public sealed class CursesScreen {
 							row,
 							column,
 							metadata
+						);
+					}
+					CursesRasterCell? rasterCell = virtualScreen.GetRasterCell(
+						row,
+						column
+					);
+					if ( rasterCell.HasValue ) {
+						replacement.SetRasterCell(
+							row,
+							column,
+							rasterCell.Value
 						);
 					}
 				}

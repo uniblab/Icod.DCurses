@@ -1,8 +1,8 @@
 # Icod.DCurses Samples
 
-The repository contains nine executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
+The repository contains ten executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
-All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project, which currently declares `Icod.Terminal 1.13.0` and `Icod.TermInfo 1.12.0`.
+All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project, which currently declares `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`.
 
 ## Which sample should I run?
 
@@ -11,6 +11,7 @@ All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the rep
 | Minimal session lifecycle and retained drawing | `Icod.DCurses.Sample` |
 | Retained panels, z-order, transparency, and disposal | `Icod.DCurses.Panel.Sample` |
 | Explicit geometry/layout and resize recomputation | `Icod.DCurses.Layout.Sample` |
+| Retained text + hyperlink metadata + raster presentation, panning, panels, and interaction geometry | `Icod.DCurses.MixedMedia.Sample` |
 | Interaction scopes, capture, spatial focus, gestures, commands, and pointer preferences | `Icod.DCurses.Interaction.Sample` |
 | General interactive API showcase | `Icod.DCurses.Showcase` |
 | Raw semantic input inspection | `Icod.DCurses.Input.Showcase` |
@@ -25,8 +26,8 @@ The samples follow the production ownership model:
 - logical `CursesScreen`, `CursesWindow`, `CursesPad`, `CursesPadViewport`, and `CursesPanel` mutation is single-writer unless an API explicitly documents otherwise;
 - one `CursesSession` event wait may coexist with refresh/output activity;
 - applications should not create competing independent event-reader loops over one session;
-- terminal-mutating presentation, protocol, refresh, cursor, alert, suspend, and disposal activity remains serialized by DCurses/Terminal;
-- Terminal remains responsible for authoritative terminal restoration;
+- terminal-mutating presentation, protocol, refresh, cursor, alert, suspend, raster ownership, and disposal activity remains serialized by DCurses/Terminal;
+- Terminal remains responsible for authoritative terminal restoration and live raster identity/lifecycle;
 - canceling one public input wait does not discard Terminal decoder state.
 
 ## Icod.DCurses.Sample
@@ -56,6 +57,31 @@ dotnet run --project samples/Icod.DCurses.Layout.Sample/Icod.DCurses.Layout.Samp
 ```
 
 Resize the terminal while the sample is running to see the two windows and retained panel recompute from the new screen bounds. Press `Q` or `Escape` to exit.
+
+## Icod.DCurses.MixedMedia.Sample
+
+`Icod.DCurses.MixedMedia.Sample` is the focused 1.6 retained mixed-media acceptance sample. It constructs a backend-neutral `TerminalRasterImage`, asks the owning `CursesSession` to create a raster resource and placeholder, retains placeholder cells inside a `CursesPad`, writes retained hyperlink metadata into that same pad, projects the combined retained state through a pannable `CursesPadViewport`, composes an independent blank-transparent `CursesPanel`, and registers ordinary 1.5 interaction regions over the same logical geometry.
+
+The sample deliberately keeps the three retained presentation axes visible together:
+
+- ordinary text/cell content;
+- terminal-independent semantic metadata (`CursesHyperlink` through `WriteWithMetadata`); and
+- session-bound raster placeholder cells.
+
+The layer boundary remains explicit:
+
+- the application owns source-image bytes, logical meaning, hyperlink destination, and the decision to request raster presentation;
+- DCurses owns retained coordinates, metadata/raster coexistence, pad/viewport projection, panel composition, damage, and refresh;
+- Terminal owns live raster identity, acknowledgement, encoding, lifecycle, and protocol output;
+- `TerminalRasterImage` is the only raster input type intentionally exposed through the DCurses 1.6 public boundary.
+
+Resource or placeholder creation may report unavailable. The sample reports that condition and continues with ordinary text/metadata/panel presentation; it does not infer a backend from terminal identity, emit raw Kitty/Sixel commands, rank hidden fallbacks, retain a source-image cache for replay, or silently switch protocols. When raster ownership is available, the second frame pans the same retained mixed-media pad to exercise damage-driven sparse projection and refresh.
+
+The optional TermInfo backend-planning demonstration originally considered for this tranche is intentionally not included. The maintainer has deferred the broader DCurses/Terminal/TermInfo layering decision to the 1.7 development track; 1.6 keeps its existing dependency architecture unchanged.
+
+```text
+dotnet run --project samples/Icod.DCurses.MixedMedia.Sample/Icod.DCurses.MixedMedia.Sample.csproj
+```
 
 ## Icod.DCurses.Interaction.Sample
 

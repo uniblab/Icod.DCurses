@@ -346,10 +346,18 @@ internal sealed class CursesPanelCompositionState {
 			row,
 			column
 		);
+		CursesRasterCell? currentRaster = destination.GetRasterCell(
+			row,
+			column
+		);
 		if ( currentCell == desired.Cell
 			&& Equals(
 				currentMetadata,
 				desired.Metadata
+			)
+			&& Nullable.Equals(
+				currentRaster,
+				desired.Raster
 			) ) {
 			return false;
 		}
@@ -367,14 +375,36 @@ internal sealed class CursesPanelCompositionState {
 					desired.Metadata
 				);
 			}
+			if ( desired.Raster.HasValue ) {
+				destination.SetRasterCell(
+					row,
+					column,
+					desired.Raster
+				);
+			}
 			return true;
 		}
 
-		destination.SetMetadata(
-			row,
-			column,
+		if ( !Equals(
+			currentMetadata,
 			desired.Metadata
-		);
+		) ) {
+			destination.SetMetadata(
+				row,
+				column,
+				desired.Metadata
+			);
+		}
+		if ( !Nullable.Equals(
+			currentRaster,
+			desired.Raster
+		) ) {
+			destination.SetRasterCell(
+				row,
+				column,
+				desired.Raster
+			);
+		}
 		return true;
 	}
 
@@ -407,8 +437,15 @@ internal sealed class CursesPanelCompositionState {
 				sourceRow,
 				sourceColumn
 			);
-			if ( CursesPanelTransparency.BlankCellsTransparent == panel.Transparency
-				&& panelCell.IsBlank ) {
+			CursesRasterCell? panelRaster = panelScreen.GetRasterCell(
+				sourceRow,
+				sourceColumn
+			);
+			if ( CursesPanelCompositor.IsTransparent(
+				panel,
+				panelCell,
+				panelRaster
+			) ) {
 				continue;
 			}
 

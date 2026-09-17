@@ -61,6 +61,7 @@ mkdir "%SMOKE_ROOT%" || goto fail
 
 copy /y tools\package-smoke\Icod.DCurses.PackageSmoke.csproj "%SMOKE_ROOT%\Icod.DCurses.PackageSmoke.csproj" >nul || goto fail
 copy /y tools\package-smoke\Program.cs "%SMOKE_ROOT%\Program.cs" >nul || goto fail
+copy /y tools\package-smoke\RasterSmoke.cs "%SMOKE_ROOT%\RasterSmoke.cs" >nul || goto fail
 
 set "OLD_NUGET_PACKAGES=%NUGET_PACKAGES%"
 set "NUGET_PACKAGES=%SMOKE_ROOT%\packages"

@@ -175,6 +175,10 @@ public sealed partial class CursesSession {
 						row,
 						column
 					);
+					CursesRasterCell? desiredRaster = composed.GetRasterCell(
+						row,
+						column
+					);
 					CursesCell currentCell = destination.GetCell(
 						row,
 						column
@@ -183,10 +187,18 @@ public sealed partial class CursesSession {
 						row,
 						column
 					);
+					CursesRasterCell? currentRaster = destination.GetRasterCell(
+						row,
+						column
+					);
 					if ( currentCell == desiredCell
 						&& Equals(
 							currentMetadata,
 							desiredMetadata
+						)
+						&& Equals(
+							currentRaster,
+							desiredRaster
 						) ) {
 						if ( composed.IsDirty(
 							row,
@@ -206,6 +218,21 @@ public sealed partial class CursesSession {
 							column,
 							desiredCell
 						);
+						if ( desiredMetadata is not null ) {
+							destination.SetMetadata(
+								row,
+								column,
+								desiredMetadata
+							);
+						}
+						if ( desiredRaster.HasValue ) {
+							destination.SetRasterCell(
+								row,
+								column,
+								desiredRaster
+							);
+						}
+						continue;
 					}
 					if ( !Equals(
 						currentMetadata,
@@ -215,6 +242,16 @@ public sealed partial class CursesSession {
 							row,
 							column,
 							desiredMetadata
+						);
+					}
+					if ( !Equals(
+						currentRaster,
+						desiredRaster
+					) ) {
+						destination.SetRasterCell(
+							row,
+							column,
+							desiredRaster
 						);
 					}
 				}

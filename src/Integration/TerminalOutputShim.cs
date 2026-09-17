@@ -63,7 +63,8 @@ internal interface ITerminalHyperlinkOutput {
 /// <summary>Routes DCurses refresh output through the canonical Terminal session.</summary>
 internal sealed class TerminalSessionCursesOutput
 	: ITerminalOutput,
-	  ITerminalHyperlinkOutput {
+	  ITerminalHyperlinkOutput,
+	  ITerminalRasterPlaceholderOutput {
 	private readonly TerminalSession session;
 	private Exception? semanticOutputFailure;
 
@@ -128,6 +129,23 @@ internal sealed class TerminalSessionCursesOutput
 			);
 			throw;
 		}
+	}
+
+	public ValueTask WriteRasterPlaceholderCellAsync(
+		CursesRasterCell cell,
+		CancellationToken cancellationToken = default
+	) {
+		if ( !cell.IsValid ) {
+			throw new ArgumentException(
+				"The default CursesRasterCell value cannot be emitted.",
+				nameof( cell )
+			);
+		}
+		ThrowIfSemanticOutputIsUncertain();
+		return this.session.WriteRasterPlaceholderCellAsync(
+			cell.TerminalCell,
+			cancellationToken
+		);
 	}
 
 	public ValueTask FlushAsync(

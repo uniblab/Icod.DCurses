@@ -47,6 +47,7 @@ public sealed partial class CursesSession {
 						size.Columns,
 						size.Rows
 					);
+					this.screen.BindRasterSessionOwner( this );
 				}
 
 				return this.screen;
@@ -83,6 +84,7 @@ public sealed partial class CursesSession {
 		lock ( this.screenSync ) {
 			if ( this.screen is null ) {
 				this.screen = new CursesScreen( columns, rows );
+				this.screen.BindRasterSessionOwner( this );
 				return true;
 			}
 			if (
