@@ -24,10 +24,10 @@ using Xunit;
 
 namespace Icod.DCurses.Tests;
 
-/// <summary>Guards the explicit T1610 1.6 fingerprint artifact and its development-time alias.</summary>
+/// <summary>Guards the explicit stable-source 1.6 fingerprint artifact and its development-time alias.</summary>
 public sealed class PublicOneSixApiBaselineTests {
 	[Fact]
-	public void ExplicitOneSixFingerprintMatchesDevelopmentAlias() {
+	public void ExplicitOneSixFingerprintMatchesDevelopmentAliasContract() {
 		using JsonDocument explicitBaseline = ReadBaseline( "Public-API-Fingerprint-1.6.json" );
 		using JsonDocument developmentAlias = ReadBaseline( "Public-API-Fingerprint-1.2.json" );
 
@@ -35,8 +35,8 @@ public sealed class PublicOneSixApiBaselineTests {
 		JsonElement aliasRoot = developmentAlias.RootElement;
 
 		Assert.Equal( 1, explicitRoot.GetProperty( "schema" ).GetInt32() );
-		Assert.Equal( "1.6.0-alpha.2", explicitRoot.GetProperty( "release" ).GetString() );
-		Assert.Equal( "development", explicitRoot.GetProperty( "status" ).GetString() );
+		Assert.Equal( "1.6.0", explicitRoot.GetProperty( "release" ).GetString() );
+		Assert.Equal( "stable-source", explicitRoot.GetProperty( "status" ).GetString() );
 		Assert.Equal(
 			"266e23e6f3b4d5be98c81b5d5774f1de47d488d9ede7025877e46388cae6d458",
 			explicitRoot.GetProperty( "sha256" ).GetString()
@@ -44,6 +44,10 @@ public sealed class PublicOneSixApiBaselineTests {
 		Assert.Equal( 75, explicitRoot.GetProperty( "exportedTypeCount" ).GetInt32() );
 		Assert.Equal( 559, explicitRoot.GetProperty( "contractLineCount" ).GetInt32() );
 
+		Assert.Equal(
+			explicitRoot.GetProperty( "schema" ).GetInt32(),
+			aliasRoot.GetProperty( "schema" ).GetInt32()
+		);
 		Assert.Equal(
 			explicitRoot.GetProperty( "sha256" ).GetString(),
 			aliasRoot.GetProperty( "sha256" ).GetString()
