@@ -93,6 +93,8 @@ public sealed class CursesMixedMediaApplicationAcceptanceTests {
 		Assert.Contains( "CreateRasterResourceAsync", sampleText, StringComparison.Ordinal );
 		Assert.Contains( "CreatePlaceholderAsync", sampleText, StringComparison.Ordinal );
 		Assert.Contains( "WriteRasterCell", sampleText, StringComparison.Ordinal );
+		Assert.Contains( "WriteWithMetadata", sampleText, StringComparison.Ordinal );
+		Assert.Contains( "CursesHyperlink", sampleText, StringComparison.Ordinal );
 		Assert.Contains( "CursesPanel", sampleText, StringComparison.Ordinal );
 		Assert.Contains( "CursesPad", sampleText, StringComparison.Ordinal );
 		Assert.Contains( "CursesInteractionRouter", sampleText, StringComparison.Ordinal );
