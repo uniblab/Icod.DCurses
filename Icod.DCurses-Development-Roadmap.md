@@ -4,24 +4,24 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`  
 **Stable compatibility floor:** `1.0.0`  
 **Current published package:** `1.5.0`  
-**Current published baseline for development:** `1.5.0`  
+**Current stable-source candidate:** `1.6.0`  
 **Assembly version:** `1.0.0.0`  
 **Current declared runtime dependencies:** `Icod.Terminal 1.15.0`; `Icod.TermInfo 1.14.0`  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `1.6.0` — retained mixed-media presentation  
-**Status:** 1.5.0 published; 1.6 T1610 pre-RC release-regret gate active
+**Status:** T1601-T1610 accepted; T1611 stable-source publication-readiness qualification active
 
 ---
 
 ## Current authorities
 
-Active 1.6 development and release closure are governed by:
+The 1.6 implementation and release closure are governed by:
 
 - `Icod.DCurses-1.6.0-Development-Roadmap.md`;
 - `docs/superpowers/specs/2026-09-15-icod-dcurses-1.6-retained-mixed-media-presentation-design.md`;
 - `docs/superpowers/plans/2026-09-15-icod-dcurses-1.6-retained-mixed-media-presentation.md`;
-- T1601-T1610 tranche evidence;
+- T1601-T1611 tranche evidence;
 - `docs/Public-API-Fingerprint-1.6.json` and `docs/Public-API-Baseline-1.6.md`;
 - the published `Icod.Terminal 1.15.0` persistent-raster/Unicode-placeholder contract;
 - the published `Icod.TermInfo 1.14.0` capability/planning contract.
@@ -47,7 +47,7 @@ Historical 1.0-1.5 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.3.0` | Geometry, layout, panel resize, and explicit resize recomputation | Published |
 | `1.4.0` | Interaction regions, hit testing, focus, gestures, commands, pointer semantics | Published |
 | `1.5.0` | Advanced interaction control: scopes, capture, spatial focus, pointer gestures, scoped commands | **Current published release** |
-| `1.6.0` | Retained mixed-media presentation | **Pre-RC; T1610 active** |
+| `1.6.0` | Retained mixed-media presentation | **Stable-source candidate; T1611 final qualification active** |
 
 The post-1.0 progression is intentionally cumulative:
 
@@ -64,7 +64,7 @@ The post-1.0 progression is intentionally cumulative:
 
 ## Published 1.5 compatibility baseline
 
-The current public 1.5 contract is:
+The published 1.5 contract is:
 
 ```text
 69 exported types
@@ -83,7 +83,7 @@ Targets          net8.0; net9.0; net10.0
 
 Version 1.6 is additive over this published contract. Existing 1.5 behavior remains the compatibility witness when mixed-media features are not used.
 
-The frozen pre-RC 1.6 candidate contract is:
+The frozen stable-source 1.6 contract is:
 
 ```text
 75 exported types
@@ -93,7 +93,7 @@ sha256 266e23e6f3b4d5be98c81b5d5774f1de47d488d9ede7025877e46388cae6d458
 
 ---
 
-## Active 1.6 objective — retained mixed-media presentation
+## 1.6 objective — retained mixed-media presentation
 
 The accepted 1.6 implementation integrates Terminal 1.15's opaque persistent-raster and Unicode-placeholder ownership with the presentation responsibilities DCurses already owns:
 
@@ -126,7 +126,7 @@ The detailed architecture, lifecycle, testing, tranche sequencing, and non-goals
 
 ## 1.6 architectural decisions
 
-The following decisions are frozen by T1601-T1610 and must not be weakened accidentally during release closure:
+The following decisions are frozen and must not be weakened accidentally during release closure:
 
 - `Icod.Terminal` remains the sole live terminal/protocol/raster identity authority.
 - DCurses does not parse or construct Kitty/Sixel/APC/DCS graphics commands.
@@ -155,8 +155,8 @@ T1606  Terminal 1.15 placeholder refresh integration and physical/rendition stat
 T1607  lifecycle / suspend-resume / stale-released ownership / disposal hardening   complete
 T1608  application acceptance + package consumer                                    complete
 T1609  adversarial / capacity / performance / allocation / failure-atomicity        complete
-T1610  public API / package / docs / dependency / licensing regret gate             active
-T1611  RC and stable-source 1.6.0 closure                                            pending
+T1610  public API / package / docs / dependency / licensing regret gate             complete
+T1611  RC and stable-source 1.6.0 closure                                            active
 ```
 
 No new feature family enters after T1610.
@@ -214,8 +214,6 @@ These exclusions are deliberate scope control, not statements that the features 
 
 ## Post-1.6 development options
 
-The following are the strongest candidates after a stable mixed-media substrate exists. Their ordering is not yet frozen.
-
 ### Option A — 1.7 dependency/layering review
 
 Revisit whether DCurses should maintain a direct production dependency on `Icod.TermInfo` or whether all live-terminal capability/command concerns should flow through `Icod.Terminal`. This was deliberately deferred from 1.6 release closure to avoid changing dependency architecture after the mixed-media contract had frozen.
@@ -268,6 +266,6 @@ Every development tranche preserves the established process:
 
 ## Immediate next step
 
-Complete T1610 on one exact green release-facing head, then begin T1611 by promoting the unchanged implementation/API to `1.6.0-rc.1` for full Staging qualification.
+Qualify the final stable-source `1.6.0` branch head across package candidate plus Windows/Linux/macOS x64/ARM64. After that exact head is green, PR #31 is ready for maintainer merge.
 
-After RC qualification, promote the unchanged accepted source to stable-source `1.6.0` and run one final exact-head branch qualification. Merge, post-merge Release validation, `v1.6.0` tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions and are **not** performed by the development branch workflow.
+Merge, post-merge Release validation, `v1.6.0` tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions and are **not** performed by the development branch workflow.
