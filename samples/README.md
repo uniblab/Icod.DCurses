@@ -11,7 +11,7 @@ All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the rep
 | Minimal session lifecycle and retained drawing | `Icod.DCurses.Sample` |
 | Retained panels, z-order, transparency, and disposal | `Icod.DCurses.Panel.Sample` |
 | Explicit geometry/layout and resize recomputation | `Icod.DCurses.Layout.Sample` |
-| Retained mixed text/raster presentation, panning, panels, and interaction geometry | `Icod.DCurses.MixedMedia.Sample` |
+| Retained text + hyperlink metadata + raster presentation, panning, panels, and interaction geometry | `Icod.DCurses.MixedMedia.Sample` |
 | Interaction scopes, capture, spatial focus, gestures, commands, and pointer preferences | `Icod.DCurses.Interaction.Sample` |
 | General interactive API showcase | `Icod.DCurses.Showcase` |
 | Raw semantic input inspection | `Icod.DCurses.Input.Showcase` |
@@ -60,16 +60,22 @@ Resize the terminal while the sample is running to see the two windows and retai
 
 ## Icod.DCurses.MixedMedia.Sample
 
-`Icod.DCurses.MixedMedia.Sample` is the focused 1.6 retained mixed-media acceptance sample. It constructs a backend-neutral `TerminalRasterImage`, asks the owning `CursesSession` to create a raster resource and placeholder, retains placeholder cells inside a `CursesPad`, projects them through a pannable `CursesPadViewport`, composes an independent blank-transparent `CursesPanel`, and registers ordinary 1.5 interaction regions over the same logical geometry.
+`Icod.DCurses.MixedMedia.Sample` is the focused 1.6 retained mixed-media acceptance sample. It constructs a backend-neutral `TerminalRasterImage`, asks the owning `CursesSession` to create a raster resource and placeholder, retains placeholder cells inside a `CursesPad`, writes retained hyperlink metadata into that same pad, projects the combined retained state through a pannable `CursesPadViewport`, composes an independent blank-transparent `CursesPanel`, and registers ordinary 1.5 interaction regions over the same logical geometry.
 
-The sample deliberately keeps the layer boundary visible:
+The sample deliberately keeps the three retained presentation axes visible together:
 
-- the application owns source-image bytes, logical meaning, and the decision to request raster presentation;
-- DCurses owns retained coordinates, pad/viewpoint projection, panel composition, damage, and refresh;
+- ordinary text/cell content;
+- terminal-independent semantic metadata (`CursesHyperlink` through `WriteWithMetadata`); and
+- session-bound raster placeholder cells.
+
+The layer boundary remains explicit:
+
+- the application owns source-image bytes, logical meaning, hyperlink destination, and the decision to request raster presentation;
+- DCurses owns retained coordinates, metadata/raster coexistence, pad/viewport projection, panel composition, damage, and refresh;
 - Terminal owns live raster identity, acknowledgement, encoding, lifecycle, and protocol output;
 - `TerminalRasterImage` is the only raster input type intentionally exposed through the DCurses 1.6 public boundary.
 
-Resource or placeholder creation may report unavailable. The sample handles that result directly; it does not infer a backend from terminal identity, emit raw Kitty/Sixel commands, rank hidden fallbacks, retain a source-image cache for replay, or silently switch protocols. The second frame pans the same retained mixed-media pad to exercise damage-driven sparse projection and refresh.
+Resource or placeholder creation may report unavailable. The sample reports that condition and continues with ordinary text/metadata/panel presentation; it does not infer a backend from terminal identity, emit raw Kitty/Sixel commands, rank hidden fallbacks, retain a source-image cache for replay, or silently switch protocols. When raster ownership is available, the second frame pans the same retained mixed-media pad to exercise damage-driven sparse projection and refresh.
 
 The optional TermInfo backend-planning demonstration originally considered for this tranche is intentionally not included. The maintainer has deferred the broader DCurses/Terminal/TermInfo layering decision to the 1.7 development track; 1.6 keeps its existing dependency architecture unchanged.
 
