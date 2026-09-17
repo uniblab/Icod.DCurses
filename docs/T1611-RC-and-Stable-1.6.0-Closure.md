@@ -11,8 +11,10 @@
 **T1610 workflow:** #999 / `35155346200`  
 **Accepted RC head:** `47728ad870205c89bc1d7c0014667774ea9960d9`  
 **RC workflow:** #1002 / `35158260589`  
+**Accepted stable-source implementation/release-facing head:** `cb791454d79ade67d13988625d2f76d15b9cfe82`  
+**Stable-source workflow:** #1015 / `35171774174`  
 **Stable-source identity:** `1.6.0`  
-**Status:** stable-source candidate prepared; final exact-head qualification pending
+**Status:** publication-ready after the documentation-only closure-record head containing this file passes the same exact-head PR matrix
 
 ---
 
@@ -20,7 +22,7 @@
 
 T1611 promotes the implementation/API accepted by T1610 unchanged through `1.6.0-rc.1` and then to stable-source `1.6.0`. No feature/API change is accepted in this tranche. Any implementation/API correction returns to T1610 for renewed regret review.
 
-The only intended changes after T1610 are release identity and release-facing documentation/evidence.
+The only intended changes after T1610 are release identity and release-facing documentation/evidence. The final release audit also allowed sample/documentation completeness work that changes no library source or exported contract.
 
 ## T1610 qualification
 
@@ -74,9 +76,62 @@ PackageVersion  1.6.0
 AssemblyVersion 1.0.0.0
 ```
 
-Publication-facing README, CHANGELOG, API fingerprint metadata, and the human-readable 1.6 API baseline were aligned to stable-source state. The exported API fingerprint remains unchanged.
+Publication-facing README, CHANGELOG, API fingerprint metadata, and the human-readable 1.6 API baseline were aligned to stable-source state. The exported API fingerprint remained unchanged.
 
-The final stable-source branch qualification must pass the same seven-job Staging matrix and fresh packed-package validation before publication readiness is declared.
+One development-era machine guard initially required `docs/Public-API-Fingerprint-1.6.json` to retain the historical `1.6.0-alpha.2` / `development` label. Stable-source correctly changes that artifact to `1.6.0` / `stable-source`. The guard was narrowed to what it is intended to freeze: schema, API hash, exported type count, contract line count, and exact exported-type inventory, while separately asserting the stable-source release/status metadata. No production/API change was involved.
+
+## Final sample/readme audit
+
+The pre-merge release audit compared `Icod.DCurses.MixedMedia.Sample` to the approved T1608 application goal. The accepted sample already demonstrated retained text, raster placeholders, pads/viewports, panels, clipping, interaction geometry, and serialized refresh, but did not yet demonstrate semantic hyperlink metadata in the mixed-media composition.
+
+A test-first release-audit expansion added a retained `CursesHyperlink` through `WriteWithMetadata` in the same pannable pad, plus a visible fallback message when raster ownership is unavailable. The final sample therefore demonstrates all three retained presentation axes together:
+
+```text
+ordinary text/cell state
+terminal-independent semantic hyperlink metadata
+session-bound raster placeholder state
+```
+
+The sample continues presenting text/metadata/panel content when raster ownership is unavailable and never infers or silently switches a graphics backend. This sample/documentation work changes no production source or public API.
+
+The root/package `README.md` and `samples/README.md` were aligned to the stable `1.6.0` release identity and final sample behavior before the stable-source qualification.
+
+## Stable-source qualification
+
+Exact stable-source implementation/release-facing head:
+
+```text
+cb791454d79ade67d13988625d2f76d15b9cfe82
+```
+
+Workflow #1015 / `35171774174` passed all seven jobs:
+
+```text
+Package candidate       success
+Runtime Windows x64     success
+Runtime Windows ARM64   success
+Runtime Linux x64       success
+Runtime Linux ARM64     success
+Runtime macOS x64       success
+Runtime macOS ARM64     success
+```
+
+Linux x64 built with:
+
+```text
+0 Warning(s)
+0 Error(s)
+```
+
+and passed:
+
+```text
+net8.0   899 / 899
+net9.0   899 / 899
+net10.0  899 / 899
+```
+
+The package candidate validated the stable `1.6.0` package and isolated package-only consumers on all target frameworks. No production/API change occurred after the T1610 freeze.
 
 ## Frozen stable contract
 
@@ -122,8 +177,18 @@ T1611 branch work deliberately does **not** perform these maintainer actions:
 4. create the GitHub Release;
 5. publish `Icod.DCurses 1.6.0` to NuGet.
 
-Those actions are intentionally separate and should occur only after the final stable-source branch head is green and the maintainer explicitly chooses to proceed.
+Those actions are intentionally separate maintainer actions. The intended publication sequence is:
+
+```text
+merge PR #31 into main
+-> require post-merge main/Release workflow success
+-> create/push v1.6.0 tag from the accepted main commit
+-> require tag/release validation if configured
+-> create GitHub Release using the 1.6 changelog/release notes
+-> publish Icod.DCurses 1.6.0 and symbols to NuGet
+-> verify the NuGet package page and a fresh public-feed consumer
+```
 
 ## Final acceptance record
 
-To be completed after the final stable-source exact-head workflow finishes. The final publication-ready source must be the exact head qualified by the seven-job matrix; any subsequent source/package/document change requires requalification.
+The substantive stable-source release head `cb791454d79ade67d13988625d2f76d15b9cfe82` is accepted by workflow #1015 / `35171774174`, seven of seven jobs green. The commit containing this final closure record is documentation-only; its exact-head PR workflow is the final repository verification before maintainer merge. Any source, package, sample, or release-facing document change after that verification requires requalification.
