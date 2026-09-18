@@ -29,6 +29,25 @@ namespace Icod.DCurses.Tests;
 /// <summary>Exercises resize and suspend/resume hardening at the Terminal lifecycle boundary.</summary>
 public sealed class CursesLifecycleHardeningTests {
 	[Fact]
+	public void LifecycleDimensionsUseTerminalOwnedValuesAndRemainNullable() {
+		TerminalDimensions dimensions = new( 132, 43 );
+		CursesLifecycleEvent resized = new(
+			CursesLifecycleEventKind.Resize,
+			dimensions
+		);
+		CursesLifecycleEvent interrupted = new(
+			CursesLifecycleEventKind.Interrupt
+		);
+
+		Assert.Equal( CursesLifecycleEventKind.Resize, resized.Kind );
+		Assert.Equal( dimensions, resized.Dimensions );
+		Assert.True( resized.RequiresRepaint );
+		Assert.Equal( CursesLifecycleEventKind.Interrupt, interrupted.Kind );
+		Assert.Null( interrupted.Dimensions );
+		Assert.False( interrupted.RequiresRepaint );
+	}
+
+	[Fact]
 	public async Task ResizeStormSynchronizesLogicalScreenDimensions() {
 		MutableTerminalControlProvider provider = new();
 		RecordingOutput output = new();
