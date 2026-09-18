@@ -1,7 +1,7 @@
 # Icod.DCurses 2.0.0 Development Roadmap
 
 **Theme:** Terminal-only integration; remove direct TermInfo coupling.\
-**Status:** T2001 accepted; T2002 is the next implementation tranche.
+**Status:** T2001 and T2002 accepted; T2003 is the next implementation tranche.
 
 **Planning date:** 2026-09-18.\
 **Behavioral baseline:** published `Icod.DCurses 1.6.0`.\
@@ -9,7 +9,7 @@
 **Targets:** `net8.0`; `net9.0`; `net10.0`.\
 **Configurations:** `Debug`; `Staging`; `Release`.\
 **Technology:** C# 13, .NET, PowerShell 5.1-compatible automation, cmd/sh. No Python.\
-**Planned development identity:** `Version` and `PackageVersion` both `2.0.0-alpha.1`; `AssemblyVersion` `2.0.0.0`, established in T2002, not by this planning PR.
+**Current development identity:** `Version` and `PackageVersion` both `2.0.0-alpha.1`; `AssemblyVersion` `2.0.0.0`, established and qualified in T2002.
 
 ## 1. Goal and scope
 
@@ -27,7 +27,7 @@ This means:
 
 Version 1.6 is the endpoint for new 1.x features. Necessary 1.6.x maintenance may continue independently. New features belong to 2.1+ after this migration is accepted. Do not mix widgets, new input protocols, animation scheduling, physical raster scenes, or application-framework work into 2.0.
 
-This PR contains roadmap/documentation changes only. It does not bump versions, upgrade dependencies, change production behavior, certify API sufficiency, or authorize publication.
+This PR now carries the ordered 2.0 migration. T2002 established the development identity, selected Terminal 1.18.0, and completed the approved public profile/dimensions cutover. It does not claim the renderer or direct dependency is decoupled, and it does not authorize publication.
 
 ## 2. Reference snapshot and authorities
 
@@ -157,10 +157,12 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 **Depends on:** T2001 API decisions.\
 **Files:** `Icod.DCurses.csproj`, session/screen/lifecycle integration, current API tests and test-project baseline includes; create the initial `docs/Public-API-Baseline-2.0.md` and `docs/Public-API-Fingerprint-2.0.json`.
 
-- [ ] Establish `2.0.0-alpha.1` in both version properties and `2.0.0.0` assembly identity; upgrade Terminal to the qualified published minimum.
-- [ ] Add `Profile`, remove `Terminal`, and migrate both dimension methods plus lifecycle dimensions. Temporarily retained internal TermInfo paths are tracked debt, not a completed decoupling claim.
-- [ ] Verify positive dimensions, unavailable/unsupported/failed results, messages/native errors, resize/resume behavior, and unchanged ownership transfer on session initialization failure.
-- [ ] Select the new 2.0 baseline explicitly in active fingerprint tooling. Preserve historical 1.x artifacts; replace unconditional binary-compatibility assertions with reviewed break-manifest checks.
+**Status:** accepted on exact head `f030d1b1b7e18f4566c171d4fc8f5a4765a3f8cc`; see `docs/T2002-Public-Terminal-Cutover-Gate.md`.
+
+- [x] Establish `2.0.0-alpha.1` in both version properties and `2.0.0.0` assembly identity; upgrade Terminal to the qualified published minimum.
+- [x] Add `Profile`, remove `Terminal`, and migrate both dimension methods plus lifecycle dimensions. Temporarily retained internal TermInfo paths are tracked debt, not a completed decoupling claim.
+- [x] Verify positive dimensions, unavailable/unsupported/failed results, messages/native errors, resize/resume behavior, and unchanged ownership transfer on session initialization failure.
+- [x] Select the new 2.0 baseline explicitly in active fingerprint tooling. Preserve historical 1.x artifacts; replace unconditional binary-compatibility assertions with reviewed break-manifest checks.
 
 **Acceptance:** builds/tests pass on all target frameworks, public TermInfo signature leaks are gone, and the API diff contains only approved changes.
 
@@ -298,4 +300,4 @@ Completion requires all of the following, not just successful compilation:
 
 ## 10. Immediate next checkpoint
 
-Authorize the separately scoped Terminal correction recorded by the T2001 readiness gate. The proposed additive API belongs in a new minor Terminal release (provisionally 1.18.0), not a DCurses workaround or a 1.17 patch. After that release is published, restore the retained readiness witness against the package, continue the transaction-capacity/stale-epoch/cost witnesses and behavioral baseline, and accept T2001 before beginning T2002. Do not delete the DCurses TermInfo package reference or compensate through transitive access while this gate is blocked.
+Write and review the detailed T2003 implementation plan. Then migrate presentation capability projection, color/attribute/glyph resolution, rendition baseline/transitions, ACS, cursor movement, and alerts to Terminal 1.18 semantic screen APIs. Keep the direct TermInfo reference and internal description seam only for still-unmigrated renderer paths; do not remove either piecemeal before T2007 proves the complete production/package boundary.

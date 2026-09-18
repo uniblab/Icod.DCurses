@@ -4,14 +4,14 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
 **Published 1.x compatibility floor:** `1.0.0`\
 **Current published package:** `1.6.0`\
-**Current source/package identity:** `1.6.0` (unchanged by this planning PR)\
-**Current assembly version:** `1.0.0.0`; planned 2.0 identity: `2.0.0.0`\
-**Current declared runtime dependencies:** `Icod.Terminal 1.15.0`; `Icod.TermInfo 1.14.0`\
+**Current development source/package identity:** `2.0.0-alpha.1`\
+**Current development assembly version:** `2.0.0.0`\
+**Current development runtime dependencies:** `Icod.Terminal 1.18.0`; temporary direct `Icod.TermInfo 1.15.0` through T2007\
 **Planned 2.0 direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.0.0` — Terminal-only terminal integration\
-**Status:** T2001 accepted; T2002 development identity and public profile/dimensions cutover is next
+**Status:** T2001 and T2002 accepted; T2003 semantic presentation/core screen migration is next
 
 **Planning snapshot:** 2026-09-18
 
@@ -56,7 +56,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.5.0` | Advanced interaction control: scopes, capture, spatial focus, pointer gestures, scoped commands | Published |
 | `1.6.0` | Retained mixed-media presentation | **Current published release; 1.x feature endpoint** |
 | `1.6.x` | Necessary maintenance only | As needed; no new feature track |
-| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **Next release; implementation begins with T2002** |
+| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **In development; T2002 accepted, T2003 next** |
 | `2.1+` | New features built on the completed Terminal boundary | Deferred until 2.0 acceptance |
 
 The post-1.0 progression is intentionally cumulative:
@@ -254,7 +254,7 @@ TermInfo remains a legitimate transitive runtime dependency of Terminal. The rel
 | T2010 | Public API/package/XML/license/documentation freeze and regret gate |
 | T2011 | RC, stable-source and exact-head release closure |
 
-T2001 is accepted. It froze the dependency inventory and approved break manifest, qualified published Terminal 1.18.0 recovery/transaction/planner behavior, and captured the DCurses 1.6 behavioral baseline. T2002-T2011 remain pending. See the [T2001 readiness gate](docs/T2001-Terminal-Boundary-and-Readiness-Gate.md) and [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) for evidence, file ownership, dependencies and acceptance criteria.
+T2001 and T2002 are accepted. T2001 froze the dependency inventory and approved break manifest, qualified published Terminal 1.18.0 recovery/transaction/planner behavior, and captured the DCurses 1.6 behavioral baseline. T2002 established the 2.0 development identity, moved the public profile/dimensions boundary to Terminal-owned types, and froze the reviewed 2.0 development API. T2003-T2011 remain pending. See the [T2001 readiness gate](docs/T2001-Terminal-Boundary-and-Readiness-Gate.md), [T2002 public cutover gate](docs/T2002-Public-Terminal-Cutover-Gate.md), and [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) for evidence, file ownership, dependencies and acceptance criteria.
 
 ---
 
@@ -305,12 +305,12 @@ Every development tranche preserves the established process:
 - explicit API/package/documentation regret gate before RC;
 - merge, post-merge Release validation, tagging, and publication remain separate maintainer actions.
 
-For 2.0, the 1.6 API artifacts remain immutable historical evidence. New 2.0 snapshots and a reviewed break manifest replace blanket 1.x binary-compatibility assertions. Behavior unrelated to the declared breaks remains a parity requirement. Both `Version` and `PackageVersion` change together when implementation establishes the 2.0 development identity; this planning-only PR leaves package metadata untouched.
+For 2.0, the 1.6 API artifacts remain immutable historical evidence. New 2.0 snapshots and a reviewed break manifest replace blanket 1.x binary-compatibility assertions. Behavior unrelated to the declared breaks remains a parity requirement. T2002 advanced `Version` and `PackageVersion` together to `2.0.0-alpha.1` and established assembly identity `2.0.0.0`.
 
 ---
 
 ## Immediate next step
 
-Write and review the detailed T2002 implementation plan, then establish the 2.0 development identity, select published Terminal 1.18.0, and perform only the approved public profile/dimensions cutover. Preserve the historical 1.6 API artifacts and prove that the 2.0 API diff contains no unapproved break.
+Write and review the detailed T2003 implementation plan, then migrate presentation capabilities, rendition normalization/transitions, line glyph/ACS planning, cursor movement, and alerts through Terminal 1.18 semantic screen APIs. Preserve DCurses policy for Unicode width, ASCII fallback, unsupported profiles, and presentation lease ownership.
 
-T2001 changes only downstream tests and documentation. No 2.0 production code, version bump, production dependency change, release tag, or publication has yet been performed. The 1.6 release remains available for consumers that need the old API.
+T2002 is accepted on exact head `f030d1b1b7e18f4566c171d4fc8f5a4765a3f8cc`; see `docs/T2002-Public-Terminal-Cutover-Gate.md`. The direct TermInfo package reference and internal renderer seam are intentionally retained migration debt until T2007. No merge, release tag, or publication is authorized by this checkpoint. The published 1.6 release remains available for consumers that need the old API.

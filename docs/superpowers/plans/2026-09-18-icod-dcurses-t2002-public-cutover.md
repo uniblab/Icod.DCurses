@@ -35,7 +35,7 @@
 - Consumes: the frozen 1.6 assembly and `docs/2.0-API-Break-Manifest.md`.
 - Produces: reflection-based tests for `CursesSession.Profile`, removed public `Terminal`, both Terminal-owned dimensions methods, lifecycle dimensions, assembly identity, and a public dependency set containing no TermInfo type.
 
-- [ ] **Step 1: Write the reflection-based failing API test**
+- [x] **Step 1: Write the reflection-based failing API test**
 
 Create `PublicTwoZeroApiContractTests` with a single contract test that obtains declared public members by reflection so it compiles against the 1.6 surface:
 
@@ -75,7 +75,7 @@ public void PublicSurfaceMatchesTheApprovedTwoZeroBreakManifest() {
 }
 ```
 
-- [ ] **Step 2: Change the public dependency expectation to Terminal-only**
+- [x] **Step 2: Change the public dependency expectation to Terminal-only**
 
 Set `ExpectedDependencyTypes` in `PublicDependencyBoundaryTests` to exactly:
 
@@ -92,7 +92,7 @@ Set `ExpectedDependencyTypes` in `PublicDependencyBoundaryTests` to exactly:
 
 Rename the test and summary to state that the public API exposes only approved Terminal types and no TermInfo types. Keep recursive generic/type traversal unchanged.
 
-- [ ] **Step 3: Push and verify the intended RED result**
+- [x] **Step 3: Push and verify the intended RED result**
 
 Run locally when an SDK is available:
 
@@ -103,7 +103,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 In the current executor, commit and push the tests, then inspect the exact-head PR workflow. Expected: tests build, then fail because `Profile` is absent, public `Terminal` is present, dimensions expose `TerminalSize`, AssemblyVersion is `1.0.0.0`, and the dependency set still contains two TermInfo types. Any compile failure is a malformed witness and must be corrected before implementation.
 
-- [ ] **Step 4: Commit the RED witness**
+- [x] **Step 4: Commit the RED witness**
 
 ```sh
 git add tests/Icod.DCurses.Tests/src/PublicTwoZeroApiContractTests.cs \
@@ -126,7 +126,7 @@ git commit -m "test: freeze DCurses 2.0 public cutover"
 - Consumes: `TerminalSession.Profile`, `TerminalSession.GetDimensions()`, `TerminalLifecycleEvent.Dimensions`, and the exact signatures frozen by Task 1.
 - Produces: `CursesSession.Profile : TerminalProfile`, `GetDimensions()` and `SynchronizeDimensions()` returning `TerminalControlResult<TerminalDimensions>`, and `CursesLifecycleEvent.Dimensions : TerminalDimensions?`.
 
-- [ ] **Step 1: Update development and dependency metadata**
+- [x] **Step 1: Update development and dependency metadata**
 
 Change the project metadata to:
 
@@ -143,7 +143,7 @@ Replace the release notes with a concise alpha statement naming the Terminal-onl
 <PackageReference Include="Icod.TermInfo" Version="1.15.0" />
 ```
 
-- [ ] **Step 2: Replace the public terminal-description property**
+- [x] **Step 2: Replace the public terminal-description property**
 
 In `CursesSession.Terminal.cs`, add:
 
@@ -154,7 +154,7 @@ public TerminalProfile Profile => this.terminalSession.Profile;
 
 Change the existing `Terminal` property from `public` to `internal` and update its summary to identify it as a temporary renderer-migration seam. Keep its `TerminalDescription` return type and all existing internal callers during T2002. This removes the public leak without pulling T2003 presentation work into the tranche.
 
-- [ ] **Step 3: Delegate live dimensions to Terminal-owned values**
+- [x] **Step 3: Delegate live dimensions to Terminal-owned values**
 
 Replace `CursesSession.GetDimensions()` with:
 
@@ -166,7 +166,7 @@ public TerminalControlResult<TerminalDimensions> GetDimensions() {
 
 In `CursesSession.Screen.Terminal.cs`, remove the TermInfo using and change the local/result types in lazy screen creation and `SynchronizeDimensions()` from `TerminalSize` to `TerminalDimensions`. Keep the existing resize and invalidation logic unchanged.
 
-- [ ] **Step 4: Change lifecycle dimensions without changing event policy**
+- [x] **Step 4: Change lifecycle dimensions without changing event policy**
 
 In `CursesLifecycleEvent.Terminal.cs`, replace `TerminalSize?` with `TerminalDimensions?` in the internal constructor and public property, and use `Icod.Terminal` rather than `Icod.TermInfo`.
 
@@ -188,7 +188,7 @@ return new CursesLifecycleEvent( kind, dimensions );
 
 Do not change repaint invalidation or lifecycle kind mapping.
 
-- [ ] **Step 5: Update strongly typed integration assertions**
+- [x] **Step 5: Update strongly typed integration assertions**
 
 In `CursesTerminalIntegrationTests.DimensionsComeDirectlyFromTerminalSession`, assert:
 
@@ -201,7 +201,7 @@ Assert.Equal( new TerminalDimensions( 101, 37 ), dimensions.GetRequiredValue() )
 
 In `CursesInteractionCoherenceTests`, change only the two `SynchronizeDimensions()` result variables and expected values to `TerminalControlResult<TerminalDimensions>`/`TerminalDimensions`. Keep `TerminalSize` in fake `ITerminalControlProvider.GetSize()` implementations because that is Terminal's legacy provider seam, not DCurses public API.
 
-- [ ] **Step 6: Verify GREEN on the public and focused integration tests**
+- [x] **Step 6: Verify GREEN on the public and focused integration tests**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -210,7 +210,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: all selected tests pass; no warning; the Task 1 reflection witness is green.
 
-- [ ] **Step 7: Commit the public cutover**
+- [x] **Step 7: Commit the public cutover**
 
 ```sh
 git add Icod.DCurses.csproj src/Integration \
@@ -229,7 +229,7 @@ git commit -m "feat: establish DCurses 2.0 public Terminal boundary"
 - Consumes: the Terminal-owned dimensions contracts implemented in Task 2.
 - Produces: behavioral proof for available/unavailable/unsupported/failed dimensions and nullable lifecycle dimensions, while preserving screen resize/invalidation and ownership behavior.
 
-- [ ] **Step 1: Add controlled-result parity cases**
+- [x] **Step 1: Add controlled-result parity cases**
 
 Extend the terminal integration test provider with a configurable `TerminalControlResult<TerminalSize> SizeResult`, defaulting to its current available size. Add a theory or four focused facts that call `session.GetDimensions()` and assert:
 
@@ -242,15 +242,15 @@ Failed      -> status, message and native error code are preserved
 
 Use literal messages and native codes in the fixture. Do not reconstruct a DCurses result; the production method must remain a direct delegation.
 
-- [ ] **Step 2: Add synchronization behavior cases**
+- [x] **Step 2: Add synchronization behavior cases**
 
 Create a materialized screen, change the fake provider from 80x24 to 40x12, call `SynchronizeDimensions()`, and assert the returned `TerminalDimensions` and screen dimensions match. Then set a failed result, call `SynchronizeDimensions()`, and assert the existing logical screen remains 40x12 and the exact failure metadata is returned.
 
-- [ ] **Step 3: Add lifecycle dimensions cases**
+- [x] **Step 3: Add lifecycle dimensions cases**
 
 In `CursesLifecycleHardeningTests`, drive one resize event with dimensions and one interrupt event without dimensions. Assert the DCurses event exposes `new TerminalDimensions(columns, rows)` for resize, `null` for interrupt, preserves kind, and retains existing resize/repaint behavior.
 
-- [ ] **Step 4: Verify the focused behavior tests**
+- [x] **Step 4: Verify the focused behavior tests**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -259,7 +259,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: all selected tests pass on net8.0, net9.0 and net10.0.
 
-- [ ] **Step 5: Commit the parity hardening**
+- [x] **Step 5: Commit the parity hardening**
 
 ```sh
 git add tests/Icod.DCurses.Tests/src/CursesTerminalIntegrationTests.cs \
@@ -282,11 +282,11 @@ git commit -m "test: harden Terminal-owned dimensions parity"
 - Consumes: the compiled Task 2 public surface and frozen 1.6 fingerprint.
 - Produces: a 2.0-alpha fingerprint selected by the active development guard and an explicit approved-diff baseline.
 
-- [ ] **Step 1: Select a distinct 2.0 fingerprint file**
+- [x] **Step 1: Select a distinct 2.0 fingerprint file**
 
 Add `docs/Public-API-Fingerprint-2.0.json` to the test project as `Public-API-Fingerprint-2.0.json`. Change `PublicApiFingerprintTests.PublicApiMatchesCurrentDevelopmentFingerprint` to load that filename directly. Leave the historical `Public-API-Fingerprint-1.2.json` alias pointing at the 1.6 artifact so `PublicOneSixApiBaselineTests` remains an immutable historical guard.
 
-- [ ] **Step 2: Capture the compiled fingerprint values**
+- [x] **Step 2: Capture the compiled fingerprint values**
 
 Create the new JSON as an exact copy of `docs/Public-API-Fingerprint-1.6.json`, then change its identity fields to:
 
@@ -302,11 +302,11 @@ exportedTypes = the byte-for-byte copied JSON array from Public-API-Fingerprint-
 
 Push once with an intentionally invalid SHA-256 value and inspect the existing mismatch message for the actual SHA-256, exported type count and contract line count. Replace the invalid value immediately. If either count differs from 75/559, stop and compare reflection output to the break manifest before accepting the artifact.
 
-- [ ] **Step 3: Add an explicit 2.0 artifact guard**
+- [x] **Step 3: Add an explicit 2.0 artifact guard**
 
 Create `PublicTwoZeroApiBaselineTests` to assert schema `1`, release `2.0.0-alpha.1`, status `development`, the accepted hash/counts, and equality between the artifact's exported types and the frozen 1.6 exported-type list. This proves T2002 changes members but adds/removes no public type.
 
-- [ ] **Step 4: Document the exact API delta**
+- [x] **Step 4: Document the exact API delta**
 
 Create `docs/Public-API-Baseline-2.0.md` containing:
 
@@ -318,7 +318,7 @@ Create `docs/Public-API-Baseline-2.0.md` containing:
 - confirmation that the public dependency set contains no `Icod.TermInfo` type; and
 - an explicit statement that internal TermInfo/renderer decoupling remains T2003-T2007 work.
 
-- [ ] **Step 5: Verify current and historical API guards**
+- [x] **Step 5: Verify current and historical API guards**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -327,7 +327,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: all active 2.0 and immutable 1.6 guards pass.
 
-- [ ] **Step 6: Commit the 2.0 API baseline**
+- [x] **Step 6: Commit the 2.0 API baseline**
 
 ```sh
 git add docs/Public-API-Fingerprint-2.0.json docs/Public-API-Baseline-2.0.md \
@@ -349,7 +349,7 @@ git commit -m "docs: freeze DCurses 2.0 development API"
 - Consumes: Tasks 1-4 and their exact-head workflow evidence.
 - Produces: an accepted T2002 checkpoint authorizing T2003, or a precise blocker with later tranches still pending.
 
-- [ ] **Step 1: Run static boundary checks**
+- [x] **Step 1: Run static boundary checks**
 
 ```sh
 rg -n 'public .*Icod\.TermInfo|public .*TerminalDescription|public .*TerminalSize' src
@@ -359,7 +359,7 @@ git diff --check
 
 Expected: no public TermInfo match; both package versions are `2.0.0-alpha.1`; assembly version is `2.0.0.0`; production references are Terminal 1.18.0 and temporary TermInfo 1.15.0; no whitespace errors.
 
-- [ ] **Step 2: Run complete build, tests and package validation**
+- [x] **Step 2: Run complete build, tests and package validation**
 
 ```sh
 dotnet restore Icod.DCurses.sln
@@ -370,7 +370,7 @@ pwsh ./packaging/Invoke-Build.ps1 -Section validate -Configuration Staging
 
 In the current executor, use the exact-head PR workflow. Required matrix: package candidate and Windows/Linux/macOS x64/ARM64 all green. Record per-framework test counts from Linux x64 logs.
 
-- [ ] **Step 3: Review the compiled API diff**
+- [x] **Step 3: Review the compiled API diff**
 
 Compare the 1.6 and 2.0 fingerprints plus Task 1 reflection assertions. Accept only:
 
@@ -385,11 +385,11 @@ Compare the 1.6 and 2.0 fingerprints plus Task 1 reflection assertions. Accept o
 
 No exported type, enum value, unrelated signature, nullability, default, constraint, or ownership behavior may change.
 
-- [ ] **Step 4: Record and apply the gate**
+- [x] **Step 4: Record and apply the gate**
 
 Create `docs/T2002-Public-Terminal-Cutover-Gate.md` with exact commit/workflow/job links, package versions, fingerprint hash/counts, test counts, public dependency set, retained internal TermInfo debt, and any blocker. Mark T2002 accepted in both roadmaps only when every Task 5 criterion passes; otherwise leave T2003 pending.
 
-- [ ] **Step 5: Commit the gate**
+- [x] **Step 5: Commit the gate**
 
 ```sh
 git add docs/T2002-Public-Terminal-Cutover-Gate.md \
