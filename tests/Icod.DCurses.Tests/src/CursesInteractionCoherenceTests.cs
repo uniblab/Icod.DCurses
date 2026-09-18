@@ -168,7 +168,7 @@ public sealed class CursesInteractionCoherenceTests {
 		Assert.True( router.Focus( region ) );
 
 		provider.Size = new TerminalSize( 10, 5 );
-		TerminalControlResult<TerminalSize> smaller = session.SynchronizeDimensions();
+		TerminalControlResult<TerminalDimensions> smaller = session.SynchronizeDimensions();
 
 		Assert.True( smaller.IsAvailable );
 		Assert.Equal( 10, screen.Columns );
@@ -177,7 +177,7 @@ public sealed class CursesInteractionCoherenceTests {
 		Assert.Null( router.FocusedRegion );
 
 		provider.Size = new TerminalSize( 20, 10 );
-		TerminalControlResult<TerminalSize> restored = session.SynchronizeDimensions();
+		TerminalControlResult<TerminalDimensions> restored = session.SynchronizeDimensions();
 
 		Assert.True( restored.IsAvailable );
 		Assert.Equal( bounds, region.Bounds );

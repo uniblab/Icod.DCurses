@@ -246,9 +246,10 @@ public sealed class CursesTerminalIntegrationTests {
 			NoPresentationOptions()
 		);
 
-		TerminalControlResult<TerminalSize> dimensions = session.GetDimensions();
+		Assert.Same( terminalSession.Profile, session.Profile );
+		TerminalControlResult<TerminalDimensions> dimensions = session.GetDimensions();
 		Assert.True( dimensions.IsAvailable );
-		Assert.Equal( new TerminalSize( 101, 37 ), dimensions.GetRequiredValue() );
+		Assert.Equal( new TerminalDimensions( 101, 37 ), dimensions.GetRequiredValue() );
 	}
 
 	[Fact]

@@ -22,7 +22,6 @@
 namespace Icod.DCurses;
 
 using Icod.Terminal;
-using Icod.TermInfo;
 
 /// <summary>Logical-screen ownership backed by canonical Terminal live dimensions.</summary>
 public sealed partial class CursesSession {
@@ -34,7 +33,7 @@ public sealed partial class CursesSession {
 		get {
 			lock ( this.screenSync ) {
 				if ( this.screen is null ) {
-					TerminalControlResult<TerminalSize> dimensions = this.GetDimensions();
+					TerminalControlResult<TerminalDimensions> dimensions = this.GetDimensions();
 					if ( !dimensions.IsAvailable ) {
 						throw new InvalidOperationException(
 							dimensions.Message
@@ -42,7 +41,7 @@ public sealed partial class CursesSession {
 						);
 					}
 
-					TerminalSize size = dimensions.GetRequiredValue();
+					TerminalDimensions size = dimensions.GetRequiredValue();
 					this.screen = new CursesScreen(
 						size.Columns,
 						size.Rows
@@ -62,13 +61,13 @@ public sealed partial class CursesSession {
 	/// Reobserves live Terminal dimensions and synchronizes the logical screen when changed.
 	/// </summary>
 	/// <returns>The controlled Terminal live-size result.</returns>
-	public TerminalControlResult<TerminalSize> SynchronizeDimensions() {
-		TerminalControlResult<TerminalSize> dimensions = this.GetDimensions();
+	public TerminalControlResult<TerminalDimensions> SynchronizeDimensions() {
+		TerminalControlResult<TerminalDimensions> dimensions = this.GetDimensions();
 		if ( !dimensions.IsAvailable ) {
 			return dimensions;
 		}
 
-		TerminalSize size = dimensions.GetRequiredValue();
+		TerminalDimensions size = dimensions.GetRequiredValue();
 		if ( this.ResizeLogicalScreen( size.Columns, size.Rows ) ) {
 			this.InvalidatePhysicalScreen();
 		}

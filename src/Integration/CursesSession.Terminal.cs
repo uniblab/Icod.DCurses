@@ -58,8 +58,15 @@ public sealed partial class CursesSession : IAsyncDisposable {
 		);
 	}
 
-	/// <summary>Gets the terminal profile selected for this session.</summary>
-	public TerminalDescription Terminal {
+	/// <summary>Gets the Terminal-owned semantic profile selected for this session.</summary>
+	public TerminalProfile Profile {
+		get {
+			return this.terminalSession.Profile;
+		}
+	}
+
+	/// <summary>Gets the temporary TermInfo description used by the pre-migration renderer.</summary>
+	internal TerminalDescription Terminal {
 		get {
 			return this.terminalSession.Terminal;
 		}
@@ -205,8 +212,8 @@ public sealed partial class CursesSession : IAsyncDisposable {
 
 	/// <summary>Queries the current live terminal dimensions.</summary>
 	/// <returns>The canonical Terminal live-size result.</returns>
-	public TerminalControlResult<TerminalSize> GetDimensions() {
-		return this.terminalSession.GetSize();
+	public TerminalControlResult<TerminalDimensions> GetDimensions() {
+		return this.terminalSession.GetDimensions();
 	}
 
 	/// <summary>Restores curses and Terminal-owned state exactly once.</summary>
