@@ -31,7 +31,7 @@
 - Consumes: source snapshot `c6c365fecb1257b2fed931a57f00e8d516af277f` and published 1.6 API artifacts.
 - Produces: a classified source/test/tool/document inventory and the complete approved 2.0 public break set used by T2002-T2007.
 
-- [ ] **Step 1: Generate the raw references**
+- [x] **Step 1: Generate the raw references**
 
 Run:
 
@@ -43,7 +43,7 @@ rg -n --glob '*.cs' --glob '*.csproj' --glob '*.props' --glob '*.targets' \
 
 Classify every result as public API, production implementation, test-fixture bootstrap, package/tooling, or historical/current documentation. Record exact paths and the Terminal replacement for each production family.
 
-- [ ] **Step 2: Freeze the public break manifest**
+- [x] **Step 2: Freeze the public break manifest**
 
 Record these approved replacements and enumerate every affected canonical signature from `docs/Public-API-Baseline-1.6.md`:
 
@@ -64,7 +64,7 @@ AssemblyVersion
 
 State explicitly that all other public changes require a roadmap amendment and review.
 
-- [ ] **Step 3: Self-check the documents**
+- [x] **Step 3: Self-check the documents**
 
 Run:
 
@@ -75,7 +75,7 @@ git diff --check
 
 Expected: no placeholder matches and no whitespace errors.
 
-- [ ] **Step 4: Commit the evidence**
+- [x] **Step 4: Commit the evidence**
 
 ```sh
 git add docs/2.0-TermInfo-Coupling-Inventory.md docs/2.0-API-Break-Manifest.md
