@@ -92,7 +92,7 @@ git commit -m "docs: freeze DCurses 2.0 dependency break inventory"
 - Consumes: published `Icod.Terminal 1.17.0`, existing `ITerminalControlProvider`, `ITerminalInput`, and `ITerminalOutput` public test seams.
 - Produces: a downstream acceptance witness for a safe unconditional rendition baseline.
 
-- [ ] **Step 1: Add the test-only Terminal floor**
+- [x] **Step 1: Add the test-only Terminal floor**
 
 Add to the test project's package references:
 
@@ -102,7 +102,7 @@ Add to the test project's package references:
 
 Do not modify `Icod.DCurses.csproj` in T2001.
 
-- [ ] **Step 2: Write the failing unknown-rendition recovery test**
+- [x] **Step 2: Write the failing unknown-rendition recovery test**
 
 Create `TerminalScreenReadinessTests.cs` with a real in-memory Terminal session whose synthetic profile advertises `ExitAttributeMode = "<sgr0>"` and `OriginalColorPair = "<op>"`. The test must express the required semantic API directly:
 
