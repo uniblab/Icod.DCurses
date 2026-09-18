@@ -1,9 +1,9 @@
 # T2001 Terminal Boundary and Readiness Gate
 
-**Date:** 2026-09-18.  
-**DCurses target:** 2.0.0.  
-**Published dependency under test:** `Icod.Terminal 1.17.0`.  
-**Status:** **blocked — do not begin T2002**.  
+**Date:** 2026-09-18.\
+**DCurses target:** 2.0.0.\
+**Published dependency under test:** `Icod.Terminal 1.17.0`.\
+**Status:** **blocked — do not begin T2002**.\
 **Owning correction:** Icod.Terminal, proposed additive minor release 1.18.0.
 
 ## Gate outcome

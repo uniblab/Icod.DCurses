@@ -1,16 +1,16 @@
 # Icod.DCurses Development Roadmap
 
-**Project:** `Icod.DCurses`  
-**Repository:** `https://github.com/uniblab/Icod.DCurses`  
-**Published 1.x compatibility floor:** `1.0.0`  
-**Current published package:** `1.6.0`  
-**Current source/package identity:** `1.6.0` (unchanged by this planning PR)  
-**Current assembly version:** `1.0.0.0`; planned 2.0 identity: `2.0.0.0`  
-**Current declared runtime dependencies:** `Icod.Terminal 1.15.0`; `Icod.TermInfo 1.14.0`  
-**Planned 2.0 direct runtime dependency:** `Icod.Terminal 1.17.0` minimum; no direct `Icod.TermInfo` reference  
-**Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
-**Configurations:** `Debug`; `Staging`; `Release`  
-**Active development target:** `2.0.0` — Terminal-only terminal integration  
+**Project:** `Icod.DCurses`\
+**Repository:** `https://github.com/uniblab/Icod.DCurses`\
+**Published 1.x compatibility floor:** `1.0.0`\
+**Current published package:** `1.6.0`\
+**Current source/package identity:** `1.6.0` (unchanged by this planning PR)\
+**Current assembly version:** `1.0.0.0`; planned 2.0 identity: `2.0.0.0`\
+**Current declared runtime dependencies:** `Icod.Terminal 1.15.0`; `Icod.TermInfo 1.14.0`\
+**Planned 2.0 direct runtime dependency:** `Icod.Terminal 1.17.0` minimum; no direct `Icod.TermInfo` reference\
+**Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
+**Configurations:** `Debug`; `Staging`; `Release`\
+**Active development target:** `2.0.0` — Terminal-only terminal integration\
 **Status:** T2001 blocked; Terminal 1.17.0 lacks the required unknown-rendition baseline API
 
 **Planning snapshot:** 2026-09-18

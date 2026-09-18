@@ -1,14 +1,14 @@
 # Icod.DCurses 2.0.0 Development Roadmap
 
-**Theme:** Terminal-only integration; remove direct TermInfo coupling.  
+**Theme:** Terminal-only integration; remove direct TermInfo coupling.\
 **Status:** T2001 blocked by missing Terminal unknown-rendition baseline API; no implementation tranche accepted.
 
-**Planning date:** 2026-09-18.  
-**Behavioral baseline:** published `Icod.DCurses 1.6.0`.  
-**Dependency baseline:** published `Icod.Terminal 1.17.0`; raise the minimum only if a documented upstream readiness blocker requires a later published release.  
-**Targets:** `net8.0`; `net9.0`; `net10.0`.  
-**Configurations:** `Debug`; `Staging`; `Release`.  
-**Technology:** C# 13, .NET, PowerShell 5.1-compatible automation, cmd/sh. No Python.  
+**Planning date:** 2026-09-18.\
+**Behavioral baseline:** published `Icod.DCurses 1.6.0`.\
+**Dependency baseline:** published `Icod.Terminal 1.17.0`; raise the minimum only if a documented upstream readiness blocker requires a later published release.\
+**Targets:** `net8.0`; `net9.0`; `net10.0`.\
+**Configurations:** `Debug`; `Staging`; `Release`.\
+**Technology:** C# 13, .NET, PowerShell 5.1-compatible automation, cmd/sh. No Python.\
 **Planned development identity:** `Version` and `PackageVersion` both `2.0.0-alpha.1`; `AssemblyVersion` `2.0.0.0`, established in T2002, not by this planning PR.
 
 ## 1. Goal and scope
@@ -139,7 +139,7 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 
 ### T2001 — Inventory, contract freeze and Terminal readiness
 
-**Depends on:** the published prerequisite and roadmap review.  
+**Depends on:** the published prerequisite and roadmap review.\
 **Files:** source/test/tool areas in section 5; create `docs/T2001-Terminal-Boundary-and-Readiness-Gate.md` and `docs/2.0-API-Break-Manifest.md`.
 
 **Status:** blocked. Terminal 1.17.0 cannot produce an unconditional safe rendition baseline when DCurses physical state is unknown; see `docs/T2001-Terminal-Boundary-and-Readiness-Gate.md`.
@@ -154,7 +154,7 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 
 ### T2002 — Development identity and public profile/dimensions cutover
 
-**Depends on:** T2001 API decisions.  
+**Depends on:** T2001 API decisions.\
 **Files:** `Icod.DCurses.csproj`, session/screen/lifecycle integration, current API tests and test-project baseline includes; create the initial `docs/Public-API-Baseline-2.0.md` and `docs/Public-API-Fingerprint-2.0.json`.
 
 - [ ] Establish `2.0.0-alpha.1` in both version properties and `2.0.0.0` assembly identity; upgrade Terminal to the qualified published minimum.
@@ -166,7 +166,7 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 
 ### T2003 — Semantic presentation and core screen operations
 
-**Depends on:** T2002 and T2001 recovery readiness.  
+**Depends on:** T2002 and T2001 recovery readiness.\
 **Files:** presentation capabilities/resolvers, line/cursor resolvers, presentation integration; their existing test families.
 
 - [ ] Map DCurses colors/attributes/glyphs into Terminal-owned values; delegate normalization, safe transitions, reset, ACS and cursor/alert planning.
@@ -177,7 +177,7 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 
 ### T2004 — Cost-aware erase, shift and scroll planning
 
-**Depends on:** T2003.  
+**Depends on:** T2003.\
 **Files:** erase/character/line resolvers, output cost model, corresponding tests and refresh optimization fixtures.
 
 - [ ] Replace expanded capability strings with `TerminalScreenOperationPlan` values and use their `ByteCount`/`AffectedLines`.
@@ -188,7 +188,7 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 
 ### T2005 — Transactional refresh cutover
 
-**Depends on:** T2004 and all T2001 transaction/recovery blockers closed.  
+**Depends on:** T2004 and all T2001 transaction/recovery blockers closed.\
 **Files:** refresh engine, physical-state tracking, refresh/session integration, output shim and refresh/hyperlink/raster integration tests. Split preparation/commit helpers into focused internal files if needed, without adding a public backend framework.
 
 - [ ] Implement section 7's prepare/commit/publish state transition with a single Terminal screen transaction.
@@ -200,7 +200,7 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 
 ### T2006 — Lifecycle, cancellation, failure and capacity hardening
 
-**Depends on:** T2005.  
+**Depends on:** T2005.\
 **Files:** lifecycle/session disposal/refresh/raster integration, session lifetime and mixed-media hardening tests.
 
 - [ ] Exercise pre-commit cancellation, post-commit caller cancellation, partial writes, flush failure, primary plus cleanup failure, stale epoch, foreign/stale/released raster tokens and disposal races.
@@ -212,7 +212,7 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 
 ### T2007 — Dependency removal and permanent enforcement
 
-**Depends on:** T2006.  
+**Depends on:** T2006.\
 **Files:** project references, remaining old helpers/shims, `PublicDependencyBoundaryTests.cs`, new source/assembly boundary tests, package verifier, and audited fixture setup.
 
 - [ ] Remove production `Icod.TermInfo` PackageReference and obsolete raw capability writer/output methods; remove unused dependencies from samples/tools.
@@ -225,7 +225,7 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 
 ### T2008 — Consumer migration, samples and documentation
 
-**Depends on:** T2007.  
+**Depends on:** T2007.\
 **Files:** `samples/`, `tools/package-smoke/`, package verification scripts, `README.md`, `CHANGELOG.md`; create `docs/2.0-Migration-Guide.md`.
 
 - [ ] Update all samples and current guidance to `Profile`/`TerminalDimensions`, preserving retained mixed-media and interaction demonstrations.
@@ -237,7 +237,7 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 
 ### T2009 — Behavioral parity and performance qualification
 
-**Depends on:** T2008.  
+**Depends on:** T2008.\
 **Files:** existing conformance/refresh/optimization/panel/pad/Unicode/interaction and allocation tests; sample/package acceptance fixtures.
 
 - [ ] Compare against the T2001 baseline for plain/styled/ACS/Unicode/hyperlink/raster content, sparse/full redraw, erase/shift/scroll, large pads, composition and interaction behavior.
@@ -248,7 +248,7 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 
 ### T2010 — API, package and documentation freeze
 
-**Depends on:** T2009.  
+**Depends on:** T2009.\
 **Files:** 2.0 API artifacts/break manifest/migration guide, package verifier and metadata, XML documentation, licensing/README/changelog and this roadmap.
 
 - [ ] Freeze matching 2.0 public API fingerprints across all TFMs; review all new/removed/changed signatures against the break manifest.
@@ -259,7 +259,7 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 
 ### T2011 — RC and stable-source release closure
 
-**Depends on:** T2010.  
+**Depends on:** T2010.\
 **Files:** version/release metadata, acceptance evidence and roadmap status only unless qualification finds a defect.
 
 - [ ] Advance `Version` and `PackageVersion` together through RC to `2.0.0`, keeping `AssemblyVersion` `2.0.0.0`.
