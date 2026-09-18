@@ -196,12 +196,17 @@ The frozen 1.6 public API fingerprint is:
 
 ## Authors
 
-Inspired by original work from Bill Joy, Mary Ann (born Mark) Horton, Pavel Curtis, Zeyd Ben-Halim, Eric S. Raymond, and Thomas Dickey.
+Inspired by original work from Bill Joy, author of the original `termcap`; Mary Ann (born Mark) Horton, author of `terminfo`; Pavel Curtis, author of `pcurses`; and Zeyd Ben-Halim, Eric S. Raymond, and Thomas Dickey, whose work developed and maintained `libtinfo` and `ncurses`.
 
 Managed .NET implementation by Timothy J. Bruce <uniblab@hotmail.com>.
 
-## License
+## Copyright
 
 Copyright (c) 2026 Timothy J. Bruce
 
-`Icod.DCurses` is licensed under the GNU Lesser General Public License, version 3 or later. See `LICENSE`.
+## License
+
+`Icod.DCurses` is licensed under the GNU Lesser General Public License, version 3 or later. Sample applications are licensed under the GNU General Public License, version 3 or later, as stated in their source headers.
+
+See `LICENSE` and the per-project/source declarations for the applicable terms.
+
