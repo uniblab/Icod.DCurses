@@ -2,21 +2,27 @@
 
 **Project:** `Icod.DCurses`  
 **Repository:** `https://github.com/uniblab/Icod.DCurses`  
-**Stable compatibility floor:** `1.0.0`  
-**Current published package:** `1.5.0`  
-**Current stable-source candidate:** `1.6.0`  
-**Assembly version:** `1.0.0.0`  
+**Published 1.x compatibility floor:** `1.0.0`  
+**Current published package:** `1.6.0`  
+**Current source/package identity:** `1.6.0` (unchanged by this planning PR)  
+**Current assembly version:** `1.0.0.0`; planned 2.0 identity: `2.0.0.0`  
 **Current declared runtime dependencies:** `Icod.Terminal 1.15.0`; `Icod.TermInfo 1.14.0`  
+**Planned 2.0 direct runtime dependency:** `Icod.Terminal 1.17.0` minimum; no direct `Icod.TermInfo` reference  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Active development target:** `1.6.0` — retained mixed-media presentation  
-**Status:** T1601-T1610 accepted; T1611 stable-source publication-readiness qualification active
+**Active development target:** `2.0.0` — Terminal-only terminal integration  
+**Status:** roadmap proposed; implementation not started; Terminal 1.17.0 prerequisite published  
+**Planning snapshot:** 2026-09-18
 
 ---
 
 ## Current authorities
 
-The 1.6 implementation and release closure are governed by:
+The active 2.0 plan is [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md). It defines the public API break, source/dependency boundary, Terminal readiness checks, ordered tranches T2001-T2011, and release gates. Approval of this documentation does not mean any implementation tranche has passed.
+
+The published [Terminal 1.17.0 contract](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.17.0) supplies the semantic profile, dimensions, screen planner, and session-bound output transaction. Any integration gap must be fixed and released in the owning dependency before the affected DCurses gate advances; it must not be bypassed with TermInfo calls or raw terminal strings.
+
+The published [DCurses 1.6.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v1.6.0) is the behavioral migration baseline. Its implementation and release closure are governed by:
 
 - `Icod.DCurses-1.6.0-Development-Roadmap.md`;
 - `docs/superpowers/specs/2026-09-15-icod-dcurses-1.6-retained-mixed-media-presentation-design.md`;
@@ -33,7 +39,7 @@ The published 1.5 contract remains frozen by:
 - `docs/Public-API-Fingerprint-1.5.json`;
 - tag/release `v1.5.0`.
 
-Historical 1.0-1.5 roadmaps, tranche records, public-API baselines/fingerprints, plans, and release-closure documents remain historical authorities and are not rewritten to simulate later development state.
+Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints, plans, and release-closure documents remain historical authorities and are not rewritten to simulate later development state. The active roadmap supersedes their forward-looking suggestion of a 1.7 dependency review.
 
 ---
 
@@ -46,8 +52,11 @@ Historical 1.0-1.5 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.2.0` | Retained panels/layers and deterministic z-order composition | Published |
 | `1.3.0` | Geometry, layout, panel resize, and explicit resize recomputation | Published |
 | `1.4.0` | Interaction regions, hit testing, focus, gestures, commands, pointer semantics | Published |
-| `1.5.0` | Advanced interaction control: scopes, capture, spatial focus, pointer gestures, scoped commands | **Current published release** |
-| `1.6.0` | Retained mixed-media presentation | **Stable-source candidate; T1611 final qualification active** |
+| `1.5.0` | Advanced interaction control: scopes, capture, spatial focus, pointer gestures, scoped commands | Published |
+| `1.6.0` | Retained mixed-media presentation | **Current published release; 1.x feature endpoint** |
+| `1.6.x` | Necessary maintenance only | As needed; no new feature track |
+| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **Next release; planning** |
+| `2.1+` | New features built on the completed Terminal boundary | Deferred until 2.0 acceptance |
 
 The post-1.0 progression is intentionally cumulative:
 
@@ -58,6 +67,7 @@ The post-1.0 progression is intentionally cumulative:
 1.4  normalized input can target logical application regions deterministically
 1.5  interaction can be scoped, captured, spatially navigated, gesture-normalized, and scope-command aware
 1.6  terminal-resident raster placeholder content participates in retained cell-grid composition and refresh
+2.0  all terminal-facing work goes through Terminal; DCurses retains presentation and interaction policy
 ```
 
 ---
@@ -83,7 +93,7 @@ Targets          net8.0; net9.0; net10.0
 
 Version 1.6 is additive over this published contract. Existing 1.5 behavior remains the compatibility witness when mixed-media features are not used.
 
-The frozen stable-source 1.6 contract is:
+The published 1.6 contract is:
 
 ```text
 75 exported types
@@ -139,7 +149,7 @@ The following decisions are frozen and must not be weakened accidentally during 
 - No automatic Sixel fallback or hidden backend ranking enters 1.6.
 - Production DCurses does not turn TermInfo advisory planning into hidden routing policy.
 - Existing event-loop, focus, command-execution, widget, and layout-policy ownership remain above DCurses.
-- The existing direct `Icod.TermInfo` production dependency remains unchanged for 1.6; whether it should be removed in favor of a strict `DCurses -> Terminal -> TermInfo` dependency path is deferred to the 1.7 design track.
+- The direct `Icod.TermInfo` production dependency is part of the published 1.6 contract. The 2.0 track now explicitly replaces it with the strict `DCurses -> Terminal -> TermInfo` dependency path; this is not a compatible 1.x change.
 
 ---
 
@@ -156,7 +166,7 @@ T1607  lifecycle / suspend-resume / stale-released ownership / disposal hardenin
 T1608  application acceptance + package consumer                                    complete
 T1609  adversarial / capacity / performance / allocation / failure-atomicity        complete
 T1610  public API / package / docs / dependency / licensing regret gate             complete
-T1611  RC and stable-source 1.6.0 closure                                            active
+T1611  RC and stable-source 1.6.0 closure                                            published as v1.6.0
 ```
 
 No new feature family enters after T1610.
@@ -165,7 +175,7 @@ No new feature family enters after T1610.
 
 ## Stable architectural boundaries
 
-Across 1.x, these boundaries remain intentional unless a future roadmap explicitly reopens them:
+The following ownership boundaries carry forward into 2.0; the direct TermInfo coupling in 1.x is removed, not transferred into a new DCurses backend:
 
 ### TermInfo
 
@@ -173,7 +183,7 @@ Across 1.x, these boundaries remain intentional unless a future roadmap explicit
 
 ### Terminal
 
-`Icod.Terminal` owns the live terminal conversation: endpoint state, native modes, input decoding, lifecycle, semantic protocols, active queries, reversible terminal state, persistent raster ownership, opaque raster identity, acknowledgement correlation, and serialized output.
+`Icod.Terminal` owns the live terminal conversation: endpoint state, native modes, input decoding, lifecycle, semantic profiles and dimensions, safe screen-operation planning and encoded-byte costs, semantic protocols, active queries, reversible terminal state, persistent raster ownership, opaque raster identity, acknowledgement correlation, and serialized output commitment.
 
 ### DCurses
 
@@ -212,13 +222,44 @@ These exclusions are deliberate scope control, not statements that the features 
 
 ---
 
-## Post-1.6 development options
+## 2.0 objective — complete the Terminal boundary
 
-### Option A — 1.7 dependency/layering review
+The next release is a focused major-version migration, not another 1.x feature release. Removing TermInfo-bearing public signatures requires a source/binary compatibility break. There will be no TermInfo compatibility shim in DCurses 2.0.
 
-Revisit whether DCurses should maintain a direct production dependency on `Icod.TermInfo` or whether all live-terminal capability/command concerns should flow through `Icod.Terminal`. This was deliberately deferred from 1.6 release closure to avoid changing dependency architecture after the mixed-media contract had frozen.
+The target is `Icod.DCurses -> Icod.Terminal -> Icod.TermInfo`:
 
-### Option B — `Icod.DCurses.Widgets`
+- replace the public `CursesSession.Terminal` description with `CursesSession.Profile` of type `TerminalProfile`;
+- use `TerminalDimensions` in `GetDimensions()`, `SynchronizeDimensions()`, and lifecycle dimensions;
+- replace raw capability lookup/expansion, color/ACS interpretation, padding, and control-byte costing with Terminal profile/planner contracts;
+- commit refresh text, operation plans, hyperlinks, and raster placeholders through one Terminal-owned output transaction;
+- retain cells, Unicode width, clipping, composition, damage, optimization selection, and physical-screen certainty in DCurses;
+- prove the boundary in source, public API, assembly metadata, package dependency groups, samples, and fresh package consumers.
+
+TermInfo remains a legitimate transitive runtime dependency of Terminal. The release must not claim that TermInfo disappears from restore assets or from the application deployment.
+
+### 2.0 tranche sequence
+
+| Tranche | Deliverable |
+|---|---|
+| T2001 | Dependency/API inventory and Terminal readiness gate |
+| T2002 | 2.0 development identity, Terminal upgrade, dimensions/profile public cutover |
+| T2003 | Presentation/rendition/ACS/cursor/alert semantic adapters |
+| T2004 | Erase/shift/scroll optimization using opaque operation plans and costs |
+| T2005 | Transactional refresh and post-commit physical-state publication |
+| T2006 | Lifecycle, cancellation, output uncertainty, cleanup, and capacity hardening |
+| T2007 | Remove direct dependency, raw output shims, and dependency leaks; enforce guards |
+| T2008 | Samples, package-only consumers, and 1.6-to-2.0 migration guide |
+| T2009 | Behavioral parity, performance/allocation, platform and adversarial qualification |
+| T2010 | Public API/package/XML/license/documentation freeze and regret gate |
+| T2011 | RC, stable-source and exact-head release closure |
+
+All tranches are planned, not accepted. See the [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) for file ownership, dependencies, acceptance criteria, and the Terminal recovery/capacity checks that must precede the renderer cutover.
+
+---
+
+## Post-2.0 development options
+
+### Option A — `Icod.DCurses.Widgets`
 
 A separate higher-level package could build controls over the stable DCurses mechanisms:
 
@@ -233,13 +274,13 @@ retained mixed-media presentation
 
 Keeping widgets in a sibling package would preserve DCurses core as a mechanism/presentation library rather than an opinionated application framework.
 
-### Option C — richer physical raster placement/scene coordination
+### Option B — richer physical raster placement/scene coordination
 
 If real applications require capabilities that Unicode-placeholder cells cannot express, a later track may evaluate higher-level coordination of Terminal physical placements, relative placement graphs, source cropping, and signed z-order.
 
-Such a track must remain distinct from 1.6 and must justify its scene/lifecycle model rather than retrofitting one accidentally into the placeholder integration.
+Such a track must remain distinct from the 2.0 decoupling release and must justify its scene/lifecycle model rather than retrofitting one accidentally into the placeholder integration.
 
-### Option D — higher-level layout/application framework facilities
+### Option C — higher-level layout/application framework facilities
 
 Retained layout trees, flex/grid/constraint systems, event capture/bubble, timed multi-click, drag/drop payloads, automatic focus policy, and navigation frameworks remain possible future work but are lower priority than stabilizing the presentation and widget substrate first.
 
@@ -250,6 +291,7 @@ Retained layout trees, flex/grid/constraint systems, event capture/bubble, timed
 Every development tranche preserves the established process:
 
 - tests written before or with the behavior they qualify;
+- explicit red/green cycles for new migration contracts; use C#, PowerShell 5.1-compatible scripts, and cmd/sh, not Python;
 - deterministic and bounded failure behavior;
 - public API fingerprint/baseline review;
 - public dependency-boundary tests;
@@ -262,10 +304,12 @@ Every development tranche preserves the established process:
 - explicit API/package/documentation regret gate before RC;
 - merge, post-merge Release validation, tagging, and publication remain separate maintainer actions.
 
+For 2.0, the 1.6 API artifacts remain immutable historical evidence. New 2.0 snapshots and a reviewed break manifest replace blanket 1.x binary-compatibility assertions. Behavior unrelated to the declared breaks remains a parity requirement. Both `Version` and `PackageVersion` change together when implementation establishes the 2.0 development identity; this planning-only PR leaves package metadata untouched.
+
 ---
 
 ## Immediate next step
 
-Qualify the final stable-source `1.6.0` branch head across package candidate plus Windows/Linux/macOS x64/ARM64. After that exact head is green, PR #31 is ready for maintainer merge.
+Review the [2.0 development roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md), then execute T2001 inline: freeze the dependency/API inventory and qualify Terminal-only recovery, transaction bounds, and rendition/optimization parity. Record any upstream blocker with a minimal reproducer before authorizing the affected implementation tranche.
 
-Merge, post-merge Release validation, `v1.6.0` tagging, GitHub Release creation, and NuGet publication remain separate explicit maintainer actions and are **not** performed by the development branch workflow.
+No 2.0 code, version bump, dependency change, release tag, or publication is performed by this roadmap PR. The 1.6 release remains available for consumers that need the old API.
