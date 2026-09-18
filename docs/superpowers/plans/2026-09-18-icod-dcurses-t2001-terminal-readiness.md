@@ -127,7 +127,7 @@ public async Task UnknownRenditionCanEstablishAVisibleSafeBaseline() {
 
 The test helpers must use real public Terminal session behavior and a complete test transport. Do not call `PlanRenditionReset(TerminalScreenRendition.Default)`: default is a claimed known current state, not unknown physical state.
 
-- [ ] **Step 3: Verify RED on the exact pushed head**
+- [x] **Step 3: Verify RED on the exact pushed head**
 
 Run through the normal PR workflow:
 
@@ -137,7 +137,7 @@ dotnet test Icod.DCurses.sln -c Staging --logger trx
 
 Expected on Terminal 1.17.0: build failure naming the missing `TerminalScreenPlanner.PlanRenditionBaseline()` API. Confirm the failure is the intended missing semantic operation and not package restore, syntax, helper, or unrelated test failure.
 
-- [ ] **Step 4: Stop on the upstream blocker**
+- [x] **Step 4: Stop on the upstream blocker**
 
 If Step 3 fails as expected, do not change DCurses production code and do not proceed to Tasks 3-4. Proceed directly to Task 5's blocked closure: record the exact DCurses witness head, workflow/job, compiler diagnostic, required Terminal signature, semantics, and minimum proposed Terminal release in `docs/T2001-Terminal-Boundary-and-Readiness-Gate.md`. Revert the intentionally uncompilable witness from the active PR with a normal follow-up commit while preserving the red-run link as evidence.
 
@@ -245,15 +245,15 @@ git commit -m "docs: capture DCurses 1.6 migration baseline"
 - Consumes: Tasks 1-4 exact-head evidence.
 - Produces: either an accepted T2001 checkpoint authorizing T2002 or a precise blocked checkpoint that authorizes no dependent work.
 
-- [ ] **Step 1: Record evidence**
+- [x] **Step 1: Record evidence**
 
 Record exact commit SHA, workflow and job URLs, commands, counts, package versions, test-only TermInfo fixture exceptions, API break manifest, and every readiness result.
 
-- [ ] **Step 2: Apply the gate**
+- [x] **Step 2: Apply the gate**
 
 Mark T2001 accepted only if unknown-rendition recovery, transaction bounds, stale epochs, semantic cost, inventory, API break manifest, baseline suite, package validation, and required platform CI are all green at the same exact head. Otherwise mark T2001 blocked with the smallest owning-repository correction and leave T2002 pending.
 
-- [ ] **Step 3: Self-review**
+- [x] **Step 3: Self-review**
 
 ```sh
 rg -n '\bT(ODO|BD)\b' \
@@ -266,7 +266,7 @@ git diff --check
 
 Expected: no placeholders and no whitespace errors.
 
-- [ ] **Step 4: Commit the gate**
+- [x] **Step 4: Commit the gate**
 
 ```sh
 git add docs Icod.DCurses-2.0.0-Development-Roadmap.md Icod.DCurses-Development-Roadmap.md

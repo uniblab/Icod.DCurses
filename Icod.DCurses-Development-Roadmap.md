@@ -11,7 +11,8 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
 **Active development target:** `2.0.0` — Terminal-only terminal integration  
-**Status:** roadmap proposed; implementation not started; Terminal 1.17.0 prerequisite published  
+**Status:** T2001 blocked; Terminal 1.17.0 lacks the required unknown-rendition baseline API
+
 **Planning snapshot:** 2026-09-18
 
 ---
@@ -253,7 +254,7 @@ TermInfo remains a legitimate transitive runtime dependency of Terminal. The rel
 | T2010 | Public API/package/XML/license/documentation freeze and regret gate |
 | T2011 | RC, stable-source and exact-head release closure |
 
-All tranches are planned, not accepted. See the [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) for file ownership, dependencies, acceptance criteria, and the Terminal recovery/capacity checks that must precede the renderer cutover.
+All tranches are planned, not accepted. T2001 has frozen the dependency inventory and approved break manifest, but its first Terminal readiness witness proved that 1.17.0 cannot establish a safe unconditional rendition baseline from unknown physical state. The dependent work is paused pending a separately authorized, published Terminal minor release. See the [T2001 readiness gate](docs/T2001-Terminal-Boundary-and-Readiness-Gate.md) and [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) for evidence, file ownership, dependencies and acceptance criteria.
 
 ---
 
@@ -310,6 +311,6 @@ For 2.0, the 1.6 API artifacts remain immutable historical evidence. New 2.0 sna
 
 ## Immediate next step
 
-Review the [2.0 development roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md), then execute T2001 inline: freeze the dependency/API inventory and qualify Terminal-only recovery, transaction bounds, and rendition/optimization parity. Record any upstream blocker with a minimal reproducer before authorizing the affected implementation tranche.
+Authorize the separately scoped Terminal unknown-rendition recovery correction documented by the [T2001 readiness gate](docs/T2001-Terminal-Boundary-and-Readiness-Gate.md). Once a qualifying Terminal minor release is published, resume T2001 with the retained package witness, transaction bounds, stale epochs, cleanup, rendition cost and 1.6 behavioral baseline. T2002 remains pending until T2001 is accepted.
 
 No 2.0 code, version bump, dependency change, release tag, or publication is performed by this roadmap PR. The 1.6 release remains available for consumers that need the old API.

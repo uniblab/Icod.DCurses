@@ -1,7 +1,8 @@
 # Icod.DCurses 2.0.0 Development Roadmap
 
 **Theme:** Terminal-only integration; remove direct TermInfo coupling.  
-**Status:** proposed roadmap; no implementation tranche accepted.  
+**Status:** T2001 blocked by missing Terminal unknown-rendition baseline API; no implementation tranche accepted.
+
 **Planning date:** 2026-09-18.  
 **Behavioral baseline:** published `Icod.DCurses 1.6.0`.  
 **Dependency baseline:** published `Icod.Terminal 1.17.0`; raise the minimum only if a documented upstream readiness blocker requires a later published release.  
@@ -141,11 +142,13 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 **Depends on:** the published prerequisite and roadmap review.  
 **Files:** source/test/tool areas in section 5; create `docs/T2001-Terminal-Boundary-and-Readiness-Gate.md` and `docs/2.0-API-Break-Manifest.md`.
 
-- [ ] Enumerate every direct/public/implementation TermInfo use and every raw-output path; map each to a concrete Terminal API or retained DCurses policy.
-- [ ] Freeze the four public API replacements and assembly identity; enumerate any additional breaks explicitly.
+**Status:** blocked. Terminal 1.17.0 cannot produce an unconditional safe rendition baseline when DCurses physical state is unknown; see `docs/T2001-Terminal-Boundary-and-Readiness-Gate.md`.
+
+- [x] Enumerate every direct/public/implementation TermInfo use and every raw-output path; map each to a concrete Terminal API or retained DCurses policy.
+- [x] Freeze the four public API replacements and assembly identity; enumerate any additional breaks explicitly.
 - [ ] Capture 1.6 behavioral and output/allocation witnesses before changing the renderer.
 - [ ] Run package-based Terminal-only witnesses for unknown-rendition recovery, stale epochs, limits, cleanup, and rendition cost. Record any minimal failing case in its owning repository for a separately authorized correction.
-- [ ] Classify fixture-only legacy dependencies explicitly; define the source and metadata checks that will enforce the production boundary.
+- [x] Classify fixture-only legacy dependencies explicitly; define the source and metadata checks that will enforce the production boundary.
 
 **Acceptance:** complete inventory and approved break manifest; each readiness issue has passing evidence or an explicit blocker. Blocked dependent tranches cannot advance; planning documentation is not proof of readiness.
 
@@ -295,4 +298,4 @@ Completion requires all of the following, not just successful compilation:
 
 ## 10. Immediate next checkpoint
 
-Review this roadmap, then execute T2001 inline. Its first technical witness is unknown-rendition recovery through Terminal's public API, followed by transaction capacity and cost parity. If that witness fails, pause only the dependent migration work and propose the smallest separately authorized upstream correction. Do not begin by deleting the package reference and compensating through transitive access.
+Authorize the separately scoped Terminal correction recorded by the T2001 readiness gate. The proposed additive API belongs in a new minor Terminal release (provisionally 1.18.0), not a DCurses workaround or a 1.17 patch. After that release is published, restore the retained readiness witness against the package, continue the transaction-capacity/stale-epoch/cost witnesses and behavioral baseline, and accept T2001 before beginning T2002. Do not delete the DCurses TermInfo package reference or compensate through transitive access while this gate is blocked.
