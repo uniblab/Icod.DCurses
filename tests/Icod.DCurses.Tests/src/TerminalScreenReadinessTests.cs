@@ -28,6 +28,9 @@ using Xunit;
 
 /// <summary>Qualifies the published Terminal screen boundary required by DCurses 2.0.</summary>
 public sealed class TerminalScreenReadinessTests {
+	private const int MaximumTransactionItemCount = 65_536;
+	private const int MaximumTransactionPayloadByteCount = 64 * 1024 * 1024;
+
 	[Fact]
 	public async Task UnknownRenditionCanEstablishAVisibleSafeBaseline() {
 		RecordingTerminalOutput output = new();
@@ -45,11 +48,142 @@ public sealed class TerminalScreenReadinessTests {
 		Assert.Equal( "<sgr0><op>", output.Text );
 	}
 
+	[Fact]
+	public async Task TransactionItemBoundaryRejectsBeforeAnyOutput() {
+		RecordingTerminalOutput output = new();
+		await using TerminalSession session = await OpenSessionAsync( output );
+		TerminalScreenOutputTransaction transaction =
+			session.CreateScreenOutputTransaction();
+		for ( int count = 0; count < MaximumTransactionItemCount; ++count ) {
+			transaction.WriteText( "x" );
+		}
+
+		InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+			() => transaction.WriteText( "x" )
+		);
+
+		Assert.Equal(
+			"The screen-output transaction exceeds its item-count limit.",
+			exception.Message
+		);
+		Assert.Equal( string.Empty, output.Text );
+	}
+
+	[Fact]
+	public async Task TransactionPayloadBoundaryRejectsBeforeAnyOutput() {
+		RecordingTerminalOutput output = new();
+		await using TerminalSession session = await OpenSessionAsync( output );
+		TerminalScreenOutputTransaction transaction =
+			session.CreateScreenOutputTransaction();
+		transaction.WriteText( new string( 'x', MaximumTransactionPayloadByteCount ) );
+
+		InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+			() => transaction.WriteText( "x" )
+		);
+
+		Assert.Equal(
+			"The screen-output transaction exceeds its application-payload limit.",
+			exception.Message
+		);
+		Assert.Equal( string.Empty, output.Text );
+	}
+
+	[Fact]
+	public async Task StaleTransactionCannotReplayAfterSessionOutput() {
+		RecordingTerminalOutput output = new();
+		await using TerminalSession session = await OpenSessionAsync( output );
+		TerminalScreenOutputTransaction transaction =
+			session.CreateScreenOutputTransaction();
+		transaction.WriteText( "transaction" );
+		await session.WriteTextAsync( "outside" );
+
+		InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+			() => transaction.CommitAsync().AsTask()
+		);
+
+		Assert.Equal(
+			"The screen-output transaction is stale because intervening session output occurred.",
+			exception.Message
+		);
+		Assert.Equal( "outside", output.Text );
+	}
+
+	[Fact]
+	public async Task CursorPlannerReportsAndEmitsTheCheapestLiteralPlan() {
+		TerminalDescription terminal = new TerminalDescriptionBuilder(
+			"dcurses-2-cursor-cost"
+		)
+			.SetString( StringCapability.CursorAddress, "<A:%p1%d,%p2%d>" )
+			.SetString( StringCapability.CursorDownOne, "d" )
+			.SetString( StringCapability.CursorRightOne, "r" )
+			.Build();
+		RecordingTerminalOutput output = new();
+		await using TerminalSession session = await OpenSessionAsync(
+			output,
+			terminal
+		);
+		TerminalScreenOperationPlan plan = session.Screen.PlanCursorMove(
+			new TerminalScreenPosition( 1, 2 ),
+			new TerminalScreenPosition( 3, 5 )
+		) ?? throw new InvalidOperationException(
+			"The selected profile cannot move the cursor."
+		);
+
+		Assert.Equal( 5, plan.ByteCount );
+		Assert.Equal( string.Empty, output.Text );
+
+		TerminalScreenOutputTransaction transaction =
+			session.CreateScreenOutputTransaction();
+		transaction.Add( plan );
+		await transaction.CommitAsync();
+
+		Assert.Equal( "ddrrr", output.Text );
+	}
+
+	[Fact]
+	public async Task SynchronizedOwnerRejectsFramedTransactionBeforeItsBytes() {
+		RecordingTerminalOutput output = new();
+		await using TerminalSession session = await OpenSessionAsync( output );
+		TerminalSynchronizedOutputLease owner =
+			await session.AcquireSynchronizedOutputAsync();
+		TerminalScreenOutputTransaction blocked =
+			session.CreateScreenOutputTransaction(
+				new TerminalScreenOutputTransactionOptions {
+					UseSynchronizedOutput = true
+				}
+			);
+		blocked.WriteText( "blocked" );
+		string ownerOutput = output.Text;
+
+		await Assert.ThrowsAsync<InvalidOperationException>(
+			() => blocked.CommitAsync().AsTask()
+		);
+
+		Assert.Equal( "\u001b[?2026h", ownerOutput );
+		Assert.Equal( ownerOutput, output.Text );
+
+		await owner.DisposeAsync();
+		TerminalScreenOutputTransaction recovery =
+			session.CreateScreenOutputTransaction(
+				new TerminalScreenOutputTransactionOptions {
+					UseSynchronizedOutput = true
+				}
+			);
+		recovery.WriteText( "recovery" );
+		await recovery.CommitAsync();
+
+		Assert.Equal(
+			"\u001b[?2026h\u001b[?2026l\u001b[?2026hrecovery\u001b[?2026l",
+			output.Text
+		);
+	}
+
 	private static ValueTask<TerminalSession> OpenSessionAsync(
-		RecordingTerminalOutput output
+		RecordingTerminalOutput output,
+		TerminalDescription? terminalOverride = null
 	) {
 		ArgumentNullException.ThrowIfNull( output );
-		TerminalDescription terminal = new TerminalDescriptionBuilder(
+		TerminalDescription terminal = terminalOverride ?? new TerminalDescriptionBuilder(
 			"dcurses-2-readiness"
 		)
 			.SetNumber( NumericCapability.Colors, 16 )
