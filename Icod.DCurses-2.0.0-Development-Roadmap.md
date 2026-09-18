@@ -1,11 +1,11 @@
 # Icod.DCurses 2.0.0 Development Roadmap
 
 **Theme:** Terminal-only integration; remove direct TermInfo coupling.\
-**Status:** T2001 blocked by missing Terminal unknown-rendition baseline API; no implementation tranche accepted.
+**Status:** T2001 accepted; T2002 is the next implementation tranche.
 
 **Planning date:** 2026-09-18.\
 **Behavioral baseline:** published `Icod.DCurses 1.6.0`.\
-**Dependency baseline:** published `Icod.Terminal 1.17.0`; raise the minimum only if a documented upstream readiness blocker requires a later published release.\
+**Dependency baseline:** published and T2001-qualified `Icod.Terminal 1.18.0`; raise the minimum only if a documented upstream readiness blocker requires a later published release.\
 **Targets:** `net8.0`; `net9.0`; `net10.0`.\
 **Configurations:** `Debug`; `Staging`; `Release`.\
 **Technology:** C# 13, .NET, PowerShell 5.1-compatible automation, cmd/sh. No Python.\
@@ -38,15 +38,15 @@ The planning review used:
 | DCurses source | [`c6c365fecb1257b2fed931a57f00e8d516af277f`](https://github.com/uniblab/Icod.DCurses/tree/c6c365fecb1257b2fed931a57f00e8d516af277f) |
 | DCurses published baseline | [`v1.6.0`](https://github.com/uniblab/Icod.DCurses/releases/tag/v1.6.0), published 2026-09-17 |
 | Terminal source | [`ce2d76dda3f7d455a891d4268f453c99112cae8e`](https://github.com/uniblab/Icod.Terminal/tree/ce2d76dda3f7d455a891d4268f453c99112cae8e) |
-| Terminal published prerequisite | [`v1.17.0`](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.17.0), published 2026-09-18 |
+| Terminal published prerequisite | [`v1.18.0`](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.18.0), published 2026-09-18 |
 | Terminal boundary design | [1.17 screen-output design](https://github.com/uniblab/Icod.Terminal/blob/v1.17.0/docs/superpowers/specs/2026-09-17-1.17.0-terminal-screen-output-design.md) |
-| Terminal API authority | [1.17 public baseline](https://github.com/uniblab/Icod.Terminal/blob/v1.17.0/docs/Public-API-Baseline-1.17.md) |
+| Terminal API authority | [1.18 public baseline](https://github.com/uniblab/Icod.Terminal/blob/v1.18.0/docs/Public-API-Baseline-1.18.md) |
 | DCurses public baseline | [1.6 API baseline](docs/Public-API-Baseline-1.6.md) and [fingerprint](docs/Public-API-Fingerprint-1.6.json) |
 | Active release policy | [main roadmap](Icod.DCurses-Development-Roadmap.md) |
 
 The 1.6 fingerprint is 75 exported types, 559 canonical declared contract lines, SHA-256 `266e23e6f3b4d5be98c81b5d5774f1de47d488d9ede7025877e46388cae6d458`. It remains historical evidence, not a fingerprint to overwrite with 2.0 signatures.
 
-Terminal 1.17 includes a package-only future-renderer witness. That proves the intended API is usable, not that DCurses's full recovery, optimization, and capacity behavior has already been migrated or qualified.
+Terminal 1.18 includes the 1.17 screen boundary plus safe unknown-rendition recovery. T2001's package-only downstream witnesses prove the required public contracts are usable; they do not mean DCurses's renderer has already been migrated.
 
 ## 3. Responsibility boundary
 
@@ -107,8 +107,8 @@ The following Terminal integration risks must be closed by evidence, not by assu
 
 | Issue | Evidence / significance | Required disposition |
 |---|---|---|
-| Unknown physical rendition recovery | DCurses currently emits reset capabilities when `currentStyle` is unknown. Terminal 1.17 `PlanRenditionReset(current)` delegates to a transition from a supplied known state; default-to-default can be a zero-byte plan. | T2001 must prove safe startup, invalidation, resume, and failed-output recovery. Never substitute `Default` for unknown. If no supported Terminal API establishes a known baseline, this is an upstream blocking gap: add and publish a Terminal-owned recovery operation before T2003/T2005. |
-| Whole-refresh capacity | Terminal 1.17 implementation bounds a transaction to 65,536 retained items and 64 MiB application payload; raster batches count individual cells. These limits are not configurable in the public options. | Characterize large screens and fragmented styled/media content. Coalesce runs; reject an over-limit refresh before output without marking it clean. No silent multi-transaction splitting. If this regresses required workloads, obtain an upstream bounded-batch solution before acceptance. |
+| Unknown physical rendition recovery | Published Terminal 1.18 `PlanRenditionBaseline()` safely restores every reachable rendition axis from unknown state; T2001 verifies literal `<sgr0><op>` output through a same-session transaction. | Use the baseline plan after startup uncertainty, invalidation, resume, and failed output. Never substitute `Default` for unknown. |
+| Whole-refresh capacity | Terminal 1.18 bounds a transaction to 65,536 retained items and 64 MiB application payload; T2001 verifies both boundaries reject the next addition before output. Raster batches count individual cells. | Coalesce runs; reject an over-limit refresh before output without marking it clean. No silent multi-transaction splitting. If required workloads regress, obtain an upstream bounded-batch solution before acceptance. |
 | Rendition transition efficiency | Terminal normalizes and safely plans transitions, but its reset/reapply choices need not match DCurses 1.6 incremental rendition minimization. | Compare exact operation costs and output volume on identical workloads; upstream any material regression rather than reintroduce an encoder. Record intentional changes with evidence. |
 | Test profile injection and legacy providers | Existing tests build TermInfo descriptions and alias `TerminalSize`; Terminal retains legacy TermInfo-bearing configuration/provider contracts for 1.x compatibility. | Separate synthetic upstream profile setup from renderer assertions. Prefer Terminal-only setup. Any unavoidable test-only bootstrap exception must be enumerated and reviewed in T2001; never allow it into production, samples, or package consumers. If zero test references require a new Terminal test seam, record that as upstream work. |
 | Output epoch and ownership scopes | Transactions reject intervening session-owned output; hyperlink/synchronized scopes can conflict. Borrowed output is outside the guarantee. | Complete dimensions/lease work before transaction creation; remove outer refresh synchronized leases; exercise external session activity and scope conflicts. Do not access borrowed output or silently retry a stale committed transaction. |
@@ -142,12 +142,12 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 **Depends on:** the published prerequisite and roadmap review.\
 **Files:** source/test/tool areas in section 5; create `docs/T2001-Terminal-Boundary-and-Readiness-Gate.md` and `docs/2.0-API-Break-Manifest.md`.
 
-**Status:** blocked. Terminal 1.17.0 cannot produce an unconditional safe rendition baseline when DCurses physical state is unknown; see `docs/T2001-Terminal-Boundary-and-Readiness-Gate.md`.
+**Status:** accepted against published Terminal 1.18.0; see `docs/T2001-Terminal-Boundary-and-Readiness-Gate.md`.
 
 - [x] Enumerate every direct/public/implementation TermInfo use and every raw-output path; map each to a concrete Terminal API or retained DCurses policy.
 - [x] Freeze the four public API replacements and assembly identity; enumerate any additional breaks explicitly.
-- [ ] Capture 1.6 behavioral and output/allocation witnesses before changing the renderer.
-- [ ] Run package-based Terminal-only witnesses for unknown-rendition recovery, stale epochs, limits, cleanup, and rendition cost. Record any minimal failing case in its owning repository for a separately authorized correction.
+- [x] Capture 1.6 behavioral and output/allocation witnesses before changing the renderer.
+- [x] Run package-based Terminal-only witnesses for unknown-rendition recovery, stale epochs, limits, cleanup, and rendition cost. The original 1.17 blocker was corrected in the owning repository and published as Terminal 1.18.0.
 - [x] Classify fixture-only legacy dependencies explicitly; define the source and metadata checks that will enforce the production boundary.
 
 **Acceptance:** complete inventory and approved break manifest; each readiness issue has passing evidence or an explicit blocker. Blocked dependent tranches cannot advance; planning documentation is not proof of readiness.

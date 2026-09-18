@@ -7,11 +7,11 @@
 **Current source/package identity:** `1.6.0` (unchanged by this planning PR)\
 **Current assembly version:** `1.0.0.0`; planned 2.0 identity: `2.0.0.0`\
 **Current declared runtime dependencies:** `Icod.Terminal 1.15.0`; `Icod.TermInfo 1.14.0`\
-**Planned 2.0 direct runtime dependency:** `Icod.Terminal 1.17.0` minimum; no direct `Icod.TermInfo` reference\
+**Planned 2.0 direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.0.0` — Terminal-only terminal integration\
-**Status:** T2001 blocked; Terminal 1.17.0 lacks the required unknown-rendition baseline API
+**Status:** T2001 accepted; T2002 development identity and public profile/dimensions cutover is next
 
 **Planning snapshot:** 2026-09-18
 
@@ -21,7 +21,7 @@
 
 The active 2.0 plan is [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md). It defines the public API break, source/dependency boundary, Terminal readiness checks, ordered tranches T2001-T2011, and release gates. Approval of this documentation does not mean any implementation tranche has passed.
 
-The published [Terminal 1.17.0 contract](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.17.0) supplies the semantic profile, dimensions, screen planner, and session-bound output transaction. Any integration gap must be fixed and released in the owning dependency before the affected DCurses gate advances; it must not be bypassed with TermInfo calls or raw terminal strings.
+The published [Terminal 1.18.0 contract](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.18.0) supplies the semantic profile, dimensions, screen planner, session-bound output transaction, and safe unknown-rendition baseline required by DCurses 2.0. Any later integration gap must be fixed and released in the owning dependency before the affected DCurses gate advances; it must not be bypassed with TermInfo calls or raw terminal strings.
 
 The published [DCurses 1.6.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v1.6.0) is the behavioral migration baseline. Its implementation and release closure are governed by:
 
@@ -56,7 +56,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.5.0` | Advanced interaction control: scopes, capture, spatial focus, pointer gestures, scoped commands | Published |
 | `1.6.0` | Retained mixed-media presentation | **Current published release; 1.x feature endpoint** |
 | `1.6.x` | Necessary maintenance only | As needed; no new feature track |
-| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **Next release; planning** |
+| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **Next release; implementation begins with T2002** |
 | `2.1+` | New features built on the completed Terminal boundary | Deferred until 2.0 acceptance |
 
 The post-1.0 progression is intentionally cumulative:
@@ -254,7 +254,7 @@ TermInfo remains a legitimate transitive runtime dependency of Terminal. The rel
 | T2010 | Public API/package/XML/license/documentation freeze and regret gate |
 | T2011 | RC, stable-source and exact-head release closure |
 
-All tranches are planned, not accepted. T2001 has frozen the dependency inventory and approved break manifest, but its first Terminal readiness witness proved that 1.17.0 cannot establish a safe unconditional rendition baseline from unknown physical state. The dependent work is paused pending a separately authorized, published Terminal minor release. See the [T2001 readiness gate](docs/T2001-Terminal-Boundary-and-Readiness-Gate.md) and [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) for evidence, file ownership, dependencies and acceptance criteria.
+T2001 is accepted. It froze the dependency inventory and approved break manifest, qualified published Terminal 1.18.0 recovery/transaction/planner behavior, and captured the DCurses 1.6 behavioral baseline. T2002-T2011 remain pending. See the [T2001 readiness gate](docs/T2001-Terminal-Boundary-and-Readiness-Gate.md) and [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) for evidence, file ownership, dependencies and acceptance criteria.
 
 ---
 
@@ -311,6 +311,6 @@ For 2.0, the 1.6 API artifacts remain immutable historical evidence. New 2.0 sna
 
 ## Immediate next step
 
-Authorize the separately scoped Terminal unknown-rendition recovery correction documented by the [T2001 readiness gate](docs/T2001-Terminal-Boundary-and-Readiness-Gate.md). Once a qualifying Terminal minor release is published, resume T2001 with the retained package witness, transaction bounds, stale epochs, cleanup, rendition cost and 1.6 behavioral baseline. T2002 remains pending until T2001 is accepted.
+Write and review the detailed T2002 implementation plan, then establish the 2.0 development identity, select published Terminal 1.18.0, and perform only the approved public profile/dimensions cutover. Preserve the historical 1.6 API artifacts and prove that the 2.0 API diff contains no unapproved break.
 
-No 2.0 code, version bump, dependency change, release tag, or publication is performed by this roadmap PR. The 1.6 release remains available for consumers that need the old API.
+T2001 changes only downstream tests and documentation. No 2.0 production code, version bump, production dependency change, release tag, or publication has yet been performed. The 1.6 release remains available for consumers that need the old API.
