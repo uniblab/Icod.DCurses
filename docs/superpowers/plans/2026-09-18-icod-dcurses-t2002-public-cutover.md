@@ -14,7 +14,7 @@
 
 - Set both `Version` and `PackageVersion` to `2.0.0-alpha.1`; set `AssemblyVersion` to `2.0.0.0`.
 - Select published `Icod.Terminal 1.18.0` in production.
-- Keep the direct production `Icod.TermInfo 1.14.0` reference until T2007; T2002 removes public leaks, not all implementation coupling.
+- Keep the direct production `Icod.TermInfo 1.15.0` reference required by Terminal 1.18 until T2007; T2002 removes public leaks, not all implementation coupling.
 - Implement exactly four approved public contract replacements: `Terminal` to `Profile`, two dimensions return types, and lifecycle `Dimensions`.
 - Do not add an obsolete shim, overload, conversion, type forwarder, duplicate profile/dimensions model, or new public break.
 - Preserve `TerminalControlResult<T>` status, message, native-error and value semantics by delegating to Terminal's public dimensions API.
@@ -140,7 +140,7 @@ Replace the release notes with a concise alpha statement naming the Terminal-onl
 
 ```xml
 <PackageReference Include="Icod.Terminal" Version="1.18.0" />
-<PackageReference Include="Icod.TermInfo" Version="1.14.0" />
+<PackageReference Include="Icod.TermInfo" Version="1.15.0" />
 ```
 
 - [ ] **Step 2: Replace the public terminal-description property**
@@ -311,7 +311,7 @@ Create `PublicTwoZeroApiBaselineTests` to assert schema `1`, release `2.0.0-alph
 Create `docs/Public-API-Baseline-2.0.md` containing:
 
 - package/development and assembly identities;
-- Terminal 1.18.0 and temporary TermInfo 1.14.0 production references;
+- Terminal 1.18.0 and temporary TermInfo 1.15.0 production references;
 - exact hash/counts from the compiled artifact;
 - the four old/new signatures from `docs/2.0-API-Break-Manifest.md`;
 - confirmation that all 75 exported type names are unchanged;
@@ -357,7 +357,7 @@ rg -n '<Version>|<PackageVersion>|<AssemblyVersion>|Icod\.Terminal|Icod\.TermInf
 git diff --check
 ```
 
-Expected: no public TermInfo match; both package versions are `2.0.0-alpha.1`; assembly version is `2.0.0.0`; production references are Terminal 1.18.0 and temporary TermInfo 1.14.0; no whitespace errors.
+Expected: no public TermInfo match; both package versions are `2.0.0-alpha.1`; assembly version is `2.0.0.0`; production references are Terminal 1.18.0 and temporary TermInfo 1.15.0; no whitespace errors.
 
 - [ ] **Step 2: Run complete build, tests and package validation**
 
