@@ -246,9 +246,93 @@ public sealed class CursesTerminalIntegrationTests {
 			NoPresentationOptions()
 		);
 
-		TerminalControlResult<TerminalSize> dimensions = session.GetDimensions();
+		Assert.Same( terminalSession.Profile, session.Profile );
+		TerminalControlResult<TerminalDimensions> dimensions = session.GetDimensions();
 		Assert.True( dimensions.IsAvailable );
-		Assert.Equal( new TerminalSize( 101, 37 ), dimensions.GetRequiredValue() );
+		Assert.Equal( new TerminalDimensions( 101, 37 ), dimensions.GetRequiredValue() );
+	}
+
+	[Theory]
+	[InlineData( TerminalControlStatus.Unavailable, "dimensions unavailable", 19 )]
+	[InlineData( TerminalControlStatus.Unsupported, "dimensions unsupported", null )]
+	[InlineData( TerminalControlStatus.Failed, "dimensions failed", 5 )]
+	public async Task DimensionFailuresPreserveTerminalResultMetadata(
+		TerminalControlStatus status,
+		string message,
+		int? nativeErrorCode
+	) {
+		RecordingTerminalControlProvider provider = new() {
+			SizeResult = status switch {
+				TerminalControlStatus.Unavailable =>
+					TerminalControlResult<TerminalSize>.Unavailable(
+						message,
+						nativeErrorCode
+					),
+				TerminalControlStatus.Unsupported =>
+					TerminalControlResult<TerminalSize>.Unsupported( message ),
+				TerminalControlStatus.Failed =>
+					TerminalControlResult<TerminalSize>.Failed(
+						message,
+						nativeErrorCode
+					),
+				_ => throw new ArgumentOutOfRangeException( nameof( status ) )
+			}
+		};
+		TerminalSession terminalSession = await OpenTerminalSessionAsync(
+			new RecordingOutput(),
+			new EmptyInput(),
+			TerminalProfiles.Dumb,
+			provider
+		);
+		await using CursesSession session = await CursesSession.OpenAsync(
+			terminalSession,
+			NoPresentationOptions()
+		);
+
+		TerminalControlResult<TerminalDimensions> dimensions =
+			session.GetDimensions();
+
+		Assert.Equal( status, dimensions.Status );
+		Assert.False( dimensions.IsAvailable );
+		Assert.Equal( message, dimensions.Message );
+		Assert.Equal( nativeErrorCode, dimensions.NativeErrorCode );
+	}
+
+	[Fact]
+	public async Task DimensionSynchronizationResizesOnlyForAvailableResults() {
+		RecordingTerminalControlProvider provider = new();
+		TerminalSession terminalSession = await OpenTerminalSessionAsync(
+			new RecordingOutput(),
+			new EmptyInput(),
+			TerminalProfiles.Dumb,
+			provider
+		);
+		await using CursesSession session = await CursesSession.OpenAsync(
+			terminalSession,
+			NoPresentationOptions()
+		);
+		CursesScreen screen = session.Screen;
+		provider.Size = new TerminalSize( 40, 12 );
+
+		TerminalControlResult<TerminalDimensions> resized =
+			session.SynchronizeDimensions();
+
+		Assert.Equal( new TerminalDimensions( 40, 12 ), resized.GetRequiredValue() );
+		Assert.Equal( 40, screen.Columns );
+		Assert.Equal( 12, screen.Rows );
+
+		provider.SizeResult = TerminalControlResult<TerminalSize>.Failed(
+			"resize failed",
+			31
+		);
+		TerminalControlResult<TerminalDimensions> failed =
+			session.SynchronizeDimensions();
+
+		Assert.Equal( TerminalControlStatus.Failed, failed.Status );
+		Assert.Equal( "resize failed", failed.Message );
+		Assert.Equal( 31, failed.NativeErrorCode );
+		Assert.Equal( 40, screen.Columns );
+		Assert.Equal( 12, screen.Rows );
 	}
 
 	[Fact]
@@ -471,8 +555,13 @@ public sealed class CursesTerminalIntegrationTests {
 
 		internal TerminalSize Size {
 			get;
-			init;
+			set;
 		} = new TerminalSize( 80, 24 );
+
+		internal TerminalControlResult<TerminalSize>? SizeResult {
+			get;
+			set;
+		}
 
 		public TerminalControlResult<TerminalEndpointObservation> Observe(
 			TerminalEndpoint endpoint
@@ -495,7 +584,8 @@ public sealed class CursesTerminalIntegrationTests {
 			TerminalEndpoint endpoint
 		) {
 			ArgumentNullException.ThrowIfNull( endpoint );
-			return TerminalControlResult<TerminalSize>.Available( this.Size );
+			return this.SizeResult
+				?? TerminalControlResult<TerminalSize>.Available( this.Size );
 		}
 
 		public TerminalControlResult<TerminalModeSnapshot> GetMode(

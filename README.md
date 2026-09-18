@@ -66,7 +66,7 @@ Icod.Terminal 1.15.0
 Icod.TermInfo  1.14.0
 ```
 
-The broader question of whether DCurses should continue to reference TermInfo directly is intentionally deferred to the **1.7 development track**.
+The next development track is **2.0.0**, a focused breaking release that removes direct TermInfo coupling and routes all terminal-facing work through the published `Icod.Terminal 1.17.0` semantic screen boundary. The current 1.6 package and dependencies are unchanged. See the [2.0 development roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md); implementation has not started. TermInfo will remain a transitive dependency of Terminal.
 
 ## Install
 
@@ -177,6 +177,7 @@ Recommended documentation entry points:
 - [`CHANGELOG.md`](CHANGELOG.md)
 - [`docs/1.0-Stable-Compatibility-and-Migration-Guide.md`](docs/1.0-Stable-Compatibility-and-Migration-Guide.md)
 - [`Icod.DCurses-Development-Roadmap.md`](Icod.DCurses-Development-Roadmap.md)
+- [`Icod.DCurses-2.0.0-Development-Roadmap.md`](Icod.DCurses-2.0.0-Development-Roadmap.md)
 - [`Icod.DCurses-1.6.0-Development-Roadmap.md`](Icod.DCurses-1.6.0-Development-Roadmap.md)
 - [`docs/Public-API-Fingerprint-1.6.json`](docs/Public-API-Fingerprint-1.6.json)
 - [`docs/Public-API-Baseline-1.6.md`](docs/Public-API-Baseline-1.6.md)
@@ -195,12 +196,17 @@ The frozen 1.6 public API fingerprint is:
 
 ## Authors
 
-Inspired by original work from Bill Joy, Mary Ann (born Mark) Horton, Pavel Curtis, Zeyd Ben-Halim, Eric S. Raymond, and Thomas Dickey.
+Inspired by original work from Bill Joy, author of the original `termcap`; Mary Ann (born Mark) Horton, author of `terminfo`; Pavel Curtis, author of `pcurses`; and Zeyd Ben-Halim, Eric S. Raymond, and Thomas Dickey, whose work developed and maintained `libtinfo` and `ncurses`.
 
 Managed .NET implementation by Timothy J. Bruce <uniblab@hotmail.com>.
 
-## License
+## Copyright
 
 Copyright (c) 2026 Timothy J. Bruce
 
-`Icod.DCurses` is licensed under the GNU Lesser General Public License, version 3 or later. See `LICENSE`.
+## License
+
+`Icod.DCurses` is licensed under the GNU Lesser General Public License, version 3 or later. Sample applications are licensed under the GNU General Public License, version 3 or later, as stated in their source headers.
+
+See `LICENSE` and the per-project/source declarations for the applicable terms.
+

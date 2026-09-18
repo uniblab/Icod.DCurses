@@ -25,23 +25,23 @@ using Xunit;
 namespace Icod.DCurses.Tests;
 
 /// <summary>
-/// Guards the intentionally exposed Icod.Terminal and Icod.TermInfo types in the
-/// public DCurses contract.
+/// Guards the approved Icod.Terminal types and excludes Icod.TermInfo from the
+/// public DCurses 2.0 contract.
 /// </summary>
 public sealed class PublicDependencyBoundaryTests {
 	private static readonly HashSet<string> ExpectedDependencyTypes = new(
 		StringComparer.Ordinal
 	) {
 		"Icod.Terminal.TerminalControlResult`1",
+		"Icod.Terminal.TerminalDimensions",
 		"Icod.Terminal.TerminalEndpoint",
+		"Icod.Terminal.TerminalProfile",
 		"Icod.Terminal.TerminalRasterImage",
-		"Icod.Terminal.TerminalSession",
-		"Icod.TermInfo.TerminalDescription",
-		"Icod.TermInfo.TerminalSize"
+		"Icod.Terminal.TerminalSession"
 	};
 
 	[Fact]
-	public void PublicApiExposesOnlyApprovedTerminalAndTermInfoTypes() {
+	public void PublicApiExposesOnlyApprovedTerminalTypes() {
 		HashSet<string> actual = [];
 		Assembly assembly = typeof( CursesSession ).Assembly;
 

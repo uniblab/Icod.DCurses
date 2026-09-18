@@ -79,14 +79,15 @@ public sealed partial class CursesSession {
 				"The Terminal lifecycle-event kind is not recognized."
 			)
 		};
+		TerminalDimensions? dimensions = terminalEvent.Dimensions;
 
 		if (
 			terminalEvent.Kind is TerminalLifecycleEventKind.Resize or TerminalLifecycleEventKind.Resumed
-			&& terminalEvent.Size.HasValue
+			&& dimensions.HasValue
 		) {
 			_ = this.ResizeLogicalScreen(
-				terminalEvent.Size.Value.Columns,
-				terminalEvent.Size.Value.Rows
+				dimensions.Value.Columns,
+				dimensions.Value.Rows
 			);
 		}
 		if (
@@ -95,7 +96,7 @@ public sealed partial class CursesSession {
 			this.InvalidatePhysicalScreen();
 		}
 
-		return new CursesLifecycleEvent( kind, terminalEvent.Size );
+		return new CursesLifecycleEvent( kind, dimensions );
 	}
 
 	private sealed class CursesTerminalLifecycleParticipant
