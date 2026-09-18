@@ -80,7 +80,7 @@ T2003 source-boundary tests must prove that the migrated refresh/session files n
 - Consumes: approved T2003 design and current production source tree.
 - Produces: an executable source-boundary witness and amended T2003/T2004/T2005 responsibilities.
 
-- [ ] **Step 1: Add a source-boundary test with an explicit migrated-path allowlist**
+- [x] **Step 1: Add a source-boundary test with an explicit migrated-path allowlist**
 
 Create `T2003VerticalCutoverContractTests` using the repository-root discovery pattern already used by project contract tests. Assert that these files contain none of the forbidden tokens:
 
@@ -112,7 +112,7 @@ Add a second assertion that `CursesSession.Refresh.Terminal.cs` contains
 `UseSynchronizedOutput = this.Options.UseSynchronizedOutput` and does not contain
 `AcquireSynchronizedOutputAsync`.
 
-- [ ] **Step 2: Add a compiled architecture assertion**
+- [x] **Step 2: Add a compiled architecture assertion**
 
 Use reflection to assert this exact constructor exists and the legacy constructor does not:
 
@@ -132,7 +132,7 @@ Assert.DoesNotContain(
 );
 ```
 
-- [ ] **Step 3: Amend the release roadmaps**
+- [x] **Step 3: Amend the release roadmaps**
 
 Record the approved staging precisely:
 
@@ -168,6 +168,8 @@ git commit -m "test: freeze DCurses T2003 vertical cutover"
 ```
 
 Push and retain one expected-red workflow run showing only the new T2003 contract failure. Stop if unrelated existing tests or package validation fail.
+
+Local status: the contract test and roadmap amendments are committed locally; the focused test run is blocked by the unavailable .NET SDK, and push/CI evidence remains pending controller execution.
 
 ---
 

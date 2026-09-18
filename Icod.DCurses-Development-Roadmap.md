@@ -254,6 +254,16 @@ TermInfo remains a legitimate transitive runtime dependency of Terminal. The rel
 | T2010 | Public API/package/XML/license/documentation freeze and regret gate |
 | T2011 | RC, stable-source and exact-head release closure |
 
+The approved staging for the T2003 vertical cutover is:
+
+```text
+T2003: transaction-backed vertical cutover for profile/rendition/ACS/cursor/alert and ordinary rewrite refresh
+T2004: restore erase/character-shift/line-shift/scroll optimizations with Terminal plans and costs
+T2005: exhaustive transaction/capacity/cancellation/synchronization/publication hardening and legacy-shim deletion
+```
+
+No T2003 package is published. The temporary rewrite difference is accepted only until T2004.
+
 T2001 and T2002 are accepted. T2001 froze the dependency inventory and approved break manifest, qualified published Terminal 1.18.0 recovery/transaction/planner behavior, and captured the DCurses 1.6 behavioral baseline. T2002 established the 2.0 development identity, moved the public profile/dimensions boundary to Terminal-owned types, and froze the reviewed 2.0 development API. T2003-T2011 remain pending. See the [T2001 readiness gate](docs/T2001-Terminal-Boundary-and-Readiness-Gate.md), [T2002 public cutover gate](docs/T2002-Public-Terminal-Cutover-Gate.md), and [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) for evidence, file ownership, dependencies and acceptance criteria.
 
 ---

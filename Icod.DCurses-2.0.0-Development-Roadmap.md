@@ -171,6 +171,16 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 **Depends on:** T2002 and T2001 recovery readiness.\
 **Files:** presentation capabilities/resolvers, line/cursor resolvers, presentation integration; their existing test families.
 
+The approved staging for the T2003 vertical cutover is:
+
+```text
+T2003: transaction-backed vertical cutover for profile/rendition/ACS/cursor/alert and ordinary rewrite refresh
+T2004: restore erase/character-shift/line-shift/scroll optimizations with Terminal plans and costs
+T2005: exhaustive transaction/capacity/cancellation/synchronization/publication hardening and legacy-shim deletion
+```
+
+No T2003 package is published. The temporary rewrite difference is accepted only until T2004.
+
 - [ ] Map DCurses colors/attributes/glyphs into Terminal-owned values; delegate normalization, safe transitions, reset, ACS and cursor/alert planning.
 - [ ] Preserve Unicode-width/ASCII fallback, unsupported-profile behavior, alert preference/fallback, and existing presentation lease ownership.
 - [ ] Cover monochrome, indexed/direct colors, invalid/default colors, restricted/non-reversible attributes, unknown physical state, incomplete ACS and unavailable cursor movement.
