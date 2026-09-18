@@ -37,7 +37,7 @@ public sealed class PublicApiFingerprintTests {
 		);
 		string baselinePath = Path.Combine(
 			AppContext.BaseDirectory,
-			"Public-API-Fingerprint-1.2.json"
+			"Public-API-Fingerprint-2.0.json"
 		);
 		using JsonDocument document = JsonDocument.Parse(
 			File.ReadAllText( baselinePath )
