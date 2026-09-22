@@ -74,7 +74,10 @@ public sealed class CursesTerminalIntegrationTests {
 			| CursesTextAttributes.Blink
 			| CursesTextAttributes.Conceal
 			| CursesTextAttributes.Strikeout;
-		session.StandardScreen.Write(
+		session.Screen.VirtualScreen[
+			session.Screen.Rows - 1,
+			session.Screen.Columns - 1
+		] = new CursesCell(
 			"X",
 			new CursesStyle(
 				CursesColor.Indexed( 2 ),
@@ -171,7 +174,7 @@ public sealed class CursesTerminalIntegrationTests {
 				SynchronizedOutputBegin + SynchronizedOutputEnd
 			)
 		);
-		Assert.Equal( 2, output.FlushCount );
+		Assert.Equal( 1, output.FlushCount );
 	}
 
 	[Fact]
@@ -182,7 +185,7 @@ public sealed class CursesTerminalIntegrationTests {
 			new EmptyInput(),
 			CreateRenditionTerminal()
 		);
-		await using CursesSession session = await CursesSession.OpenAsync(
+		CursesSession session = await CursesSession.OpenAsync(
 			terminalSession,
 			SynchronizedOutputOptions()
 		);
@@ -202,6 +205,7 @@ public sealed class CursesTerminalIntegrationTests {
 			CountOccurrences( output.Text, SynchronizedOutputEnd )
 		);
 
+		await session.DisposeAsync();
 		await outer.DisposeAsync();
 
 		Assert.Equal(
@@ -348,7 +352,10 @@ public sealed class CursesTerminalIntegrationTests {
 			NoPresentationOptions()
 		);
 
-		session.StandardScreen.Write(
+		session.Screen.VirtualScreen[
+			session.Screen.Rows - 1,
+			session.Screen.Columns - 1
+		] = new CursesCell(
 			"X",
 			new CursesStyle(
 				CursesColor.Default,

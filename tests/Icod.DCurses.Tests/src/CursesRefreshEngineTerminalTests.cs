@@ -202,7 +202,7 @@ public sealed class CursesRefreshEngineTerminalTests {
 				output
 			);
 		CursesRefreshEngine engine = refreshContext.Engine;
-		CursesScreen screen = new( 2, 1 );
+		CursesScreen screen = new( 1, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"B",
 			new CursesStyle(

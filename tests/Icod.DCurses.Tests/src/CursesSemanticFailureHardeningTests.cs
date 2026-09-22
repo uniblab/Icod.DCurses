@@ -36,7 +36,7 @@ public sealed class CursesSemanticFailureHardeningTests {
 	private const string HyperlinkEnd = "\u001b]8;;\u001b\\";
 
 	[Fact]
-	public async Task HyperlinkTextAndCleanupFailuresRemainVisibleThroughCursesRefresh() {
+	public async Task HyperlinkTextAndCleanupFailuresAreAggregatedWithoutDeferredRetryState() {
 		SelectiveFailingRawOutput output = new();
 		TerminalSession terminalSession = await OpenTerminalSessionAsync( output );
 		CursesSession session = await CursesSession.OpenAsync(
@@ -72,11 +72,11 @@ public sealed class CursesSemanticFailureHardeningTests {
 		output.Clear();
 		await session.DisposeAsync();
 
-		Assert.Contains( HyperlinkEnd, output.Text );
+		Assert.Equal( string.Empty, output.Text );
 	}
 
 	[Fact]
-	public async Task HyperlinkCleanupFailureFailsClosedUntilSessionDisposal() {
+	public async Task HyperlinkCleanupFailureAllowsACompleteCallerDrivenRetry() {
 		SelectiveFailingRawOutput output = new();
 		TerminalSession terminalSession = await OpenTerminalSessionAsync( output );
 		CursesSession session = await CursesSession.OpenAsync(
@@ -96,23 +96,16 @@ public sealed class CursesSemanticFailureHardeningTests {
 		Assert.Equal( "hyperlink cleanup failure", firstFailure.Message );
 
 		output.Clear();
-		InvalidOperationException secondFailure = await Assert.ThrowsAsync<InvalidOperationException>(
-			() => session.RefreshAsync().AsTask()
-		);
+		await session.RefreshAsync();
 
-		Assert.Contains(
-			"prior Terminal hyperlink operation failed",
-			secondFailure.Message,
-			StringComparison.Ordinal
-		);
-		Assert.IsType<IOException>( secondFailure.InnerException );
-		Assert.DoesNotContain( HyperlinkBegin, output.Text );
-		Assert.DoesNotContain( "link", output.Text, StringComparison.Ordinal );
+		Assert.Contains( HyperlinkBegin, output.Text );
+		Assert.Contains( "link", output.Text, StringComparison.Ordinal );
+		Assert.Contains( HyperlinkEnd, output.Text );
 
 		output.Clear();
 		await session.DisposeAsync();
 
-		Assert.Contains( HyperlinkEnd, output.Text );
+		Assert.Equal( string.Empty, output.Text );
 	}
 
 	[Fact]
@@ -148,7 +141,7 @@ public sealed class CursesSemanticFailureHardeningTests {
 	}
 
 	[Fact]
-	public async Task SynchronizedOutputEndFailureIsRetriedBeforeNextRefresh() {
+	public async Task SynchronizedOutputEndFailureRequiresACompleteCallerDrivenRetry() {
 		SelectiveFailingRawOutput output = new();
 		TerminalSession terminalSession = await OpenTerminalSessionAsync( output );
 		await using CursesSession session = await CursesSession.OpenAsync(
@@ -171,13 +164,8 @@ public sealed class CursesSemanticFailureHardeningTests {
 		await session.RefreshAsync();
 
 		string text = output.Text;
-		int cleanupRetry = text.IndexOf(
-			SynchronizedOutputEnd,
-			StringComparison.Ordinal
-		);
 		int newBegin = text.IndexOf(
 			SynchronizedOutputBegin,
-			cleanupRetry + SynchronizedOutputEnd.Length,
 			StringComparison.Ordinal
 		);
 		int hyperlinkBegin = text.IndexOf(
@@ -201,8 +189,7 @@ public sealed class CursesSemanticFailureHardeningTests {
 			StringComparison.Ordinal
 		);
 
-		Assert.Equal( 0, cleanupRetry );
-		Assert.True( cleanupRetry < newBegin );
+		Assert.Equal( 0, newBegin );
 		Assert.True( newBegin < hyperlinkBegin );
 		Assert.True( hyperlinkBegin < payload );
 		Assert.True( payload < hyperlinkEnd );
@@ -210,7 +197,7 @@ public sealed class CursesSemanticFailureHardeningTests {
 	}
 
 	[Fact]
-	public async Task RepeatedSynchronizedOutputCleanupFailureBlocksNewRefreshBody() {
+	public async Task RepeatedSynchronizedOutputEndFailureReplaysTheCompleteBody() {
 		SelectiveFailingRawOutput output = new();
 		TerminalSession terminalSession = await OpenTerminalSessionAsync( output );
 		await using CursesSession session = await CursesSession.OpenAsync(
@@ -238,19 +225,19 @@ public sealed class CursesSemanticFailureHardeningTests {
 		);
 
 		Assert.Equal( "retry synchronized-output end failure", retryFailure.Message );
-		Assert.DoesNotContain( SynchronizedOutputBegin, output.Text );
-		Assert.DoesNotContain( HyperlinkBegin, output.Text );
-		Assert.DoesNotContain( "link", output.Text, StringComparison.Ordinal );
+		Assert.Contains( SynchronizedOutputBegin, output.Text );
+		Assert.Contains( HyperlinkBegin, output.Text );
+		Assert.Contains( "link", output.Text, StringComparison.Ordinal );
+		Assert.DoesNotContain( SynchronizedOutputEnd, output.Text );
 
 		output.Clear();
 		await session.RefreshAsync();
 
 		Assert.StartsWith(
-			SynchronizedOutputEnd,
+			SynchronizedOutputBegin,
 			output.Text,
 			StringComparison.Ordinal
 		);
-		Assert.Contains( SynchronizedOutputBegin, output.Text );
 		Assert.Contains( HyperlinkBegin, output.Text );
 		Assert.Contains( "link", output.Text, StringComparison.Ordinal );
 	}

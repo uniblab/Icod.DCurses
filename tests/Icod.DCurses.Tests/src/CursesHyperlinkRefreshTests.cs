@@ -22,7 +22,7 @@
 using System.Text;
 using Icod.DCurses;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
+using Icod.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -402,11 +402,10 @@ public sealed class CursesHyperlinkRefreshTests {
 			.Build();
 	}
 
-	private sealed class SemanticRecordingOutput
-		: ITerminalOutput,
-		  ITerminalHyperlinkOutput {
+	private sealed class SemanticRecordingOutput : ITerminalOutput {
 		private readonly StringBuilder text = new();
 		private readonly List<HyperlinkWrite> hyperlinkWrites = [];
+		private CursesHyperlink? activeHyperlink;
 
 		internal int FlushCount {
 			get;
@@ -420,47 +419,45 @@ public sealed class CursesHyperlinkRefreshTests {
 		internal void Clear() {
 			text.Clear();
 			hyperlinkWrites.Clear();
+			activeHyperlink = null;
 			FlushCount = 0;
 		}
 
-		public ValueTask WriteTextAsync(
-			string value,
+		public ValueTask WriteAsync(
+			ReadOnlyMemory<byte> buffer,
 			CancellationToken cancellationToken = default
 		) {
-			ArgumentNullException.ThrowIfNull( value );
 			cancellationToken.ThrowIfCancellationRequested();
-			text.Append( value );
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask WriteTerminalStringAsync(
-			string value,
-			int affectedLines = 1,
-			CancellationToken cancellationToken = default
-		) {
-			ArgumentNullException.ThrowIfNull( value );
-			if ( 0 >= affectedLines ) {
-				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
+			string value = Encoding.UTF8.GetString( buffer.Span );
+			if ( "\u001b]8;;\u001b\\" == value ) {
+				this.activeHyperlink = null;
+				return ValueTask.CompletedTask;
 			}
-			cancellationToken.ThrowIfCancellationRequested();
-			text.Append( value );
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask WriteHyperlinkTextAsync(
-			string value,
-			CursesHyperlink hyperlink,
-			CancellationToken cancellationToken = default
-		) {
-			ArgumentNullException.ThrowIfNull( value );
-			ArgumentNullException.ThrowIfNull( hyperlink );
-			cancellationToken.ThrowIfCancellationRequested();
-			hyperlinkWrites.Add(
-				new HyperlinkWrite(
-					value,
-					hyperlink
-				)
-			);
+			if ( value.StartsWith( "\u001b]8;", StringComparison.Ordinal )
+				&& value.EndsWith( "\u001b\\", StringComparison.Ordinal ) ) {
+				int targetSeparator = value.IndexOf( ';', 4 );
+				if ( 0 > targetSeparator ) {
+					throw new InvalidOperationException( "Malformed recorded hyperlink frame." );
+				}
+				string parameters = value[ 4..targetSeparator ];
+				string uri = value[ ( targetSeparator + 1 )..^2 ];
+				string? identifier = parameters.StartsWith(
+					"id=",
+					StringComparison.Ordinal
+				) ? parameters[ 3.. ] : null;
+				this.activeHyperlink = new CursesHyperlink( uri, identifier );
+				return ValueTask.CompletedTask;
+			}
+			if ( this.activeHyperlink is not null ) {
+				this.hyperlinkWrites.Add(
+					new HyperlinkWrite(
+						value,
+						this.activeHyperlink
+					)
+				);
+			} else {
+				this.text.Append( value );
+			}
 			return ValueTask.CompletedTask;
 		}
 

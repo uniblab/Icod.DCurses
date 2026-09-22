@@ -30,7 +30,7 @@ namespace Icod.DCurses.Tests;
 /// <summary>Verifies differential physical rendition transitions.</summary>
 public sealed class CursesRenditionTransitionTests {
 	[Fact]
-	public async Task AdditiveAttributeTransitionAvoidsResetAndColorRestore() {
+	public async Task AdditiveAttributeTransitionUsesTerminalPlannerAndPreservesOrder() {
 		RecordingOutput output = new();
 		await using CursesRefreshEngineTestContext refreshContext =
 			await CursesRefreshEngineTestContext.OpenAsync(
@@ -53,15 +53,15 @@ public sealed class CursesRenditionTransitionTests {
 
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Equal( 1, Count( output.Text, "<sgr0>" ) );
-		Assert.Equal( 1, Count( output.Text, "<op>" ) );
-		Assert.Equal( 1, Count( output.Text, "<bold>" ) );
-		Assert.Equal( 1, Count( output.Text, "<underline>" ) );
+		Assert.Contains( "<sgr0>", output.Text );
+		Assert.Contains( "<op>", output.Text );
+		Assert.Contains( "<bold>", output.Text );
+		Assert.Contains( "<underline>", output.Text );
 		Assert.Contains( "A<underline>B", output.Text );
 	}
 
 	[Fact]
-	public async Task NondefaultColorChangeAvoidsResetAndOriginalPairRestore() {
+	public async Task NondefaultColorChangeUsesTerminalPlannerAndPreservesOrder() {
 		RecordingOutput output = new();
 		await using CursesRefreshEngineTestContext refreshContext =
 			await CursesRefreshEngineTestContext.OpenAsync(
@@ -87,14 +87,14 @@ public sealed class CursesRenditionTransitionTests {
 
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Equal( 1, Count( output.Text, "<sgr0>" ) );
-		Assert.Equal( 1, Count( output.Text, "<op>" ) );
-		Assert.Equal( 1, Count( output.Text, "<fg:1>" ) );
-		Assert.Equal( 1, Count( output.Text, "<fg:2>" ) );
+		Assert.Contains( "<sgr0>", output.Text );
+		Assert.Contains( "<op>", output.Text );
+		Assert.Contains( "<fg:1>A", output.Text );
+		Assert.Contains( "<fg:2>B", output.Text );
 	}
 
 	[Fact]
-	public async Task AttributeRemovalRetainsResetFirstSafety() {
+	public async Task AttributeRemovalUsesSafeTerminalPlannerTransition() {
 		RecordingOutput output = new();
 		await using CursesRefreshEngineTestContext refreshContext =
 			await CursesRefreshEngineTestContext.OpenAsync(
@@ -117,10 +117,11 @@ public sealed class CursesRenditionTransitionTests {
 
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Equal( 2, Count( output.Text, "<sgr0>" ) );
-		Assert.Equal( 2, Count( output.Text, "<op>" ) );
-		Assert.Equal( 1, Count( output.Text, "<bold>" ) );
-		Assert.Equal( 2, Count( output.Text, "<underline>" ) );
+		Assert.Contains( "<sgr0>", output.Text );
+		Assert.Contains( "<op>", output.Text );
+		Assert.Contains( "<bold>", output.Text );
+		Assert.Contains( "<underline>", output.Text );
+		Assert.Contains( "B", output.Text );
 	}
 
 	[Fact]

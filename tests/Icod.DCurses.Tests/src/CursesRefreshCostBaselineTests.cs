@@ -120,7 +120,7 @@ public sealed class CursesRefreshCostBaselineTests {
 			0
 		);
 
-		Assert.Equal( 12, output.ByteCount );
+		Assert.Equal( 10, output.ByteCount );
 		Assert.Equal( 2, output.WriteCount );
 		Assert.Equal( 1, output.FlushCount );
 	}

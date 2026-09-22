@@ -21,7 +21,7 @@
 
 using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
+using Icod.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -30,7 +30,7 @@ namespace Icod.DCurses.Tests;
 /// <summary>Exercises cancellation that arrives after one bounded semantic run has completed.</summary>
 public sealed class CursesSemanticCancellationHardeningTests {
 	[Fact]
-	public async Task CancellationAfterLinkedRunInvalidatesForCompleteLaterRepaint() {
+	public async Task CancellationAfterLinkedRunDoesNotInterruptEnteredTransaction() {
 		using CancellationTokenSource cancellation = new();
 		CancelAfterHyperlinkOutput output = new( cancellation );
 		await using CursesRefreshEngineTestContext refreshContext =
@@ -52,16 +52,14 @@ public sealed class CursesSemanticCancellationHardeningTests {
 		);
 		window.Write( "B" );
 
-		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(
-			() => engine.RefreshAsync(
-				screen,
-				0,
-				0,
-				cancellation.Token
-			).AsTask()
+		await engine.RefreshAsync(
+			screen,
+			0,
+			0,
+			cancellation.Token
 		);
 		Assert.Equal( [ "A" ], output.HyperlinkWrites );
-		Assert.DoesNotContain( "B", output.Text, StringComparison.Ordinal );
+		Assert.Contains( "B", output.Text, StringComparison.Ordinal );
 
 		output.CancelAfterHyperlink = false;
 		output.Clear();
@@ -71,8 +69,8 @@ public sealed class CursesSemanticCancellationHardeningTests {
 			0
 		);
 
-		Assert.Equal( [ "A" ], output.HyperlinkWrites );
-		Assert.Contains( "B", output.Text, StringComparison.Ordinal );
+		Assert.Empty( output.HyperlinkWrites );
+		Assert.Equal( string.Empty, output.Text );
 	}
 
 	private static TerminalDescription CreateTerminal() {
@@ -83,12 +81,11 @@ public sealed class CursesSemanticCancellationHardeningTests {
 			.Build();
 	}
 
-	private sealed class CancelAfterHyperlinkOutput
-		: ITerminalOutput,
-		  ITerminalHyperlinkOutput {
+	private sealed class CancelAfterHyperlinkOutput : ITerminalOutput {
 		private readonly CancellationTokenSource cancellation;
 		private readonly StringBuilder text = new();
 		private readonly List<string> hyperlinkWrites = [];
+		private bool hyperlinkActive;
 
 		internal CancelAfterHyperlinkOutput(
 			CancellationTokenSource cancellation
@@ -109,43 +106,26 @@ public sealed class CursesSemanticCancellationHardeningTests {
 		internal void Clear() {
 			this.text.Clear();
 			this.hyperlinkWrites.Clear();
+			this.hyperlinkActive = false;
 		}
 
-		public ValueTask WriteTextAsync(
-			string value,
+		public ValueTask WriteAsync(
+			ReadOnlyMemory<byte> buffer,
 			CancellationToken cancellationToken = default
 		) {
-			ArgumentNullException.ThrowIfNull( value );
 			cancellationToken.ThrowIfCancellationRequested();
-			this.text.Append( value );
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask WriteTerminalStringAsync(
-			string value,
-			int affectedLines = 1,
-			CancellationToken cancellationToken = default
-		) {
-			ArgumentNullException.ThrowIfNull( value );
-			if ( 0 >= affectedLines ) {
-				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
-			}
-			cancellationToken.ThrowIfCancellationRequested();
-			this.text.Append( value );
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask WriteHyperlinkTextAsync(
-			string value,
-			CursesHyperlink hyperlink,
-			CancellationToken cancellationToken = default
-		) {
-			ArgumentNullException.ThrowIfNull( value );
-			ArgumentNullException.ThrowIfNull( hyperlink );
-			cancellationToken.ThrowIfCancellationRequested();
-			this.hyperlinkWrites.Add( value );
-			if ( this.CancelAfterHyperlink ) {
-				this.cancellation.Cancel();
+			string value = Encoding.UTF8.GetString( buffer.Span );
+			if ( "\u001b]8;;\u001b\\" == value ) {
+				this.hyperlinkActive = false;
+			} else if ( value.StartsWith( "\u001b]8;", StringComparison.Ordinal ) ) {
+				this.hyperlinkActive = true;
+			} else if ( this.hyperlinkActive ) {
+				this.hyperlinkWrites.Add( value );
+				if ( this.CancelAfterHyperlink ) {
+					this.cancellation.Cancel();
+				}
+			} else {
+				this.text.Append( value );
 			}
 			return ValueTask.CompletedTask;
 		}

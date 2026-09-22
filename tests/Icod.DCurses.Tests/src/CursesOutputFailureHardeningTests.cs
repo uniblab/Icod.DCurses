@@ -126,7 +126,10 @@ public sealed class CursesOutputFailureHardeningTests {
 			terminalSession,
 			NoPresentationOptions()
 		);
-		session.StandardScreen.Write(
+		session.Screen.VirtualScreen[
+			session.Screen.Rows - 1,
+			session.Screen.Columns - 1
+		] = new CursesCell(
 			"X",
 			new CursesStyle(
 				CursesColor.Default,

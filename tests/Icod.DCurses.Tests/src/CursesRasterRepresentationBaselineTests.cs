@@ -112,11 +112,90 @@ public sealed class CursesRasterRepresentationBaselineTests {
 		TerminalSession terminalSession
 	) {
 		ArgumentNullException.ThrowIfNull( terminalSession );
-		return CreateLogicalRasterCell(
-			TerminalRasterOwnershipStatus.Current,
-			TerminalRasterOwnershipLossReason.None,
-			terminalSession,
-			createTerminalCell: true
+		Assembly terminalAssembly = typeof( TerminalRasterPlaceholder ).Assembly;
+		Type registryType = terminalAssembly.GetType(
+			"Icod.Terminal.TerminalPersistentRasterRegistry",
+			throwOnError: true
+		) ?? throw new InvalidOperationException( "Terminal persistent raster registry type is unavailable." );
+		Type resourceStateType = terminalAssembly.GetType(
+			"Icod.Terminal.TerminalPersistentRasterResourceState",
+			throwOnError: true
+		) ?? throw new InvalidOperationException( "Terminal persistent raster resource state type is unavailable." );
+		Type placeholderStateType = terminalAssembly.GetType(
+			"Icod.Terminal.TerminalPersistentRasterPlaceholderState",
+			throwOnError: true
+		) ?? throw new InvalidOperationException( "Terminal persistent raster placeholder state type is unavailable." );
+		FieldInfo registryField = Assert.IsAssignableFrom<FieldInfo>(
+			typeof( TerminalSession ).GetField(
+				"persistentRasterRegistry",
+				BindingFlags.Instance | BindingFlags.NonPublic
+			)
+		);
+		object registry = Assert.IsAssignableFrom<object>(
+			registryField.GetValue( terminalSession )
+		);
+		MethodInfo reserveResource = Assert.IsAssignableFrom<MethodInfo>(
+			registryType.GetMethod(
+				"TryReserveResource",
+				BindingFlags.Instance | BindingFlags.NonPublic,
+				binder: null,
+				types: [ typeof( int ), typeof( int ), resourceStateType.MakeByRefType() ],
+				modifiers: null
+			)
+		);
+		object?[] resourceArguments = [ 1, 1, null ];
+		Assert.True(
+			Assert.IsType<bool>( reserveResource.Invoke( registry, resourceArguments ) )
+		);
+		object resourceState = Assert.IsAssignableFrom<object>( resourceArguments[ 2 ] );
+		MethodInfo bindImageId = Assert.IsAssignableFrom<MethodInfo>(
+			resourceStateType.GetMethod(
+				"BindImageId",
+				BindingFlags.Instance | BindingFlags.NonPublic,
+				binder: null,
+				types: [ typeof( uint ) ],
+				modifiers: null
+			)
+		);
+		_ = bindImageId.Invoke( resourceState, [ 1u ] );
+		MethodInfo reservePlaceholder = Assert.IsAssignableFrom<MethodInfo>(
+			registryType.GetMethod(
+				"TryReservePlaceholder",
+				BindingFlags.Instance | BindingFlags.NonPublic,
+				binder: null,
+				types: [
+					resourceStateType,
+					typeof( int ),
+					typeof( int ),
+					placeholderStateType.MakeByRefType()
+				],
+				modifiers: null
+			)
+		);
+		object?[] placeholderArguments = [ resourceState, 1, 1, null ];
+		Assert.True(
+			Assert.IsType<bool>(
+				reservePlaceholder.Invoke( registry, placeholderArguments )
+			)
+		);
+		object placeholderState = Assert.IsAssignableFrom<object>(
+			placeholderArguments[ 3 ]
+		);
+		TerminalRasterPlaceholder terminalPlaceholder =
+			(TerminalRasterPlaceholder)RequireNonPublicConstructor(
+				typeof( TerminalRasterPlaceholder ),
+				[ typeof( TerminalSession ), placeholderStateType ]
+			).Invoke( [ terminalSession, placeholderState ] );
+		CursesSession owner = (CursesSession)RuntimeHelpers.GetUninitializedObject(
+			typeof( CursesSession )
+		);
+		CursesRasterPlaceholder placeholder = new(
+			owner,
+			terminalPlaceholder
+		);
+		return new CursesRasterCell(
+			placeholder,
+			terminalPlaceholder.GetCell( 0, 0 )
 		);
 	}
 

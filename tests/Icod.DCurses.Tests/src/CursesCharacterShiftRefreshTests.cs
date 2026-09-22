@@ -49,12 +49,12 @@ public sealed class CursesCharacterShiftRefreshTests {
 		Assert.DoesNotContain( "I2", output.Text );
 		Assert.Contains( "  BCDEF", output.Text );
 		Assert.Equal( "A  BCDEF", ReadRow( screen ) );
-		Assert.Equal( 0, output.FlushCount );
+		Assert.Equal( 1, output.FlushCount );
 
 		output.Clear();
 		await engine.RefreshAsync( screen, 0, 1 );
 		Assert.Equal( string.Empty, output.Text );
-		Assert.Equal( 1, output.FlushCount );
+		Assert.Equal( 0, output.FlushCount );
 	}
 
 	[Fact]
@@ -77,12 +77,12 @@ public sealed class CursesCharacterShiftRefreshTests {
 		Assert.DoesNotContain( "D2", output.Text );
 		Assert.Contains( "DEFGH  ", output.Text );
 		Assert.Equal( "ADEFGH  ", ReadRow( screen ) );
-		Assert.Equal( 0, output.FlushCount );
+		Assert.Equal( 1, output.FlushCount );
 
 		output.Clear();
 		await engine.RefreshAsync( screen, 0, 1 );
 		Assert.Equal( string.Empty, output.Text );
-		Assert.Equal( 1, output.FlushCount );
+		Assert.Equal( 0, output.FlushCount );
 	}
 
 	[Fact]
