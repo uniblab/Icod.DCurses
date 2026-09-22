@@ -4,7 +4,7 @@
 **Tranche:** T2004 — cost-aware erase, character shift, line shift, and scrolling  
 **Development identity:** `2.0.0-alpha.1`  
 **Dependency baseline:** published `Icod.Terminal 1.18.0`; temporary direct `Icod.TermInfo 1.15.0` remains until T2007  
-**Status:** approved conversational design awaiting written-spec review
+**Status:** approved for implementation
 
 ## Goal
 
@@ -192,7 +192,10 @@ and is removed rather than retained as a dead TermInfo-bearing optimization path
 
 All cost additions use checked arithmetic. A null Terminal plan makes that
 candidate unavailable and falls back to another safe candidate or ordinary rewrite.
-No caller constructs a replacement terminal sequence.
+A zero-byte erase, character-shift, line-shift, or scroll-region plan is likewise
+unavailable because it cannot establish the semantic state DCurses would publish.
+Zero-byte cursor or rendition setup may remain part of an otherwise executable
+candidate. No caller constructs a replacement terminal sequence.
 
 ## Refresh integration
 
