@@ -96,9 +96,9 @@ public sealed class CursesConcurrentInputRefreshHardeningTests {
 	}
 
 	[Fact]
-	public async Task CancellationDuringRefreshInvalidatesForSafeRetry() {
+	public async Task CancellationAfterCommitStartsDoesNotInterruptTransaction() {
 		ChannelInput input = new();
-		BlockingRecordingOutput output = new();
+		GatedRecordingOutput output = new();
 		TerminalSession terminalSession = await OpenTerminalSessionAsync( input, output );
 		await using CursesSession session = await CursesSession.OpenAsync(
 			terminalSession,
@@ -112,15 +112,15 @@ public sealed class CursesConcurrentInputRefreshHardeningTests {
 		await output.BlockedWriteStarted;
 
 		cancellation.Cancel();
-
-		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(
-			() => refresh
-		);
+		await Task.Yield();
+		Assert.False( refresh.IsCompleted );
+		output.ReleaseBlockedWrite();
+		await refresh;
 		output.Clear();
 
 		await session.RefreshAsync();
 
-		Assert.Contains( "X", output.Text );
+		Assert.Equal( string.Empty, output.Text );
 	}
 
 	[Fact]
@@ -266,40 +266,6 @@ public sealed class CursesConcurrentInputRefreshHardeningTests {
 				this.bytes.AddRange( buffer.ToArray() );
 			}
 			Interlocked.Increment( ref this.writeCount );
-		}
-	}
-
-	private sealed class BlockingRecordingOutput : RecordingOutput {
-		private TaskCompletionSource? blockedWriteStarted;
-		private int blockNext;
-
-		internal Task BlockedWriteStarted {
-			get {
-				return this.blockedWriteStarted?.Task
-					?? throw new InvalidOperationException( "No write is configured to block." );
-			}
-		}
-
-		internal void BlockNextWrite() {
-			this.blockedWriteStarted = new TaskCompletionSource(
-				TaskCreationOptions.RunContinuationsAsynchronously
-			);
-			Interlocked.Exchange( ref this.blockNext, 1 );
-		}
-
-		public override async ValueTask WriteAsync(
-			ReadOnlyMemory<byte> buffer,
-			CancellationToken cancellationToken = default
-		) {
-			if ( 1 == Interlocked.Exchange( ref this.blockNext, 0 ) ) {
-				this.blockedWriteStarted!.TrySetResult();
-				await Task.Delay(
-					Timeout.InfiniteTimeSpan,
-					cancellationToken
-				).ConfigureAwait( false );
-			}
-
-			await base.WriteAsync( buffer, cancellationToken ).ConfigureAwait( false );
 		}
 	}
 

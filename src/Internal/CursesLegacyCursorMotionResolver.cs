@@ -228,4 +228,3 @@ internal sealed class CursesLegacyCursorMotionResolver {
 		}
 	}
 }
-

@@ -40,7 +40,9 @@ public sealed class CursesRasterRefreshTests {
 			);
 		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 3, 1 );
-		CursesRasterCell token = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
+		CursesRasterCell token = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+			refreshContext.Session
+		);
 		screen.VirtualScreen.SetCell( 0, 1, new CursesCell( "Q" ) );
 		screen.VirtualScreen.SetRasterCell( 0, 1, token );
 
@@ -67,8 +69,12 @@ public sealed class CursesRasterRefreshTests {
 			);
 		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 4, 1 );
-		CursesRasterCell first = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
-		CursesRasterCell second = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
+		CursesRasterCell first = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+			refreshContext.Session
+		);
+		CursesRasterCell second = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+			refreshContext.Session
+		);
 		screen.VirtualScreen.SetRasterCell( 0, 0, first );
 		screen.VirtualScreen.SetRasterCell( 0, 3, second );
 		await engine.RefreshAsync( screen, 0, 0 );
@@ -91,7 +97,9 @@ public sealed class CursesRasterRefreshTests {
 			);
 		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 3, 1 );
-		CursesRasterCell token = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
+		CursesRasterCell token = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+			refreshContext.Session
+		);
 		screen.VirtualScreen.SetCell( 0, 1, new CursesCell( "F" ) );
 		screen.VirtualScreen.SetRasterCell( 0, 1, token );
 		await engine.RefreshAsync( screen, 0, 0 );
@@ -119,7 +127,9 @@ public sealed class CursesRasterRefreshTests {
 			CursesColor.Default,
 			CursesTextAttributes.Bold
 		);
-		CursesRasterCell token = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
+		CursesRasterCell token = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+			refreshContext.Session
+		);
 		screen.VirtualScreen.SetCell( 0, 0, new CursesCell( "R", style ) );
 		screen.VirtualScreen.SetRasterCell( 0, 0, token );
 		screen.VirtualScreen.SetCell( 0, 1, new CursesCell( "X", style ) );
@@ -152,7 +162,9 @@ public sealed class CursesRasterRefreshTests {
 		for ( int column = 1; column < screen.Columns; column++ ) {
 			screen.VirtualScreen.SetCell( 0, column, CursesCell.Blank() );
 		}
-		CursesRasterCell token = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
+		CursesRasterCell token = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+			refreshContext.Session
+		);
 		screen.VirtualScreen.SetRasterCell( 0, 2, token );
 		await engine.RefreshAsync( screen, 0, 0 );
 
@@ -173,7 +185,9 @@ public sealed class CursesRasterRefreshTests {
 		screen.VirtualScreen.SetRasterCell(
 			0,
 			0,
-			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell()
+			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+				refreshContext.Session
+			)
 		);
 
 		await Assert.ThrowsAsync<InvalidOperationException>(

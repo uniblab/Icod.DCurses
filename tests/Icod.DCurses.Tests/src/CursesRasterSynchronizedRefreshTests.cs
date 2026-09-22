@@ -50,7 +50,9 @@ public sealed class CursesRasterSynchronizedRefreshTests {
 		);
 
 		CursesScreen screen = session.Screen;
-		CursesRasterCell rasterCell = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
+		CursesRasterCell rasterCell = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+			terminalSession
+		);
 		screen.VirtualScreen.SetRasterCell( 0, 0, rasterCell );
 		screen.VirtualScreen.SetCell( 0, 1, new CursesCell( "X" ) );
 

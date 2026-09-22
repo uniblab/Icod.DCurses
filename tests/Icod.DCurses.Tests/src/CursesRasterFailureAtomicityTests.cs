@@ -37,7 +37,7 @@ public sealed class CursesRasterFailureAtomicityTests {
 				output
 			);
 		CursesRefreshEngine engine = refreshContext.Engine;
-		CursesScreen screen = CreateRasterScreen();
+		CursesScreen screen = CreateRasterScreen( refreshContext.Session );
 
 		await Assert.ThrowsAsync<IOException>(
 			() => engine.RefreshAsync(
@@ -79,7 +79,7 @@ public sealed class CursesRasterFailureAtomicityTests {
 				output
 			);
 		CursesRefreshEngine engine = refreshContext.Engine;
-		CursesScreen screen = CreateRasterScreen();
+		CursesScreen screen = CreateRasterScreen( refreshContext.Session );
 
 		await Assert.ThrowsAnyAsync<OperationCanceledException>(
 			() => engine.RefreshAsync(
@@ -113,7 +113,7 @@ public sealed class CursesRasterFailureAtomicityTests {
 				output
 			);
 		CursesRefreshEngine engine = refreshContext.Engine;
-		CursesScreen screen = CreateRasterScreen();
+		CursesScreen screen = CreateRasterScreen( refreshContext.Session );
 
 		await Assert.ThrowsAsync<IOException>(
 			() => engine.RefreshAsync(
@@ -155,7 +155,7 @@ public sealed class CursesRasterFailureAtomicityTests {
 				output
 			);
 		CursesRefreshEngine engine = refreshContext.Engine;
-		CursesScreen screen = CreateRasterScreen();
+		CursesScreen screen = CreateRasterScreen( refreshContext.Session );
 
 		await Assert.ThrowsAnyAsync<OperationCanceledException>(
 			() => engine.RefreshAsync(
@@ -180,7 +180,8 @@ public sealed class CursesRasterFailureAtomicityTests {
 		Assert.Equal( 2, output.RasterSuccessCount );
 	}
 
-	private static CursesScreen CreateRasterScreen() {
+	private static CursesScreen CreateRasterScreen( TerminalSession terminalSession ) {
+		ArgumentNullException.ThrowIfNull( terminalSession );
 		CursesScreen screen = new(
 			3,
 			1
@@ -188,7 +189,9 @@ public sealed class CursesRasterFailureAtomicityTests {
 		screen.VirtualScreen.SetRasterCell(
 			0,
 			1,
-			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell()
+			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+				terminalSession
+			)
 		);
 		return screen;
 	}

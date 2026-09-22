@@ -42,7 +42,9 @@ public sealed class CursesRasterLifecycleHardeningTests {
 			);
 		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 1, 1 );
-		CursesRasterCell rasterCell = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
+		CursesRasterCell rasterCell = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+			refreshContext.Session
+		);
 		screen.VirtualScreen.SetRasterCell(
 			0,
 			0,

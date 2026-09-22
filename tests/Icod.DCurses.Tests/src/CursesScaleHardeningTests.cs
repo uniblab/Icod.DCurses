@@ -134,7 +134,7 @@ public sealed class CursesScaleHardeningTests {
 		}
 
 		Assert.Equal( baselineWrites, output.WriteCount );
-		Assert.Equal( 513, output.FlushCount );
+		Assert.Equal( 1, output.FlushCount );
 	}
 
 	private static CursesSessionOptions NoPresentationOptions() {

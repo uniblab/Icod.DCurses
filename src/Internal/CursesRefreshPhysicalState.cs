@@ -64,4 +64,3 @@ internal sealed class CursesRefreshPhysicalState {
 		this.CursorColumn = null;
 	}
 }
-

@@ -95,4 +95,3 @@ internal sealed class CursesRefreshEngineTestContext : IAsyncDisposable {
 		}
 	}
 }
-

@@ -83,4 +83,3 @@ internal sealed class CursesPreparedRefresh {
 		return this.transaction.CommitAsync( cancellationToken );
 	}
 }
-

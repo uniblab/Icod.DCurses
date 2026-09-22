@@ -109,8 +109,34 @@ public sealed class CursesRasterRepresentationBaselineTests {
 	}
 
 	internal static CursesRasterCell CreateLogicalRasterCell(
+		TerminalSession terminalSession
+	) {
+		ArgumentNullException.ThrowIfNull( terminalSession );
+		return CreateLogicalRasterCell(
+			TerminalRasterOwnershipStatus.Current,
+			TerminalRasterOwnershipLossReason.None,
+			terminalSession,
+			createTerminalCell: true
+		);
+	}
+
+	internal static CursesRasterCell CreateLogicalRasterCell(
 		TerminalRasterOwnershipStatus status,
 		TerminalRasterOwnershipLossReason reason
+	) {
+		return CreateLogicalRasterCell(
+			status,
+			reason,
+			terminalSession: null,
+			createTerminalCell: false
+		);
+	}
+
+	private static CursesRasterCell CreateLogicalRasterCell(
+		TerminalRasterOwnershipStatus status,
+		TerminalRasterOwnershipLossReason reason,
+		TerminalSession? terminalSession,
+		bool createTerminalCell
 	) {
 		if ( TerminalRasterOwnershipStatus.Disposed == status ) {
 			if ( TerminalRasterOwnershipLossReason.ExplicitDisposal != reason ) {
@@ -187,15 +213,15 @@ public sealed class CursesRasterRepresentationBaselineTests {
 				);
 		}
 
-		TerminalSession terminalSession =
-			(TerminalSession)RuntimeHelpers.GetUninitializedObject(
+		TerminalSession ownerSession = terminalSession
+			?? (TerminalSession)RuntimeHelpers.GetUninitializedObject(
 				typeof( TerminalSession )
 			);
 		TerminalRasterPlaceholder terminalPlaceholder =
 			(TerminalRasterPlaceholder)RequireNonPublicConstructor(
 				typeof( TerminalRasterPlaceholder ),
 				[ typeof( TerminalSession ), placeholderStateType ]
-			).Invoke( [ terminalSession, placeholderState ] );
+			).Invoke( [ ownerSession, placeholderState ] );
 		Assert.Equal( status, terminalPlaceholder.OwnershipState.Status );
 		Assert.Equal( reason, terminalPlaceholder.OwnershipState.LossReason );
 
@@ -208,7 +234,9 @@ public sealed class CursesRasterRepresentationBaselineTests {
 		);
 		return new CursesRasterCell(
 			placeholder,
-			default
+			createTerminalCell
+				? terminalPlaceholder.GetCell( 0, 0 )
+				: default
 		);
 	}
 
