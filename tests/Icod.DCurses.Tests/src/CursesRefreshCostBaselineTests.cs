@@ -206,6 +206,16 @@ public sealed class CursesRefreshCostBaselineTests {
 			.Build();
 	}
 
+	private static int GetTerminalStringByteCount( string value, int affectedLines ) {
+		int byteCount = 0;
+		TermInfoOutput.TPuts(
+			value,
+			affectedLines,
+			_ => byteCount = checked( byteCount + 1 )
+		);
+		return byteCount;
+	}
+
 	private sealed class MeasuringOutput : ITerminalOutput {
 		private readonly CursesOutputCostModel costModel = new( Encoding.UTF8 );
 
@@ -255,7 +265,7 @@ public sealed class CursesRefreshCostBaselineTests {
 			cancellationToken.ThrowIfCancellationRequested();
 			this.ByteCount = checked(
 				this.ByteCount
-					+ CursesOutputCostModel.GetTerminalStringByteCount(
+					+ CursesRefreshCostBaselineTests.GetTerminalStringByteCount(
 						value,
 						affectedLines
 					)
