@@ -405,7 +405,7 @@ public sealed class CursesRefreshEngineTerminalTests {
 		}
 	}
 
-	private sealed class RecordingOutput : ITerminalOutput {
+	private sealed class RecordingOutput : Icod.DCurses.Terminal.ITerminalOutput {
 		private readonly StringBuilder text = new();
 		private int writeCount;
 

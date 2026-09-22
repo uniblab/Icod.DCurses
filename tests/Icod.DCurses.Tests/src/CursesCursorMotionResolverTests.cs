@@ -205,7 +205,7 @@ public sealed class CursesCursorMotionResolverTests {
 			targetColumn
 		);
 
-		await using TerminalScreenOutputTransaction transaction =
+		TerminalScreenOutputTransaction transaction =
 			session.CreateScreenOutputTransaction();
 		transaction.Add( plan );
 		await transaction.CommitAsync();
