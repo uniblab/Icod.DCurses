@@ -32,10 +32,12 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 	[Fact]
 	public async Task EditorLikeMutationCoalescesWideLinkedSpanAfterInsertion() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 24, 3 );
 		CursesWindow window = screen.StandardWindow;
 		CursesCellMetadata link = LinkMetadata( "editor" );
@@ -80,10 +82,12 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 	[Fact]
 	public async Task EditorLikeStyleBeforeEditAndRepeatedRetargetingRemainIndependent() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 24, 3 );
 		CursesWindow window = screen.StandardWindow;
 		CursesCellMetadata stableLink = LinkMetadata( "stable" );
@@ -167,10 +171,12 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 	[Fact]
 	public async Task PagerLikeManyLinksSettlesToNoOpRefresh() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 80, 20 );
 		CursesWindow window = screen.StandardWindow;
 
@@ -345,10 +351,12 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 	[Fact]
 	public async Task DenseEquivalentLinkedRowUsesOneSemanticTransaction() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 256, 1 );
 		CursesCellMetadata metadata = LinkMetadata( "dense-row" );
 		screen.StandardWindow.WriteWithMetadata(
@@ -370,10 +378,12 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 	[Fact]
 	public async Task ManyDistinctLinksRemainDistinctSemanticTransactions() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 64, 1 );
 		CursesWindow window = screen.StandardWindow;
 

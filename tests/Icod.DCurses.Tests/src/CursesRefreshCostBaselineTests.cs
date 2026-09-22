@@ -32,10 +32,12 @@ public sealed class CursesRefreshCostBaselineTests {
 	[Fact]
 	public async Task CleanRefreshAfterBaselineEmitsNoBytes() {
 		MeasuringOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new(
 			4,
 			1
@@ -54,16 +56,18 @@ public sealed class CursesRefreshCostBaselineTests {
 
 		Assert.Equal( 0, output.ByteCount );
 		Assert.Equal( 0, output.WriteCount );
-		Assert.Equal( 1, output.FlushCount );
+		Assert.Equal( 0, output.FlushCount );
 	}
 
 	[Fact]
 	public async Task OneAsciiCellBaselineEmitsTenBytes() {
 		MeasuringOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new(
 			4,
 			1
@@ -89,10 +93,12 @@ public sealed class CursesRefreshCostBaselineTests {
 	[Fact]
 	public async Task OneWideCellBaselineCountsEncodedTextBytes() {
 		MeasuringOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new(
 			4,
 			1
@@ -122,10 +128,12 @@ public sealed class CursesRefreshCostBaselineTests {
 	[Fact]
 	public async Task BoldCellT707TransitionImprovesNineteenByteT701Baseline() {
 		MeasuringOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateRenditionTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateRenditionTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new(
 			4,
 			1

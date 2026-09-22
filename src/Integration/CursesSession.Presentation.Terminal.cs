@@ -22,7 +22,7 @@
 namespace Icod.DCurses;
 
 using Icod.Terminal;
-using Icod.TermInfo;
+using Icod.DCurses.Internal;
 
 /// <summary>Selects the preferred terminal alert presentation.</summary>
 public enum CursesAlertKind {
@@ -62,26 +62,18 @@ public sealed partial class CursesSession {
 		}
 		cancellationToken.ThrowIfCancellationRequested();
 
-		StringCapability preferred = CursesAlertKind.Audible == alertKind
-			? StringCapability.Bell
-			: StringCapability.FlashScreen
-		;
-		StringCapability fallback = CursesAlertKind.Audible == alertKind
-			? StringCapability.FlashScreen
-			: StringCapability.Bell
-		;
-		string? capability = this.Terminal.GetString( preferred )
-			?? this.Terminal.GetString( fallback );
-		if ( capability is null ) {
+		TerminalScreenOperationPlan? plan = this.HostSession.Screen.PlanAlert(
+			CursesTerminalScreenMapper.ToTerminal( alertKind )
+		);
+		if ( !plan.HasValue ) {
 			return false;
 		}
 
 		using IDisposable activity = await this.AcquireTerminalActivityAsync(
 			cancellationToken
 		).ConfigureAwait( false );
-		await this.GetRefreshEngine().WriteControlAsync(
-			capability,
-			invalidatePhysicalScreen: false,
+		await this.GetRefreshEngine().CommitPlanAsync(
+			plan.Value,
 			cancellationToken
 		).ConfigureAwait( false );
 		return true;
@@ -137,7 +129,14 @@ public sealed partial class CursesSession {
 		}
 		cancellationToken.ThrowIfCancellationRequested();
 
-		if ( this.Terminal.GetString( StringCapability.CursorAddress ) is null ) {
+		if ( !this.Profile.Screen.SupportsAbsoluteCursorAddressing ) {
+			return false;
+		}
+		TerminalScreenOperationPlan? plan = this.HostSession.Screen.PlanCursorMove(
+			null,
+			new TerminalScreenPosition( row, column )
+		);
+		if ( !plan.HasValue ) {
 			return false;
 		}
 
@@ -147,6 +146,7 @@ public sealed partial class CursesSession {
 		_ = this.SynchronizeDimensions();
 		this.StandardScreen.Move( row, column );
 		await this.GetRefreshEngine().SetCursorPositionAsync(
+			plan.Value,
 			row,
 			column,
 			cancellationToken
@@ -159,17 +159,16 @@ public sealed partial class CursesSession {
 		CancellationToken cancellationToken = default
 	) {
 		cancellationToken.ThrowIfCancellationRequested();
-		if (
-			this.Terminal.GetString( StringCapability.ExitAttributeMode ) is null
-			&& this.Terminal.GetString( StringCapability.OriginalColorPair ) is null
-		) {
-			return false;
-		}
-
 		using IDisposable activity = await this.AcquireTerminalActivityAsync(
 			cancellationToken
 		).ConfigureAwait( false );
-		await this.GetRefreshEngine().ResetRenditionAsync(
+		CursesRefreshEngine engine = this.GetRefreshEngine();
+		TerminalScreenOperationPlan? plan = engine.PlanRenditionReset();
+		if ( !plan.HasValue ) {
+			return false;
+		}
+		await engine.ResetRenditionAsync(
+			plan.Value,
 			cancellationToken
 		).ConfigureAwait( false );
 		return true;

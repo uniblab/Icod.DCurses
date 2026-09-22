@@ -33,7 +33,12 @@ public sealed class CursesSemanticLineRefreshTests {
 	public async Task ConsecutiveSemanticLineCellsShareOneAcsRun() {
 		RecordingOutput output = new();
 		TerminalDescription terminal = CreateAcsTerminal();
-		CursesRefreshEngine engine = new( terminal, output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				terminal,
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 4, 1 );
 		for ( int column = 0; column < 3; column++ ) {
 			screen.VirtualScreen[ 0, column ] = CursesCell.Line(
@@ -51,7 +56,12 @@ public sealed class CursesSemanticLineRefreshTests {
 	[Fact]
 	public async Task OrdinaryBoxDrawingTextIsNotReinterpretedAsSemanticAcs() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateAcsTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateAcsTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell( "─" );
 
@@ -68,7 +78,12 @@ public sealed class CursesSemanticLineRefreshTests {
 		TerminalDescription terminal = new TerminalDescriptionBuilder( "unicode-line" )
 			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
 			.Build();
-		CursesRefreshEngine engine = new( terminal, output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				terminal,
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = CursesCell.Line( CursesLineGlyph.Crossing );
 
@@ -84,7 +99,12 @@ public sealed class CursesSemanticLineRefreshTests {
 		TerminalDescription terminal = new TerminalDescriptionBuilder( "ascii-line" )
 			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
 			.Build();
-		CursesRefreshEngine engine = new( terminal, output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				terminal,
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new(
 			2,
 			1,

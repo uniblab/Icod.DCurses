@@ -31,10 +31,12 @@ public sealed class CursesRasterFailureAtomicityTests {
 	[Fact]
 	public async Task RasterOutputFailureDoesNotCommitPhysicalStateAndCallerRetryReemitsExactlyOnce() {
 		FailOnceRasterOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = CreateRasterScreen();
 
 		await Assert.ThrowsAsync<IOException>(
@@ -71,10 +73,12 @@ public sealed class CursesRasterFailureAtomicityTests {
 	public async Task CancellationDuringRasterEmissionRequiresExplicitCallerRetry() {
 		using CancellationTokenSource cancellation = new();
 		CancelOnceRasterOutput output = new( cancellation );
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = CreateRasterScreen();
 
 		await Assert.ThrowsAnyAsync<OperationCanceledException>(
@@ -103,10 +107,12 @@ public sealed class CursesRasterFailureAtomicityTests {
 	[Fact]
 	public async Task FlushFailureAfterRasterCommitInvalidatesPhysicalStateForExplicitRetry() {
 		FailOnceFlushOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = CreateRasterScreen();
 
 		await Assert.ThrowsAsync<IOException>(
@@ -143,10 +149,12 @@ public sealed class CursesRasterFailureAtomicityTests {
 	public async Task FlushCancellationAfterRasterCommitInvalidatesPhysicalStateForExplicitRetry() {
 		using CancellationTokenSource cancellation = new();
 		CancelOnceFlushOutput output = new( cancellation );
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = CreateRasterScreen();
 
 		await Assert.ThrowsAnyAsync<OperationCanceledException>(

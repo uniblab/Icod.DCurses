@@ -34,10 +34,12 @@ public sealed class CursesOptimizationRegretTests {
 		const int columns = 160;
 		const int rows = 60;
 		MeasuringOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateCursorOnlyTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateCursorOnlyTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( columns, rows );
 		FillScreen( screen, "X" );
 
@@ -52,10 +54,12 @@ public sealed class CursesOptimizationRegretTests {
 	public async Task ThousandSmallUpdatesRemainDeterministicAndBounded() {
 		const int iterations = 1000;
 		MeasuringOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateCursorOnlyTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateCursorOnlyTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 8, 1 );
 		await engine.RefreshAsync( screen, 0, 0 );
 		output.Reset();

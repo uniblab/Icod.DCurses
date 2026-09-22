@@ -23,6 +23,7 @@ using System.Text;
 using Icod.DCurses;
 using Icod.DCurses.Internal;
 using Icod.DCurses.Terminal;
+using Icod.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -33,7 +34,12 @@ public sealed class CursesRefreshEngineTerminalTests {
 	[Fact]
 	public async Task SmallChangeDoesNotRepaintUnchangedScreen() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 5, 2 );
 
 		await engine.RefreshAsync( screen, 0, 0 );
@@ -50,7 +56,12 @@ public sealed class CursesRefreshEngineTerminalTests {
 	[Fact]
 	public async Task ForcedInvalidationProducesCompleteRepaint() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 4, 2 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell( "A" );
 		screen.VirtualScreen[ 0, 1 ] = new CursesCell( "B" );
@@ -72,7 +83,12 @@ public sealed class CursesRefreshEngineTerminalTests {
 	[Fact]
 	public async Task ContinuationCellsReserveColumnsWithoutWritingBlankBytes() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 4, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell( "界" );
 		screen.VirtualScreen[ 0, 1 ] = CursesCell.Continuation();
@@ -87,7 +103,12 @@ public sealed class CursesRefreshEngineTerminalTests {
 	[Fact]
 	public async Task SameStyleRunDoesNotRepeatRenditionChanges() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 4, 1 );
 		CursesStyle style = new(
 			CursesColor.Indexed( 2 ),
@@ -105,9 +126,14 @@ public sealed class CursesRefreshEngineTerminalTests {
 	}
 
 	[Fact]
-	public async Task TrailingDefaultBlanksUseEraseToEndOfLineWhenCheaper() {
+	public async Task TrailingDefaultBlanksUseOrdinaryRewriteUntilT2004() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 6, 1 );
 		for ( int column = 0; column < screen.Columns; column++ ) {
 			screen.VirtualScreen[ 0, column ] = new CursesCell( "x" );
@@ -121,13 +147,19 @@ public sealed class CursesRefreshEngineTerminalTests {
 		await engine.RefreshAsync( screen, 0, 0 );
 
 		Assert.Contains( "<cup:0,1>", output.Text );
-		Assert.Contains( "<el>", output.Text );
+		Assert.DoesNotContain( "<el>", output.Text );
+		Assert.Contains( "     ", output.Text );
 	}
 
 	[Fact]
 	public async Task RefreshLeavesCursorAtRequestedPositionAndFlushesOnce() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 5, 2 );
 
 		await engine.RefreshAsync( screen, 1, 3 );
@@ -141,7 +173,12 @@ public sealed class CursesRefreshEngineTerminalTests {
 		RecordingOutput output = new() {
 			ThrowOnWrite = 2
 		};
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 4, 2 );
 
 		await Assert.ThrowsAsync<IOException>(
@@ -159,7 +196,12 @@ public sealed class CursesRefreshEngineTerminalTests {
 	[Fact]
 	public async Task ResetRenditionRestoresTerminalDefaults() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"B",
@@ -172,7 +214,14 @@ public sealed class CursesRefreshEngineTerminalTests {
 		await engine.RefreshAsync( screen, 0, 0 );
 		output.Clear();
 
-		await engine.ResetRenditionAsync();
+		TerminalScreenOperationPlan reset =
+			Assert.IsType<TerminalScreenOperationPlan>(
+				engine.PlanRenditionReset()
+			);
+		await engine.ResetRenditionAsync(
+			reset,
+			CancellationToken.None
+		);
 
 		Assert.Contains( "<sgr0>", output.Text );
 		Assert.Contains( "<op>", output.Text );
@@ -191,7 +240,12 @@ public sealed class CursesRefreshEngineTerminalTests {
 			.SetString( StringCapability.SetBackgroundColor, "<bg:%p1%d>" )
 			.SetExtendedBoolean( "RGB" )
 			.Build();
-		CursesRefreshEngine engine = new( terminal, output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				terminal,
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"R",
@@ -213,7 +267,12 @@ public sealed class CursesRefreshEngineTerminalTests {
 	[Fact]
 	public async Task UnsupportedRgbAndOutOfRangeIndexDegradeWithoutThrowing() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"R",
@@ -239,7 +298,12 @@ public sealed class CursesRefreshEngineTerminalTests {
 	[Fact]
 	public async Task ModernOptionalAttributesUseAdvertisedSemanticCapabilities() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"A",
@@ -274,7 +338,12 @@ public sealed class CursesRefreshEngineTerminalTests {
 			.SetString( StringCapability.SetForegroundColor, "<fg:%p1%d>" )
 			.SetString( StringCapability.SetBackgroundColor, "<bg:%p1%d>" )
 			.Build();
-		CursesRefreshEngine engine = new( terminal, output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				terminal,
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 1, 1 );
 		CursesStyle requested = new(
 			CursesColor.Indexed( 1 ),

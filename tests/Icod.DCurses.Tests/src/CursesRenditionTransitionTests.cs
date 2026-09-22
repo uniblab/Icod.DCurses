@@ -32,7 +32,12 @@ public sealed class CursesRenditionTransitionTests {
 	[Fact]
 	public async Task AdditiveAttributeTransitionAvoidsResetAndColorRestore() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"A",
@@ -58,7 +63,12 @@ public sealed class CursesRenditionTransitionTests {
 	[Fact]
 	public async Task NondefaultColorChangeAvoidsResetAndOriginalPairRestore() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"A",
@@ -86,7 +96,12 @@ public sealed class CursesRenditionTransitionTests {
 	[Fact]
 	public async Task AttributeRemovalRetainsResetFirstSafety() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"A",
@@ -111,7 +126,12 @@ public sealed class CursesRenditionTransitionTests {
 	[Fact]
 	public async Task ReturningOneColorChannelToDefaultRestoresAndReappliesOtherChannel() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"A",
@@ -139,7 +159,12 @@ public sealed class CursesRenditionTransitionTests {
 	[Fact]
 	public async Task LogicalStylesResolvingToSamePhysicalStyleDoNotRepeatReset() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"A",

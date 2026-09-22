@@ -409,6 +409,22 @@ public sealed class CursesVirtualScreen {
 		dirtyCellCount = 0;
 	}
 
+	/// <summary>Marks only damage captured at or before the supplied revision clean.</summary>
+	internal void MarkCleanThrough( ulong capturedRevision ) {
+		ulong[] revisions = cellChangeRevisions
+			?? throw new InvalidOperationException(
+				"Logical change revision tracking is not enabled for this virtual screen."
+			);
+
+		for ( int offset = 0; offset < dirtyCells.Length; offset++ ) {
+			if ( dirtyCells[ offset ]
+				&& revisions[ offset ] <= capturedRevision ) {
+				dirtyCells[ offset ] = false;
+				dirtyCellCount--;
+			}
+		}
+	}
+
 	/// <summary>Marks every logical cell dirty.</summary>
 	internal void Invalidate() {
 		if ( null != cellChangeRevisions ) {
@@ -612,10 +628,13 @@ public sealed class CursesVirtualScreen {
 			return;
 		}
 
-		unchecked {
-			changeRevision++;
-			revisions[ offset ] = changeRevision;
+		if ( ulong.MaxValue == changeRevision ) {
+			throw new InvalidOperationException(
+				"The logical change revision cannot advance beyond UInt64.MaxValue."
+			);
 		}
+		changeRevision++;
+		revisions[ offset ] = changeRevision;
 	}
 
 	private void MarkDirty( int offset ) {

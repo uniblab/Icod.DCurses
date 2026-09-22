@@ -33,10 +33,12 @@ public sealed class CursesSemanticCancellationHardeningTests {
 	public async Task CancellationAfterLinkedRunInvalidatesForCompleteLaterRepaint() {
 		using CancellationTokenSource cancellation = new();
 		CancelAfterHyperlinkOutput output = new( cancellation );
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 4, 1 );
 		CursesWindow window = screen.StandardWindow;
 		window.WriteWithMetadata(

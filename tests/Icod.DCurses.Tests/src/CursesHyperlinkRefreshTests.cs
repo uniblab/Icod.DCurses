@@ -33,10 +33,12 @@ public sealed class CursesHyperlinkRefreshTests {
 	[Fact]
 	public async Task AdjacentEquivalentLinkedCellsUseOneBoundedHyperlinkRun() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 6, 1 );
 		CursesCellMetadata metadata = LinkMetadata( "one" );
 
@@ -58,10 +60,12 @@ public sealed class CursesHyperlinkRefreshTests {
 	[Fact]
 	public async Task UnchangedSemanticContentProducesNoSecondPayloadWrite() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 6, 1 );
 		screen.StandardWindow.WriteWithMetadata(
 			"ABC",
@@ -87,10 +91,12 @@ public sealed class CursesHyperlinkRefreshTests {
 	[Fact]
 	public async Task SemanticOnlyChangeRewritesSameVisibleCellsWithNewHyperlink() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 6, 1 );
 		CursesWindow window = screen.StandardWindow;
 		window.WriteWithMetadata(
@@ -126,10 +132,12 @@ public sealed class CursesHyperlinkRefreshTests {
 	[Fact]
 	public async Task RemovingHyperlinkRewritesSameVisibleCellsAsOrdinaryText() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 6, 1 );
 		CursesWindow window = screen.StandardWindow;
 		window.WriteWithMetadata(
@@ -163,10 +171,12 @@ public sealed class CursesHyperlinkRefreshTests {
 	[Fact]
 	public async Task LinkedAndUnlinkedSegmentsRemainSeparateSemanticRuns() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 5, 1 );
 		CursesWindow window = screen.StandardWindow;
 		window.Write( "ABC" );
@@ -198,10 +208,12 @@ public sealed class CursesHyperlinkRefreshTests {
 	[Fact]
 	public async Task WideLinkedElementWritesOneSemanticPayload() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 5, 1 );
 
 		screen.StandardWindow.WriteWithMetadata(
@@ -222,10 +234,12 @@ public sealed class CursesHyperlinkRefreshTests {
 	[Fact]
 	public async Task InvalidationRepaintsLinkedContentThroughSemanticOutput() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 5, 1 );
 		screen.StandardWindow.WriteWithMetadata(
 			"link",
@@ -252,10 +266,12 @@ public sealed class CursesHyperlinkRefreshTests {
 	[Fact]
 	public async Task SemanticPresenceSuppressesEraseOptimizationUntilPropagationIsProven() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 6, 1 );
 		CursesWindow window = screen.StandardWindow;
 		window.Write( "xxxxxx" );
@@ -287,10 +303,12 @@ public sealed class CursesHyperlinkRefreshTests {
 	[Fact]
 	public async Task SemanticPresenceSuppressesCharacterShiftOptimizationUntilTerminalEquivalenceIsPortable() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 8, 1 );
 		CursesWindow window = screen.StandardWindow;
 		CursesCellMetadata metadata = LinkMetadata( "character-shift" );
@@ -323,10 +341,12 @@ public sealed class CursesHyperlinkRefreshTests {
 	[Fact]
 	public async Task SemanticPresenceSuppressesLineShiftOptimizationUntilTerminalEquivalenceIsPortable() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 8, 4 );
 		CursesWindow window = screen.StandardWindow;
 		CursesCellMetadata moving = LinkMetadata( "line-shift" );

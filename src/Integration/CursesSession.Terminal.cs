@@ -23,9 +23,7 @@ namespace Icod.DCurses;
 
 using System.Runtime.ExceptionServices;
 using Icod.DCurses.Internal;
-using CursesTerminalOutput = Icod.DCurses.Terminal.ITerminalOutput;
 using Icod.Terminal;
-using Icod.TermInfo;
 
 /// <summary>
 /// Owns one curses presentation over a canonical <see cref="TerminalSession"/>.
@@ -35,7 +33,6 @@ public sealed partial class CursesSession : IAsyncDisposable {
 	private readonly SemaphoreSlim terminalActivityGate = new( 1, 1 );
 	private readonly CancellationTokenSource sessionLifetimeStop = new();
 	private readonly TerminalSession terminalSession;
-	private readonly CursesTerminalOutput refreshOutput;
 	private readonly CursesTerminalLifecycleParticipant lifecycleParticipant;
 	private readonly IDisposable lifecycleParticipantRegistration;
 
@@ -50,7 +47,6 @@ public sealed partial class CursesSession : IAsyncDisposable {
 		ArgumentNullException.ThrowIfNull( options );
 
 		this.terminalSession = terminalSession;
-		this.refreshOutput = new Icod.DCurses.Terminal.TerminalSessionCursesOutput( terminalSession );
 		this.Options = options;
 		this.lifecycleParticipant = new CursesTerminalLifecycleParticipant( this );
 		this.lifecycleParticipantRegistration = terminalSession.RegisterLifecycleParticipant(
@@ -62,13 +58,6 @@ public sealed partial class CursesSession : IAsyncDisposable {
 	public TerminalProfile Profile {
 		get {
 			return this.terminalSession.Profile;
-		}
-	}
-
-	/// <summary>Gets the temporary TermInfo description used by the pre-migration renderer.</summary>
-	internal TerminalDescription Terminal {
-		get {
-			return this.terminalSession.Terminal;
 		}
 	}
 

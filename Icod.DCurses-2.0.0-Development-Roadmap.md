@@ -198,36 +198,36 @@ No T2003 package is published. The temporary rewrite difference is accepted only
 
 **Acceptance:** each chosen optimization reproduces the desired screen and beats or ties rewrite according to the frozen policy; no `TPuts`, expansion or raw capability cost path remains in these helpers.
 
-### T2005 — Transactional refresh cutover
+### T2005 — Transactional refresh and exhaustive hardening
 
 **Depends on:** T2004 and all T2001 transaction/recovery blockers closed.\
-**Files:** refresh engine, physical-state tracking, refresh/session integration, output shim and refresh/hyperlink/raster integration tests. Split preparation/commit helpers into focused internal files if needed, without adding a public backend framework.
+**Files:** refresh engine, physical-state tracking, refresh/session integration, output shim and refresh/hyperlink/raster integration tests. Split preparation/commit helpers into focused internal files if needed, without adding a public backend framework. T2005 owns exhaustive transaction/capacity/cancellation/synchronization/publication hardening and deletion of obsolete raw-output/capability-writer shims.
 
 - [ ] Implement section 7's prepare/commit/publish state transition with a single Terminal screen transaction.
 - [ ] Compose ordinary text, strict hyperlinks, opaque raster cells and operation plans without parallel direct writes.
 - [ ] Transfer synchronized framing/flush/semantic cleanup to Terminal; remove the outer refresh lease and per-write output route as they become unused.
 - [ ] Test whole-batch output ordering, one commit/flush, no interleaving, no clean-state publication before success, and invalidation surviving commitment.
+- [ ] Complete exhaustive capacity/cancellation/synchronization hardening, including pre-commit and post-commit cancellation, item/payload limits, failure cleanup, stale epochs, and lease conflicts; delete obsolete raw-output/capability-writer shims.
 
 **Acceptance:** normal sparse/full/mixed-media refresh and direct cursor/alert/reset operations use the semantic boundary; all failure paths retain correct logical content and physical uncertainty.
 
-### T2006 — Lifecycle, cancellation, failure and capacity hardening
+### T2006 — Lifecycle, failure, output uncertainty and recovery qualification
 
 **Depends on:** T2005.\
 **Files:** lifecycle/session disposal/refresh/raster integration, session lifetime and mixed-media hardening tests.
 
-- [ ] Exercise pre-commit cancellation, post-commit caller cancellation, partial writes, flush failure, primary plus cleanup failure, stale epoch, foreign/stale/released raster tokens and disposal races.
+- [ ] Exercise partial writes, flush failure, primary plus cleanup failure, foreign/stale/released raster tokens and disposal races.
 - [ ] Verify suspend/resume and resize preserve logical intent, invalidate physical knowledge, and never replay stale raster identity or silently recreate resources.
-- [ ] Prove no deadlock from activity/refresh/lifecycle coordination and Terminal manager/output gate ordering, including conflicting external hyperlink/synchronized leases.
-- [ ] Exercise item/payload limits and large fragmented screens. Over-limit preparation emits zero bytes, retains damage, and does not fall back to raw output or hidden chunking.
+- [ ] Prove no deadlock from activity/refresh/lifecycle coordination and Terminal manager/output gate ordering.
 
 **Acceptance:** recovery and failure evidence closes every readiness condition; required cleanup is attempted, failures stay observable, and unsafe recovery fails closed.
 
 ### T2007 — Dependency removal and permanent enforcement
 
 **Depends on:** T2006.\
-**Files:** project references, remaining old helpers/shims, `PublicDependencyBoundaryTests.cs`, new source/assembly boundary tests, package verifier, and audited fixture setup.
+**Files:** project references, remaining dependency leaks, `PublicDependencyBoundaryTests.cs`, new source/assembly boundary tests, package verifier, and audited fixture setup.
 
-- [ ] Remove production `Icod.TermInfo` PackageReference and obsolete raw capability writer/output methods; remove unused dependencies from samples/tools.
+- [ ] Remove the production `Icod.TermInfo` PackageReference and final direct dependency/reference leaks; remove unused dependencies from samples/tools. T2005 owns deletion of obsolete raw capability-writer/output shims.
 - [ ] Enforce no production TermInfo symbols, legacy `TerminalSession.Terminal`/`GetSize()`/lifecycle `Size` use, `WriteTerminalStringAsync`, or borrowed output writes/flushes. Keep explicit exceptions limited to reviewed test bootstrap and historical documentation.
 - [ ] Inspect emitted DCurses assembly references and metadata TypeRefs as well as recursively examined public signatures; a package-only compile alone cannot catch transitive coupling.
 - [ ] Assert the DCurses NuGet direct dependency set independently as exactly `Icod.Terminal` with the qualified minimum in each TFM group. Do not merely compare package dependencies against an equally wrong project file.

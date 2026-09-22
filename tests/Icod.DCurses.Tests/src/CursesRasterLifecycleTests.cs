@@ -66,10 +66,12 @@ public sealed class CursesRasterLifecycleTests {
 		TerminalRasterOwnershipLossReason reason
 	) {
 		RecordingRefreshOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateRefreshTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateRefreshTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 1, 1 );
 		CursesRasterCell rasterCell = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
 			status,
@@ -98,8 +100,8 @@ public sealed class CursesRasterLifecycleTests {
 	) {
 		ArgumentNullException.ThrowIfNull( session );
 		CursesRefreshEngine engine = new(
-			session.Terminal,
-			new NullRefreshOutput()
+			session.HostSession,
+			useSynchronizedOutput: false
 		);
 		FieldInfo engineField = Assert.IsAssignableFrom<FieldInfo>(
 			typeof( CursesSession ).GetField(

@@ -35,10 +35,12 @@ public sealed class CursesRasterLifecycleHardeningTests {
 	[Fact]
 	public async Task CleanRetainedRasterThatBecomesStaleIsRejectedWithoutNewOutput() {
 		RecordingRefreshOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateRefreshTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateRefreshTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 1, 1 );
 		CursesRasterCell rasterCell = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
 		screen.VirtualScreen.SetRasterCell(
@@ -188,8 +190,8 @@ public sealed class CursesRasterLifecycleHardeningTests {
 	) {
 		ArgumentNullException.ThrowIfNull( session );
 		CursesRefreshEngine engine = new(
-			session.Terminal,
-			new NullRefreshOutput()
+			session.HostSession,
+			useSynchronizedOutput: false
 		);
 		FieldInfo engineField = Assert.IsAssignableFrom<FieldInfo>(
 			typeof( CursesSession ).GetField(

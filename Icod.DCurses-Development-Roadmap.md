@@ -246,9 +246,9 @@ TermInfo remains a legitimate transitive runtime dependency of Terminal. The rel
 | T2002 | 2.0 development identity, Terminal upgrade, dimensions/profile public cutover |
 | T2003 | Presentation/rendition/ACS/cursor/alert semantic adapters |
 | T2004 | Erase/shift/scroll optimization using opaque operation plans and costs |
-| T2005 | Transactional refresh and post-commit physical-state publication |
-| T2006 | Lifecycle, cancellation, output uncertainty, cleanup, and capacity hardening |
-| T2007 | Remove direct dependency, raw output shims, and dependency leaks; enforce guards |
+| T2005 | Transactional refresh, exhaustive capacity/cancellation/synchronization/publication hardening, and legacy-shim deletion |
+| T2006 | Lifecycle, failure, output uncertainty, cleanup, and recovery qualification |
+| T2007 | Final direct `Icod.TermInfo` package/reference removal, dependency leaks, and permanent guards |
 | T2008 | Samples, package-only consumers, and 1.6-to-2.0 migration guide |
 | T2009 | Behavioral parity, performance/allocation, platform and adversarial qualification |
 | T2010 | Public API/package/XML/license/documentation freeze and regret gate |
@@ -263,6 +263,8 @@ T2005: exhaustive transaction/capacity/cancellation/synchronization/publication 
 ```
 
 No T2003 package is published. The temporary rewrite difference is accepted only until T2004.
+
+T2007 retains final direct `Icod.TermInfo` package/reference removal; obsolete raw-output and capability-writer shims are deleted in T2005.
 
 T2001 and T2002 are accepted. T2001 froze the dependency inventory and approved break manifest, qualified published Terminal 1.18.0 recovery/transaction/planner behavior, and captured the DCurses 1.6 behavioral baseline. T2002 established the 2.0 development identity, moved the public profile/dimensions boundary to Terminal-owned types, and froze the reviewed 2.0 development API. T2003-T2011 remain pending. See the [T2001 readiness gate](docs/T2001-Terminal-Boundary-and-Readiness-Gate.md), [T2002 public cutover gate](docs/T2002-Public-Terminal-Cutover-Gate.md), and [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) for evidence, file ownership, dependencies and acceptance criteria.
 

@@ -26,6 +26,13 @@
 - Mark completed plan steps as `[x]` and include this plan file in every task commit so the branch records execution progress.
 - Do not merge, tag, release, or publish.
 
+**Execution note:** Tasks 2-7 are being qualified as one atomic vertical-cutover checkpoint. The
+planner-backed cursor resolver returns an opaque session-bound plan, while the pre-cutover refresh
+engine and deferred line-shift optimizer consumed raw cursor strings; no independently compilable
+Task 2 or Task 3 checkpoint exists without forbidden compatibility logic. The bypassed T2004
+line-shift resolver temporarily retains its cursor-cost calculation under the explicitly legacy
+`CursesLegacyCursorMotionResolver` name.
+
 ---
 
 ## File Structure
@@ -144,7 +151,7 @@ T2005: exhaustive transaction/capacity/cancellation/synchronization/publication 
 
 State that no T2003 package is published and that the temporary rewrite difference is accepted only until T2004.
 
-- [ ] **Step 4: Run the focused RED witness**
+- [x] **Step 4: Run the focused RED witness**
 
 Run:
 
@@ -155,7 +162,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: compilation or assertions fail because `CursesRefreshEngine` still consumes `TerminalDescription`, migrated paths still contain forbidden raw/TermInfo tokens, and the session still owns an outer synchronized-output lease.
 
-- [ ] **Step 5: Push the RED witness and record exact CI evidence**
+- [x] **Step 5: Push the RED witness and record exact CI evidence**
 
 Commit:
 
@@ -169,7 +176,9 @@ git commit -m "test: freeze DCurses T2003 vertical cutover"
 
 Push and retain one expected-red workflow run showing only the new T2003 contract failure. Stop if unrelated existing tests or package validation fail.
 
-Local status: the contract test and roadmap amendments are committed locally; the focused test run is blocked by the unavailable .NET SDK, and push/CI evidence remains pending controller execution.
+    Evidence: published PR commit `c0b0b10772a2467650b9bb396ffdda54dd799496`; [workflow](https://github.com/uniblab/Icod.DCurses/actions/runs/35395082070); representative [Linux x64 job](https://github.com/uniblab/Icod.DCurses/actions/runs/35395082070/job/105761957469); package candidate job `105761957316` succeeded; all six runtime jobs built successfully and failed only in the test step. Linux x64 and Windows ARM64 each reported, for `net8.0`, `net9.0`, and `net10.0`, 912 passed, 3 expected T2003 contract failures, 0 skipped (915 total).
+
+    Review correction: aligned the existing tranche table and detailed T2005-T2007 sections so T2005 owns exhaustive transaction hardening and obsolete output-shim deletion, while T2007 retains final direct `Icod.TermInfo` package/reference removal.
 
 ---
 

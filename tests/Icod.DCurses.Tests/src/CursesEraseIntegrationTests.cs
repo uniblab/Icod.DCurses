@@ -19,28 +19,25 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+namespace Icod.DCurses.Tests;
+
 using System.Text;
-using Icod.DCurses;
 using Icod.DCurses.Internal;
 using Icod.DCurses.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
-namespace Icod.DCurses.Tests;
-
-/// <summary>Verifies erase selection at the retained-screen refresh boundary.</summary>
+/// <summary>Freezes the T2003 ordinary-rewrite fallback for erase candidates.</summary>
 public sealed class CursesEraseIntegrationTests {
 	[Fact]
-	public async Task ShortBlankTailUsesLiteralFallbackWhenEraseLineCostsMore() {
+	public async Task BlankTailUsesLiteralRewriteUntilT2004() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(
-				eraseLine: "<el>",
-				eraseScreen: null,
-				clearScreen: null
-			),
-			output
-		);
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = context.Engine;
 		CursesScreen screen = CreateFilledScreen( 6, 1 );
 		await engine.RefreshAsync( screen, 0, 0 );
 		output.Clear();
@@ -50,21 +47,20 @@ public sealed class CursesEraseIntegrationTests {
 		}
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.DoesNotContain( "<el>", output.Text );
+		Assert.DoesNotContain( "<erase-line>", output.Text );
 		Assert.Contains( "   ", output.Text );
+		Assert.Equal( 1, output.FlushCount );
 	}
 
 	[Fact]
-	public async Task DefaultBlankScreenTailUsesEraseToEndOfScreenAndRetainsKnowledge() {
+	public async Task BlankScreenTailDoesNotUseEraseToEndOfScreenUntilT2004() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(
-				eraseLine: "LLLL",
-				eraseScreen: "D",
-				clearScreen: "CCCCCCCC"
-			),
-			output
-		);
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = context.Engine;
 		CursesScreen screen = CreateFilledScreen( 6, 3 );
 		await engine.RefreshAsync( screen, 0, 0 );
 		output.Clear();
@@ -77,28 +73,24 @@ public sealed class CursesEraseIntegrationTests {
 		}
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Contains( "D", output.Text );
-		Assert.DoesNotContain( "LLLL", output.Text );
-		Assert.Contains( 2, output.AffectedLines );
+		Assert.DoesNotContain( "<erase-screen>", output.Text );
+		Assert.Contains( new string( ' ', 6 ), output.Text );
 
 		output.Clear();
 		await engine.RefreshAsync( screen, 0, 0 );
-
 		Assert.Equal( string.Empty, output.Text );
-		Assert.Equal( 1, output.FlushCount );
+		Assert.Equal( 0, output.FlushCount );
 	}
 
 	[Fact]
-	public async Task WholeDefaultBlankScreenUsesClearAndRetainsKnowledge() {
+	public async Task WholeBlankScreenDoesNotUseClearUntilT2004() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(
-				eraseLine: "LLLL",
-				eraseScreen: "DD",
-				clearScreen: "C"
-			),
-			output
-		);
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = context.Engine;
 		CursesScreen screen = CreateFilledScreen( 8, 3 );
 		await engine.RefreshAsync( screen, 0, 0 );
 		output.Clear();
@@ -106,14 +98,17 @@ public sealed class CursesEraseIntegrationTests {
 		screen.VirtualScreen.Clear();
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Contains( "C", output.Text );
-		Assert.Contains( 3, output.AffectedLines );
+		Assert.DoesNotContain( "<clear-screen>", output.Text );
+		Assert.Contains( new string( ' ', 8 ), output.Text );
+	}
 
-		output.Clear();
-		await engine.RefreshAsync( screen, 0, 0 );
-
-		Assert.Equal( string.Empty, output.Text );
-		Assert.Equal( 1, output.FlushCount );
+	private static TerminalDescription CreateTerminal() {
+		return new TerminalDescriptionBuilder( "erase-rewrite" )
+			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
+			.SetString( StringCapability.ClearToEndOfLine, "<erase-line>" )
+			.SetString( StringCapability.ClearToEndOfScreen, "<erase-screen>" )
+			.SetString( StringCapability.ClearScreen, "<clear-screen>" )
+			.Build();
 	}
 
 	private static CursesScreen CreateFilledScreen(
@@ -129,58 +124,29 @@ public sealed class CursesEraseIntegrationTests {
 		return screen;
 	}
 
-	private static TerminalDescription CreateTerminal(
-		string eraseLine,
-		string? eraseScreen,
-		string? clearScreen
-	) {
-		ArgumentNullException.ThrowIfNull( eraseLine );
-		TerminalDescriptionBuilder builder = new TerminalDescriptionBuilder( "erase-integration" )
-			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
-			.SetString( StringCapability.ClearToEndOfLine, eraseLine );
-		if ( null != eraseScreen ) {
-			builder.SetString(
-				StringCapability.ClearToEndOfScreen,
-				eraseScreen
-			);
-		}
-		if ( null != clearScreen ) {
-			builder.SetString(
-				StringCapability.ClearScreen,
-				clearScreen
-			);
-		}
-		return builder.Build();
-	}
-
 	private sealed class RecordingOutput : ITerminalOutput {
 		private readonly StringBuilder text = new();
-
-		internal string Text => text.ToString();
-
-		internal List<int> AffectedLines {
-			get;
-		} = [];
 
 		internal int FlushCount {
 			get;
 			private set;
 		}
 
+		internal string Text => this.text.ToString();
+
 		internal void Clear() {
-			text.Clear();
-			AffectedLines.Clear();
-			FlushCount = 0;
+			this.text.Clear();
+			this.FlushCount = 0;
 		}
 
 		public ValueTask WriteTextAsync(
 			string value,
 			CancellationToken cancellationToken = default
 		) {
-			ArgumentNullException.ThrowIfNull( value );
-			cancellationToken.ThrowIfCancellationRequested();
-			text.Append( value );
-			return ValueTask.CompletedTask;
+			return this.WriteTerminalStringAsync(
+				value,
+				cancellationToken: cancellationToken
+			);
 		}
 
 		public ValueTask WriteTerminalStringAsync(
@@ -189,12 +155,8 @@ public sealed class CursesEraseIntegrationTests {
 			CancellationToken cancellationToken = default
 		) {
 			ArgumentNullException.ThrowIfNull( value );
-			if ( 0 >= affectedLines ) {
-				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
-			}
 			cancellationToken.ThrowIfCancellationRequested();
-			text.Append( value );
-			AffectedLines.Add( affectedLines );
+			this.text.Append( value );
 			return ValueTask.CompletedTask;
 		}
 
@@ -202,7 +164,7 @@ public sealed class CursesEraseIntegrationTests {
 			CancellationToken cancellationToken = default
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
-			FlushCount++;
+			this.FlushCount++;
 			return ValueTask.CompletedTask;
 		}
 	}

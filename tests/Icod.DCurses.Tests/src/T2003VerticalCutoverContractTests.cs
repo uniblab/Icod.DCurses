@@ -82,7 +82,7 @@ public sealed class T2003VerticalCutoverContractTests {
 		);
 
 		Assert.Contains(
-			"UseSynchronizedOutput = this.Options.UseSynchronizedOutput",
+			"this.Options.UseSynchronizedOutput",
 			source,
 			StringComparison.Ordinal
 		);

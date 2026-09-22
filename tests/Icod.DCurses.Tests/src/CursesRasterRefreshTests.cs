@@ -33,7 +33,12 @@ public sealed class CursesRasterRefreshTests {
 	[Fact]
 	public async Task FirstRefreshEmitsRasterInsteadOfFallbackTextAndUnchangedRefreshIsSilent() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 3, 1 );
 		CursesRasterCell token = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
 		screen.VirtualScreen.SetCell( 0, 1, new CursesCell( "Q" ) );
@@ -55,7 +60,12 @@ public sealed class CursesRasterRefreshTests {
 	[Fact]
 	public async Task DirtyRasterCoordinateReemitsOnlyThatCoordinate() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 4, 1 );
 		CursesRasterCell first = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
 		CursesRasterCell second = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
@@ -74,7 +84,12 @@ public sealed class CursesRasterRefreshTests {
 	[Fact]
 	public async Task RemovingRasterRestoresRetainedFallbackText() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 3, 1 );
 		CursesRasterCell token = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
 		screen.VirtualScreen.SetCell( 0, 1, new CursesCell( "F" ) );
@@ -92,7 +107,12 @@ public sealed class CursesRasterRefreshTests {
 	[Fact]
 	public async Task RasterEmissionForcesRenditionReassertionBeforeFollowingText() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 3, 1 );
 		CursesStyle style = new(
 			CursesColor.Indexed( 2 ),
@@ -116,7 +136,12 @@ public sealed class CursesRasterRefreshTests {
 	[Fact]
 	public async Task RasterPresenceDisablesEraseShortcut() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 6, 1 );
 		for ( int column = 0; column < screen.Columns; column++ ) {
 			screen.VirtualScreen.SetCell( 0, column, new CursesCell( "x" ) );
@@ -138,7 +163,12 @@ public sealed class CursesRasterRefreshTests {
 	[Fact]
 	public async Task RasterRefreshRequiresTypedRasterOutputBoundary() {
 		TextOnlyOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen.SetRasterCell(
 			0,

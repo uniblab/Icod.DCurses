@@ -30,12 +30,14 @@ namespace Icod.DCurses.Tests;
 /// <summary>Verifies physical character-shift optimization through the retained refresh engine.</summary>
 public sealed class CursesCharacterShiftRefreshTests {
 	[Fact]
-	public async Task InsertCellsUsesPhysicalInsertCharactersAndRetainsExactRow() {
+	public async Task InsertCellsUsesOrdinaryRewriteAndRetainsExactRow() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = CreateScreen( "ABCDEFGH" );
 		screen.StandardWindow.Move( 0, 1 );
 		await engine.RefreshAsync( screen, 0, 1 );
@@ -44,9 +46,10 @@ public sealed class CursesCharacterShiftRefreshTests {
 		screen.StandardWindow.InsertCells( 2 );
 		await engine.RefreshAsync( screen, 0, 1 );
 
-		Assert.Equal( "I2", output.Text );
+		Assert.DoesNotContain( "I2", output.Text );
+		Assert.Contains( "  BCDEF", output.Text );
 		Assert.Equal( "A  BCDEF", ReadRow( screen ) );
-		Assert.Equal( 1, output.FlushCount );
+		Assert.Equal( 0, output.FlushCount );
 
 		output.Clear();
 		await engine.RefreshAsync( screen, 0, 1 );
@@ -55,12 +58,14 @@ public sealed class CursesCharacterShiftRefreshTests {
 	}
 
 	[Fact]
-	public async Task DeleteCellsUsesPhysicalDeleteCharactersAndRetainsExactRow() {
+	public async Task DeleteCellsUsesOrdinaryRewriteAndRetainsExactRow() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = CreateScreen( "ABCDEFGH" );
 		screen.StandardWindow.Move( 0, 1 );
 		await engine.RefreshAsync( screen, 0, 1 );
@@ -69,9 +74,10 @@ public sealed class CursesCharacterShiftRefreshTests {
 		screen.StandardWindow.DeleteCells( 2 );
 		await engine.RefreshAsync( screen, 0, 1 );
 
-		Assert.Equal( "D2", output.Text );
+		Assert.DoesNotContain( "D2", output.Text );
+		Assert.Contains( "DEFGH  ", output.Text );
 		Assert.Equal( "ADEFGH  ", ReadRow( screen ) );
-		Assert.Equal( 1, output.FlushCount );
+		Assert.Equal( 0, output.FlushCount );
 
 		output.Clear();
 		await engine.RefreshAsync( screen, 0, 1 );
@@ -85,7 +91,12 @@ public sealed class CursesCharacterShiftRefreshTests {
 		TerminalDescription terminal = new TerminalDescriptionBuilder( "fallback" )
 			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
 			.Build();
-		CursesRefreshEngine engine = new( terminal, output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				terminal,
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = CreateScreen( "ABCDEFGH" );
 		screen.StandardWindow.Move( 0, 1 );
 		await engine.RefreshAsync( screen, 0, 1 );
@@ -102,10 +113,12 @@ public sealed class CursesCharacterShiftRefreshTests {
 	[Fact]
 	public async Task FailedCharacterShiftInvalidatesPhysicalKnowledgeBeforeRetry() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = CreateScreen( "ABCDEFGH" );
 		screen.StandardWindow.Move( 0, 1 );
 		await engine.RefreshAsync( screen, 0, 1 );

@@ -19,6 +19,7 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+using Icod.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -27,9 +28,9 @@ namespace Icod.DCurses.Tests;
 /// <summary>Verifies curses-shaped presentation observations over stable TermInfo profiles.</summary>
 public sealed class CursesPresentationCapabilitiesTests {
 	[Fact]
-	public void DumbTerminalReportsNoRichPresentation() {
+	public async Task DumbTerminalReportsNoRichPresentation() {
 		CursesPresentationCapabilities capabilities =
-			CursesPresentationCapabilities.Create( TerminalProfiles.Dumb );
+			await ReadCapabilitiesAsync( TerminalProfiles.Dumb );
 
 		Assert.Equal( 0, capabilities.IndexedColorCount );
 		Assert.False( capabilities.SupportsColor );
@@ -46,20 +47,20 @@ public sealed class CursesPresentationCapabilitiesTests {
 	}
 
 	[Fact]
-	public void Sgr0WithoutOriginalColorPairDoesNotClaimDefaultColorRestoration() {
+	public async Task Sgr0WithoutOriginalColorPairDoesNotClaimDefaultColorRestoration() {
 		TerminalDescription terminal = new TerminalDescriptionBuilder( "sgr0-only" )
 			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
 			.Build();
 		CursesPresentationCapabilities capabilities =
-			CursesPresentationCapabilities.Create( terminal );
+			await ReadCapabilitiesAsync( terminal );
 
 		Assert.False( capabilities.SupportsDefaultColorRestoration );
 	}
 
 	[Fact]
-	public void AnsiReportsIndexedColorAndNativeAttributeSubset() {
+	public async Task AnsiReportsIndexedColorAndNativeAttributeSubset() {
 		CursesPresentationCapabilities capabilities =
-			CursesPresentationCapabilities.Create( TerminalProfiles.Ansi );
+			await ReadCapabilitiesAsync( TerminalProfiles.Ansi );
 
 		Assert.Equal( 8, capabilities.IndexedColorCount );
 		Assert.True( capabilities.SupportsColor );
@@ -85,9 +86,9 @@ public sealed class CursesPresentationCapabilitiesTests {
 	}
 
 	[Fact]
-	public void Xterm256ReportsCompleteModernPresentationVocabulary() {
+	public async Task Xterm256ReportsCompleteModernPresentationVocabulary() {
 		CursesPresentationCapabilities capabilities =
-			CursesPresentationCapabilities.Create( TerminalProfiles.Xterm256Color );
+			await ReadCapabilitiesAsync( TerminalProfiles.Xterm256Color );
 
 		Assert.Equal( 256, capabilities.IndexedColorCount );
 		Assert.False( capabilities.SupportsDirectRgb );
@@ -107,13 +108,122 @@ public sealed class CursesPresentationCapabilitiesTests {
 	}
 
 	[Fact]
-	public void Direct256ReportsDirectRgbAndRetainedIndexedPrefix() {
+	public async Task Direct256ReportsDirectRgbAndRetainedIndexedPrefix() {
 		CursesPresentationCapabilities capabilities =
-			CursesPresentationCapabilities.Create( TerminalProfiles.XtermDirect256 );
+			await ReadCapabilitiesAsync( TerminalProfiles.XtermDirect256 );
 
 		Assert.True( capabilities.SupportsDirectRgb );
 		Assert.Equal( 256, capabilities.IndexedColorCount );
 		Assert.True( capabilities.SupportsForegroundColor );
 		Assert.True( capabilities.SupportsBackgroundColor );
+	}
+
+	private static async ValueTask<CursesPresentationCapabilities> ReadCapabilitiesAsync(
+		TerminalDescription terminal
+	) {
+		ArgumentNullException.ThrowIfNull( terminal );
+		await using TerminalSession session = await TerminalSession.OpenAsync(
+			new TestTerminalControlProvider(),
+			TerminalEndpoint.StandardInput,
+			TerminalEndpoint.StandardOutput,
+			new TestTerminalInput(),
+			new DiscardingTerminalOutput(),
+			new TerminalSessionOptions {
+				TerminalOverride = terminal,
+				ObserveLifecycleEvents = false
+			}
+		);
+
+		return CursesPresentationCapabilities.Create( session.Profile.Screen );
+	}
+
+	private sealed class TestTerminalInput : ITerminalInput {
+		public ValueTask<int> ReadAsync(
+			Memory<byte> buffer,
+			CancellationToken cancellationToken = default
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			return ValueTask.FromResult( 0 );
+		}
+	}
+
+	private sealed class DiscardingTerminalOutput : ITerminalOutput {
+		public ValueTask WriteAsync(
+			ReadOnlyMemory<byte> buffer,
+			CancellationToken cancellationToken = default
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			return ValueTask.CompletedTask;
+		}
+
+		public ValueTask FlushAsync(
+			CancellationToken cancellationToken = default
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			return ValueTask.CompletedTask;
+		}
+	}
+
+	private sealed class TestTerminalControlProvider : ITerminalControlProvider {
+		private readonly TerminalModeSnapshot baseline = TerminalModeSnapshot.CreatePosix(
+			0,
+			0,
+			0,
+			0x0002UL,
+			new byte[ 32 ],
+			0,
+			32,
+			0,
+			new TerminalSpeed( 13, 9600 ),
+			new TerminalSpeed( 13, 9600 )
+		);
+
+		public TerminalControlResult<TerminalEndpointObservation> Observe(
+			TerminalEndpoint endpoint
+		) {
+			ArgumentNullException.ThrowIfNull( endpoint );
+			return TerminalControlResult<TerminalEndpointObservation>.Available(
+				new TerminalEndpointObservation(
+					true,
+					null,
+					TerminalPlatformKind.PosixTermios,
+					TerminalControlCapabilities.Attachment
+						| TerminalControlCapabilities.ModeRead
+						| TerminalControlCapabilities.ModeWrite
+						| TerminalControlCapabilities.LiveSize
+				)
+			);
+		}
+
+		public TerminalControlResult<TerminalSize> GetSize(
+			TerminalEndpoint endpoint
+		) {
+			ArgumentNullException.ThrowIfNull( endpoint );
+			return TerminalControlResult<TerminalSize>.Available(
+				new TerminalSize( 80, 24 )
+			);
+		}
+
+		public TerminalControlResult<TerminalModeSnapshot> GetMode(
+			TerminalEndpoint endpoint
+		) {
+			ArgumentNullException.ThrowIfNull( endpoint );
+			return TerminalControlResult<TerminalModeSnapshot>.Available(
+				this.baseline
+			);
+		}
+
+		public TerminalControlMutationResult SetMode(
+			TerminalEndpoint endpoint,
+			TerminalModeSnapshot mode,
+			TerminalModeApplyTiming timing
+		) {
+			ArgumentNullException.ThrowIfNull( endpoint );
+			ArgumentNullException.ThrowIfNull( mode );
+			if ( !Enum.IsDefined( timing ) ) {
+				throw new ArgumentOutOfRangeException( nameof( timing ) );
+			}
+			return TerminalControlMutationResult.Success();
+		}
 	}
 }

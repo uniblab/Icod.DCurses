@@ -66,7 +66,7 @@ internal readonly record struct CursesLineShiftPlan(
 internal sealed class CursesLineShiftResolver {
 	private readonly TerminalDescription terminal;
 	private readonly CursesOutputCostModel costModel;
-	private readonly CursesCursorMotionResolver cursorMotionResolver;
+	private readonly CursesLegacyCursorMotionResolver cursorMotionResolver;
 
 	internal CursesLineShiftResolver(
 		TerminalDescription terminal,
@@ -77,7 +77,7 @@ internal sealed class CursesLineShiftResolver {
 
 		this.terminal = terminal;
 		this.costModel = costModel;
-		cursorMotionResolver = new CursesCursorMotionResolver( terminal );
+		cursorMotionResolver = new CursesLegacyCursorMotionResolver( terminal );
 	}
 
 	internal CursesLineShiftPlan? Resolve(
@@ -468,7 +468,7 @@ internal sealed class CursesLineShiftResolver {
 			motionStartColumn = null;
 		}
 
-		CursesCursorMotion operationMotion;
+		CursesLegacyCursorMotion operationMotion;
 		try {
 			operationMotion = cursorMotionResolver.Resolve(
 				motionStartRow,
@@ -487,7 +487,7 @@ internal sealed class CursesLineShiftResolver {
 			cursorAfterColumn = null;
 		}
 
-		CursesCursorMotion finalMotion;
+		CursesLegacyCursorMotion finalMotion;
 		try {
 			finalMotion = cursorMotionResolver.Resolve(
 				cursorAfterRow,

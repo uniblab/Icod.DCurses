@@ -19,6 +19,7 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+using System.Reflection;
 using Xunit;
 
 namespace Icod.DCurses.Tests;
@@ -110,5 +111,50 @@ public sealed class CursesVirtualScreenChangeTrackingTests {
 			new CursesCell( "X" )
 		);
 		Assert.True( viewport.HasVisiblePadChanges );
+	}
+
+	[Fact]
+	public void MarkCleanThroughPreservesChangesAfterCapturedRevision() {
+		CursesVirtualScreen screen = new( 2, 1 );
+		screen.EnableChangeTracking();
+		screen[ 0, 0 ] = new CursesCell( "A" );
+		screen.TouchCell( 0, 1 );
+		ulong capturedRevision = screen.ChangeRevision;
+
+		screen[ 0, 1 ] = new CursesCell( "B" );
+		screen.MarkCleanThrough( capturedRevision );
+
+		Assert.False( screen.IsDirty( 0, 0 ) );
+		Assert.True( screen.IsDirty( 0, 1 ) );
+		Assert.Equal( 1, screen.DirtyCellCount );
+		Assert.True(
+			screen.GetCellChangeRevision( 0, 1 ) > capturedRevision
+		);
+	}
+
+	[Fact]
+	public void MarkCleanThroughRequiresChangeTracking() {
+		CursesVirtualScreen screen = new( 1, 1 );
+
+		Assert.Throws<InvalidOperationException>(
+			() => screen.MarkCleanThrough( 0 )
+		);
+	}
+
+	[Fact]
+	public void ChangeRevisionRejectsOverflowWithoutWrapping() {
+		CursesVirtualScreen screen = new( 1, 1 );
+		screen.EnableChangeTracking();
+		FieldInfo? revisionField = typeof( CursesVirtualScreen ).GetField(
+			"changeRevision",
+			BindingFlags.Instance | BindingFlags.NonPublic
+		);
+		Assert.NotNull( revisionField );
+		revisionField!.SetValue( screen, ulong.MaxValue );
+
+		Assert.Throws<InvalidOperationException>(
+			() => screen.TouchCell( 0, 0 )
+		);
+		Assert.Equal( ulong.MaxValue, screen.ChangeRevision );
 	}
 }

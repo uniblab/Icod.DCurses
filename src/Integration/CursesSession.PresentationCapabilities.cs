@@ -28,7 +28,7 @@ public sealed partial class CursesSession {
 	/// </summary>
 	public CursesPresentationCapabilities PresentationCapabilities {
 		get {
-			return CursesPresentationCapabilities.Create( Terminal );
+			return CursesPresentationCapabilities.Create( this.Profile.Screen );
 		}
 	}
 }

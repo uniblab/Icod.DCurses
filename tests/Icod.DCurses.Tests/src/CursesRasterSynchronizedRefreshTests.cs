@@ -54,10 +54,9 @@ public sealed class CursesRasterSynchronizedRefreshTests {
 		screen.VirtualScreen.SetRasterCell( 0, 0, rasterCell );
 		screen.VirtualScreen.SetCell( 0, 1, new CursesCell( "X" ) );
 
-		SharedRefreshOutput refreshOutput = new( rawOutput );
 		CursesRefreshEngine refreshEngine = new(
-			session.Terminal,
-			refreshOutput
+			session.HostSession,
+			useSynchronizedOutput: true
 		);
 		FieldInfo refreshEngineField = Assert.IsAssignableFrom<FieldInfo>(
 			typeof( CursesSession ).GetField(
