@@ -405,7 +405,7 @@ public sealed class CursesEraseResolverTests {
 		await using TerminalSession session = await OpenSessionAsync(
 			new TerminalDescriptionBuilder( "erase-rendition" )
 				.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
-				.SetString( StringCapability.OriginalColorPair, "<op>" )
+				.SetString( StringCapability.EnterBoldMode, "<bold>" )
 				.SetString( StringCapability.ClearToEndOfLine, "E" )
 				.Build(),
 			output
@@ -434,7 +434,7 @@ public sealed class CursesEraseResolverTests {
 		Assert.Equal( TerminalScreenOperationKind.Rendition, plan.Sequence.Plans[ 0 ].Kind );
 		Assert.Equal( TerminalScreenOperationKind.Erase, plan.Sequence.Plans[ 1 ].Kind );
 		await CommitAsync( session, plan.Sequence );
-		Assert.Equal( "<sgr0><op>E", output.Text );
+		Assert.Equal( "<sgr0>E", output.Text );
 	}
 
 	[Fact]
