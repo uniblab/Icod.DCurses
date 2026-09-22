@@ -560,7 +560,7 @@ internal sealed class CursesLineShiftResolver {
 		}
 
 		sequence = expanded;
-		byteCount = CursesOutputCostModel.GetTerminalStringByteCount(
+		byteCount = GetLegacyTerminalStringByteCount(
 			expanded,
 			affectedLines
 		);
@@ -592,7 +592,7 @@ internal sealed class CursesLineShiftResolver {
 			);
 			if ( 0 < expanded.Length ) {
 				bestSequence = expanded;
-				bestByteCount = CursesOutputCostModel.GetTerminalStringByteCount(
+				bestByteCount = GetLegacyTerminalStringByteCount(
 					expanded,
 					affectedLines
 				);
@@ -608,7 +608,7 @@ internal sealed class CursesLineShiftResolver {
 				repeated.Append( one );
 			}
 			string repeatedSequence = repeated.ToString();
-			int repeatedByteCount = CursesOutputCostModel.GetTerminalStringByteCount(
+			int repeatedByteCount = GetLegacyTerminalStringByteCount(
 				repeatedSequence,
 				affectedLines
 			);
@@ -627,6 +627,20 @@ internal sealed class CursesLineShiftResolver {
 		sequence = bestSequence;
 		byteCount = bestByteCount;
 		return true;
+	}
+
+	// Temporary compatibility for the Task 4 resolver that has not yet moved to Terminal plans.
+	private static int GetLegacyTerminalStringByteCount(
+		string value,
+		int affectedLines
+	) {
+		int byteCount = 0;
+		TermInfoOutput.TPuts(
+			value,
+			affectedLines,
+			_ => byteCount = checked( byteCount + 1 )
+		);
+		return byteCount;
 	}
 
 	private bool TryFindDifferenceRange(

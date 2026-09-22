@@ -214,8 +214,19 @@ internal sealed class CursesLegacyCursorMotionResolver {
 	private static CursesLegacyCursorMotion Create( string sequence ) {
 		return new CursesLegacyCursorMotion(
 			sequence,
-			CursesOutputCostModel.GetTerminalStringByteCount( sequence )
+			GetLegacyTerminalStringByteCount( sequence )
 		);
+	}
+
+	// Temporary compatibility until Task 4 removes this legacy resolver.
+	private static int GetLegacyTerminalStringByteCount( string value ) {
+		int byteCount = 0;
+		TermInfoOutput.TPuts(
+			value,
+			1,
+			_ => byteCount = checked( byteCount + 1 )
+		);
+		return byteCount;
 	}
 
 	private static void ChooseBetter(

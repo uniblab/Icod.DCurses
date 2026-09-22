@@ -358,7 +358,7 @@ internal sealed class CursesCharacterShiftResolver {
 			);
 			if ( 0 < expanded.Length ) {
 				bestSequence = expanded;
-				bestByteCount = CursesOutputCostModel.GetTerminalStringByteCount(
+				bestByteCount = GetLegacyTerminalStringByteCount(
 					expanded
 				);
 			}
@@ -373,7 +373,7 @@ internal sealed class CursesCharacterShiftResolver {
 				repeated.Append( one );
 			}
 			string repeatedSequence = repeated.ToString();
-			int repeatedByteCount = CursesOutputCostModel.GetTerminalStringByteCount(
+			int repeatedByteCount = GetLegacyTerminalStringByteCount(
 				repeatedSequence
 			);
 			if ( repeatedByteCount < bestByteCount ) {
@@ -391,6 +391,17 @@ internal sealed class CursesCharacterShiftResolver {
 		sequence = bestSequence;
 		byteCount = bestByteCount;
 		return true;
+	}
+
+	// Temporary compatibility for the Task 3 resolver that has not yet moved to Terminal plans.
+	private static int GetLegacyTerminalStringByteCount( string value ) {
+		int byteCount = 0;
+		TermInfoOutput.TPuts(
+			value,
+			1,
+			_ => byteCount = checked( byteCount + 1 )
+		);
+		return byteCount;
 	}
 
 	private static void ChooseBetter(
