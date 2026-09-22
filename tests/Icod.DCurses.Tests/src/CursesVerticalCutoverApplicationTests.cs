@@ -136,10 +136,11 @@ public sealed class CursesVerticalCutoverApplicationTests {
 		await context.Engine.RefreshAsync( screen, 0, 5 );
 
 		string text = output.Text;
-		int oldCell = text.IndexOf( "<cup:0,0>", StringComparison.Ordinal );
+		int spriteMove = text.IndexOf( "<cup:0,4>", StringComparison.Ordinal );
 		int spriteCell = text.IndexOf( RasterPlaceholder, StringComparison.Ordinal );
-		Assert.True( 0 <= oldCell );
-		Assert.True( oldCell < spriteCell );
+		Assert.StartsWith( " ", text, StringComparison.Ordinal );
+		Assert.True( 0 <= spriteMove );
+		Assert.True( spriteMove < spriteCell );
 		Assert.Equal( 1, CountOccurrences( text, RasterPlaceholder ) );
 		Assert.DoesNotContain( "<ich:", text );
 		Assert.DoesNotContain( "<dl:", text );
