@@ -79,21 +79,27 @@ public sealed class CursesOptimizationRegretTests {
 	}
 
 	[Fact]
-	public async Task EditorCharacterShiftBeatsOrdinaryRewrite() {
+	public async Task EditorCharacterShiftUsesAcceptedT2003RewriteFallback() {
 		const string initial = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEF";
 		MeasuringOutput optimizedOutput = new();
 		MeasuringOutput fallbackOutput = new();
-		CursesRefreshEngine optimizedEngine = new(
+		TerminalDescription optimizedTerminal =
 			new TerminalDescriptionBuilder( "editor-optimized" )
 				.SetString( StringCapability.CursorAddress, "C" )
 				.SetString( StringCapability.InsertCharacters, "I%p1%d" )
-				.Build(),
-			optimizedOutput
-		);
-		CursesRefreshEngine fallbackEngine = new(
-			CreateCursorOnlyTerminal(),
-			fallbackOutput
-		);
+				.Build();
+		await using CursesRefreshEngineTestContext optimizedContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				optimizedTerminal,
+				optimizedOutput
+			);
+		await using CursesRefreshEngineTestContext fallbackContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateCursorOnlyTerminal(),
+				fallbackOutput
+			);
+		CursesRefreshEngine optimizedEngine = optimizedContext.Engine;
+		CursesRefreshEngine fallbackEngine = fallbackContext.Engine;
 		CursesScreen optimizedScreen = CreateSingleRowScreen( initial );
 		CursesScreen fallbackScreen = CreateSingleRowScreen( initial );
 		optimizedScreen.StandardWindow.Move( 0, 1 );
@@ -108,29 +114,33 @@ public sealed class CursesOptimizationRegretTests {
 		await optimizedEngine.RefreshAsync( optimizedScreen, 0, 1 );
 		await fallbackEngine.RefreshAsync( fallbackScreen, 0, 1 );
 
-		Assert.Equal( 2, optimizedOutput.ByteCount );
-		Assert.Equal( 34, fallbackOutput.ByteCount );
-		Assert.Equal( 1, optimizedOutput.WriteCount );
-		Assert.Equal( 3, fallbackOutput.WriteCount );
+		Assert.Equal( fallbackOutput.ByteCount, optimizedOutput.ByteCount );
+		Assert.Equal( fallbackOutput.WriteCount, optimizedOutput.WriteCount );
 		AssertRowsEqual( optimizedScreen, fallbackScreen );
 	}
 
 	[Fact]
-	public async Task PagerLineShiftBeatsOrdinaryRewrite() {
+	public async Task PagerLineShiftUsesAcceptedT2003RewriteFallback() {
 		const int columns = 32;
 		MeasuringOutput optimizedOutput = new();
 		MeasuringOutput fallbackOutput = new();
-		CursesRefreshEngine optimizedEngine = new(
+		TerminalDescription optimizedTerminal =
 			new TerminalDescriptionBuilder( "pager-optimized" )
 				.SetString( StringCapability.CursorAddress, "C" )
 				.SetString( StringCapability.DeleteLines, "D%p1%d" )
-				.Build(),
-			optimizedOutput
-		);
-		CursesRefreshEngine fallbackEngine = new(
-			CreateCursorOnlyTerminal(),
-			fallbackOutput
-		);
+				.Build();
+		await using CursesRefreshEngineTestContext optimizedContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				optimizedTerminal,
+				optimizedOutput
+			);
+		await using CursesRefreshEngineTestContext fallbackContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateCursorOnlyTerminal(),
+				fallbackOutput
+			);
+		CursesRefreshEngine optimizedEngine = optimizedContext.Engine;
+		CursesRefreshEngine fallbackEngine = fallbackContext.Engine;
 		CursesScreen optimizedScreen = CreateRowPatternScreen( columns );
 		CursesScreen fallbackScreen = CreateRowPatternScreen( columns );
 		await optimizedEngine.RefreshAsync( optimizedScreen, 0, 0 );
@@ -145,10 +155,8 @@ public sealed class CursesOptimizationRegretTests {
 		await optimizedEngine.RefreshAsync( optimizedScreen, 0, 0 );
 		await fallbackEngine.RefreshAsync( fallbackScreen, 0, 0 );
 
-		Assert.Equal( 4, optimizedOutput.ByteCount );
-		Assert.Equal( 166, fallbackOutput.ByteCount );
-		Assert.Equal( 3, optimizedOutput.WriteCount );
-		Assert.Equal( 11, fallbackOutput.WriteCount );
+		Assert.Equal( fallbackOutput.ByteCount, optimizedOutput.ByteCount );
+		Assert.Equal( fallbackOutput.WriteCount, optimizedOutput.WriteCount );
 		AssertRowsEqual( optimizedScreen, fallbackScreen );
 	}
 
