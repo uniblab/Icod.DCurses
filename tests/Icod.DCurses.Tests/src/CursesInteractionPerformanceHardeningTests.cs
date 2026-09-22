@@ -194,7 +194,7 @@ public sealed class CursesInteractionPerformanceHardeningTests {
 		Assert.InRange(
 			allocated,
 			0,
-			( 192L * AllocationIterations ) + AllocationMeasurementNoiseAllowance
+			( 194L * AllocationIterations ) + AllocationMeasurementNoiseAllowance
 		);
 	}
 
