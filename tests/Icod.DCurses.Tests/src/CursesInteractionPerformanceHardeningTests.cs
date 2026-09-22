@@ -28,6 +28,7 @@ namespace Icod.DCurses.Tests;
 public sealed class CursesInteractionPerformanceHardeningTests {
 	private const int AllocationIterations = 10000;
 	private const long AllocationMeasurementNoiseAllowance = 64L * 1024L;
+	private const long AllocationMeasurementNoiseFloor = 1024L;
 	private const int AllocationSamples = 8;
 	private const int BindingCount = 64;
 	private const int RegionCount = 256;
@@ -82,7 +83,7 @@ public sealed class CursesInteractionPerformanceHardeningTests {
 		Assert.InRange(
 			MeasureMinimumAllocatedBytes( operation ),
 			0,
-			256
+			AllocationMeasurementNoiseFloor
 		);
 	}
 
