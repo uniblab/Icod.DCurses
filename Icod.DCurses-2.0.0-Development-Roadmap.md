@@ -1,7 +1,7 @@
 # Icod.DCurses 2.0.0 Development Roadmap
 
 **Theme:** Terminal-only integration; remove direct TermInfo coupling.\
-**Status:** T2001 and T2002 accepted; T2003 is the next implementation tranche.
+**Status:** T2001-T2003 accepted; T2004 is the next implementation tranche.
 
 **Planning date:** 2026-09-18.\
 **Behavioral baseline:** published `Icod.DCurses 1.6.0`.\
@@ -27,7 +27,7 @@ This means:
 
 Version 1.6 is the endpoint for new 1.x features. Necessary 1.6.x maintenance may continue independently. New features belong to 2.1+ after this migration is accepted. Do not mix widgets, new input protocols, animation scheduling, physical raster scenes, or application-framework work into 2.0.
 
-This PR now carries the ordered 2.0 migration. T2002 established the development identity, selected Terminal 1.18.0, and completed the approved public profile/dimensions cutover. It does not claim the renderer or direct dependency is decoupled, and it does not authorize publication.
+This PR now carries the ordered 2.0 migration. T2002 established the development identity, selected Terminal 1.18.0, and completed the approved public profile/dimensions cutover. T2003 moved the core presentation path and ordinary rewrite refresh through Terminal-owned planners and one semantic output transaction. The direct TermInfo dependency and T2004-owned optimization paths remain migration debt, and no checkpoint authorizes publication.
 
 ## 2. Reference snapshot and authorities
 
@@ -171,6 +171,8 @@ Create tranche evidence under `docs/T2001-...md` through `docs/T2011-...md` as w
 **Depends on:** T2002 and T2001 recovery readiness.\
 **Files:** presentation capabilities/resolvers, line/cursor resolvers, presentation integration; their existing test families.
 
+**Status:** accepted on exact head `448313a41162293eb809ad83e1b68af1b86bf1eb`; see `docs/T2003-Semantic-Presentation-Vertical-Cutover-Gate.md`.
+
 The approved staging for the T2003 vertical cutover is:
 
 ```text
@@ -181,9 +183,9 @@ T2005: exhaustive transaction/capacity/cancellation/synchronization/publication 
 
 No T2003 package is published. The temporary rewrite difference is accepted only until T2004.
 
-- [ ] Map DCurses colors/attributes/glyphs into Terminal-owned values; delegate normalization, safe transitions, reset, ACS and cursor/alert planning.
-- [ ] Preserve Unicode-width/ASCII fallback, unsupported-profile behavior, alert preference/fallback, and existing presentation lease ownership.
-- [ ] Cover monochrome, indexed/direct colors, invalid/default colors, restricted/non-reversible attributes, unknown physical state, incomplete ACS and unavailable cursor movement.
+- [x] Map DCurses colors/attributes/glyphs into Terminal-owned values; delegate normalization, safe transitions, reset, ACS and cursor/alert planning.
+- [x] Preserve Unicode-width/ASCII fallback, unsupported-profile behavior, alert preference/fallback, and existing presentation lease ownership.
+- [x] Cover monochrome, indexed/direct colors, invalid/default colors, restricted/non-reversible attributes, unknown physical state, incomplete ACS and unavailable cursor movement.
 
 **Acceptance:** migrated helpers contain no TermInfo interpretation or raw command construction; renderer-level behavior is preserved or has an explicitly approved difference.
 
@@ -310,4 +312,4 @@ Completion requires all of the following, not just successful compilation:
 
 ## 10. Immediate next checkpoint
 
-Write and review the detailed T2003 implementation plan. Then migrate presentation capability projection, color/attribute/glyph resolution, rendition baseline/transitions, ACS, cursor movement, and alerts to Terminal 1.18 semantic screen APIs. Keep the direct TermInfo reference and internal description seam only for still-unmigrated renderer paths; do not remove either piecemeal before T2007 proves the complete production/package boundary.
+Write and review the detailed T2004 implementation plan. Then restore erase, character-shift, line-shift, and scroll-region optimizations with opaque Terminal operation plans and `ByteCount`/`AffectedLines`, while retaining semantic eligibility and deterministic alternative selection in DCurses. Keep the direct TermInfo reference only for still-unmigrated paths; its final package/reference removal remains T2007.

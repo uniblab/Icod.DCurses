@@ -862,7 +862,7 @@ git commit -m "test: qualify DCurses T2003 application workloads"
 - Consumes: Tasks 1-8 and exact-head workflow evidence.
 - Produces: accepted T2003 evidence authorizing T2004, or a precise blocker.
 
-- [ ] **Step 1: Run static identity, API, and boundary checks**
+- [x] **Step 1: Run static identity, API, and boundary checks**
 
 ```sh
 rg -n '<Version>|<PackageVersion>|<AssemblyVersion>|Icod\.Terminal|Icod\.TermInfo' Icod.DCurses.csproj
@@ -881,7 +881,7 @@ git diff origin/2.0.0-roadmap -- README.md docs/Public-API-Fingerprint-2.0.json
 
 Expected: identities/dependencies remain exact; the migrated-path search and protected-file diff are empty; whitespace is clean.
 
-- [ ] **Step 2: Run complete local qualification when an SDK executor is available**
+- [x] **Step 2: Run complete local qualification when an SDK executor is available**
 
 ```sh
 dotnet restore Icod.DCurses.sln
@@ -892,7 +892,7 @@ pwsh ./packaging/Invoke-Build.ps1 -Section validate -Configuration Staging
 
 Expected: zero warnings/errors; all tests and package validation pass. If the current executor lacks `dotnet`, use the exact-head PR workflow and do not claim local execution.
 
-- [ ] **Step 3: Review the complete API fingerprint**
+- [x] **Step 3: Review the complete API fingerprint**
 
 Run the active/historical API and public-dependency tests. Expected T2002 values remain:
 
@@ -904,7 +904,7 @@ sha256 1d33658358af26049d858e084a80d9f3b80abab974c1c4d3bfb36c2c2b477c65
 
 Stop on any public contract or public dependency change.
 
-- [ ] **Step 4: Push and require the exact-head matrix**
+- [x] **Step 4: Push and require the exact-head matrix**
 
 Required jobs:
 
@@ -920,15 +920,15 @@ Runtime macOS ARM64
 
 Record per-framework totals from Linux x64 and inspect at least one second architecture's logs. Do not accept a rerun from a different head.
 
-- [ ] **Step 5: Record the T2003 gate**
+- [x] **Step 5: Record the T2003 gate**
 
 Create the gate with exact commit/workflow/job links, package/API identities, test totals, migrated-path search result, transaction/flush/order/failure evidence, application-shaped witnesses, and the explicit temporary T2004 optimization debt. State that direct TermInfo removal remains T2007 and no package is published.
 
-- [ ] **Step 6: Mark T2003 accepted only after every criterion passes**
+- [x] **Step 6: Mark T2003 accepted only after every criterion passes**
 
 Update both roadmaps to show T2003 accepted and T2004 next. If any criterion fails, retain T2003 as blocked and record the exact blocker instead.
 
-- [ ] **Step 7: Commit the gate**
+- [x] **Step 7: Commit the gate**
 
 ```sh
 git add docs/T2003-Semantic-Presentation-Vertical-Cutover-Gate.md \
