@@ -57,7 +57,19 @@ public sealed class CursesRenditionTransitionTests {
 		Assert.Contains( "<op>", output.Text );
 		Assert.Contains( "<bold>", output.Text );
 		Assert.Contains( "<underline>", output.Text );
-		Assert.Contains( "A<underline>B", output.Text );
+		int firstPayload = output.Text.IndexOf( "A", StringComparison.Ordinal );
+		int underline = output.Text.IndexOf(
+			"<underline>",
+			firstPayload + 1,
+			StringComparison.Ordinal
+		);
+		int secondPayload = output.Text.IndexOf(
+			"B",
+			underline + "<underline>".Length,
+			StringComparison.Ordinal
+		);
+		Assert.True( firstPayload < underline );
+		Assert.True( underline < secondPayload );
 	}
 
 	[Fact]

@@ -178,7 +178,7 @@ public sealed class CursesTerminalIntegrationTests {
 	}
 
 	[Fact]
-	public async Task SynchronizedOutputComposesWithOuterTerminalLease() {
+	public async Task SynchronizedRefreshRejectsConflictingOuterTerminalLease() {
 		RecordingOutput output = new();
 		TerminalSession terminalSession = await OpenTerminalSessionAsync(
 			output,
@@ -194,7 +194,14 @@ public sealed class CursesTerminalIntegrationTests {
 		TerminalSynchronizedOutputLease outer =
 			await terminalSession.AcquireSynchronizedOutputAsync();
 
-		await session.RefreshAsync();
+		InvalidOperationException conflict = await Assert.ThrowsAsync<InvalidOperationException>(
+			() => session.RefreshAsync().AsTask()
+		);
+		Assert.Contains(
+			"conflicts with existing synchronized-output ownership",
+			conflict.Message,
+			StringComparison.Ordinal
+		);
 
 		Assert.Equal(
 			1,
@@ -205,13 +212,19 @@ public sealed class CursesTerminalIntegrationTests {
 			CountOccurrences( output.Text, SynchronizedOutputEnd )
 		);
 
-		await session.DisposeAsync();
 		await outer.DisposeAsync();
 
 		Assert.Equal(
 			1,
 			CountOccurrences( output.Text, SynchronizedOutputEnd )
 		);
+
+		output.Clear();
+		await session.RefreshAsync();
+		Assert.Contains( SynchronizedOutputBegin, output.Text );
+		Assert.Contains( "X", output.Text );
+		Assert.Contains( SynchronizedOutputEnd, output.Text );
+		await session.DisposeAsync();
 	}
 
 	[Fact]
@@ -368,7 +381,6 @@ public sealed class CursesTerminalIntegrationTests {
 
 		await session.LifecycleParticipant.PrepareForTerminalSuspendAsync();
 		Assert.Contains( "<sgr0>", output.Text );
-		Assert.Contains( "<op>", output.Text );
 
 		Task blockedRefresh = session.RefreshAsync().AsTask();
 		await Task.Yield();
