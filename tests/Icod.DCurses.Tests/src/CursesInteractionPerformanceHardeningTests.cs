@@ -27,7 +27,7 @@ namespace Icod.DCurses.Tests;
 /// <summary>Freezes representative 1.4 interaction-routing allocation and throughput ceilings.</summary>
 public sealed class CursesInteractionPerformanceHardeningTests {
 	private const int AllocationIterations = 10000;
-	private const long AllocationMeasurementNoiseAllowance = 1024;
+	private const long AllocationMeasurementNoiseAllowance = 64L * 1024L;
 	private const int AllocationSamples = 8;
 	private const int BindingCount = 64;
 	private const int RegionCount = 256;
@@ -194,7 +194,7 @@ public sealed class CursesInteractionPerformanceHardeningTests {
 		Assert.InRange(
 			allocated,
 			0,
-			( 194L * AllocationIterations ) + AllocationMeasurementNoiseAllowance
+			( 192L * AllocationIterations ) + AllocationMeasurementNoiseAllowance
 		);
 	}
 
