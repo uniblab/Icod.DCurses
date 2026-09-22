@@ -65,6 +65,26 @@ internal sealed class CursesRefreshEngineTestContext : IAsyncDisposable {
 		);
 	}
 
+	internal static async ValueTask<CursesRefreshEngineTestContext> OpenAsync(
+		TerminalDescription terminal,
+		Icod.Terminal.ITerminalOutput output,
+		bool useSynchronizedOutput = false
+	) {
+		ArgumentNullException.ThrowIfNull( terminal );
+		ArgumentNullException.ThrowIfNull( output );
+		TerminalSession session = await TerminalScreenTestSession.OpenAsync(
+			terminal,
+			output
+		);
+		return new CursesRefreshEngineTestContext(
+			session,
+			new CursesRefreshEngine(
+				session,
+				useSynchronizedOutput
+			)
+		);
+	}
+
 	public ValueTask DisposeAsync() {
 		return this.Session.DisposeAsync();
 	}

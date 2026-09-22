@@ -19,8 +19,9 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
+using Icod.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -28,6 +29,8 @@ namespace Icod.DCurses.Tests;
 
 /// <summary>Hardens retained-raster refresh failure and caller-driven retry semantics.</summary>
 public sealed class CursesRasterFailureAtomicityTests {
+	private const string RasterPlaceholder = "\U0010EEEE";
+
 	[Fact]
 	public async Task RasterOutputFailureDoesNotCommitPhysicalStateAndCallerRetryReemitsExactlyOnce() {
 		FailOnceRasterOutput output = new();
@@ -205,9 +208,7 @@ public sealed class CursesRasterFailureAtomicityTests {
 			.Build();
 	}
 
-	private abstract class RasterOutputBase
-		: ITerminalOutput,
-		  ITerminalRasterPlaceholderOutput {
+	private abstract class RasterOutputBase : ITerminalOutput {
 		internal int RasterAttemptCount {
 			get;
 			set;
@@ -218,36 +219,15 @@ public sealed class CursesRasterFailureAtomicityTests {
 			set;
 		}
 
-		public ValueTask WriteTextAsync(
-			string value,
+		public virtual ValueTask WriteAsync(
+			ReadOnlyMemory<byte> buffer,
 			CancellationToken cancellationToken = default
 		) {
-			ArgumentNullException.ThrowIfNull( value );
 			cancellationToken.ThrowIfCancellationRequested();
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask WriteTerminalStringAsync(
-			string value,
-			int affectedLines = 1,
-			CancellationToken cancellationToken = default
-		) {
-			ArgumentNullException.ThrowIfNull( value );
-			if ( 0 >= affectedLines ) {
-				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
+			if ( IsRasterWrite( buffer ) ) {
+				this.RasterAttemptCount++;
+				this.RasterSuccessCount++;
 			}
-			cancellationToken.ThrowIfCancellationRequested();
-			return ValueTask.CompletedTask;
-		}
-
-		public virtual ValueTask WriteRasterPlaceholderCellAsync(
-			CursesRasterCell cell,
-			CancellationToken cancellationToken = default
-		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			_ = cell.Placeholder;
-			this.RasterAttemptCount++;
-			this.RasterSuccessCount++;
 			return ValueTask.CompletedTask;
 		}
 
@@ -257,17 +237,26 @@ public sealed class CursesRasterFailureAtomicityTests {
 			cancellationToken.ThrowIfCancellationRequested();
 			return ValueTask.CompletedTask;
 		}
+
+		protected static bool IsRasterWrite( ReadOnlyMemory<byte> buffer ) {
+			return Encoding.UTF8.GetString( buffer.Span ).Contains(
+				RasterPlaceholder,
+				StringComparison.Ordinal
+			);
+		}
 	}
 
 	private sealed class FailOnceRasterOutput : RasterOutputBase {
 		private bool failurePending = true;
 
-		public override ValueTask WriteRasterPlaceholderCellAsync(
-			CursesRasterCell cell,
+		public override ValueTask WriteAsync(
+			ReadOnlyMemory<byte> buffer,
 			CancellationToken cancellationToken = default
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
-			_ = cell.Placeholder;
+			if ( !IsRasterWrite( buffer ) ) {
+				return ValueTask.CompletedTask;
+			}
 			this.RasterAttemptCount++;
 			if ( this.failurePending ) {
 				this.failurePending = false;
@@ -287,18 +276,19 @@ public sealed class CursesRasterFailureAtomicityTests {
 			this.cancellation = cancellation;
 		}
 
-		public override ValueTask WriteRasterPlaceholderCellAsync(
-			CursesRasterCell cell,
+		public override ValueTask WriteAsync(
+			ReadOnlyMemory<byte> buffer,
 			CancellationToken cancellationToken = default
 		) {
-			_ = cell.Placeholder;
+			if ( !IsRasterWrite( buffer ) ) {
+				return ValueTask.CompletedTask;
+			}
 			this.RasterAttemptCount++;
 			if ( this.cancellationPending ) {
 				this.cancellationPending = false;
 				this.cancellation.Cancel();
-				cancellationToken.ThrowIfCancellationRequested();
+				throw new OperationCanceledException( this.cancellation.Token );
 			}
-			cancellationToken.ThrowIfCancellationRequested();
 			this.RasterSuccessCount++;
 			return ValueTask.CompletedTask;
 		}
@@ -334,8 +324,8 @@ public sealed class CursesRasterFailureAtomicityTests {
 			if ( this.cancellationPending ) {
 				this.cancellationPending = false;
 				this.cancellation.Cancel();
+				throw new OperationCanceledException( this.cancellation.Token );
 			}
-			cancellationToken.ThrowIfCancellationRequested();
 			return ValueTask.CompletedTask;
 		}
 	}

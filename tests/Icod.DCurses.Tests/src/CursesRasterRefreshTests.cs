@@ -19,10 +19,8 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-using System.Text;
 using Icod.DCurses;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -30,9 +28,11 @@ namespace Icod.DCurses.Tests;
 
 /// <summary>Drives T1606 retained raster-placeholder refresh behavior.</summary>
 public sealed class CursesRasterRefreshTests {
+	private const string RasterPlaceholder = "\U0010EEEE";
+
 	[Fact]
 	public async Task FirstRefreshEmitsRasterInsteadOfFallbackTextAndUnchangedRefreshIsSilent() {
-		RecordingOutput output = new();
+		RecordingTerminalOutput output = new();
 		await using CursesRefreshEngineTestContext refreshContext =
 			await CursesRefreshEngineTestContext.OpenAsync(
 				CreateTerminal(),
@@ -48,20 +48,19 @@ public sealed class CursesRasterRefreshTests {
 
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Single( output.RasterWrites );
-		Assert.Equal( token, output.RasterWrites[ 0 ] );
+		Assert.Equal( 1, CountOccurrences( output.Text, RasterPlaceholder ) );
 		Assert.DoesNotContain( "Q", output.Text );
 
 		output.Clear();
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Empty( output.RasterWrites );
+		Assert.Equal( 0, CountOccurrences( output.Text, RasterPlaceholder ) );
 		Assert.DoesNotContain( "Q", output.Text );
 	}
 
 	[Fact]
 	public async Task DirtyRasterCoordinateReemitsOnlyThatCoordinate() {
-		RecordingOutput output = new();
+		RecordingTerminalOutput output = new();
 		await using CursesRefreshEngineTestContext refreshContext =
 			await CursesRefreshEngineTestContext.OpenAsync(
 				CreateTerminal(),
@@ -83,13 +82,12 @@ public sealed class CursesRasterRefreshTests {
 		screen.VirtualScreen.TouchCell( 0, 3 );
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		CursesRasterCell actual = Assert.Single( output.RasterWrites );
-		Assert.Equal( second, actual );
+		Assert.Equal( 1, CountOccurrences( output.Text, RasterPlaceholder ) );
 	}
 
 	[Fact]
 	public async Task RemovingRasterRestoresRetainedFallbackText() {
-		RecordingOutput output = new();
+		RecordingTerminalOutput output = new();
 		await using CursesRefreshEngineTestContext refreshContext =
 			await CursesRefreshEngineTestContext.OpenAsync(
 				CreateTerminal(),
@@ -108,13 +106,13 @@ public sealed class CursesRasterRefreshTests {
 		screen.VirtualScreen.SetRasterCell( 0, 1, null );
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Empty( output.RasterWrites );
+		Assert.Equal( 0, CountOccurrences( output.Text, RasterPlaceholder ) );
 		Assert.Contains( "F", output.Text );
 	}
 
 	[Fact]
 	public async Task RasterEmissionForcesRenditionReassertionBeforeFollowingText() {
-		RecordingOutput output = new();
+		RecordingTerminalOutput output = new();
 		await using CursesRefreshEngineTestContext refreshContext =
 			await CursesRefreshEngineTestContext.OpenAsync(
 				CreateTerminal(),
@@ -136,7 +134,7 @@ public sealed class CursesRasterRefreshTests {
 
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Single( output.RasterWrites );
+		Assert.Equal( 1, CountOccurrences( output.Text, RasterPlaceholder ) );
 		Assert.Equal( 2, CountOccurrences( output.Text, "<fg:2>" ) );
 		Assert.Equal( 2, CountOccurrences( output.Text, "<bold>" ) );
 		Assert.Contains( "X", output.Text );
@@ -145,7 +143,7 @@ public sealed class CursesRasterRefreshTests {
 
 	[Fact]
 	public async Task RasterPresenceDisablesEraseShortcut() {
-		RecordingOutput output = new();
+		RecordingTerminalOutput output = new();
 		await using CursesRefreshEngineTestContext refreshContext =
 			await CursesRefreshEngineTestContext.OpenAsync(
 				CreateTerminal(),
@@ -168,17 +166,22 @@ public sealed class CursesRasterRefreshTests {
 		screen.VirtualScreen.SetRasterCell( 0, 2, token );
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Single( output.RasterWrites );
+		Assert.Equal( 1, CountOccurrences( output.Text, RasterPlaceholder ) );
 		Assert.DoesNotContain( "<el>", output.Text );
 	}
 
 	[Fact]
-	public async Task RasterRefreshRequiresTypedRasterOutputBoundary() {
-		TextOnlyOutput output = new();
+	public async Task RasterRefreshRejectsCellFromDifferentTerminalSessionBeforeOutput() {
+		RecordingTerminalOutput output = new();
 		await using CursesRefreshEngineTestContext refreshContext =
 			await CursesRefreshEngineTestContext.OpenAsync(
 				CreateTerminal(),
 				output
+			);
+		await using CursesRefreshEngineTestContext foreignContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				new RecordingTerminalOutput()
 			);
 		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
@@ -186,13 +189,14 @@ public sealed class CursesRasterRefreshTests {
 			0,
 			0,
 			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
-				refreshContext.Session
+				foreignContext.Session
 			)
 		);
 
-		await Assert.ThrowsAsync<InvalidOperationException>(
+		await Assert.ThrowsAsync<ArgumentException>(
 			async () => await engine.RefreshAsync( screen, 0, 0 )
 		);
+		Assert.Equal( string.Empty, output.Text );
 	}
 
 	private static TerminalDescription CreateTerminal() {
@@ -228,84 +232,4 @@ public sealed class CursesRasterRefreshTests {
 		}
 	}
 
-	private sealed class RecordingOutput
-		: ITerminalOutput,
-		  ITerminalRasterPlaceholderOutput {
-		private readonly StringBuilder text = new();
-		private readonly List<CursesRasterCell> rasterWrites = [];
-
-		internal string Text => text.ToString();
-
-		internal IReadOnlyList<CursesRasterCell> RasterWrites => rasterWrites;
-
-		internal void Clear() {
-			text.Clear();
-			rasterWrites.Clear();
-		}
-
-		public ValueTask WriteTextAsync(
-			string value,
-			CancellationToken cancellationToken = default
-		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			text.Append( value );
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask WriteTerminalStringAsync(
-			string value,
-			int affectedLines = 1,
-			CancellationToken cancellationToken = default
-		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			if ( 0 >= affectedLines ) {
-				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
-			}
-			text.Append( value );
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask WriteRasterPlaceholderCellAsync(
-			CursesRasterCell cell,
-			CancellationToken cancellationToken = default
-		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			rasterWrites.Add( cell );
-			text.Append( "<raster>" );
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask FlushAsync(
-			CancellationToken cancellationToken = default
-		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			return ValueTask.CompletedTask;
-		}
-	}
-
-	private sealed class TextOnlyOutput : ITerminalOutput {
-		public ValueTask WriteTextAsync(
-			string value,
-			CancellationToken cancellationToken = default
-		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask WriteTerminalStringAsync(
-			string value,
-			int affectedLines = 1,
-			CancellationToken cancellationToken = default
-		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask FlushAsync(
-			CancellationToken cancellationToken = default
-		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			return ValueTask.CompletedTask;
-		}
-	}
 }

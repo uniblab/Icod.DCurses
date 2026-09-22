@@ -21,6 +21,7 @@
 
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Icod.DCurses.Internal;
 using Icod.Terminal;
 using Icod.TermInfo;
@@ -283,9 +284,7 @@ public sealed class CursesRasterLifecycleHardeningTests {
 		);
 	}
 
-	private sealed class RecordingRefreshOutput
-		: Icod.DCurses.Terminal.ITerminalOutput,
-		  Icod.DCurses.Terminal.ITerminalRasterPlaceholderOutput {
+	private sealed class RecordingRefreshOutput : Icod.Terminal.ITerminalOutput {
 		internal int WriteCount {
 			get;
 			private set;
@@ -301,67 +300,18 @@ public sealed class CursesRasterLifecycleHardeningTests {
 			this.RasterWriteCount = 0;
 		}
 
-		public ValueTask WriteTextAsync(
-			string value,
+		public ValueTask WriteAsync(
+			ReadOnlyMemory<byte> buffer,
 			CancellationToken cancellationToken = default
 		) {
-			ArgumentNullException.ThrowIfNull( value );
 			cancellationToken.ThrowIfCancellationRequested();
 			this.WriteCount = checked( this.WriteCount + 1 );
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask WriteTerminalStringAsync(
-			string value,
-			int affectedLines = 1,
-			CancellationToken cancellationToken = default
-		) {
-			ArgumentNullException.ThrowIfNull( value );
-			if ( 0 >= affectedLines ) {
-				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
+			if ( Encoding.UTF8.GetString( buffer.Span ).Contains(
+				"\U0010EEEE",
+				StringComparison.Ordinal
+			) ) {
+				this.RasterWriteCount = checked( this.RasterWriteCount + 1 );
 			}
-			cancellationToken.ThrowIfCancellationRequested();
-			this.WriteCount = checked( this.WriteCount + 1 );
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask WriteRasterPlaceholderCellAsync(
-			CursesRasterCell cell,
-			CancellationToken cancellationToken = default
-		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			this.RasterWriteCount = checked( this.RasterWriteCount + 1 );
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask FlushAsync(
-			CancellationToken cancellationToken = default
-		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			return ValueTask.CompletedTask;
-		}
-	}
-
-	private sealed class NullRefreshOutput : Icod.DCurses.Terminal.ITerminalOutput {
-		public ValueTask WriteTextAsync(
-			string value,
-			CancellationToken cancellationToken = default
-		) {
-			ArgumentNullException.ThrowIfNull( value );
-			cancellationToken.ThrowIfCancellationRequested();
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask WriteTerminalStringAsync(
-			string value,
-			int affectedLines = 1,
-			CancellationToken cancellationToken = default
-		) {
-			ArgumentNullException.ThrowIfNull( value );
-			if ( 0 >= affectedLines ) {
-				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
-			}
-			cancellationToken.ThrowIfCancellationRequested();
 			return ValueTask.CompletedTask;
 		}
 

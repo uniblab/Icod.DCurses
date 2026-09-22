@@ -131,6 +131,11 @@ internal sealed class RecordingTerminalOutput : ITerminalOutput {
 		private set;
 	}
 
+	internal void Clear() {
+		this.bytes.Clear();
+		this.FlushCount = 0;
+	}
+
 	public ValueTask WriteAsync(
 		ReadOnlyMemory<byte> buffer,
 		CancellationToken cancellationToken = default
