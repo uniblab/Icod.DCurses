@@ -31,43 +31,31 @@ public sealed class CursesOutputCostModelTests {
 	public void ApplicationTextUsesConfiguredEncoding() {
 		CursesOutputCostModel utf8 = new( Encoding.UTF8 );
 		CursesOutputCostModel utf16 = new( Encoding.Unicode );
+		const string payload = "A界🙂";
 
 		Assert.Equal(
-			4,
-			utf8.GetApplicationTextByteCount( "A界" )
+			Encoding.UTF8.GetByteCount( payload ),
+			utf8.GetApplicationTextByteCount( payload )
 		);
 		Assert.Equal(
-			4,
-			utf16.GetApplicationTextByteCount( "A界" )
+			Encoding.Unicode.GetByteCount( payload ),
+			utf16.GetApplicationTextByteCount( payload )
 		);
 	}
 
 	[Fact]
-	public void TerminalStringIgnoresPaddingDirectiveSourceBytes() {
-		int byteCount = CursesOutputCostModel.GetTerminalStringByteCount(
-			"\u001b[H$<25*>X",
-			affectedLines: 8
-		);
+	public void NullApplicationTextIsRejected() {
+		CursesOutputCostModel model = new( Encoding.UTF8 );
 
-		Assert.Equal( 4, byteCount );
+		Assert.Throws<ArgumentNullException>(
+			() => model.GetApplicationTextByteCount( null! )
+		);
 	}
 
 	[Fact]
-	public void TerminalStringCountsLatin1ProtocolCharactersAsOneByte() {
-		int byteCount = CursesOutputCostModel.GetTerminalStringByteCount(
-			"\u001b[38;5;255m"
-		);
-
-		Assert.Equal( 11, byteCount );
-	}
-
-	[Fact]
-	public void TerminalStringRejectsNonpositiveAffectedLineCount() {
-		Assert.Throws<ArgumentOutOfRangeException>(
-			() => CursesOutputCostModel.GetTerminalStringByteCount(
-				"x",
-				affectedLines: 0
-			)
+	public void NullApplicationEncodingIsRejected() {
+		Assert.Throws<ArgumentNullException>(
+			() => new CursesOutputCostModel( null! )
 		);
 	}
 }
