@@ -196,7 +196,7 @@ Push and retain one expected-red workflow run showing only the new T2003 contrac
 - Consumes: `TerminalProfile.Screen`, `TerminalScreenCapabilities`, `TerminalScreenColor`, `TerminalScreenRendition`, `TerminalTextAttributes`, `TerminalLineGlyph`, `TerminalAlertKind`, and `TerminalScreenPosition` from Terminal 1.18.
 - Produces: `CursesTerminalScreenMapper` and `CursesPresentationCapabilities.Create(TerminalScreenCapabilities)` for Tasks 3-7.
 
-- [ ] **Step 1: Write failing mapper and capability-projection tests**
+- [x] **Step 1: Write failing mapper and capability-projection tests**
 
 Cover every flag individually and in combination:
 
@@ -222,7 +222,7 @@ public void EveryCursesAttributeMapsExplicitly(
 
 Add tests for default/indexed/RGB colors, all line glyphs, both alert kinds, nullable cursor positions, unknown enum rejection, and combined flags. Update capability tests to derive observations from a real `TerminalSession.Profile.Screen` instead of calling `Create(TerminalDescription)`.
 
-- [ ] **Step 2: Run the focused tests to verify RED**
+- [x] **Step 2: Run the focused tests to verify RED**
 
 Run:
 
@@ -233,7 +233,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: compilation fails because the mapper and Terminal-owned `Create` overload do not exist.
 
-- [ ] **Step 3: Implement the mapper with exhaustive switches and flag composition**
+- [x] **Step 3: Implement the mapper with exhaustive switches and flag composition**
 
 Create these exact members:
 
@@ -253,7 +253,7 @@ internal static class CursesTerminalScreenMapper {
 
 For flags, reject unknown bits before composing known values. For nullable cursor state, return `null` only when both values are absent and throw `InvalidOperationException` when only one coordinate is present.
 
-- [ ] **Step 4: Replace TermInfo capability interpretation**
+- [x] **Step 4: Replace TermInfo capability interpretation**
 
 Change the factory signature to:
 
@@ -269,11 +269,11 @@ Copy scalar observations and map both attribute sets with `CursesTerminalScreenM
 return CursesPresentationCapabilities.Create( this.Profile.Screen );
 ```
 
-- [ ] **Step 5: Run focused and API tests to verify GREEN**
+- [x] **Step 5: Run focused and API tests to verify GREEN**
 
 Run the Step 2 command. Expected: all selected tests pass and the public contract remains unchanged.
 
-- [ ] **Step 6: Commit the mapping foundation**
+- [x] **Step 6: Commit the mapping foundation**
 
 ```sh
 git add src/Internal/CursesTerminalScreenMapper.cs \
@@ -302,7 +302,7 @@ git commit -m "refactor: project presentation through Terminal profile"
 - Consumes: Task 2 mapper and one session-bound `TerminalScreenPlanner`.
 - Produces: normalized curses styles and opaque baseline/transition/reset/ACS/cursor plans for the prepared refresh.
 
-- [ ] **Step 1: Rewrite resolver tests against real session-bound planners**
+- [x] **Step 1: Rewrite resolver tests against real session-bound planners**
 
 Use a real `TerminalSession` backed by synthetic test profile/output fixtures. Assert these signatures and behaviors:
 
@@ -323,7 +323,7 @@ TerminalScreenOperationPlan plan = cursor.Resolve( currentRow, currentColumn, ta
 
 Retain every prior normalization, glyph fallback, cursor candidate, tie-order, and controlled unsupported test. Replace assertions on `Sequence` with transaction-committed literal output and `ByteCount` assertions.
 
-- [ ] **Step 2: Run focused tests to verify RED**
+- [x] **Step 2: Run focused tests to verify RED**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -332,7 +332,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: compilation fails because the resolver constructors and methods still expose TermInfo-based contracts.
 
-- [ ] **Step 3: Implement `CursesPresentationResolver` as a planner adapter**
+- [x] **Step 3: Implement `CursesPresentationResolver` as a planner adapter**
 
 Use these members:
 
@@ -350,7 +350,7 @@ internal sealed class CursesPresentationResolver {
 
 Every method converts with `CursesTerminalScreenMapper`; no local color support, reversibility, or capability logic remains.
 
-- [ ] **Step 4: Implement glyph/ACS and cursor planner adapters**
+- [x] **Step 4: Implement glyph/ACS and cursor planner adapters**
 
 `CursesLinePresentationResolver.Resolve` maps to `TerminalLineGlyph`, accepts Terminal's representation when present, and retains the existing Unicode-width/ASCII fallback when absent. `PlanAlternateCharacterSet` delegates directly.
 
@@ -362,11 +362,11 @@ throw new NotSupportedException(
 );
 ```
 
-- [ ] **Step 5: Run focused tests to verify GREEN**
+- [x] **Step 5: Run focused tests to verify GREEN**
 
 Run the Step 2 command. Expected: all selected tests pass with no resolver production reference to `Icod.TermInfo`.
 
-- [ ] **Step 6: Commit planner-backed resolvers**
+- [x] **Step 6: Commit planner-backed resolvers**
 
 ```sh
 git add src/Internal/CursesPresentationResolver.cs \
@@ -394,7 +394,7 @@ git commit -m "refactor: plan core presentation through Terminal"
 - Consumes: current known physical cells, metadata, raster state, cursor, style, and logical change revisions.
 - Produces: `CursesRefreshPhysicalState.Clone()` and `CursesVirtualScreen.MarkCleanThrough(ulong)` for Task 6.
 
-- [ ] **Step 1: Write failing detached-copy tests**
+- [x] **Step 1: Write failing detached-copy tests**
 
 Construct known/unknown cells with metadata/raster state and assert:
 
@@ -411,7 +411,7 @@ Assert.NotEqual( original.CurrentStyle, copy.CurrentStyle );
 
 Also mutate the original after cloning and prove the copy is detached.
 
-- [ ] **Step 2: Write failing captured-damage tests**
+- [x] **Step 2: Write failing captured-damage tests**
 
 Enable tracking, dirty two cells, capture `ulong revision`, mutate one cell after capture, then call:
 
@@ -421,7 +421,7 @@ screen.MarkCleanThrough( revision );
 
 Assert the pre-capture-only cell is clean and the later mutation remains dirty. Add wrap protection by asserting `RecordChange` continues to reject `ulong.MaxValue` overflow according to the existing revision policy.
 
-- [ ] **Step 3: Run focused tests to verify RED**
+- [x] **Step 3: Run focused tests to verify RED**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -430,7 +430,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: compilation fails because `Clone` and `MarkCleanThrough` do not exist.
 
-- [ ] **Step 4: Implement detached physical-state copying**
+- [x] **Step 4: Implement detached physical-state copying**
 
 Add an internal copy constructor or `Clone` to `CursesPhysicalScreenState` that copies the cell and known arrays and rebuilds sparse metadata/raster rows from `SnapshotRow`. Add:
 
@@ -448,7 +448,7 @@ internal sealed class CursesRefreshPhysicalState {
 
 The clone must preserve whether each coordinate is unknown; it must not materialize unknown cells as blanks.
 
-- [ ] **Step 5: Implement revision-aware cleaning**
+- [x] **Step 5: Implement revision-aware cleaning**
 
 Add:
 
@@ -458,7 +458,7 @@ internal void MarkCleanThrough( ulong capturedRevision )
 
 Require change tracking. Iterate dirty coordinates and clear only those whose cell revision is less than or equal to `capturedRevision`, decrementing `dirtyCellCount` exactly once per cleared cell. Do not modify values or revision numbers.
 
-- [ ] **Step 6: Run focused tests to verify GREEN and commit**
+- [x] **Step 6: Run focused tests to verify GREEN and commit**
 
 Run the Step 3 command. Expected: all selected tests pass.
 
@@ -485,7 +485,7 @@ git commit -m "feat: add speculative refresh state publication"
 - Consumes: one `TerminalSession` and a `UseSynchronizedOutput` choice.
 - Produces: semantic add/write/commit methods used exclusively during one refresh or direct operation.
 
-- [ ] **Step 1: Write failing semantic batch tests**
+- [x] **Step 1: Write failing semantic batch tests**
 
 Create a real Terminal session over recording raw output. Assert exact order for:
 
@@ -500,7 +500,7 @@ await prepared.CommitAsync();
 
 Assert one synchronized begin/end pair, one flush, plan/text/hyperlink/raster ordering, rejection of default plans/cells, rejection after commit begins, and no raw output before commit.
 
-- [ ] **Step 2: Run the prepared-refresh tests to verify RED**
+- [x] **Step 2: Run the prepared-refresh tests to verify RED**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -509,7 +509,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: compilation fails because `CursesPreparedRefresh` does not exist.
 
-- [ ] **Step 3: Implement the wrapper without a raw-control method**
+- [x] **Step 3: Implement the wrapper without a raw-control method**
 
 Create exactly this surface:
 
@@ -529,7 +529,7 @@ internal sealed class CursesPreparedRefresh {
 
 Map raster cells to `TerminalRasterPlaceholderCell[]` before calling the Terminal batch method. Do not expose `TerminalScreenOutputTransaction`, Terminal output, or a method accepting an arbitrary control string.
 
-- [ ] **Step 4: Run tests to verify GREEN and commit**
+- [x] **Step 4: Run tests to verify GREEN and commit**
 
 Run the Step 2 command. Expected: all selected tests pass.
 
@@ -559,7 +559,7 @@ git commit -m "feat: add semantic prepared refresh batch"
 - Consumes: Tasks 2-5 mappings, planner adapters, speculative state, and prepared refresh.
 - Produces: `CursesRefreshEngine(TerminalSession, bool)`, one-transaction ordinary refresh, and explicit T2004 rewrite fallback.
 
-- [ ] **Step 1: Change engine tests to require a real Terminal session and one commit**
+- [x] **Step 1: Change engine tests to require a real Terminal session and one commit**
 
 Replace direct `(TerminalDescription, ITerminalOutput)` construction with a helper that opens a real session over recording raw output, then construct:
 
@@ -572,7 +572,7 @@ CursesRefreshEngine engine = new(
 
 Retain exact output assertions for cursor/rendition/ACS/text. Update the T2004-owned optimization integration expectations so T2003 explicitly asserts ordinary rewrite and absence of `<el>`, insert/delete, line-shift, and scroll-region controls.
 
-- [ ] **Step 2: Add RED tests for preparation, commit, and publication**
+- [x] **Step 2: Add RED tests for preparation, commit, and publication**
 
 Add cases proving:
 
@@ -585,7 +585,7 @@ Add cases proving:
 - unknown rendition starts with the exact Terminal baseline plan;
 - null baseline/transition/cursor plans throw controlled `NotSupportedException` before output.
 
-- [ ] **Step 3: Run core refresh tests to verify RED**
+- [x] **Step 3: Run core refresh tests to verify RED**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -594,7 +594,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: compilation/assertion failures because the engine constructor and output model are still legacy and optimization controls are still emitted.
 
-- [ ] **Step 4: Change engine ownership and preparation signatures**
+- [x] **Step 4: Change engine ownership and preparation signatures**
 
 Replace TerminalDescription/output fields with:
 
@@ -612,7 +612,7 @@ internal CursesRefreshEngine(
 
 Construct the three planner-backed resolvers from `terminalSession.Screen`. Remove character-shift, line-shift, erase, output, hyperlink-output, and raster-output fields from this class for T2003.
 
-- [ ] **Step 5: Convert refresh helpers from asynchronous writes to semantic preparation**
+- [x] **Step 5: Convert refresh helpers from asynchronous writes to semantic preparation**
 
 Pass `CursesPreparedRefresh prepared` and `CursesRefreshPhysicalState speculative` through cursor, style, span, glyph, text, hyperlink, and raster helpers. Use:
 
@@ -625,11 +625,11 @@ prepared.WriteRasterPlaceholderCell( rasterCell );
 
 Use `PlanBaseline` when `speculative.CurrentStyle` is unknown, otherwise use `PlanTransition`. Add ACS entry/exit plans only when mode changes. Coalesce adjacent application text in the existing `StringBuilder` before adding an item.
 
-- [ ] **Step 6: Disable legacy optimization selection without deleting its independent resolvers**
+- [x] **Step 6: Disable legacy optimization selection without deleting its independent resolvers**
 
 Remove calls to `lineShiftResolver.Resolve`, `characterShiftResolver.Resolve`, and `eraseResolver.Resolve` from `CursesRefreshEngine`. The ordinary `RenderSpan` path becomes the only T2003 refresh path. Preserve the resolver source/tests for T2004; do not copy their raw sequences into the prepared refresh.
 
-- [ ] **Step 7: Implement prepare/commit/publish**
+- [x] **Step 7: Implement prepare/commit/publish**
 
 At refresh start, enable logical change tracking and capture:
 
@@ -648,11 +648,11 @@ desired.MarkCleanThrough( capturedRevision );
 
 On any preparation or commit exception, invalidate retained physical certainty, preserve logical damage, set `invalidationRequested`, and rethrow.
 
-- [ ] **Step 8: Run core refresh tests to verify GREEN**
+- [x] **Step 8: Run core refresh tests to verify GREEN**
 
 Run the Step 3 command. Expected: all selected tests pass, optimization tests assert rewrite fallback, and there is one flush for each non-empty refresh.
 
-- [ ] **Step 9: Commit the ordinary vertical cutover**
+- [x] **Step 9: Commit the ordinary vertical cutover**
 
 ```sh
 git add src/Internal/CursesRefreshEngine.cs \
@@ -689,7 +689,7 @@ git commit -m "feat: cut refresh to Terminal transactions"
 - Consumes: Task 6 transaction-backed engine and Terminal planner methods `PlanAlert`, `PlanCursorMove`, `PlanRenditionBaseline`, and `PlanRenditionReset`.
 - Produces: session-level one-transaction refresh and direct semantic operations without the old output adapter or outer synchronized lease.
 
-- [ ] **Step 1: Add/update RED integration tests**
+- [x] **Step 1: Add/update RED integration tests**
 
 Require:
 
@@ -701,7 +701,7 @@ Require:
 - a body failure does not trigger the old pending synchronized-lease retry state;
 - no migrated integration file constructs or calls `TerminalSessionCursesOutput`.
 
-- [ ] **Step 2: Run focused integration tests to verify RED**
+- [x] **Step 2: Run focused integration tests to verify RED**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -710,11 +710,11 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: failures show the current outer lease, legacy adapter construction, and raw direct controls.
 
-- [ ] **Step 3: Remove the outer synchronized-output flow**
+- [x] **Step 3: Remove the outer synchronized-output flow**
 
 Simplify `RefreshAsync` to acquire DCurses activity and call `RefreshCoreAsync`. Delete `pendingSynchronizedOutputCleanup`, `RetryPendingSynchronizedOutputCleanupAsync`, and the outer lease/aggregate-cleanup logic. Pass `Options.UseSynchronizedOutput` into `CursesRefreshEngine` construction.
 
-- [ ] **Step 4: Stop creating the legacy refresh adapter**
+- [x] **Step 4: Stop creating the legacy refresh adapter**
 
 Remove `refreshOutput` and `new TerminalSessionCursesOutput(terminalSession)` from `CursesSession.Terminal.cs`. Construct the engine as:
 
@@ -725,7 +725,7 @@ this.refreshEngine ??= new CursesRefreshEngine(
 );
 ```
 
-- [ ] **Step 5: Migrate direct alert/cursor/reset operations**
+- [x] **Step 5: Migrate direct alert/cursor/reset operations**
 
 Replace all `StringCapability` use with explicit mapper/planner calls. Route serialized direct plans through these exact engine methods:
 
@@ -750,11 +750,11 @@ internal ValueTask ResetRenditionAsync(
 
 `CommitPlanAsync` is used for alerts and does not change retained physical state. The cursor method publishes the supplied cursor only after successful commit. The rendition method publishes normalized default rendition only after successful commit. Every method invalidates physical certainty on failure. Keep presentation-lease code unchanged.
 
-- [ ] **Step 6: Run focused integration tests to verify GREEN**
+- [x] **Step 6: Run focused integration tests to verify GREEN**
 
 Run the Step 2 command. Expected: all selected tests pass through Terminal transactions with one synchronized frame owned by Terminal.
 
-- [ ] **Step 7: Commit session/mixed-media cutover**
+- [x] **Step 7: Commit session/mixed-media cutover**
 
 ```sh
 git add src/Integration/CursesSession.Terminal.cs \
@@ -790,7 +790,7 @@ git commit -m "feat: route session presentation through screen transactions"
 - Consumes: complete Tasks 2-7 vertical output path.
 - Produces: roguelike, pixel-art/raster, sprite-like placeholder, editor, scale, concurrency, and lifecycle evidence plus a green T2003 source boundary.
 
-- [ ] **Step 1: Add the four approved workload witnesses**
+- [x] **Step 1: Add the four approved workload witnesses**
 
 Implement these exact test cases:
 
@@ -803,11 +803,11 @@ Implement these exact test cases:
 
 Each uses a real Terminal session and recording raw output. Assert final literal ordering, one flush, no output before commit, retained damage on induced failure, and no erase/shift/scroll controls in the editor/roguelike T2003 fallback.
 
-- [ ] **Step 2: Adapt scale/concurrency/lifecycle fixtures to real sessions**
+- [x] **Step 2: Adapt scale/concurrency/lifecycle fixtures to real sessions**
 
 Replace remaining direct `Icod.DCurses.Terminal.ITerminalOutput` refresh-engine fixtures in the listed files with Terminal raw-output fixtures under real sessions. Preserve existing test intent and counts. Update no-op expectations to zero additional writes and zero additional flushes.
 
-- [ ] **Step 3: Run application and hardening tests**
+- [x] **Step 3: Run application and hardening tests**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -816,7 +816,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: all selected tests pass; the T2003 migrated-path boundary contains no forbidden token.
 
-- [ ] **Step 4: Run all TermInfo/raw-output source checks**
+- [x] **Step 4: Run all TermInfo/raw-output source checks**
 
 ```sh
 rg -n 'Icod\.TermInfo|TerminalDescription|StringCapability|TermInfoParameter|TermInfoOutput|TerminalCapabilityWriter|WriteTerminalStringAsync|TerminalSessionCursesOutput' \
@@ -832,7 +832,7 @@ rg -n 'Icod\.TermInfo|TerminalDescription|StringCapability|TermInfoParameter|Ter
 
 Expected: no output.
 
-- [ ] **Step 5: Commit application acceptance**
+- [x] **Step 5: Commit application acceptance**
 
 ```sh
 git add tests/Icod.DCurses.Tests/src/CursesVerticalCutoverApplicationTests.cs \
