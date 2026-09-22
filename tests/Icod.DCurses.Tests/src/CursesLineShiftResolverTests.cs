@@ -155,8 +155,8 @@ public sealed class CursesLineShiftResolverTests {
 		RecordingTerminalOutput output = new();
 		await using TerminalSession session = await OpenSessionAsync(
 			new TerminalDescriptionBuilder( "bounded-delete" )
-				.SetString( StringCapability.CursorAddress, "<C:%p1%d,%p2%d>" )
-				.SetString( StringCapability.ChangeScrollRegion, "<R:%p1%d,%p2%d>" )
+				.SetString( StringCapability.CursorAddress, "C" )
+				.SetString( StringCapability.ChangeScrollRegion, "R" )
 				.SetString( StringCapability.DeleteLine, "D" )
 				.Build(),
 			output
@@ -205,7 +205,7 @@ public sealed class CursesLineShiftResolverTests {
 
 		await CommitAsync( session, plan.Sequence );
 
-		Assert.Equal( "<R:1,2><C:1,0>D<R:0,4><C:0,0>", output.Text );
+		Assert.Equal( "RCDRC", output.Text );
 	}
 
 	[Fact]
@@ -213,7 +213,7 @@ public sealed class CursesLineShiftResolverTests {
 		RecordingTerminalOutput output = new();
 		await using TerminalSession session = await OpenSessionAsync(
 			new TerminalDescriptionBuilder( "scroll-forward" )
-				.SetString( StringCapability.CursorAddress, "<C:%p1%d,%p2%d>" )
+				.SetString( StringCapability.CursorAddress, "C" )
 				.SetString( StringCapability.DeleteLines, "DELETE%p1%d" )
 				.SetString( StringCapability.ScrollForwardLines, "F%p1%d" )
 				.Build(),
@@ -241,7 +241,7 @@ public sealed class CursesLineShiftResolverTests {
 		Assert.Equal( CursesLineShiftOperation.ScrollForward, plan.Operation );
 		Assert.False( plan.Sequence.UsesTemporaryScrollRegion );
 		await CommitAsync( session, plan.Sequence );
-		Assert.Equal( "<C:3,0>F1<C:0,0>", output.Text );
+		Assert.Equal( "CF1C", output.Text );
 	}
 
 	[Fact]
@@ -544,8 +544,8 @@ public sealed class CursesLineShiftResolverTests {
 
 	private static TerminalDescription CreateInteriorTerminal( string name ) {
 		return new TerminalDescriptionBuilder( name )
-			.SetString( StringCapability.CursorAddress, "<C:%p1%d,%p2%d>" )
-			.SetString( StringCapability.ChangeScrollRegion, "<R:%p1%d,%p2%d>" )
+			.SetString( StringCapability.CursorAddress, "C" )
+			.SetString( StringCapability.ChangeScrollRegion, "R" )
 			.SetString( StringCapability.DeleteLine, "D" )
 			.Build();
 	}
