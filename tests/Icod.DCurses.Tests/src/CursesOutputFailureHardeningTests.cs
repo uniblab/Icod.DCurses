@@ -32,6 +32,72 @@ public sealed class CursesOutputFailureHardeningTests {
 	private const string SynchronizedOutputEnd = "\u001b[?2026l";
 
 	[Fact]
+	public async Task PartialTextWriteRequiresExplicitCompleteRepaint() {
+		SelectiveFailingOutput output = new();
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateRenditionTerminal(),
+				output
+			);
+		CursesScreen screen = new( 2, 1 );
+		screen.StandardWindow.Write( "AB" );
+		IOException injected = new( "partial text write" );
+		output.FailOnceAfterPrefixWhen(
+			value => "AB" == value,
+			1,
+			injected
+		);
+
+		IOException observed = await Assert.ThrowsAsync<IOException>(
+			() => context.Engine.RefreshAsync( screen, 0, 0 ).AsTask()
+		);
+		Assert.Same( injected, observed );
+		Assert.Contains( "A", output.Text, StringComparison.Ordinal );
+		Assert.DoesNotContain( "AB", output.Text, StringComparison.Ordinal );
+		Assert.True( screen.VirtualScreen.IsDirty( 0, 0 ) );
+		Assert.True( screen.VirtualScreen.IsDirty( 0, 1 ) );
+
+		output.Clear();
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+		Assert.Contains( "AB", output.Text, StringComparison.Ordinal );
+		Assert.Equal( 1, output.FlushCount );
+		Assert.Equal( 0, screen.VirtualScreen.DirtyCellCount );
+
+		output.Clear();
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+		Assert.Equal( string.Empty, output.Text );
+		Assert.Equal( 0, output.FlushCount );
+	}
+
+	[Fact]
+	public async Task FlushFailureLeavesDeliveredBodyUncertainUntilExplicitRepaint() {
+		SelectiveFailingOutput output = new();
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateRenditionTerminal(),
+				output
+			);
+		CursesScreen screen = new( 2, 1 );
+		screen.StandardWindow.Write( "AB" );
+		IOException injected = new( "flush failure" );
+		output.FailNextFlush( injected );
+
+		IOException observed = await Assert.ThrowsAsync<IOException>(
+			() => context.Engine.RefreshAsync( screen, 0, 0 ).AsTask()
+		);
+		Assert.Same( injected, observed );
+		Assert.Contains( "AB", output.Text, StringComparison.Ordinal );
+		Assert.True( screen.VirtualScreen.IsDirty( 0, 0 ) );
+		Assert.True( screen.VirtualScreen.IsDirty( 0, 1 ) );
+
+		output.Clear();
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+		Assert.Contains( "AB", output.Text, StringComparison.Ordinal );
+		Assert.Equal( 1, output.FlushCount );
+		Assert.Equal( 0, screen.VirtualScreen.DirtyCellCount );
+	}
+
+	[Fact]
 	public async Task PartialRefreshFailureInvalidatesPhysicalStateForCompleteRetry() {
 		SelectiveFailingOutput output = new();
 		CountingTerminalControlProvider provider = new();
@@ -257,6 +323,8 @@ public sealed class CursesOutputFailureHardeningTests {
 		private readonly object sync = new();
 		private readonly List<byte> bytes = [];
 		private readonly List<FailureRule> rules = [];
+		private Exception? nextFlushFailure;
+		private int flushCount;
 
 		internal string Text {
 			get {
@@ -269,6 +337,37 @@ public sealed class CursesOutputFailureHardeningTests {
 		internal void Clear() {
 			lock ( this.sync ) {
 				this.bytes.Clear();
+				this.flushCount = 0;
+			}
+		}
+
+		internal int FlushCount {
+			get {
+				lock ( this.sync ) {
+					return this.flushCount;
+				}
+			}
+		}
+
+		internal void FailNextFlush( Exception exception ) {
+			ArgumentNullException.ThrowIfNull( exception );
+			lock ( this.sync ) {
+				this.nextFlushFailure = exception;
+			}
+		}
+
+		internal void FailOnceAfterPrefixWhen(
+			Func<string, bool> predicate,
+			int prefixByteCount,
+			Exception exception
+		) {
+			ArgumentNullException.ThrowIfNull( predicate );
+			ArgumentNullException.ThrowIfNull( exception );
+			if ( 0 > prefixByteCount ) {
+				throw new ArgumentOutOfRangeException( nameof( prefixByteCount ) );
+			}
+			lock ( this.sync ) {
+				this.rules.Add( new FailureRule( predicate, exception, prefixByteCount ) );
 			}
 		}
 
@@ -294,7 +393,6 @@ public sealed class CursesOutputFailureHardeningTests {
 			cancellationToken.ThrowIfCancellationRequested();
 			string value = Encoding.Latin1.GetString( buffer.Span );
 			lock ( this.sync ) {
-				this.bytes.AddRange( buffer.ToArray() );
 				for ( int index = 0; index < this.rules.Count; ++index ) {
 					FailureRule rule = this.rules[ index ];
 					if ( !rule.Predicate( value ) ) {
@@ -302,8 +400,12 @@ public sealed class CursesOutputFailureHardeningTests {
 					}
 
 					this.rules.RemoveAt( index );
+					this.bytes.AddRange(
+						buffer.Slice( 0, Math.Min( rule.PrefixByteCount ?? buffer.Length, buffer.Length ) ).ToArray()
+					);
 					throw rule.Exception;
 				}
+				this.bytes.AddRange( buffer.ToArray() );
 			}
 			return ValueTask.CompletedTask;
 		}
@@ -312,12 +414,21 @@ public sealed class CursesOutputFailureHardeningTests {
 			CancellationToken cancellationToken = default
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
+			lock ( this.sync ) {
+				this.flushCount++;
+				Exception? failure = this.nextFlushFailure;
+				this.nextFlushFailure = null;
+				if ( failure is not null ) {
+					throw failure;
+				}
+			}
 			return ValueTask.CompletedTask;
 		}
 
 		private sealed record FailureRule(
 			Func<string, bool> Predicate,
-			Exception Exception
+			Exception Exception,
+			int? PrefixByteCount = null
 		);
 	}
 

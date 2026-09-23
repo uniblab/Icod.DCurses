@@ -131,6 +131,68 @@ public sealed class CursesLifecycleHardeningTests {
 	}
 
 	[Fact]
+	public async Task DisposalWaitsForEnteredRefreshBeforeRestoringSession() {
+		GatedOutput output = new();
+		TerminalSession terminalSession = await OpenTerminalSessionAsync(
+			new MutableTerminalControlProvider(),
+			output
+		);
+		CursesSession session = await CursesSession.OpenAsync(
+			terminalSession,
+			NoPresentationOptions()
+		);
+		session.StandardScreen.Write( "X" );
+		output.BlockNextWrite();
+		Task refresh = session.RefreshAsync().AsTask();
+		await output.BlockedWriteStarted;
+		Task disposal = session.DisposeAsync().AsTask();
+		try {
+			Assert.False( disposal.IsCompleted );
+			Assert.False( refresh.IsCompleted );
+		} finally {
+			output.ReleaseBlockedWrite();
+		}
+
+		await refresh.WaitAsync( TimeSpan.FromSeconds( 10 ) );
+		await disposal.WaitAsync( TimeSpan.FromSeconds( 10 ) );
+		await Assert.ThrowsAsync<ObjectDisposedException>(
+			() => session.RefreshAsync().AsTask()
+		);
+	}
+
+	[Fact]
+	public async Task ResizeDuringCommitPreservesLogicalContentForNextRefresh() {
+		MutableTerminalControlProvider provider = new();
+		GatedOutput output = new();
+		TerminalSession terminalSession = await OpenTerminalSessionAsync(
+			provider,
+			output
+		);
+		await using CursesSession session = await CursesSession.OpenAsync(
+			terminalSession,
+			NoPresentationOptions()
+		);
+		session.StandardScreen.Write( "X" );
+		output.BlockNextWrite();
+		Task originalRefresh = session.RefreshAsync().AsTask();
+		await output.BlockedWriteStarted;
+		try {
+			provider.Size = new TerminalSize( 90, 30 );
+			Assert.True( session.SynchronizeDimensions().IsAvailable );
+			Assert.Equal( 90, session.Screen.Columns );
+			Assert.Equal( 30, session.Screen.Rows );
+			Assert.Equal( "X", session.Screen.VirtualScreen[ 0, 0 ].Content );
+		} finally {
+			output.ReleaseBlockedWrite();
+		}
+		await originalRefresh.WaitAsync( TimeSpan.FromSeconds( 10 ) );
+
+		output.Clear();
+		await session.RefreshAsync().AsTask().WaitAsync( TimeSpan.FromSeconds( 10 ) );
+		Assert.Contains( "X", output.Text, StringComparison.Ordinal );
+	}
+
+	[Fact]
 	public async Task RepeatedSuspendResumeCyclesAlwaysReleaseBlockedRefresh() {
 		TerminalSession terminalSession = await OpenTerminalSessionAsync(
 			new MutableTerminalControlProvider(),
@@ -210,6 +272,12 @@ public sealed class CursesLifecycleHardeningTests {
 				lock ( this.sync ) {
 					return Encoding.UTF8.GetString( this.bytes.ToArray() );
 				}
+			}
+		}
+
+		internal void Clear() {
+			lock ( this.sync ) {
+				this.bytes.Clear();
 			}
 		}
 

@@ -76,6 +76,77 @@ public sealed class CursesRasterLifecycleHardeningTests {
 	}
 
 	[Fact]
+	public async Task StaleRasterRequiresExplicitReplacementBeforeRepaint() {
+		RecordingRefreshOutput output = new();
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateRefreshTerminal(),
+				output
+			);
+		CursesScreen screen = new( 1, 1 );
+		CursesRasterCell original =
+			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+				context.Session
+			);
+		screen.VirtualScreen.SetRasterCell( 0, 0, original );
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+		output.Reset();
+
+		MarkPlaceholderStale( original );
+		await Assert.ThrowsAsync<InvalidOperationException>(
+			() => context.Engine.RefreshAsync( screen, 0, 0 ).AsTask()
+		);
+		Assert.Equal( 0, output.WriteCount );
+		Assert.Equal( 0, output.RasterWriteCount );
+
+		CursesRasterCell replacement =
+			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+				context.Session
+			);
+		screen.VirtualScreen.SetRasterCell( 0, 0, replacement );
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+		Assert.Equal( 1, output.RasterWriteCount );
+
+		output.Reset();
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+		Assert.Equal( 0, output.WriteCount );
+		Assert.Equal( 0, output.RasterWriteCount );
+	}
+
+	[Fact]
+	public async Task ReleasedRetainedRasterCannotBeReplayedAfterInvalidation() {
+		RecordingRefreshOutput output = new();
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateRefreshTerminal(),
+				output
+			);
+		CursesScreen screen = new( 1, 1 );
+		CursesRasterCell rasterCell =
+			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+				context.Session
+			);
+		screen.VirtualScreen.SetRasterCell( 0, 0, rasterCell );
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+		output.Reset();
+
+		MarkPlaceholderOwnershipLost(
+			rasterCell,
+			"TryMarkReleased",
+			TerminalRasterOwnershipLossReason.ResourceReleased,
+			CursesRasterOwnershipStatus.Released,
+			CursesRasterOwnershipLossReason.ResourceReleased
+		);
+		context.Engine.Invalidate();
+
+		await Assert.ThrowsAsync<InvalidOperationException>(
+			() => context.Engine.RefreshAsync( screen, 0, 0 ).AsTask()
+		);
+		Assert.Equal( 0, output.WriteCount );
+		Assert.Equal( 0, output.RasterWriteCount );
+	}
+
+	[Fact]
 	public async Task ConcurrentPlaceholderDisposalIsIdempotentAndInvalidatesPhysicalKnowledge() {
 		await using CursesSession session = await OpenCursesSessionAsync();
 		CursesRefreshEngine engine = AttachKnownRefreshEngine( session );
@@ -142,6 +213,22 @@ public sealed class CursesRasterLifecycleHardeningTests {
 	private static void MarkPlaceholderStale(
 		CursesRasterCell rasterCell
 	) {
+		MarkPlaceholderOwnershipLost(
+			rasterCell,
+			"TryMarkStale",
+			TerminalRasterOwnershipLossReason.SessionStateLost,
+			CursesRasterOwnershipStatus.Stale,
+			CursesRasterOwnershipLossReason.SessionStateLost
+		);
+	}
+
+	private static void MarkPlaceholderOwnershipLost(
+		CursesRasterCell rasterCell,
+		string transition,
+		TerminalRasterOwnershipLossReason reason,
+		CursesRasterOwnershipStatus status,
+		CursesRasterOwnershipLossReason expectedReason
+	) {
 		CursesRasterPlaceholder cursesPlaceholder = rasterCell.Placeholder;
 		FieldInfo terminalPlaceholderField = Assert.IsAssignableFrom<FieldInfo>(
 			typeof( CursesRasterPlaceholder ).GetField(
@@ -161,9 +248,9 @@ public sealed class CursesRasterLifecycleHardeningTests {
 		);
 		object? state = stateProperty.GetValue( terminalPlaceholder );
 		Assert.NotNull( state );
-		MethodInfo tryMarkStale = Assert.IsAssignableFrom<MethodInfo>(
+		MethodInfo markOwnershipLost = Assert.IsAssignableFrom<MethodInfo>(
 			state!.GetType().GetMethod(
-				"TryMarkStale",
+				transition,
 				BindingFlags.Instance | BindingFlags.NonPublic,
 				binder: null,
 				types: [ typeof( TerminalRasterOwnershipLossReason ) ],
@@ -172,18 +259,18 @@ public sealed class CursesRasterLifecycleHardeningTests {
 		);
 		Assert.True(
 			Assert.IsType<bool>(
-				tryMarkStale.Invoke(
+				markOwnershipLost.Invoke(
 					state,
-					[ TerminalRasterOwnershipLossReason.SessionStateLost ]
+					[ reason ]
 				)
 			)
 		);
 		Assert.Equal(
-			CursesRasterOwnershipStatus.Stale,
+			status,
 			cursesPlaceholder.OwnershipState.Status
 		);
 		Assert.Equal(
-			CursesRasterOwnershipLossReason.SessionStateLost,
+			expectedReason,
 			cursesPlaceholder.OwnershipState.LossReason
 		);
 	}
