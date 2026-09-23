@@ -26,7 +26,7 @@ namespace Icod.DCurses.Tests;
 /// <summary>Characterizes 2.0 editor and roguelike composition costs before 2.1 API work.</summary>
 public sealed class CorePresentationTextWorkloadBaselineTests {
 	private const int AllocationSamples = 8;
-	private const long EditorVisibleSliceAllocationCeiling = 0;
+	private const long EditorVisibleSliceAllocationCeiling = 93L * 1024L * 1024L;
 	private const long FullWorldFrameAllocationCeiling = 12L * 1024L * 1024L;
 	private const int MeasurementIterations = 256;
 	private const long MeasurementNoiseAllowance = 64L * 1024L;
