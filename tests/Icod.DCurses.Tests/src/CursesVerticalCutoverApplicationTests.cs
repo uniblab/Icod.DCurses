@@ -233,7 +233,12 @@ public sealed class CursesVerticalCutoverApplicationTests {
 		editor.Write( "abcdefghijklmnopqrst" );
 		for ( int row = 2; row < screen.Rows; row++ ) {
 			editor.Move( row, 0 );
-			editor.Write( $"editor-line-{row:D2}" );
+			editor.Write(
+				new string(
+					(char)( 'A' + row ),
+					16
+				)
+			);
 		}
 		await context.Engine.RefreshAsync( screen, 1, 2 );
 		output.Clear();
