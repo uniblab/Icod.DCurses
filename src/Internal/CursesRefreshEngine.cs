@@ -34,6 +34,8 @@ internal sealed class CursesRefreshEngine {
 	private readonly CursesPresentationResolver presentationResolver;
 	private readonly CursesLinePresentationResolver linePresentationResolver;
 	private readonly CursesCursorMotionResolver cursorMotionResolver;
+	private readonly CursesEraseResolver eraseResolver;
+	private readonly CursesCharacterShiftResolver characterShiftResolver;
 	private readonly SemaphoreSlim refreshGate = new( 1, 1 );
 
 	private CursesRefreshPhysicalState? physicalState;
@@ -52,6 +54,14 @@ internal sealed class CursesRefreshEngine {
 		this.presentationResolver = new CursesPresentationResolver( this.planner );
 		this.linePresentationResolver = new CursesLinePresentationResolver( this.planner );
 		this.cursorMotionResolver = new CursesCursorMotionResolver( this.planner );
+		CursesOutputCostModel costModel = new(
+			new UTF8Encoding( encoderShouldEmitUTF8Identifier: false )
+		);
+		this.eraseResolver = new CursesEraseResolver( this.planner, costModel );
+		this.characterShiftResolver = new CursesCharacterShiftResolver(
+			this.planner,
+			costModel
+		);
 	}
 
 	/// <summary>Requests complete physical-screen invalidation at the next refresh boundary.</summary>
@@ -211,7 +221,34 @@ internal sealed class CursesRefreshEngine {
 			)
 		);
 
+		bool screenComplete = false;
 		for ( int row = 0; row < desired.Rows; row++ ) {
+			CursesCharacterShiftPlan? characterShift =
+				this.characterShiftResolver.Resolve(
+					desired,
+					speculative.Screen,
+					row,
+					speculative.CurrentStyle,
+					speculative.CursorRow,
+					speculative.CursorColumn
+				);
+			if ( characterShift.HasValue ) {
+				CursesCharacterShiftPlan plan = characterShift.Value;
+				AddPlanSequence( preparation, plan.Sequence );
+				CopyDesiredRange(
+					desired,
+					speculative.Screen,
+					row,
+					row + 1,
+					0,
+					desired.Columns
+				);
+				speculative.CurrentStyle = plan.StyleAfter;
+				speculative.CursorRow = plan.CursorAfterRow;
+				speculative.CursorColumn = plan.CursorAfterColumn;
+				continue;
+			}
+
 			int column = 0;
 			while ( column < desired.Columns ) {
 				if ( !NeedsUpdate(
@@ -235,6 +272,71 @@ internal sealed class CursesRefreshEngine {
 					row,
 					column
 				);
+				CursesErasePlan? erase = this.eraseResolver.Resolve(
+					desired,
+					speculative.Screen,
+					row,
+					start,
+					speculative.CurrentStyle,
+					speculative.CursorRow,
+					speculative.CursorColumn
+				);
+				if ( erase.HasValue ) {
+					CursesErasePlan plan = erase.Value;
+					AddPlanSequence( preparation, plan.Sequence );
+					switch ( plan.Kind ) {
+						case CursesEraseKind.ClearToEndOfLine:
+							CopyDesiredRange(
+								desired,
+								speculative.Screen,
+								row,
+								row + 1,
+								start,
+								desired.Columns
+							);
+							break;
+						case CursesEraseKind.ClearToEndOfScreen:
+							CopyDesiredRange(
+								desired,
+								speculative.Screen,
+								row,
+								row + 1,
+								start,
+								desired.Columns
+							);
+							if ( row + 1 < desired.Rows ) {
+								CopyDesiredRange(
+									desired,
+									speculative.Screen,
+									row + 1,
+									desired.Rows,
+									0,
+									desired.Columns
+								);
+							}
+							screenComplete = true;
+							break;
+						case CursesEraseKind.ClearScreen:
+							CopyDesiredRange(
+								desired,
+								speculative.Screen,
+								0,
+								desired.Rows,
+								0,
+								desired.Columns
+							);
+							screenComplete = true;
+							break;
+						default:
+							throw new InvalidOperationException(
+								"The erase resolver returned an unknown operation kind."
+							);
+					}
+					speculative.CurrentStyle = plan.StyleAfter;
+					speculative.CursorRow = plan.CursorAfterRow;
+					speculative.CursorColumn = plan.CursorAfterColumn;
+					break;
+				}
 				this.PrepareSpan(
 					preparation,
 					speculative,
@@ -245,6 +347,9 @@ internal sealed class CursesRefreshEngine {
 					screen.TextWidthProvider
 				);
 				column = end + 1;
+			}
+			if ( screenComplete ) {
+				break;
 			}
 		}
 
@@ -381,6 +486,41 @@ internal sealed class CursesRefreshEngine {
 			end++;
 		}
 		return end;
+	}
+
+	private static void AddPlanSequence(
+		Preparation preparation,
+		CursesTerminalPlanSequence sequence
+	) {
+		ArgumentNullException.ThrowIfNull( preparation );
+		ArgumentNullException.ThrowIfNull( sequence );
+		foreach ( TerminalScreenOperationPlan plan in sequence.Plans ) {
+			preparation.Prepared.AddPlan( plan );
+			preparation.HasOutput = true;
+		}
+	}
+
+	private static void CopyDesiredRange(
+		CursesVirtualScreen desired,
+		CursesPhysicalScreenState physical,
+		int topRow,
+		int bottomRowExclusive,
+		int startColumn,
+		int endColumnExclusive
+	) {
+		ArgumentNullException.ThrowIfNull( desired );
+		ArgumentNullException.ThrowIfNull( physical );
+		for ( int row = topRow; row < bottomRowExclusive; row++ ) {
+			for ( int column = startColumn; column < endColumnExclusive; column++ ) {
+				physical.SetCell(
+					row,
+					column,
+					desired[ row, column ],
+					desired.GetMetadata( row, column ),
+					desired.GetRasterCell( row, column )
+				);
+			}
+		}
 	}
 
 	private void PrepareSpan(

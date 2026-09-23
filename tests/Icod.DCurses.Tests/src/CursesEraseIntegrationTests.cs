@@ -118,7 +118,7 @@ public sealed class CursesEraseIntegrationTests {
 		return new TerminalDescriptionBuilder( "erase-selection" )
 			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
 			.SetString( StringCapability.ClearToEndOfLine, "<el>" )
-			.SetString( StringCapability.ClearToEndOfScreen, "<ed>" )
+			.SetString( StringCapability.ClearToEndOfScreen, "<ed>........" )
 			.SetString( StringCapability.ClearScreen, "<clear>" )
 			.Build();
 	}
