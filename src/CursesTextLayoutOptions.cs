@@ -26,7 +26,10 @@ public sealed class CursesTextLayoutOptions {
 	internal const int MaximumExtent = 1_048_576;
 
 	/// <summary>Initializes layout options for a positive terminal-column extent.</summary>
-	/// <param name="columns">The available terminal columns.</param>
+	/// <param name="columns">The available terminal columns, from 1 through 1,048,576.</param>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// <paramref name="columns"/> is outside the supported range.
+	/// </exception>
 	public CursesTextLayoutOptions( int columns ) {
 		if ( 1 > columns || MaximumExtent < columns ) {
 			throw new ArgumentOutOfRangeException( nameof( columns ) );
@@ -38,7 +41,7 @@ public sealed class CursesTextLayoutOptions {
 	/// <summary>Gets the available terminal columns.</summary>
 	public int Columns { get; }
 
-	/// <summary>Gets the optional maximum number of produced visual lines.</summary>
+	/// <summary>Gets the optional maximum number of produced visual lines, from 0 through 1,048,576.</summary>
 	public int? MaximumRows { get; init; }
 
 	/// <summary>Gets the text wrapping policy.</summary>
@@ -50,10 +53,10 @@ public sealed class CursesTextLayoutOptions {
 	/// <summary>Gets the hidden-content policy.</summary>
 	public CursesTextOverflow Overflow { get; init; }
 
-	/// <summary>Gets the absolute first available terminal column.</summary>
+	/// <summary>Gets the absolute first available terminal column, from 0 through 1,048,576.</summary>
 	public int StartingColumn { get; init; }
 
-	/// <summary>Gets the positive absolute-column tab interval.</summary>
+	/// <summary>Gets the absolute-column tab interval, from 1 through 1,048,576.</summary>
 	public int TabInterval { get; init; } = 8;
 
 	/// <summary>Gets the style used by uncovered source text.</summary>
