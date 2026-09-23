@@ -4,14 +4,14 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
 **Published compatibility floor:** `1.0.0`\
 **Current published package:** `2.0.0`\
-**Current development source/package identity:** `2.0.0`; `2.1.0` planning branch does not change package identity\
+**Current development source/package identity:** `2.0.0`; T2101 does not change package identity\
 **Current development assembly version:** `2.0.0.0`\
 **Current development runtime dependency:** direct `Icod.Terminal 1.18.0` only; TermInfo remains transitive\
 **Planned 2.1 direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.1.0` — core presentation and text foundations\
-**Status:** 2.0.0 published; 2.1.0 roadmap under review; implementation has not begun
+**Status:** 2.0.0 published; 2.1.0 T2101 foundation acceptance candidate; T2102 implementation pending
 
 **Planning snapshot:** 2026-09-23
 
@@ -19,7 +19,7 @@
 
 ## Current authorities
 
-The active plan is [Icod.DCurses-2.1.0-Development-Roadmap.md](Icod.DCurses-2.1.0-Development-Roadmap.md). It defines the core presentation/text scope, coordinate contracts, editor and roguelike acceptance stories, ordered tranches T2101-T2112, compatibility rules and release gates. Approval of planning documentation does not mean an implementation tranche has passed.
+The active plan is [Icod.DCurses-2.1.0-Development-Roadmap.md](Icod.DCurses-2.1.0-Development-Roadmap.md). T2101 has produced the [2.0 presentation baseline](docs/T2101-2.0-Core-Presentation-Baseline.md), [accepted public API design](docs/2.1-Core-Presentation-and-Text-API-Design.md), [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md), and [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md). The gate becomes accepted only after its ordinary exact-head PR matrix is green.
 
 The published 2.0 contract and migration history remain governed by [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md), [docs/T2011-Stable-Source-Release-Gate.md](docs/T2011-Stable-Source-Release-Gate.md), [docs/Public-API-Fingerprint-2.0.json](docs/Public-API-Fingerprint-2.0.json), [docs/Public-API-Baseline-2.0.md](docs/Public-API-Baseline-2.0.md), and the [2.0 migration guide](docs/2.0-Migration-Guide.md).
 
@@ -59,7 +59,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.6.0` | Retained mixed-media presentation | Published; 1.x feature endpoint |
 | `1.6.x` | Necessary maintenance only | As needed; no new feature track |
 | `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **Current published release** |
-| `2.1.0` | Core presentation and text foundations for editor and roguelike applications | **Roadmap under review; implementation not begun** |
+| `2.1.0` | Core presentation and text foundations for editor and roguelike applications | **T2101 acceptance candidate; T2102 pending** |
 | `2.2+` | Interaction conveniences, higher-level packages and later graphics work | Deferred until 2.1 evidence identifies the next boundary |
 
 The post-1.0 progression is intentionally cumulative:
@@ -294,20 +294,20 @@ The complete architecture, semantics, non-goals, tranche sequence and acceptance
 
 ### 2.1 tranche sequence
 
-| Tranche | Deliverable |
-|---|---|
-| T2101 | Architecture, 2.0 baseline, workload measurements, public API and regret gate |
-| T2102 | 2.1 development identity and text-coordinate/rich-span foundation |
-| T2103 | Rich text visual-line and fragment layout |
-| T2104 | Caret, hit-testing and selection geometry |
-| T2105 | Retained layout presentation and benchmark-justified bulk mutation |
-| T2106 | Large-content viewport and virtualization foundation |
-| T2107 | Stateless track layout primitives |
-| T2108 | Bounded refresh diagnostics and performance qualification |
-| T2109 | Roguelike application acceptance sample |
-| T2110 | Editor application acceptance sample |
-| T2111 | Adversarial/package/documentation/public API freeze |
-| T2112 | RC and stable-source exact-head release closure |
+| Tranche | Deliverable | Status |
+|---|---|---|
+| T2101 | Architecture, 2.0 baseline, workload measurements, public API and regret gate | Acceptance candidate; exact-head matrix pending |
+| T2102 | 2.1 development identity and text-coordinate/rich-span foundation | Pending |
+| T2103 | Rich text visual-line and fragment layout | Pending |
+| T2104 | Caret, hit-testing and selection geometry | Pending |
+| T2105 | Retained layout presentation and benchmark-justified bulk mutation | Pending |
+| T2106 | Large-content viewport and virtualization foundation | Pending |
+| T2107 | Stateless track layout primitives | Pending |
+| T2108 | Bounded refresh diagnostics and performance qualification | Pending |
+| T2109 | Roguelike application acceptance sample | Pending |
+| T2110 | Editor application acceptance sample | Pending |
+| T2111 | Adversarial/package/documentation/public API freeze | Pending |
+| T2112 | RC and stable-source exact-head release closure | Pending |
 
 No production version or package identity changes in the planning tranche. T2101 must approve the detailed public API and implementation plan before T2102 advances `Version` and `PackageVersion` together to `2.1.0-alpha.1`. `AssemblyVersion` remains `2.0.0.0`.
 
@@ -353,6 +353,6 @@ For 2.1, the published 2.0 API artifacts remain immutable historical evidence. T
 
 ## Immediate next step
 
-Review and accept the 2.1 roadmap. After acceptance, T2101 captures the published 2.0 API/package/performance baseline, defines the roguelike and editor workloads, and turns the proposed text/coordinate/viewport/bulk/layout/diagnostic families into a detailed reviewed API design and implementation plan.
+Complete the T2101 exact-head acceptance matrix, then begin T2102 from the accepted implementation plan. T2102 advances `Version` and `PackageVersion` together to `2.1.0-alpha.1` while retaining `AssemblyVersion 2.0.0.0` and the direct `DCurses -> Terminal -> TermInfo` dependency path.
 
-The planning PR does not change product code, package identity or the published 2.0 behavior. Any newly discovered live-terminal gap remains work for the owning Terminal dependency; DCurses must preserve the direct `DCurses -> Terminal -> TermInfo` path.
+T2101 changes no product code, package identity or published 2.0 behavior. Any newly discovered live-terminal gap remains work for the owning Terminal dependency.
