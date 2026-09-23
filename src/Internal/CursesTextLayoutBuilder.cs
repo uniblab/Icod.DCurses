@@ -122,7 +122,28 @@ internal static class CursesTextLayoutBuilder {
 			while ( !producedLine || visualElementStart < logicalElementEnd ) {
 				if ( options.MaximumRows is int maximumRows
 					&& maximumRows <= lines.Count ) {
-					isTruncated |= logicalSourceStart < text.Length;
+					bool hidesSource = visualElementStart < logicalElementEnd
+						|| logicalSourceStart < text.Length;
+					isTruncated |= hidesSource;
+					if ( hidesSource
+						&& CursesTextOverflow.Ellipsis == options.Overflow
+						&& 0 != lines.Count ) {
+						int firstHiddenSourceOffset = visualElementStart < logicalElementEnd
+							? elements[ visualElementStart ].SourceStart
+							: logicalSourceStart
+						;
+						ApplyRowLimitEllipsis(
+							lines,
+							options,
+							spans,
+							elements,
+							normalized,
+							firstHiddenSourceOffset,
+							capacity,
+							ref cellCount,
+							ref fragmentCount
+						);
+					}
 					return CreateLayout(
 						text,
 						options,
@@ -347,6 +368,24 @@ internal static class CursesTextLayoutBuilder {
 		CursesTextLayoutOptions options,
 		int column
 	) {
+		return FindFitEnd(
+			elements,
+			start,
+			end,
+			options,
+			column,
+			options.Columns
+		);
+	}
+
+	private static int FindFitEnd(
+		CursesTextElement[] elements,
+		int start,
+		int end,
+		CursesTextLayoutOptions options,
+		int column,
+		int maximumColumns
+	) {
 		int currentColumn = column;
 		for ( int index = start; index < end; index++ ) {
 			int width = GetElementWidth(
@@ -354,12 +393,156 @@ internal static class CursesTextLayoutBuilder {
 				currentColumn,
 				options
 			);
-			if ( options.Columns - ( currentColumn - column ) < width ) {
+			if ( maximumColumns - ( currentColumn - column ) < width ) {
 				return index;
 			}
 			currentColumn += width;
 		}
 		return end;
+	}
+
+	private static void ApplyRowLimitEllipsis(
+		List<CursesTextVisualLine> lines,
+		CursesTextLayoutOptions options,
+		CursesTextSpan[] spans,
+		CursesTextElement[] elements,
+		string normalized,
+		int firstHiddenSourceOffset,
+		Capacity capacity,
+		ref int cellCount,
+		ref int fragmentCount
+	) {
+		CursesTextVisualLine line = lines[ ^1 ];
+		if ( line.IsClipped ) {
+			return;
+		}
+
+		int elementStart = 0;
+		while ( elementStart < elements.Length
+			&& elements[ elementStart ].SourceStart < line.SourceStart.Offset ) {
+			elementStart++;
+		}
+		int elementEnd = elementStart;
+		while ( elementEnd < elements.Length
+			&& !elements[ elementEnd ].IsHardBreak
+			&& elements[ elementEnd ].SourceEnd <= line.SourceEnd.Offset ) {
+			elementEnd++;
+		}
+
+		int ellipsisWidth = GetValidatedWidth(
+			options.WidthProvider,
+			EllipsisText
+		);
+		bool hasEllipsis = ellipsisWidth <= options.Columns;
+		int visibleEnd = hasEllipsis
+			? FindFitEnd(
+				elements,
+				elementStart,
+				elementEnd,
+				options,
+				options.StartingColumn,
+				options.Columns - ellipsisWidth
+			)
+			: elementStart
+		;
+		int contentColumns = MeasureColumns(
+			elements,
+			elementStart,
+			visibleEnd,
+			options,
+			options.StartingColumn
+		);
+		if ( hasEllipsis ) {
+			contentColumns = checked( contentColumns + ellipsisWidth );
+		}
+		int lineColumn = GetAlignedColumn(
+			options,
+			contentColumns
+		);
+		List<MutableFragment> mutableFragments = [];
+		int fragmentColumn = lineColumn;
+		for ( int index = elementStart; index < visibleEnd; index++ ) {
+			CursesTextElement element = elements[ index ];
+			int width = GetElementWidth(
+				element,
+				fragmentColumn,
+				options
+			);
+			AppendElement(
+				mutableFragments,
+				element,
+				fragmentColumn,
+				width,
+				options,
+				spans
+			);
+			fragmentColumn += width;
+		}
+		List<CursesTextFragment> published = mutableFragments
+			.Select( current => current.Publish( normalized ) )
+			.ToList();
+		if ( hasEllipsis ) {
+			int ellipsisSourceOffset = firstHiddenSourceOffset;
+			CursesStyle ellipsisStyle = options.DefaultStyle;
+			CursesCellMetadata? ellipsisMetadata = options.DefaultMetadata;
+			if ( visibleEnd < elementEnd ) {
+				ellipsisSourceOffset = elements[ visibleEnd ].SourceStart;
+				ResolvePresentation(
+					elements[ visibleEnd ],
+					options,
+					spans,
+					out ellipsisStyle,
+					out ellipsisMetadata
+				);
+			}
+			published.Add(
+				new CursesTextFragment(
+					new CursesTextPosition( ellipsisSourceOffset ),
+					new CursesTextPosition( ellipsisSourceOffset ),
+					fragmentColumn,
+					ellipsisWidth,
+					EllipsisText,
+					ellipsisStyle,
+					ellipsisMetadata,
+					true
+				)
+			);
+		}
+
+		int nextFragmentCount = checked(
+			fragmentCount - line.Fragments.Count + published.Count
+		);
+		if ( capacity.MaximumFragments < nextFragmentCount ) {
+			throw new InvalidOperationException(
+				"Text layout exceeded the supported fragment capacity."
+			);
+		}
+		int nextCellCount = checked(
+			cellCount - line.Columns + contentColumns
+		);
+		if ( capacity.MaximumCells < nextCellCount ) {
+			throw new InvalidOperationException(
+				"Text layout exceeded the supported cell capacity."
+			);
+		}
+
+		int sourceEnd = line.SourceStart.Offset;
+		if ( visibleEnd > elementStart ) {
+			sourceEnd = elements[ visibleEnd - 1 ].SourceEnd;
+		}
+		lines[ ^1 ] = new CursesTextVisualLine(
+			line.Index,
+			line.SourceStart,
+			new CursesTextPosition( sourceEnd ),
+			lineColumn,
+			contentColumns,
+			line.EndsWithHardBreak,
+			line.EndsWithSoftWrap,
+			true,
+			[ .. published ]
+		);
+		fragmentCount = nextFragmentCount;
+		cellCount = nextCellCount;
 	}
 
 	private static int FindWordEnd(
