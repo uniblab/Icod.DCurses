@@ -95,7 +95,8 @@ internal static class CursesTextLayoutBuilder {
 				spans,
 				[],
 				0,
-				0 != text.Length
+				0 != text.Length,
+				elements
 			);
 		}
 
@@ -150,7 +151,8 @@ internal static class CursesTextLayoutBuilder {
 						spans,
 						lines,
 						cellCount,
-						isTruncated
+						isTruncated,
+						elements
 					);
 				}
 
@@ -337,7 +339,8 @@ internal static class CursesTextLayoutBuilder {
 			spans,
 			lines,
 			cellCount,
-			isTruncated
+			isTruncated,
+			elements
 		);
 	}
 
@@ -347,7 +350,8 @@ internal static class CursesTextLayoutBuilder {
 		CursesTextSpan[] spans,
 		List<CursesTextVisualLine> lines,
 		int cellCount,
-		bool isTruncated
+		bool isTruncated,
+		CursesTextElement[] elements
 	) {
 		return new CursesTextLayout(
 			text,
@@ -355,7 +359,8 @@ internal static class CursesTextLayoutBuilder {
 			spans,
 			[ .. lines ],
 			cellCount,
-			isTruncated
+			isTruncated,
+			elements
 		);
 	}
 
