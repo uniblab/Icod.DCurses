@@ -8,7 +8,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2101 accepted; T2102 implementation pending\
+**Status:** T2102 accepted; T2103 implementation pending\
 **Planning snapshot:** 2026-09-23
 
 **T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
@@ -329,14 +329,14 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Acceptance:** the baseline, reviewed design, reversible RED witness, T2102-T2108 plan and foundation gate are complete. Exact-head workflow 35911150258 passed all 14 jobs after steady-state allocation fixtures were isolated from .NET 9 multi-TFM and xUnit collection parallelism. No allocation ceiling, production behavior or package identity changed.
 
-### T2102 — development identity and text coordinate foundation
+### T2102 — development identity and text coordinate foundation — accepted
 
 - Advance `Version` and `PackageVersion` together to `2.1.0-alpha.1` while retaining `AssemblyVersion 2.0.0.0`.
 - Add rich-text input spans and validated source-position/text-element boundaries.
 - Add deterministic hard-line and tab analysis shared by later layout.
 - Preserve existing `CursesText` behavior.
 
-**Acceptance:** pure contracts green across all TFMs; package metadata and dependency boundary verified.
+**Acceptance:** `CursesTextPosition`, `CursesTextSpan`, and the shared Unicode text-element scanner are implemented with permanent boundary, malformed-UTF-16, hard-break, tab, zero-width, extended-grapheme, control, and width-policy coverage. `Version` and `PackageVersion` are `2.1.0-alpha.1`; `AssemblyVersion` remains `2.0.0.0`; production still references only `Icod.Terminal 1.18.0`. Exact executable head `efa04a6cfc0e1035c4daf81d6df0be0c685aff69` passed all 14 jobs in workflow 35919436482.
 
 ### T2103 — rich text layout
 
@@ -443,4 +443,4 @@ These remain candidates for later releases or sibling packages. The intended seq
 
 ## 17. Immediate next step
 
-Begin T2102 from the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): advance `Version` and `PackageVersion` together to `2.1.0-alpha.1`, retain `AssemblyVersion 2.0.0.0`, and implement the source-position/rich-span foundation test-first.
+Begin T2103 from the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): implement immutable rich-text layout test-first over the accepted T2102 source-position, span, and Unicode text-element foundation.
