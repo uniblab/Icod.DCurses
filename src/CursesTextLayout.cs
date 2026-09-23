@@ -49,6 +49,22 @@ public sealed partial class CursesTextLayout {
 	/// <param name="options">The layout options.</param>
 	/// <param name="spans">Optional ordered, non-overlapping presentation spans.</param>
 	/// <returns>The completed immutable layout.</returns>
+	/// <remarks>
+	/// Source text is limited to 16,777,216 UTF-16 code units and spans to 1,048,576.
+	/// A result contains at most 4,194,304 fragments and 16,777,216 terminal cells.
+	/// </remarks>
+	/// <exception cref="ArgumentNullException">
+	/// <paramref name="text"/>, <paramref name="options"/>, or the configured width provider is null.
+	/// </exception>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// A source, span, or option capacity is outside its supported range.
+	/// </exception>
+	/// <exception cref="ArgumentException">
+	/// A span is unordered, overlapping, outside the source, or not aligned to legal text-element boundaries.
+	/// </exception>
+	/// <exception cref="InvalidOperationException">
+	/// The width provider returns an unsupported width or the result exceeds its fragment or cell capacity.
+	/// </exception>
 	public static CursesTextLayout Create(
 		string text,
 		CursesTextLayoutOptions options,
