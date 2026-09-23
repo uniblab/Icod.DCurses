@@ -21,7 +21,12 @@
 
 namespace Icod.DCurses;
 
+using Icod.DCurses.Internal;
+
 public sealed partial class CursesTextLayout {
+	private readonly int[] legalOffsets;
+	private readonly GeometryLine[] geometryLines;
+
 	/// <summary>Maps a legal source position to its visual caret position.</summary>
 	/// <param name="position">A legal source position in this layout.</param>
 	/// <param name="affinity">The preferred edge at an ambiguous wrap boundary.</param>
@@ -30,7 +35,10 @@ public sealed partial class CursesTextLayout {
 		CursesTextPosition position,
 		CursesTextAffinity affinity = CursesTextAffinity.Leading
 	) {
-		if ( Text.Length < position.Offset ) {
+		if ( 0 > Array.BinarySearch(
+			legalOffsets,
+			position.Offset
+		) ) {
 			throw new ArgumentOutOfRangeException( nameof( position ) );
 		}
 		if ( !Enum.IsDefined( affinity ) ) {
@@ -40,36 +48,73 @@ public sealed partial class CursesTextLayout {
 			throw new ArgumentOutOfRangeException( nameof( position ) );
 		}
 
-		if ( CursesTextAffinity.Leading == affinity ) {
-			for ( int index = 0; index < lines.Count; index++ ) {
-				CursesTextVisualLine line = lines[ index ];
-				if ( line.SourceStart.Offset == position.Offset ) {
-					return new CursesTextVisualPosition(
-						index,
-						line.Column,
-						affinity
-					);
-				}
-			}
-		} else {
-			for ( int index = lines.Count - 1; index >= 0; index-- ) {
-				CursesTextVisualLine line = lines[ index ];
-				if ( line.SourceEnd.Offset == position.Offset ) {
-					return new CursesTextVisualPosition(
-						index,
-						line.Column + line.Columns,
-						affinity
-					);
-				}
-			}
+		int lineIndex = CursesTextAffinity.Leading == affinity
+			? FindLeadingLine( position.Offset )
+			: FindTrailingLine( position.Offset )
+		;
+		if ( 0 > lineIndex || lines.Count <= lineIndex ) {
+			throw new ArgumentOutOfRangeException( nameof( position ) );
 		}
 
-		throw new ArgumentOutOfRangeException( nameof( position ) );
+		GeometryLine geometry = geometryLines[ lineIndex ];
+		int column = FindSourceColumn(
+			geometry,
+			position.Offset,
+			affinity
+		);
+		if ( 0 > column ) {
+			throw new ArgumentOutOfRangeException( nameof( position ) );
+		}
+		return new CursesTextVisualPosition(
+			lineIndex,
+			column,
+			affinity
+		);
 	}
 
 	/// <summary>Maps an absolute visual column on one line to the nearest legal source position.</summary>
 	public CursesTextHitTestResult HitTest( int line, int column ) {
-		throw new NotImplementedException();
+		if ( 0 > line || lines.Count <= line ) {
+			throw new ArgumentOutOfRangeException( nameof( line ) );
+		}
+		if ( 0 > column ) {
+			throw new ArgumentOutOfRangeException( nameof( column ) );
+		}
+
+		CursesTextVisualLine visualLine = lines[ line ];
+		GeometryLine geometry = geometryLines[ line ];
+		if ( column < visualLine.Column ) {
+			return new CursesTextHitTestResult(
+				visualLine.SourceStart,
+				CursesTextAffinity.Leading,
+				false
+			);
+		}
+		foreach ( GeometryElement element in geometry.Elements ) {
+			if ( 0 == element.Columns
+				|| column < element.Column
+				|| element.Column + element.Columns <= column ) {
+				continue;
+			}
+			if ( element.IsEllipsis || column == element.Column ) {
+				return new CursesTextHitTestResult(
+					new CursesTextPosition( element.SourceStart ),
+					CursesTextAffinity.Leading,
+					true
+				);
+			}
+			return new CursesTextHitTestResult(
+				new CursesTextPosition( element.SourceEnd ),
+				CursesTextAffinity.Trailing,
+				true
+			);
+		}
+
+		return new CursesTextHitTestResult(
+			visualLine.SourceEnd,
+			CursesTextAffinity.Trailing,
+			false
+		);
 	}
 
 	/// <summary>Gets the previous legal source position, clamped at the source start.</summary>
@@ -109,4 +154,147 @@ public sealed partial class CursesTextLayout {
 	) {
 		throw new NotImplementedException();
 	}
+
+	private int FindLeadingLine( int sourceOffset ) {
+		int lower = 0;
+		int upper = lines.Count;
+		while ( lower < upper ) {
+			int middle = lower + ( ( upper - lower ) / 2 );
+			if ( lines[ middle ].SourceStart.Offset <= sourceOffset ) {
+				lower = middle + 1;
+			} else {
+				upper = middle;
+			}
+		}
+		return lower - 1;
+	}
+
+	private int FindTrailingLine( int sourceOffset ) {
+		int lower = 0;
+		int upper = lines.Count;
+		while ( lower < upper ) {
+			int middle = lower + ( ( upper - lower ) / 2 );
+			if ( lines[ middle ].SourceEnd.Offset < sourceOffset ) {
+				lower = middle + 1;
+			} else {
+				upper = middle;
+			}
+		}
+		return lower;
+	}
+
+	private static int FindSourceColumn(
+		GeometryLine line,
+		int sourceOffset,
+		CursesTextAffinity affinity
+	) {
+		if ( CursesTextAffinity.Leading == affinity ) {
+			foreach ( GeometryElement element in line.Elements ) {
+				if ( element.SourceStart == sourceOffset ) {
+					return element.Column;
+				}
+			}
+		} else {
+			foreach ( GeometryElement element in line.Elements ) {
+				if ( !element.IsEllipsis
+					&& element.SourceEnd == sourceOffset ) {
+					return element.Column + element.Columns;
+				}
+			}
+		}
+
+		if ( line.SourceStart == sourceOffset ) {
+			return line.Column;
+		}
+		if ( line.SourceEnd == sourceOffset ) {
+			return line.Column + line.Columns;
+		}
+		return -1;
+	}
+
+	private static ( int[] LegalOffsets, GeometryLine[] Lines ) CreateGeometryIndexes(
+		CursesTextElement[] elements,
+		CursesTextVisualLine[] lines,
+		CursesTextLayoutOptions options
+	) {
+		int[] legal = new int[ elements.Length + 1 ];
+		for ( int index = 0; index < elements.Length; index++ ) {
+			legal[ index + 1 ] = elements[ index ].SourceEnd;
+		}
+
+		GeometryLine[] geometry = new GeometryLine[ lines.Length ];
+		int elementIndex = 0;
+		for ( int lineIndex = 0; lineIndex < lines.Length; lineIndex++ ) {
+			CursesTextVisualLine line = lines[ lineIndex ];
+			while ( elementIndex < elements.Length
+				&& elements[ elementIndex ].SourceStart < line.SourceStart.Offset ) {
+				elementIndex++;
+			}
+
+			List<GeometryElement> lineElements = [];
+			int currentColumn = line.Column;
+			int currentIndex = elementIndex;
+			while ( currentIndex < elements.Length ) {
+				CursesTextElement element = elements[ currentIndex ];
+				if ( element.IsHardBreak
+					|| line.SourceEnd.Offset < element.SourceEnd ) {
+					break;
+				}
+				int width = element.IsTab
+					? options.TabInterval - ( currentColumn % options.TabInterval )
+					: element.Width
+				;
+				lineElements.Add(
+					new GeometryElement(
+						element.SourceStart,
+						element.SourceEnd,
+						currentColumn,
+						width,
+						false
+					)
+				);
+				currentColumn += width;
+				currentIndex++;
+			}
+			elementIndex = currentIndex;
+
+			foreach ( CursesTextFragment fragment in line.Fragments ) {
+				if ( fragment.IsEllipsis ) {
+					lineElements.Add(
+						new GeometryElement(
+							fragment.SourceStart.Offset,
+							fragment.SourceEnd.Offset,
+							fragment.Column,
+							fragment.Columns,
+							true
+						)
+					);
+				}
+			}
+			geometry[ lineIndex ] = new GeometryLine(
+				line.SourceStart.Offset,
+				line.SourceEnd.Offset,
+				line.Column,
+				line.Columns,
+				[ .. lineElements ]
+			);
+		}
+		return ( legal, geometry );
+	}
+
+	private readonly record struct GeometryElement(
+		int SourceStart,
+		int SourceEnd,
+		int Column,
+		int Columns,
+		bool IsEllipsis
+	);
+
+	private readonly record struct GeometryLine(
+		int SourceStart,
+		int SourceEnd,
+		int Column,
+		int Columns,
+		GeometryElement[] Elements
+	);
 }
