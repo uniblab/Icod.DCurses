@@ -21,6 +21,7 @@
 
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Icod.TermInfo;
 using Xunit;
 
 namespace Icod.DCurses.Tests;
@@ -90,6 +91,42 @@ public sealed class CursesPanelRasterRefreshProjectionTests {
 		);
 
 		Assert.Null( projection.VirtualScreen.GetRasterCell( 0, 1 ) );
+	}
+
+	[Fact]
+	public async Task RasterInsideLineShiftFootprintForcesSemanticRepaint() {
+		RecordingTerminalOutput output = new();
+		TerminalDescription terminal = new TerminalDescriptionBuilder(
+			"raster-line-shift-safety"
+		)
+			.SetString( StringCapability.CursorAddress, "C" )
+			.SetString( StringCapability.DeleteLines, "D%p1%d" )
+			.Build();
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync( terminal, output );
+		CursesScreen screen = new( 8, 3 );
+		for ( int row = 0; row < screen.Rows; row++ ) {
+			for ( int column = 0; column < screen.Columns; column++ ) {
+				screen.VirtualScreen[ row, column ] = new CursesCell(
+					((char)( 'A' + row )).ToString()
+				);
+			}
+		}
+		CursesRasterCell raster =
+			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+				context.Session
+			);
+		screen.VirtualScreen.SetRasterCell( 1, 3, raster );
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+		output.Clear();
+
+		screen.StandardWindow.DeleteLines();
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+
+		Assert.DoesNotContain( "D1", output.Text, StringComparison.Ordinal );
+		Assert.Contains( "\U0010EEEE", output.Text, StringComparison.Ordinal );
+		Assert.Equal( raster, screen.VirtualScreen.GetRasterCell( 0, 3 ) );
+		Assert.Equal( 1, output.FlushCount );
 	}
 
 	private static CursesSession CreateProjectionOnlySession() {

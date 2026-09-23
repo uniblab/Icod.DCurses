@@ -30,6 +30,47 @@ namespace Icod.DCurses.Tests;
 /// <summary>Exercises application-shaped semantic workloads for the 1.1 acceptance gate.</summary>
 public sealed class CursesSemanticApplicationAcceptanceTests {
 	[Fact]
+	public async Task PlainStatusRowOptimizesBesideLinkedEditorRegion() {
+		SemanticRecordingOutput output = new();
+		TerminalDescription terminal = new TerminalDescriptionBuilder(
+			"regional-semantic-editing"
+		)
+			.SetString( StringCapability.CursorAddress, "C" )
+			.SetString( StringCapability.InsertCharacters, "I%p1%d" )
+			.Build();
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync( terminal, output );
+		CursesScreen screen = new( 32, 2 );
+		screen.StandardWindow.Write( "STATUS-ABCDEFGHIJKLMNOPQRSTUVW" );
+		screen.StandardWindow.Move( 1, 0 );
+		screen.StandardWindow.WriteWithMetadata(
+			"linked-editor-region-abcdefghij",
+			LinkMetadata( "regional-editor" )
+		);
+		await context.Engine.RefreshAsync( screen, 0, 1 );
+		output.Clear();
+
+		screen.StandardWindow.Move( 0, 1 );
+		screen.StandardWindow.InsertCells( 2 );
+		await context.Engine.RefreshAsync( screen, 0, 1 );
+
+		Assert.Contains( "I2", output.Text, StringComparison.Ordinal );
+		Assert.Empty( output.HyperlinkWrites );
+		output.Clear();
+
+		screen.StandardWindow.Move( 1, 1 );
+		screen.StandardWindow.InsertCells( 2 );
+		await context.Engine.RefreshAsync( screen, 1, 1 );
+
+		Assert.DoesNotContain( "I2", output.Text, StringComparison.Ordinal );
+		Assert.NotEmpty( output.HyperlinkWrites );
+		Assert.Equal(
+			"regional-editor",
+			screen.StandardWindow.GetMetadata( 1, 3 )!.Hyperlink!.Identifier
+		);
+	}
+
+	[Fact]
 	public async Task EditorLikeMutationCoalescesWideLinkedSpanAfterInsertion() {
 		SemanticRecordingOutput output = new();
 		await using CursesRefreshEngineTestContext refreshContext =

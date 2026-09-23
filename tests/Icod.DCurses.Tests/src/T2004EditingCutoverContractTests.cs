@@ -30,6 +30,8 @@ public sealed class T2004EditingCutoverContractTests {
 		"src/Internal/CursesCharacterShiftResolver.cs",
 		"src/Internal/CursesLineShiftResolver.cs",
 		"src/Internal/CursesOutputCostModel.cs",
+		"src/Internal/CursesTerminalPlanSequence.cs",
+		"src/Internal/CursesEditingRegionSafety.cs",
 		"src/Internal/CursesRefreshEngine.cs"
 	];
 
@@ -37,6 +39,7 @@ public sealed class T2004EditingCutoverContractTests {
 		"Icod.TermInfo",
 		"TerminalDescription",
 		"StringCapability",
+		"TermInfoParameter",
 		"TermInfoOutput",
 		"TerminalCapabilityWriter",
 		"WriteTerminalStringAsync"
@@ -45,6 +48,17 @@ public sealed class T2004EditingCutoverContractTests {
 	[Fact]
 	public void EditingCutoverPathsContainNoTermInfoOrRawTerminalTokens() {
 		string root = FindRepositoryRoot();
+		Assert.False(
+			File.Exists(
+				Path.Combine(
+					root,
+					"src",
+					"Internal",
+					"CursesLegacyCursorMotionResolver.cs"
+				)
+			),
+			"The legacy TermInfo cursor resolver must remain deleted."
+		);
 
 		foreach ( string path in MigratedProductionPaths ) {
 			string source = File.ReadAllText(

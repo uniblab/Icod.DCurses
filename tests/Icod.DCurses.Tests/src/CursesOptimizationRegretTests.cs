@@ -27,7 +27,7 @@ using Xunit;
 
 namespace Icod.DCurses.Tests;
 
-/// <summary>Runs deterministic release-gate workloads for the accepted 0.7 optimization set.</summary>
+/// <summary>Runs deterministic release-gate workloads for the T2004 editing optimization set.</summary>
 public sealed class CursesOptimizationRegretTests {
 	[Fact]
 	public async Task LargeFullRepaintHasDeterministicOutputCost() {
@@ -79,7 +79,7 @@ public sealed class CursesOptimizationRegretTests {
 	}
 
 	[Fact]
-	public async Task EditorCharacterShiftUsesAcceptedT2003RewriteFallback() {
+	public async Task EditorCharacterShiftUsesExactCheaperTerminalPlan() {
 		const string initial = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEF";
 		MeasuringOutput optimizedOutput = new();
 		MeasuringOutput fallbackOutput = new();
@@ -114,13 +114,18 @@ public sealed class CursesOptimizationRegretTests {
 		await optimizedEngine.RefreshAsync( optimizedScreen, 0, 1 );
 		await fallbackEngine.RefreshAsync( fallbackScreen, 0, 1 );
 
-		Assert.Equal( fallbackOutput.ByteCount, optimizedOutput.ByteCount );
-		Assert.Equal( fallbackOutput.WriteCount, optimizedOutput.WriteCount );
+		Assert.Equal( 2, optimizedOutput.ByteCount );
+		Assert.Equal( 1, optimizedOutput.WriteCount );
+		Assert.Equal( 1, optimizedOutput.FlushCount );
+		Assert.Equal( 34, fallbackOutput.ByteCount );
+		Assert.Equal( 3, fallbackOutput.WriteCount );
+		Assert.Equal( 1, fallbackOutput.FlushCount );
+		Assert.True( optimizedOutput.ByteCount < fallbackOutput.ByteCount );
 		AssertRowsEqual( optimizedScreen, fallbackScreen );
 	}
 
 	[Fact]
-	public async Task PagerLineShiftUsesAcceptedT2003RewriteFallback() {
+	public async Task PagerLineShiftUsesExactCheaperTerminalPlan() {
 		const int columns = 32;
 		MeasuringOutput optimizedOutput = new();
 		MeasuringOutput fallbackOutput = new();
@@ -155,8 +160,13 @@ public sealed class CursesOptimizationRegretTests {
 		await optimizedEngine.RefreshAsync( optimizedScreen, 0, 0 );
 		await fallbackEngine.RefreshAsync( fallbackScreen, 0, 0 );
 
-		Assert.Equal( fallbackOutput.ByteCount, optimizedOutput.ByteCount );
-		Assert.Equal( fallbackOutput.WriteCount, optimizedOutput.WriteCount );
+		Assert.Equal( 4, optimizedOutput.ByteCount );
+		Assert.Equal( 3, optimizedOutput.WriteCount );
+		Assert.Equal( 1, optimizedOutput.FlushCount );
+		Assert.Equal( 166, fallbackOutput.ByteCount );
+		Assert.Equal( 11, fallbackOutput.WriteCount );
+		Assert.Equal( 1, fallbackOutput.FlushCount );
+		Assert.True( optimizedOutput.ByteCount < fallbackOutput.ByteCount );
 		AssertRowsEqual( optimizedScreen, fallbackScreen );
 	}
 

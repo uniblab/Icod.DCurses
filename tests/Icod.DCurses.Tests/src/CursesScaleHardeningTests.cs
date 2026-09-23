@@ -115,6 +115,8 @@ public sealed class CursesScaleHardeningTests {
 		);
 		Assert.Equal( "9", finalCell.Content );
 		Assert.True( writesAfterFullPaint < output.WriteCount );
+		Assert.True( output.WriteCount <= writesAfterFullPaint + 3_000 );
+		Assert.Equal( 1_001, output.FlushCount );
 	}
 
 	[Fact]
