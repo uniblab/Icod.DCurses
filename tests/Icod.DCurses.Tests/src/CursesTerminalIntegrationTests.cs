@@ -211,6 +211,8 @@ public sealed class CursesTerminalIntegrationTests {
 			0,
 			CountOccurrences( output.Text, SynchronizedOutputEnd )
 		);
+		Assert.Equal( 0, output.FlushCount );
+		Assert.True( session.Screen.VirtualScreen.IsDirty( 0, 0 ) );
 
 		await outer.DisposeAsync();
 
@@ -218,12 +220,20 @@ public sealed class CursesTerminalIntegrationTests {
 			1,
 			CountOccurrences( output.Text, SynchronizedOutputEnd )
 		);
+		Assert.Equal( 1, output.FlushCount );
 
 		output.Clear();
 		await session.RefreshAsync();
 		Assert.Contains( SynchronizedOutputBegin, output.Text );
 		Assert.Contains( "X", output.Text );
 		Assert.Contains( SynchronizedOutputEnd, output.Text );
+		Assert.Equal( 1, output.FlushCount );
+		Assert.False( session.Screen.VirtualScreen.IsDirty( 0, 0 ) );
+
+		output.Clear();
+		await session.RefreshAsync();
+		Assert.Equal( string.Empty, output.Text );
+		Assert.Equal( 0, output.FlushCount );
 		await session.DisposeAsync();
 	}
 
