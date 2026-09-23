@@ -8,7 +8,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2102 accepted; T2103 implementation pending\
+**Status:** T2103 accepted; T2104 implementation pending\
 **Planning snapshot:** 2026-09-23
 
 **T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
@@ -338,13 +338,13 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Acceptance:** `CursesTextPosition`, `CursesTextSpan`, and the shared Unicode text-element scanner are implemented with permanent boundary, malformed-UTF-16, hard-break, tab, zero-width, extended-grapheme, control, and width-policy coverage. `Version` and `PackageVersion` are `2.1.0-alpha.1`; `AssemblyVersion` remains `2.0.0.0`; production still references only `Icod.Terminal 1.18.0`. Exact executable head `efa04a6cfc0e1035c4daf81d6df0be0c685aff69` passed all 14 jobs in workflow 35919436482.
 
-### T2103 — rich text layout
+### T2103 — rich text layout — accepted
 
 - Implement visual lines/fragments, wrapping, alignment, clipping and ellipsis.
 - Preserve style and semantic metadata through layout.
 - Add bounded enumeration/presentation data without per-cell object allocation.
 
-**Acceptance:** exhaustive combination and Unicode boundary tests green; complexity/allocation measurements within T2101 bounds.
+**Acceptance:** immutable visual lines and styled fragments now cover validated options and spans, hard lines, no-wrap/text-element/word wrapping, per-line alignment, absolute tab stops, malformed UTF-16 with stable offsets, zero-width and width-two elements, clipping, width and row-limit ellipsis, and explicit source/span/fragment/cell capacities. The 80x40 editor qualification reads only 40 lines from a caller-owned 10,000-line document, observes linear width-provider calls, and remains below its portable minimum-of-eight allocation ceiling. Exact executable head `ef6ab4f3d428c8b648f1022b50b8b3b07bfba953` passed all 14 package/runtime jobs in workflow 35928677166 across .NET 8, 9, and 10.
 
 ### T2104 — caret, hit-testing and selection geometry
 
