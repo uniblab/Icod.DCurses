@@ -207,6 +207,8 @@ No T2003 package was published. T2004 closes the temporary ordinary-rewrite diff
 **Depends on:** T2004 and all T2001 transaction/recovery blockers closed.\
 **Files:** refresh engine, physical-state tracking, refresh/session integration, output shim and refresh/hyperlink/raster integration tests. Split preparation/commit helpers into focused internal files if needed, without adding a public backend framework. T2005 owns exhaustive transaction/capacity/cancellation/synchronization/publication hardening and deletion of obsolete raw-output/capability-writer shims.
 
+**Detailed plan:** `docs/superpowers/plans/2026-09-23-icod-dcurses-t2005-transaction-hardening.md`. The first source-boundary slice is complete on PR head `5465b1bba685eafb078e4a7123835525b5c9f426`; exhaustive hardening and the acceptance gate remain pending.
+
 - [ ] Implement section 7's prepare/commit/publish state transition with a single Terminal screen transaction.
 - [ ] Compose ordinary text, strict hyperlinks, opaque raster cells and operation plans without parallel direct writes.
 - [ ] Transfer synchronized framing/flush/semantic cleanup to Terminal; remove the outer refresh lease and per-write output route as they become unused.
