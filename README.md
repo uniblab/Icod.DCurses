@@ -11,7 +11,7 @@
 
 Current stable release: **`Icod.DCurses 1.6.0`**.
 
-The `2.0.0-alpha.1` development branch has completed the direct dependency cutover: production DCurses depends only on `Icod.Terminal 1.18.0`, which may restore `Icod.TermInfo` transitively. Version 2.0 changes the public profile and dimensions types and the assembly identity. It has **not** been published. See the [2.0 migration guide](docs/2.0-Migration-Guide.md) and [development roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md).
+The unpublished `2.0.0-rc.1` source has completed the direct dependency cutover: production DCurses depends only on `Icod.Terminal 1.18.0`, which may restore `Icod.TermInfo` transitively. Version 2.0 changes the public profile and dimensions types and the assembly identity. See the [2.0 migration guide](docs/2.0-Migration-Guide.md) and [development roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md).
 
 Version 1.6 adds retained mixed-media presentation over the published `Icod.Terminal 1.15.0` persistent-raster / Unicode-placeholder ownership model. Raster placeholder cells participate in ordinary DCurses windows, pads, viewports, panels, clipping, scrolling, composition, damage, and refresh while Terminal remains the sole owner of live raster protocol identity, acknowledgement, encoding, and lifecycle certainty.
 

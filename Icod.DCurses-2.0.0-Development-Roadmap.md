@@ -1,7 +1,7 @@
 # Icod.DCurses 2.0.0 Development Roadmap
 
 **Theme:** Terminal-only integration; remove direct TermInfo coupling.\
-**Status:** T2001-T2008 accepted; T2009 is the next qualification tranche.
+**Status:** T2001-T2010 accepted; T2011 RC and stable-source qualification are next.
 
 **Planning date:** 2026-09-18.\
 **Behavioral baseline:** published `Icod.DCurses 1.6.0`.\
@@ -9,7 +9,7 @@
 **Targets:** `net8.0`; `net9.0`; `net10.0`.\
 **Configurations:** `Debug`; `Staging`; `Release`.\
 **Technology:** C# 13, .NET, PowerShell 5.1-compatible automation, cmd/sh. No Python.\
-**Current development identity:** `Version` and `PackageVersion` both `2.0.0-alpha.1`; `AssemblyVersion` `2.0.0.0`, established and qualified in T2002.
+**Current development identity:** `Version` and `PackageVersion` both `2.0.0-rc.1`; `AssemblyVersion` `2.0.0.0`, established in T2002; the RC identity is under T2011 qualification.
 
 ## 1. Goal and scope
 
@@ -27,7 +27,7 @@ This means:
 
 Version 1.6 is the endpoint for new 1.x features. Necessary 1.6.x maintenance may continue independently. New features belong to 2.1+ after this migration is accepted. Do not mix widgets, new input protocols, animation scheduling, physical raster scenes, or application-framework work into 2.0.
 
-This PR now carries the ordered 2.0 migration. T2002 established the development identity, selected Terminal 1.18.0, and completed the approved public profile/dimensions cutover. T2003 moved the core presentation path and ordinary rewrite refresh through Terminal-owned planners and one semantic output transaction. T2004 restored erase, character-shift, line-shift, and scroll-region optimization through opaque Terminal plans and Terminal-owned costs. T2005 deleted obsolete raw-output/capability seams and accepted exhaustive transaction capacity, cancellation, synchronization, ordering, stale-epoch, lease-conflict, direct-operation, and publication hardening. T2006 qualified partial-write, flush, cleanup, raster-identity, lifecycle, resize, disposal, and recovery behavior. T2007 removed the direct TermInfo dependency and qualified independent production, assembly, package, and consumer guards. T2008 qualified the samples, migration guide, isolated package consumer and live packaged refresh. T2009 parity/performance and later release gates remain; no checkpoint authorizes publication.
+This PR now carries the ordered 2.0 migration. T2002 established the development identity, selected Terminal 1.18.0, and completed the approved public profile/dimensions cutover. T2003 moved the core presentation path and ordinary rewrite refresh through Terminal-owned planners and one semantic output transaction. T2004 restored erase, character-shift, line-shift, and scroll-region optimization through opaque Terminal plans and Terminal-owned costs. T2005 deleted obsolete raw-output/capability seams and accepted exhaustive transaction capacity, cancellation, synchronization, ordering, stale-epoch, lease-conflict, direct-operation, and publication hardening. T2006 qualified partial-write, flush, cleanup, raster-identity, lifecycle, resize, disposal, and recovery behavior. T2007 removed the direct TermInfo dependency and qualified independent production, assembly, package, and consumer guards. T2008 qualified the samples, migration guide, isolated package consumer and live packaged refresh. T2009 accepted parity and bounded-workload measurements; T2010 froze the API, package and current documentation. T2011 final release-source qualification remains; no checkpoint authorizes publication.
 
 ## 2. Reference snapshot and authorities
 
@@ -265,9 +265,11 @@ No T2003 package was published. T2004 closes the temporary ordinary-rewrite diff
 **Depends on:** T2008.\
 **Files:** existing conformance/refresh/optimization/panel/pad/Unicode/interaction and allocation tests; sample/package acceptance fixtures.
 
-- [ ] Compare against the T2001 baseline for plain/styled/ACS/Unicode/hyperlink/raster content, sparse/full redraw, erase/shift/scroll, large pads, composition and interaction behavior.
-- [ ] Measure output volume, transaction allocation/retained memory and refresh work on the same workloads; record differences and reject unexplained material regressions. No timing-only flaky CI thresholds.
-- [ ] Run all tests on net8.0/net9.0/net10.0 and the Windows/Linux/macOS x64/ARM64 runtime matrix plus package-candidate validation.
+**Status:** accepted on exact executable head `eab9f4ab4c2da293cde12ed2e71f937bc76be134`; see `docs/T2009-Behavioral-Parity-and-Performance-Gate.md`.
+
+- [x] Compare against the T2001 baseline for plain/styled/ACS/Unicode/hyperlink/raster content, sparse/full redraw, erase/shift/scroll, large pads, composition and interaction behavior.
+- [x] Measure output volume, transaction allocation/retained memory and refresh work on the same workloads; record differences and reject unexplained material regressions. No timing-only flaky CI thresholds.
+- [x] Run all tests on net8.0/net9.0/net10.0 and the Windows/Linux/macOS x64/ARM64 runtime matrix plus package-candidate validation.
 
 **Acceptance:** parity or explicitly approved migration differences, bounded memory/capacity behavior and exact-head cross-platform evidence. Historical tests are not dropped to make the branch green.
 
@@ -276,9 +278,11 @@ No T2003 package was published. T2004 closes the temporary ordinary-rewrite diff
 **Depends on:** T2009.\
 **Files:** 2.0 API artifacts/break manifest/migration guide, package verifier and metadata, XML documentation, licensing/README/changelog and this roadmap.
 
-- [ ] Freeze matching 2.0 public API fingerprints across all TFMs; review all new/removed/changed signatures against the break manifest.
-- [ ] Verify XML docs, package/nuspec dependency groups, assembly identity, license payloads, isolated consumer and source/metadata boundary guards.
-- [ ] Synchronize permanent docs and release notes, documenting any raised Terminal floor or test-only bootstrap exception.
+**Status:** accepted on exact executable head `eab9f4ab4c2da293cde12ed2e71f937bc76be134` for the alpha development identity; see `docs/T2010-API-Package-and-Documentation-Freeze.md`.
+
+- [x] Freeze matching 2.0 public API fingerprints across all TFMs; review all new/removed/changed signatures against the break manifest.
+- [x] Verify XML docs, package/nuspec dependency groups, assembly identity, license payloads, isolated consumer and source/metadata boundary guards.
+- [x] Synchronize permanent docs and release notes, documenting any raised Terminal floor or test-only bootstrap exception.
 
 **Acceptance:** no accidental feature additions or unreviewed breaks; package/docs accurately describe direct versus transitive dependencies. No new feature family after this gate.
 
@@ -323,4 +327,4 @@ Completion requires all of the following, not just successful compilation:
 
 ## 10. Immediate next checkpoint
 
-Qualify T2009 behavioral parity and performance against the frozen T2001 1.6 baseline. T2008 is accepted on exact executable head `9ecf1293b6401c7e6b47d893f401da37a40e3084`, qualified by workflow `35823291712`; see `docs/T2008-Consumer-Migration-Gate.md`. No merge, release tag, or publication is authorized by this checkpoint.
+Advance T2011 through RC and stable-source identities, update versioned guidance, and qualify the exact final head in Staging and Release before recommending maintainer merge. T2009/T2010 are accepted on exact executable head `eab9f4ab4c2da293cde12ed2e71f937bc76be134`, qualified by workflow `35823884700`; see their gate records. No merge, release tag, or publication is authorized by this checkpoint.

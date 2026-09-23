@@ -2,7 +2,7 @@
 
 All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/` and the versioned roadmap files.
 
-## 2.0.0-alpha.1 — Terminal Integration (Unpublished Development)
+## 2.0.0-rc.1 — Terminal Integration (Unpublished Release Candidate)
 
 - Replaced the public `CursesSession.Terminal` description with `CursesSession.Profile : Icod.Terminal.TerminalProfile`; live size results and lifecycle size events now use `Icod.Terminal.TerminalDimensions`.
 - Moved refresh, cursor/rendition/edit planning, output serialization, and mixed-media transactions through Terminal-owned semantic APIs while retaining DCurses presentation and interaction behavior.
