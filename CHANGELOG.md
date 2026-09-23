@@ -11,7 +11,7 @@ All notable `Icod.DCurses` release-line changes are summarized here. Detailed tr
 
 ## 1.6.0 — Retained Mixed-Media Presentation
 
-Status: stable-source candidate qualified for publication after final branch verification.
+Status: published stable release.
 
 ### Added
 
@@ -41,7 +41,7 @@ Status: stable-source candidate qualified for publication after final branch ver
 - Additive over the published `1.5.0` contract.
 - `AssemblyVersion` remains `1.0.0.0`.
 - Targets remain `net8.0`, `net9.0`, and `net10.0`.
-- The published 1.6 package directly depends on `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`. The in-progress 2.0 branch changes that boundary as described above.
+- The published 1.6 package directly depends on `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`. Version 2.0 changes that boundary as described above.
 - No widget framework, hidden application event loop, generic raster scene graph, raw Kitty/Sixel command API, hidden source-image cache/re-upload, or automatic graphics-backend fallback is added.
 
 ## 1.5.0 — Advanced Interaction Control

@@ -98,8 +98,51 @@ public sealed class CursesMixedMediaApplicationAcceptanceTests {
 		Assert.Contains( "CursesPanel", sampleText, StringComparison.Ordinal );
 		Assert.Contains( "CursesPad", sampleText, StringComparison.Ordinal );
 		Assert.Contains( "CursesInteractionRouter", sampleText, StringComparison.Ordinal );
+		Assert.Contains( "WaitForInputAsync", sampleText, StringComparison.Ordinal );
+		Assert.Contains( "CursesInputEventKind.EndOfInput", sampleText, StringComparison.Ordinal );
+		Assert.Contains( "CursesLifecycleEventKind.Interrupt", sampleText, StringComparison.Ordinal );
+		Assert.Contains( "CursesLifecycleEventKind.Termination", sampleText, StringComparison.Ordinal );
 		Assert.DoesNotContain( "KittyGraphics", sampleText, StringComparison.Ordinal );
 		Assert.DoesNotContain( "Sixel", sampleText, StringComparison.Ordinal );
+
+		int firstPrompt = sampleText.IndexOf(
+			"Press any key to pan",
+			StringComparison.Ordinal
+		);
+		Assert.True( 0 <= firstPrompt, "The first-frame input prompt is required." );
+		int firstRefresh = sampleText.IndexOf(
+			"await session.RefreshAsync();",
+			firstPrompt,
+			StringComparison.Ordinal
+		);
+		Assert.True( firstPrompt < firstRefresh, "The first frame must be refreshed." );
+		int firstWait = sampleText.IndexOf(
+			"if ( !await WaitForInputAsync( session ) )",
+			firstRefresh,
+			StringComparison.Ordinal
+		);
+		Assert.True( firstRefresh < firstWait, "The first frame must wait for input." );
+		int pan = sampleText.IndexOf(
+			"viewport.PanBy(",
+			firstWait,
+			StringComparison.Ordinal
+		);
+		Assert.True( firstWait < pan, "Panning must follow the first input wait." );
+		int secondRefresh = sampleText.IndexOf(
+			"await session.RefreshAsync();",
+			pan,
+			StringComparison.Ordinal
+		);
+		Assert.True( pan < secondRefresh, "The panned frame must be refreshed." );
+		int secondWait = sampleText.IndexOf(
+			"await WaitForInputAsync( session );",
+			secondRefresh,
+			StringComparison.Ordinal
+		);
+		Assert.True(
+			secondRefresh < secondWait,
+			"The panned frame must wait for input before exit."
+		);
 
 		string packageSmokeText = string.Concat(
 			File.ReadAllText( packageSmoke ),

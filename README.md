@@ -9,9 +9,9 @@
 
 ## Status
 
-Published 1.x line: **`Icod.DCurses 1.6.0`**.
+Current release: **`Icod.DCurses 2.0.0`**.
 
-Version `2.0.0` completes the direct dependency cutover: production DCurses depends only on `Icod.Terminal 1.18.0`, which may restore `Icod.TermInfo` transitively. Version 2.0 changes the public profile and dimensions types and the assembly identity. See the [2.0 migration guide](docs/2.0-Migration-Guide.md) and [development roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md).
+Version `2.0.0` completes the direct dependency cutover: production DCurses depends only on `Icod.Terminal 1.18.0`, which may restore `Icod.TermInfo` transitively. Version 2.0 changes the public profile and dimensions types and the assembly identity. See the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md) and [2.0 roadmap](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/Icod.DCurses-2.0.0-Development-Roadmap.md).
 
 Version 1.6 adds retained mixed-media presentation over the published `Icod.Terminal 1.15.0` persistent-raster / Unicode-placeholder ownership model. Raster placeholder cells participate in ordinary DCurses windows, pads, viewports, panels, clipping, scrolling, composition, damage, and refresh while Terminal remains the sole owner of live raster protocol identity, acknowledgement, encoding, and lifecycle certainty.
 
@@ -23,7 +23,7 @@ The frozen 1.6 public contract is:
 sha256 266e23e6f3b4d5be98c81b5d5774f1de47d488d9ede7025877e46388cae6d458
 ```
 
-Version 1.6 is additive over the published 1.5 contract. `AssemblyVersion` remains `1.0.0.0`.
+Version 1.6 is the final published 1.x line. It is additive over the published 1.5 contract and keeps `AssemblyVersion` at `1.0.0.0`.
 
 ## Support the Project
 
@@ -61,19 +61,18 @@ higher-level terminal applications / future widgets
 - `Icod.DCurses` owns retained terminal-cell presentation and deterministic interaction mechanisms.
 - Applications own their event loop, command execution, source-image durability, widget/application semantics, navigation, and high-level layout policy.
 
-The direct 1.6 runtime dependencies are:
+The direct 2.0 runtime dependency is:
 
 ```text
-Icod.Terminal 1.15.0
-Icod.TermInfo  1.14.0
+Icod.Terminal 1.18.0
 ```
 
-The published 1.6 package retains those direct dependencies. The in-progress 2.0 branch uses the published `Icod.Terminal 1.18.0` semantic screen boundary and declares Terminal as its only direct package dependency. This major version requires a consumer rebuild; follow the [2.0 migration guide](docs/2.0-Migration-Guide.md). TermInfo remains a transitive dependency of Terminal.
+`Icod.TermInfo` is not a direct dependency of DCurses 2.0; NuGet may restore it transitively through Terminal. This major version requires a consumer rebuild; follow the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md). The previous 1.6 package retains its historical direct dependencies on `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`.
 
 ## Install
 
 ```text
-dotnet add package Icod.DCurses --version 1.6.0
+dotnet add package Icod.DCurses --version 2.0.0
 ```
 
 The package targets:
@@ -124,13 +123,13 @@ TerminalRasterImage image = TerminalRasterImage.CreateRgb24(
 TerminalControlResult<CursesRasterResource> resourceResult =
 	await session.CreateRasterResourceAsync( image );
 
-if ( resourceResult.IsSuccess ) {
-	await using CursesRasterResource resource = resourceResult.Value;
+if ( resourceResult.IsAvailable ) {
+	await using CursesRasterResource resource = resourceResult.GetRequiredValue();
 	TerminalControlResult<CursesRasterPlaceholder> placeholderResult =
 		await resource.CreatePlaceholderAsync( 1, 1 );
 
-	if ( placeholderResult.IsSuccess ) {
-		await using CursesRasterPlaceholder placeholder = placeholderResult.Value;
+	if ( placeholderResult.IsAvailable ) {
+		await using CursesRasterPlaceholder placeholder = placeholderResult.GetRequiredValue();
 		screen.Move( 2, 4 );
 		screen.WriteRasterCell( placeholder.GetCell( 0, 0 ) );
 		await session.RefreshAsync();
@@ -176,26 +175,26 @@ CursesSession
 
 Recommended documentation entry points:
 
-- [`CHANGELOG.md`](CHANGELOG.md)
-- [`docs/2.0-Migration-Guide.md`](docs/2.0-Migration-Guide.md) for the in-progress 2.0 branch
-- [`samples/README.md`](samples/README.md) for runnable consumer examples
-- [`docs/1.0-Stable-Compatibility-and-Migration-Guide.md`](docs/1.0-Stable-Compatibility-and-Migration-Guide.md)
-- [`Icod.DCurses-Development-Roadmap.md`](Icod.DCurses-Development-Roadmap.md)
-- [`Icod.DCurses-2.0.0-Development-Roadmap.md`](Icod.DCurses-2.0.0-Development-Roadmap.md)
-- [`Icod.DCurses-1.6.0-Development-Roadmap.md`](Icod.DCurses-1.6.0-Development-Roadmap.md)
-- [`docs/Public-API-Fingerprint-1.6.json`](docs/Public-API-Fingerprint-1.6.json)
-- [`docs/Public-API-Baseline-1.6.md`](docs/Public-API-Baseline-1.6.md)
-- [`docs/T1610-Public-API-Package-Documentation-Dependency-and-Licensing-Regret-Gate.md`](docs/T1610-Public-API-Package-Documentation-Dependency-and-Licensing-Regret-Gate.md)
-- [`docs/T1611-RC-and-Stable-1.6.0-Closure.md`](docs/T1611-RC-and-Stable-1.6.0-Closure.md)
+- [`CHANGELOG.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/CHANGELOG.md)
+- [`docs/2.0-Migration-Guide.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md) for upgrading 1.6 applications
+- [`samples/README.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/samples/README.md) for runnable consumer examples
+- [`docs/Public-API-Fingerprint-2.0.json`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/Public-API-Fingerprint-2.0.json)
+- [`docs/Public-API-Baseline-2.0.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/Public-API-Baseline-2.0.md)
+- [`docs/1.0-Stable-Compatibility-and-Migration-Guide.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/1.0-Stable-Compatibility-and-Migration-Guide.md)
+- [`Icod.DCurses-Development-Roadmap.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/Icod.DCurses-Development-Roadmap.md)
+- [`Icod.DCurses-2.0.0-Development-Roadmap.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/Icod.DCurses-2.0.0-Development-Roadmap.md)
+- [`Icod.DCurses-1.6.0-Development-Roadmap.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/Icod.DCurses-1.6.0-Development-Roadmap.md)
 
 ## Compatibility and Versioning
 
-Stable `1.0.0` remains the compatibility floor. Version 1.6 is additive over published 1.5 and keeps `AssemblyVersion` at `1.0.0.0`.
+Version 2.0 changes the public profile/dimensions signatures and advances `AssemblyVersion` to `2.0.0.0`; applications upgrading from 1.6 must rebuild. Stable `1.0.0` remains the historical compatibility floor for the 1.x line.
 
-The frozen 1.6 public API fingerprint is:
+The frozen 2.0 public contract is:
 
 ```text
-266e23e6f3b4d5be98c81b5d5774f1de47d488d9ede7025877e46388cae6d458
+75 exported types
+559 canonical declared contract lines
+sha256 1d33658358af26049d858e084a80d9f3b80abab974c1c4d3bfb36c2c2b477c65
 ```
 
 ## Authors
