@@ -1,7 +1,7 @@
 # Icod.DCurses 2.0.0 Development Roadmap
 
 **Theme:** Terminal-only integration; remove direct TermInfo coupling.\
-**Status:** T2001-T2010 accepted; T2011 RC accepted and stable-source qualification in progress.
+**Status:** T2001-T2010 accepted; T2011 stable source qualified on executable head; final evidence-head qualification pending.
 
 **Planning date:** 2026-09-18.\
 **Behavioral baseline:** published `Icod.DCurses 1.6.0`.\
@@ -292,8 +292,8 @@ No T2003 package was published. T2004 closes the temporary ordinary-rewrite diff
 **Files:** version/release metadata, acceptance evidence and roadmap status only unless qualification finds a defect.
 
 - [x] Advance `Version` and `PackageVersion` together through RC to `2.0.0`, keeping `AssemblyVersion` `2.0.0.0`. RC qualification is recorded in `docs/T2011-RC-Qualification.md`.
-- [ ] Qualify the exact final source head and package artifacts; rerun qualification after any evidence/metadata change that changes the candidate head.
-- [ ] Record accepted SHA, CI runs, artifact hashes, dependency floor and migration guide before recommending maintainer merge.
+- [ ] Qualify the exact final source head and package artifacts; executable head `d01a5287bbbda0d0bad87934d45598f5e8c9135c` passed 14/14 jobs; the evidence-only head must rerun the same workflow.
+- [x] Record the qualified executable SHA, CI run, artifact hashes, dependency floor and migration guide in `docs/T2011-Stable-Source-Release-Gate.md`. Record the final evidence head and artifact hashes in the PR description after its CI succeeds.
 
 **Acceptance:** exact-head runtime/package/API/boundary/consumer gates green. Merge, post-merge Release validation, tagging, GitHub Release and NuGet publication are separate explicit maintainer actions.
 
@@ -327,4 +327,4 @@ Completion requires all of the following, not just successful compilation:
 
 ## 10. Immediate next checkpoint
 
-The RC identity passed all Staging/Release gates on head `591a26532ec2e0fe4d637732e3f826cebd4385b0` in workflow `35824700019`; see `docs/T2011-RC-Qualification.md`. Qualify the `2.0.0` stable-source candidate, then record its exact accepted head and artifacts and rerun after any evidence/metadata change to that head. No merge, release tag, or publication is authorized by this checkpoint.
+The RC identity passed Staging/Release gates in workflow `35824700019`; see `docs/T2011-RC-Qualification.md`. The `2.0.0` executable head `d01a5287bbbda0d0bad87934d45598f5e8c9135c` passed workflow `35825479665`; see `docs/T2011-Stable-Source-Release-Gate.md`. Qualify the final evidence-only head before recommending maintainer merge. No merge, release tag, or publication is authorized by this checkpoint.

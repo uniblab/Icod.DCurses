@@ -11,7 +11,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.0.0` — Terminal-only terminal integration\
-**Status:** T2001-T2010 accepted; T2011 RC accepted and stable-source qualification in progress
+**Status:** T2001-T2010 accepted; T2011 stable source qualified on executable head, evidence-head qualification pending
 
 **Planning snapshot:** 2026-09-18
 
