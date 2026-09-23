@@ -34,16 +34,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>2.0.0</Version>
+		<Version>2.1.0-alpha.1</Version>
 		<AssemblyVersion>2.0.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>2.0.0</PackageVersion>
+		<PackageVersion>2.1.0-alpha.1</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-style terminal UI library for .NET with retained text and mixed-media presentation, panels, layout, and deterministic interaction routing.</Description>
-		<PackageReleaseNotes>2.0.0 migrates public profile and dimensions contracts to Icod.Terminal 1.18.0, moves screen refresh through Terminal-owned semantic transactions, and removes the direct Icod.TermInfo package dependency. Applications upgrading from 1.6 must rebuild against the new signatures.</PackageReleaseNotes>
+		<PackageReleaseNotes>2.1.0-alpha.1 begins development of core presentation and text with validated UTF-16 source positions, styled source spans, and a shared Unicode text-element analysis foundation. This development package preserves the 2.0 assembly version and direct Icod.Terminal 1.18.0 boundary; later planned 2.1 layout, geometry, presentation, viewport, track, and diagnostics APIs are not yet included.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
