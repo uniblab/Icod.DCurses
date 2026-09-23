@@ -71,6 +71,34 @@ public sealed class CursesOutputFailureHardeningTests {
 	}
 
 	[Fact]
+	public async Task OrdinaryRefreshFailureDoesNotInventScrollRegionRecovery() {
+		SelectiveFailingOutput output = new();
+		TerminalDescription terminal = new TerminalDescriptionBuilder(
+			"ordinary-failure-with-region-capability"
+		)
+			.SetString( StringCapability.CursorAddress, "C" )
+			.SetString( StringCapability.ChangeScrollRegion, "R" )
+			.Build();
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync( terminal, output );
+		CursesScreen screen = new( 8, 2 );
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+		output.Clear();
+		screen.VirtualScreen[ 0, 1 ] = new CursesCell( "X" );
+		output.FailOnceWhen( value => "C" == value );
+
+		await Assert.ThrowsAsync<IOException>(
+			async () => await context.Engine.RefreshAsync( screen, 0, 0 )
+		);
+
+		output.Clear();
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+
+		Assert.DoesNotContain( "R", output.Text, StringComparison.Ordinal );
+		Assert.Contains( "X", output.Text, StringComparison.Ordinal );
+	}
+
+	[Fact]
 	public async Task SynchronizedRefreshPreservesBodyAndEndFailures() {
 		SelectiveFailingOutput output = new();
 		TerminalSession terminalSession = await OpenTerminalSessionAsync(
