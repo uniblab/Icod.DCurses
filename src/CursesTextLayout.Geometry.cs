@@ -119,12 +119,30 @@ public sealed partial class CursesTextLayout {
 
 	/// <summary>Gets the previous legal source position, clamped at the source start.</summary>
 	public CursesTextPosition GetPreviousPosition( CursesTextPosition position ) {
-		throw new NotImplementedException();
+		int index = Array.BinarySearch(
+			legalOffsets,
+			position.Offset
+		);
+		if ( 0 > index ) {
+			throw new ArgumentOutOfRangeException( nameof( position ) );
+		}
+		return new CursesTextPosition(
+			legalOffsets[ Math.Max( 0, index - 1 ) ]
+		);
 	}
 
 	/// <summary>Gets the next legal source position, clamped at the source end.</summary>
 	public CursesTextPosition GetNextPosition( CursesTextPosition position ) {
-		throw new NotImplementedException();
+		int index = Array.BinarySearch(
+			legalOffsets,
+			position.Offset
+		);
+		if ( 0 > index ) {
+			throw new ArgumentOutOfRangeException( nameof( position ) );
+		}
+		return new CursesTextPosition(
+			legalOffsets[ Math.Min( legalOffsets.Length - 1, index + 1 ) ]
+		);
 	}
 
 	/// <summary>Moves a visual position vertically while preserving a preferred column.</summary>
@@ -133,17 +151,43 @@ public sealed partial class CursesTextLayout {
 		int lineDelta,
 		int preferredColumn
 	) {
-		throw new NotImplementedException();
+		if ( lines.Count <= position.Line ) {
+			throw new ArgumentOutOfRangeException( nameof( position ) );
+		}
+		if ( 0 > preferredColumn ) {
+			throw new ArgumentOutOfRangeException( nameof( preferredColumn ) );
+		}
+
+		long requestedLine = (long)position.Line + lineDelta;
+		int targetLine = (int)Math.Clamp(
+			requestedLine,
+			0L,
+			lines.Count - 1L
+		);
+		CursesTextHitTestResult hit = HitTest(
+			targetLine,
+			preferredColumn
+		);
+		return GetVisualPosition(
+			hit.Position,
+			hit.Affinity
+		);
 	}
 
 	/// <summary>Gets the legal source position at the start of one visual line.</summary>
 	public CursesTextPosition GetLineStart( int line ) {
-		throw new NotImplementedException();
+		if ( 0 > line || lines.Count <= line ) {
+			throw new ArgumentOutOfRangeException( nameof( line ) );
+		}
+		return lines[ line ].SourceStart;
 	}
 
 	/// <summary>Gets the legal source position at the end of one visual line.</summary>
 	public CursesTextPosition GetLineEnd( int line ) {
-		throw new NotImplementedException();
+		if ( 0 > line || lines.Count <= line ) {
+			throw new ArgumentOutOfRangeException( nameof( line ) );
+		}
+		return lines[ line ].SourceEnd;
 	}
 
 	/// <summary>Gets owned visual rectangles for the selected source cells in a visual-line range.</summary>
