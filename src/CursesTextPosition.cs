@@ -1,0 +1,40 @@
+/*
+	Icod.DCurses
+	Managed, cross-platform curses-style terminal UI library for .NET.
+	Copyright (C) 2026  Timothy J. Bruce <uniblab@hotmail.com>
+*/
+
+/*
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTIBILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+namespace Icod.DCurses;
+
+/// <summary>Represents one immutable zero-based UTF-16 source position.</summary>
+public readonly record struct CursesTextPosition {
+	/// <summary>Initializes one immutable source position.</summary>
+	/// <param name="offset">The non-negative zero-based UTF-16 source offset.</param>
+	public CursesTextPosition( int offset ) {
+		if ( 0 > offset ) {
+			throw new ArgumentOutOfRangeException( nameof( offset ) );
+		}
+
+		Offset = offset;
+	}
+
+	/// <summary>Gets the zero-based UTF-16 source offset.</summary>
+	public int Offset {
+		get;
+	}
+}
