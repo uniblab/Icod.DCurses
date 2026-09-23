@@ -2,7 +2,7 @@
 
 **Tranche:** T2101  
 **Witness status:** complete  
-**Foundation status:** blocked; one pre-existing allocation-noise matrix job remains red\
+**Foundation status:** accepted\
 **Branch:** `2.1.0-roadmap`
 
 ## Intentional RED witness
@@ -65,17 +65,16 @@ The T2101 decision is based on these artifacts:
 | Terminal 1.18.0 sufficient | design boundary review; no new live-terminal contract | Met |
 | first missing contract proved RED and reverted | commits `ecc4c6b` and `e24c93f`; workflow 35905155613 | Met |
 | T2102-T2108 implementation sequence reviewed | accepted implementation plan | Met |
-| active post-roadmap head green without production/package changes | exact head `3b8213142ddee9abdbadc4abb37b2c5170cbe3ae`, workflow 35906986670 | Blocked: 13/14 jobs green |
+| active implementation-equivalent head green without production/package changes | exact head `4bff3bf96f0bf5c67706df872e4d4ff7483851f1`, workflow 35911150258 | Met: 14/14 jobs green |
 
 No file under `src/`, no package identity, no production dependency, and no published API fingerprint changes in T2101.
 
-## Blocking evidence and corrective action
+## Allocation-harness diagnosis and correction
 
-[Workflow 35906986670](https://github.com/uniblab/Icod.DCurses/actions/runs/35906986670) leaves 13 jobs successful after targeted reruns. The remaining [macOS ARM64 Staging job](https://github.com/uniblab/Icod.DCurses/actions/runs/35906986670/job/107344831063) fails only these previously documented allocation-noise tests:
+[Workflow 35906986670](https://github.com/uniblab/Icod.DCurses/actions/runs/35906986670) initially left 13 jobs successful after targeted reruns. The remaining macOS ARM64 Staging job, and a Windows 10 local run supplied by the maintainer, showed that nominally allocation-free geometry and focus operations were being measured while independent test hosts and xUnit collections executed concurrently.
 
-- `CursesInteractionPerformanceHardeningTests.FocusTraversalStaysWithinMeasurementNoiseFloor`, with observed values 3,328 and 3,472 against 0-1,024;
-- `CursesInteraction15PerformanceTests.SpatialFocusIsAllocationFreeApartFromMeasurementNoise`, with observed value 1,488 against 0-1,024.
+Starting with the .NET 9 SDK, `dotnet test` runs a multi-targeted project's TFMs in parallel by default. xUnit also runs test collections in parallel by default. Those two layers of concurrency delayed steady-state runtime/JIT stabilization and allowed runtime bookkeeping to enter the current-thread allocation samples. Raising the byte ceilings had previously reduced but not eliminated the symptom.
 
-The new T2101 tests, package jobs, and the other runtime jobs are green. Repeated isolated reruns on the unchanged SHA have produced the same class of noise-only failure; no T2101 file is named in the diagnostics.
+The correction sets `TestTfmsInParallel` to `false` in the test project and places the three affected steady-state allocation fixtures in one xUnit collection with `DisableParallelization = true`. This changes only test scheduling. It does not change any measured ceiling, iteration count, production source, package identity, public API, or dependency.
 
-The smallest corrective action is either a successful unchanged rerun of that one job or an explicit maintainer exception for these known noise-floor tests. The user chose to keep the tests unchanged, so this gate does not alter their thresholds. Until one of those actions occurs, T2101 is blocked and T2102 is not authorized.
+[Workflow 35911150258](https://github.com/uniblab/Icod.DCurses/actions/runs/35911150258) passed all 14 package/runtime jobs on corrective exact head [`4bff3bf96f0bf5c67706df872e4d4ff7483851f1`](https://github.com/uniblab/Icod.DCurses/commit/4bff3bf96f0bf5c67706df872e4d4ff7483851f1). T2101 is accepted and T2102 is authorized.
