@@ -133,7 +133,7 @@ git commit -m "feat: add DCurses 2.1 text source contracts"
 
 **Exact public increment:** `CursesTextWrapMode`, `CursesTextAlignment`, `CursesTextOverflow`; `CursesTextLayoutOptions`; `CursesTextLayout.Create(string, CursesTextLayoutOptions, IReadOnlyList<CursesTextSpan>? = null)` and its result properties; immutable `CursesTextVisualLine` and `CursesTextFragment` properties exactly as declared in the design.
 
-- [ ] **Step 1: Write the first layout RED**
+- [x] **Step 1: Write the first layout RED**
 
 ```csharp
 [Fact]
@@ -153,27 +153,27 @@ public void CreateProducesOneStyledVisualLine() {
 
 Run the focused net10.0 test and observe missing layout contracts.
 
-- [ ] **Step 2: Implement options, outputs, validation, and the no-wrap path**
+- [x] **Step 2: Implement options, outputs, validation, and the no-wrap path**
 
 Add enum values/defaults and the exact option limits. `CursesTextLayout.Create` copies options and spans, calls the T2102 scanner once, validates sorted non-overlapping legal boundaries, and builds private arrays exposed through read-only views. Implement empty text, hard lines, default/style span splitting, starting column, no-wrap clip, cell/fragment counts, row limit, and `IsTruncated` first.
 
 Add tests for nulls, enum values, all capacity edges, checked overflow, caller-list mutation after creation, empty text, trailing break, and span precedence. Observe each focused failure before its minimal implementation.
 
-- [ ] **Step 3: Add wrapping and alignment through table-driven tests**
+- [x] **Step 3: Add wrapping and alignment through table-driven tests**
 
 In `CursesTextLayoutTests`, generate the complete cross-product of three wrap modes, three alignments, and two overflow modes over fixed ASCII cases. Assert exact source ranges, columns, soft/hard flags, clipping, and odd center remainder. Implement text-element wrap, word-preferred wrap with fallback, and per-line alignment without rescanning earlier source.
 
-- [ ] **Step 4: Add Unicode, tab, and ellipsis semantics**
+- [x] **Step 4: Add Unicode, tab, and ellipsis semantics**
 
 In `CursesTextLayoutUnicodeTests`, freeze the design cases: absolute tab stops at multiple `StartingColumn` values; indivisible CRLF; malformed input replacement with stable offsets; combining/emoji/ambiguous/wide elements; leading/attached zero-width elements; too-wide element clipping; ellipsis style/metadata and empty source range; ellipsis that cannot fit.
 
 Implement only after each group fails. Preserve complete text elements and use the configured provider. Never normalize caller text or split a width-two cell.
 
-- [ ] **Step 5: Qualify capacity and cost**
+- [x] **Step 5: Qualify capacity and cost**
 
 Assert source/span/row/column/fragment/cell limits fail before result publication. Add an application-shaped 80x40 editor slice with 10,000 caller-owned lines and prove only supplied visible text is inspected. Use the T2101 minimum-of-eight convention; require linear counts and a broad portable allocation ceiling, not elapsed-time success.
 
-- [ ] **Step 6: Verify and commit T2103**
+- [x] **Step 6: Verify and commit T2103**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10.0 \
