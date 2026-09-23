@@ -23,6 +23,7 @@ namespace Icod.DCurses.Tests;
 
 using Icod.DCurses.Internal;
 using Icod.Terminal;
+using Icod.TermInfo;
 using Xunit;
 
 /// <summary>Qualifies capacity and epoch behavior through the DCurses transaction wrapper.</summary>
