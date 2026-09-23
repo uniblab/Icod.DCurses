@@ -205,16 +205,14 @@ internal static class CursesTextLayoutBuilder {
 						EllipsisText
 					);
 					if ( ellipsisWidth <= options.Columns ) {
-						while ( visualElementStart < visibleEnd
-							&& options.Columns < ellipsisWidth + MeasureColumns(
-								elements,
-								visualElementStart,
-								visibleEnd,
-								options,
-								options.StartingColumn
-							) ) {
-							visibleEnd--;
-						}
+						visibleEnd = FindFitEnd(
+							elements,
+							visualElementStart,
+							visibleEnd,
+							options,
+							options.StartingColumn,
+							options.Columns - ellipsisWidth
+						);
 						hasEllipsis = true;
 						ellipsisSourceOffset = elements[ visibleEnd ].SourceStart;
 						ResolvePresentation(
@@ -675,15 +673,20 @@ internal static class CursesTextLayoutBuilder {
 	) {
 		style = options.DefaultStyle;
 		metadata = options.DefaultMetadata;
-		foreach ( CursesTextSpan span in spans ) {
-			if ( span.End.Offset <= element.SourceStart ) {
-				continue;
+		int lower = 0;
+		int upper = spans.Length;
+		while ( lower < upper ) {
+			int middle = lower + ( ( upper - lower ) / 2 );
+			if ( spans[ middle ].End.Offset <= element.SourceStart ) {
+				lower = middle + 1;
+			} else {
+				upper = middle;
 			}
-			if ( span.Start.Offset <= element.SourceStart ) {
-				style = span.Style;
-				metadata = span.Metadata;
-			}
-			break;
+		}
+		if ( lower < spans.Length
+			&& spans[ lower ].Start.Offset <= element.SourceStart ) {
+			style = spans[ lower ].Style;
+			metadata = spans[ lower ].Metadata;
 		}
 	}
 
