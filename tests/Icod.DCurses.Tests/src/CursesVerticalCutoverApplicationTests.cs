@@ -264,7 +264,7 @@ public sealed class CursesVerticalCutoverApplicationTests {
 
 		editor.DeleteLines();
 		await context.Engine.RefreshAsync( screen, 2, 0 );
-		Assert.Equal( "D1", output.Text );
+		Assert.Equal( "L", output.Text );
 		output.Clear();
 
 		CursesWindow region = screen.CreateWindow( 2, 0, 2, screen.Columns );
