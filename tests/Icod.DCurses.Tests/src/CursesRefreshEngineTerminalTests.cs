@@ -22,7 +22,6 @@
 using System.Text;
 using Icod.DCurses;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
 using Icod.Terminal;
 using Icod.TermInfo;
 using Xunit;
@@ -405,7 +404,7 @@ public sealed class CursesRefreshEngineTerminalTests {
 		}
 	}
 
-	private sealed class RecordingOutput : Icod.DCurses.Terminal.ITerminalOutput {
+	private sealed class RecordingOutput : ILegacyTerminalOutputFixture {
 		private readonly StringBuilder text = new();
 		private int writeCount;
 

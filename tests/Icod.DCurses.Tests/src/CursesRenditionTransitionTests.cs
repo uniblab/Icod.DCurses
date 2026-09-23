@@ -21,7 +21,6 @@
 
 using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -241,7 +240,7 @@ public sealed class CursesRenditionTransitionTests {
 		}
 	}
 
-	private sealed class RecordingOutput : ITerminalOutput {
+	private sealed class RecordingOutput : ILegacyTerminalOutputFixture {
 		private readonly StringBuilder text = new();
 
 		internal string Text => text.ToString();

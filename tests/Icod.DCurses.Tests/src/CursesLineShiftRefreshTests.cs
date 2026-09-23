@@ -23,7 +23,6 @@ namespace Icod.DCurses.Tests;
 
 using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -199,7 +198,7 @@ public sealed class CursesLineShiftRefreshTests {
 		return result;
 	}
 
-	private sealed class RecordingOutput : ITerminalOutput {
+	private sealed class RecordingOutput : ILegacyTerminalOutputFixture {
 		private readonly StringBuilder text = new();
 
 		internal int WriteCount {

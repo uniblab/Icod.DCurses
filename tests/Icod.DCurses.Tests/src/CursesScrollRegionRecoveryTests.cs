@@ -23,7 +23,6 @@ namespace Icod.DCurses.Tests;
 
 using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -187,7 +186,7 @@ public sealed class CursesScrollRegionRecoveryTests {
 		return result;
 	}
 
-	private sealed class FailingOutput : ITerminalOutput {
+	private sealed class FailingOutput : ILegacyTerminalOutputFixture {
 		private readonly StringBuilder text = new();
 		private int writeCount;
 

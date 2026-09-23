@@ -21,7 +21,6 @@
 
 using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -162,7 +161,7 @@ public sealed class CursesSemanticLineRefreshTests {
 	}
 
 	private sealed class RecordingOutput
-		: ITerminalOutput {
+		: ILegacyTerminalOutputFixture {
 		private readonly StringBuilder text = new();
 
 		internal string Text => text.ToString();

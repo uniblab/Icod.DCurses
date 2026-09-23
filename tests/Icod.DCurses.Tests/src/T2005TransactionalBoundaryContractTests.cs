@@ -36,6 +36,7 @@ public sealed class T2005TransactionalBoundaryContractTests {
 		"WriteTerminalStringAsync",
 		"ITerminalOutput",
 		"ITerminalHyperlinkOutput",
+		"ITerminalRasterPlaceholderOutput",
 		".Output.FlushAsync"
 	];
 
@@ -63,6 +64,16 @@ public sealed class T2005TransactionalBoundaryContractTests {
 				)
 			),
 			"The obsolete raw capability writer must remain deleted."
+		);
+		Assert.False(
+			File.Exists(
+				Path.Combine(
+					sourceRoot,
+					"Integration",
+					"ITerminalRasterPlaceholderOutput.cs"
+				)
+			),
+			"The obsolete per-write raster output seam must remain deleted."
 		);
 
 		foreach ( string path in Directory.EnumerateFiles(

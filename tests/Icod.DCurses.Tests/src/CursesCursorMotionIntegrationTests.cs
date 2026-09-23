@@ -21,7 +21,6 @@
 
 using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -127,7 +126,7 @@ public sealed class CursesCursorMotionIntegrationTests {
 		Assert.Equal( 1, output.FlushCount );
 	}
 
-	private sealed class RecordingOutput : ITerminalOutput {
+	private sealed class RecordingOutput : ILegacyTerminalOutputFixture {
 		private readonly StringBuilder text = new();
 
 		internal int FlushCount {

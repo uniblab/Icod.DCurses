@@ -21,7 +21,6 @@
 
 using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -216,7 +215,7 @@ public sealed class CursesRefreshCostBaselineTests {
 		return byteCount;
 	}
 
-	private sealed class MeasuringOutput : ITerminalOutput {
+	private sealed class MeasuringOutput : ILegacyTerminalOutputFixture {
 		private readonly CursesOutputCostModel costModel = new( Encoding.UTF8 );
 
 		internal int ByteCount {

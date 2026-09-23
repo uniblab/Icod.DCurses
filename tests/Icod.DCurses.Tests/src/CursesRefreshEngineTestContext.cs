@@ -23,7 +23,6 @@ namespace Icod.DCurses.Tests;
 
 using System.Text;
 using Icod.DCurses.Internal;
-using LegacyTerminalOutput = Icod.DCurses.Terminal.ITerminalOutput;
 using Icod.Terminal;
 using Icod.TermInfo;
 
@@ -47,7 +46,7 @@ internal sealed class CursesRefreshEngineTestContext : IAsyncDisposable {
 
 	internal static async ValueTask<CursesRefreshEngineTestContext> OpenAsync(
 		TerminalDescription terminal,
-		LegacyTerminalOutput output,
+		ILegacyTerminalOutputFixture output,
 		bool useSynchronizedOutput = false
 	) {
 		ArgumentNullException.ThrowIfNull( terminal );
@@ -90,9 +89,9 @@ internal sealed class CursesRefreshEngineTestContext : IAsyncDisposable {
 	}
 
 	private sealed class LegacyOutputAdapter : Icod.Terminal.ITerminalOutput {
-		private readonly LegacyTerminalOutput output;
+		private readonly ILegacyTerminalOutputFixture output;
 
-		internal LegacyOutputAdapter( LegacyTerminalOutput output ) {
+		internal LegacyOutputAdapter( ILegacyTerminalOutputFixture output ) {
 			ArgumentNullException.ThrowIfNull( output );
 			this.output = output;
 		}

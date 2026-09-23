@@ -20,7 +20,7 @@
 */
 
 using System.Text;
-using Icod.DCurses.Terminal;
+using Icod.DCurses.Internal;
 using Icod.Terminal;
 using Icod.TermInfo;
 using Xunit;
@@ -112,28 +112,30 @@ public sealed class CursesSemanticFailureHardeningTests {
 	public async Task CallerCancellationBeforeHyperlinkTransmissionDoesNotPoisonSemanticOutput() {
 		SelectiveFailingRawOutput output = new();
 		await using TerminalSession terminalSession = await OpenTerminalSessionAsync( output );
-		TerminalSessionCursesOutput cursesOutput = new( terminalSession );
+		CursesPreparedRefresh prepared = new(
+			terminalSession,
+			useSynchronizedOutput: false
+		);
 		CursesHyperlink hyperlink = new(
 			"https://example.test/docs",
 			"docs"
 		);
+		prepared.WriteHyperlink( "link", hyperlink );
 		using CancellationTokenSource cancellation = new();
 		cancellation.Cancel();
 
 		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(
-			() => cursesOutput.WriteHyperlinkTextAsync(
-				"link",
-				hyperlink,
-				cancellation.Token
-			).AsTask()
+			() => prepared.CommitAsync( cancellation.Token ).AsTask()
 		);
 		Assert.DoesNotContain( HyperlinkBegin, output.Text );
 
 		output.Clear();
-		await cursesOutput.WriteHyperlinkTextAsync(
-			"link",
-			hyperlink
+		CursesPreparedRefresh retry = new(
+			terminalSession,
+			useSynchronizedOutput: false
 		);
+		retry.WriteHyperlink( "link", hyperlink );
+		await retry.CommitAsync();
 
 		Assert.Contains( HyperlinkBegin, output.Text );
 		Assert.Contains( "link", output.Text, StringComparison.Ordinal );
