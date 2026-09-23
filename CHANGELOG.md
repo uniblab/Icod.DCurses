@@ -2,12 +2,12 @@
 
 All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/` and the versioned roadmap files.
 
-## 2.0.0 — Terminal Integration (Unpublished Stable-Source Candidate)
+## 2.0.0 — Terminal Integration
 
 - Replaced the public `CursesSession.Terminal` description with `CursesSession.Profile : Icod.Terminal.TerminalProfile`; live size results and lifecycle size events now use `Icod.Terminal.TerminalDimensions`.
 - Moved refresh, cursor/rendition/edit planning, output serialization, and mixed-media transactions through Terminal-owned semantic APIs while retaining DCurses presentation and interaction behavior.
 - Removed the production direct `Icod.TermInfo` package and assembly dependency. The sole direct terminal package dependency is `Icod.Terminal 1.18.0`; TermInfo can still be restored transitively.
-- Advanced `AssemblyVersion` to `2.0.0.0`. Applications upgrading from 1.6 must rebuild against the new signatures; consult [the 2.0 migration guide](docs/2.0-Migration-Guide.md). This branch is not a published release.
+- Advanced `AssemblyVersion` to `2.0.0.0`. Applications upgrading from 1.6 must rebuild against the new signatures; consult [the 2.0 migration guide](docs/2.0-Migration-Guide.md).
 
 ## 1.6.0 — Retained Mixed-Media Presentation
 
