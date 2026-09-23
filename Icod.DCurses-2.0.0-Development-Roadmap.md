@@ -1,7 +1,7 @@
 # Icod.DCurses 2.0.0 Development Roadmap
 
 **Theme:** Terminal-only integration; remove direct TermInfo coupling.\
-**Status:** T2001-T2006 accepted; T2007 is the next implementation tranche.
+**Status:** T2001-T2007 accepted; T2008 is the next implementation tranche.
 
 **Planning date:** 2026-09-18.\
 **Behavioral baseline:** published `Icod.DCurses 1.6.0`.\
@@ -27,7 +27,7 @@ This means:
 
 Version 1.6 is the endpoint for new 1.x features. Necessary 1.6.x maintenance may continue independently. New features belong to 2.1+ after this migration is accepted. Do not mix widgets, new input protocols, animation scheduling, physical raster scenes, or application-framework work into 2.0.
 
-This PR now carries the ordered 2.0 migration. T2002 established the development identity, selected Terminal 1.18.0, and completed the approved public profile/dimensions cutover. T2003 moved the core presentation path and ordinary rewrite refresh through Terminal-owned planners and one semantic output transaction. T2004 restored erase, character-shift, line-shift, and scroll-region optimization through opaque Terminal plans and Terminal-owned costs. T2005 deleted obsolete raw-output/capability seams and accepted exhaustive transaction capacity, cancellation, synchronization, ordering, stale-epoch, lease-conflict, direct-operation, and publication hardening. T2006 qualified partial-write, flush, cleanup, raster-identity, lifecycle, resize, disposal, and recovery behavior. The direct TermInfo dependency and T2007 package/reference-removal work remain migration debt, and no checkpoint authorizes publication.
+This PR now carries the ordered 2.0 migration. T2002 established the development identity, selected Terminal 1.18.0, and completed the approved public profile/dimensions cutover. T2003 moved the core presentation path and ordinary rewrite refresh through Terminal-owned planners and one semantic output transaction. T2004 restored erase, character-shift, line-shift, and scroll-region optimization through opaque Terminal plans and Terminal-owned costs. T2005 deleted obsolete raw-output/capability seams and accepted exhaustive transaction capacity, cancellation, synchronization, ordering, stale-epoch, lease-conflict, direct-operation, and publication hardening. T2006 qualified partial-write, flush, cleanup, raster-identity, lifecycle, resize, disposal, and recovery behavior. T2007 removed the direct TermInfo dependency and qualified independent production, assembly, package, and consumer guards. T2008 consumer migration and documentation remain; no checkpoint authorizes publication.
 
 ## 2. Reference snapshot and authorities
 
@@ -236,11 +236,13 @@ No T2003 package was published. T2004 closes the temporary ordinary-rewrite diff
 **Depends on:** T2006.\
 **Files:** project references, remaining dependency leaks, `PublicDependencyBoundaryTests.cs`, new source/assembly boundary tests, package verifier, and audited fixture setup.
 
-- [ ] Remove the production `Icod.TermInfo` PackageReference and final direct dependency/reference leaks; remove unused dependencies from samples/tools. T2005 owns deletion of obsolete raw capability-writer/output shims.
-- [ ] Enforce no production TermInfo symbols, legacy `TerminalSession.Terminal`/`GetSize()`/lifecycle `Size` use, `WriteTerminalStringAsync`, or borrowed output writes/flushes. Keep explicit exceptions limited to reviewed test bootstrap and historical documentation.
-- [ ] Inspect emitted DCurses assembly references and metadata TypeRefs as well as recursively examined public signatures; a package-only compile alone cannot catch transitive coupling.
-- [ ] Assert the DCurses NuGet direct dependency set independently as exactly `Icod.Terminal` with the qualified minimum in each TFM group. Do not merely compare package dependencies against an equally wrong project file.
-- [ ] Demonstrate negative controls: reintroducing a production TermInfo type, a direct package reference, or a forbidden raw-output call causes its respective guard to fail.
+**Status:** accepted on exact executable head `59ad23df36a8ec40ca66b8151770acf69d1257b5`; see `docs/T2007-TermInfo-Dependency-Removal-Gate.md`.
+
+- [x] Remove the production `Icod.TermInfo` PackageReference and final direct dependency/reference leaks; remove unused dependencies from samples/tools. T2005 owns deletion of obsolete raw capability-writer/output shims.
+- [x] Enforce no production TermInfo symbols, legacy `TerminalSession.Terminal`/`GetSize()`/lifecycle `Size` use, `WriteTerminalStringAsync`, or borrowed output writes/flushes. Keep explicit exceptions limited to reviewed test bootstrap and historical documentation.
+- [x] Inspect emitted DCurses assembly references and metadata TypeRefs as well as recursively examined public signatures; a package-only compile alone cannot catch transitive coupling.
+- [x] Assert the DCurses NuGet direct dependency set independently as exactly `Icod.Terminal` with the qualified minimum in each TFM group. Do not merely compare package dependencies against an equally wrong project file.
+- [x] Demonstrate negative controls: reintroducing a production TermInfo type, a direct package reference, or a forbidden raw-output call causes its respective guard to fail.
 
 **Acceptance:** no direct production/runtime API/assembly coupling; TermInfo's legitimate transitive restore presence does not fail the guard; test bootstrap exceptions, if any, are narrow and documented.
 
@@ -319,4 +321,4 @@ Completion requires all of the following, not just successful compilation:
 
 ## 10. Immediate next checkpoint
 
-Plan and execute T2007 direct dependency removal and permanent production-source, assembly-metadata, and NuGet guards. T2006 is accepted on exact executable head `5d25874aacb3235a25087ce442b4c7ed1fe04678`, qualified by workflow `35817879433` including the same-head Windows x64 rerun; see `docs/T2006-Lifecycle-and-Recovery-Gate.md`. Preserve the test-only TermInfo fixture bootstrap where necessary. No merge, release tag, or publication is authorized by this checkpoint.
+Plan and execute T2008 consumer migration and current documentation. T2007 is accepted on exact executable head `59ad23df36a8ec40ca66b8151770acf69d1257b5`, qualified by workflow `35819157649`; see `docs/T2007-TermInfo-Dependency-Removal-Gate.md`. Preserve the test-only TermInfo fixture bootstrap where necessary. No merge, release tag, or publication is authorized by this checkpoint.
