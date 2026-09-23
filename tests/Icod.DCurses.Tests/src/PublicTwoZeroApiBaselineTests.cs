@@ -38,11 +38,11 @@ public sealed class PublicTwoZeroApiBaselineTests {
 
 		Assert.Equal( 1, root.GetProperty( "schema" ).GetInt32() );
 		Assert.Equal(
-			"2.0.0-rc.1",
+			"2.0.0",
 			root.GetProperty( "release" ).GetString()
 		);
 		Assert.Equal(
-			"release-candidate",
+			"stable-source",
 			root.GetProperty( "status" ).GetString()
 		);
 		Assert.Equal(

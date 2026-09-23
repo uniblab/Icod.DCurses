@@ -4,14 +4,14 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
 **Published 1.x compatibility floor:** `1.0.0`\
 **Current published package:** `1.6.0`\
-**Current development source/package identity:** `2.0.0-rc.1`\
+**Current development source/package identity:** `2.0.0` (unpublished stable-source candidate)\
 **Current development assembly version:** `2.0.0.0`\
 **Current development runtime dependency:** direct `Icod.Terminal 1.18.0` only; TermInfo remains transitive\
 **Planned 2.0 direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.0.0` — Terminal-only terminal integration\
-**Status:** T2001-T2010 accepted; T2011 RC and stable-source qualification are next
+**Status:** T2001-T2010 accepted; T2011 RC accepted and stable-source qualification in progress
 
 **Planning snapshot:** 2026-09-18
 

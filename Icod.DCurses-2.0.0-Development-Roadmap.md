@@ -1,7 +1,7 @@
 # Icod.DCurses 2.0.0 Development Roadmap
 
 **Theme:** Terminal-only integration; remove direct TermInfo coupling.\
-**Status:** T2001-T2010 accepted; T2011 RC and stable-source qualification are next.
+**Status:** T2001-T2010 accepted; T2011 RC accepted and stable-source qualification in progress.
 
 **Planning date:** 2026-09-18.\
 **Behavioral baseline:** published `Icod.DCurses 1.6.0`.\
@@ -9,7 +9,7 @@
 **Targets:** `net8.0`; `net9.0`; `net10.0`.\
 **Configurations:** `Debug`; `Staging`; `Release`.\
 **Technology:** C# 13, .NET, PowerShell 5.1-compatible automation, cmd/sh. No Python.\
-**Current development identity:** `Version` and `PackageVersion` both `2.0.0-rc.1`; `AssemblyVersion` `2.0.0.0`, established in T2002; the RC identity is under T2011 qualification.
+**Current development identity:** `Version` and `PackageVersion` both `2.0.0`; `AssemblyVersion` `2.0.0.0`. This unpublished stable-source candidate is under T2011 qualification.
 
 ## 1. Goal and scope
 
@@ -291,7 +291,7 @@ No T2003 package was published. T2004 closes the temporary ordinary-rewrite diff
 **Depends on:** T2010.\
 **Files:** version/release metadata, acceptance evidence and roadmap status only unless qualification finds a defect.
 
-- [ ] Advance `Version` and `PackageVersion` together through RC to `2.0.0`, keeping `AssemblyVersion` `2.0.0.0`.
+- [x] Advance `Version` and `PackageVersion` together through RC to `2.0.0`, keeping `AssemblyVersion` `2.0.0.0`. RC qualification is recorded in `docs/T2011-RC-Qualification.md`.
 - [ ] Qualify the exact final source head and package artifacts; rerun qualification after any evidence/metadata change that changes the candidate head.
 - [ ] Record accepted SHA, CI runs, artifact hashes, dependency floor and migration guide before recommending maintainer merge.
 
@@ -327,4 +327,4 @@ Completion requires all of the following, not just successful compilation:
 
 ## 10. Immediate next checkpoint
 
-Advance T2011 through RC and stable-source identities, update versioned guidance, and qualify the exact final head in Staging and Release before recommending maintainer merge. T2009/T2010 are accepted on exact executable head `eab9f4ab4c2da293cde12ed2e71f937bc76be134`, qualified by workflow `35823884700`; see their gate records. No merge, release tag, or publication is authorized by this checkpoint.
+The RC identity passed all Staging/Release gates on head `591a26532ec2e0fe4d637732e3f826cebd4385b0` in workflow `35824700019`; see `docs/T2011-RC-Qualification.md`. Qualify the `2.0.0` stable-source candidate, then record its exact accepted head and artifacts and rerun after any evidence/metadata change to that head. No merge, release tag, or publication is authorized by this checkpoint.

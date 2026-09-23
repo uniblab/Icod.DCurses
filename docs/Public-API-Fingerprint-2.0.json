@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "release": "2.0.0-rc.1",
-  "status": "release-candidate",
+  "release": "2.0.0",
+  "status": "stable-source",
   "sha256": "1d33658358af26049d858e084a80d9f3b80abab974c1c4d3bfb36c2c2b477c65",
   "exportedTypeCount": 75,
   "contractLineCount": 559,
