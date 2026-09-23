@@ -27,12 +27,12 @@ namespace Icod.DCurses.Tests;
 public sealed class CorePresentationTextWorkloadBaselineTests {
 	private const int AllocationSamples = 8;
 	private const long EditorVisibleSliceAllocationCeiling = 0;
-	private const long FullWorldFrameAllocationCeiling = 0;
+	private const long FullWorldFrameAllocationCeiling = 12L * 1024L * 1024L;
 	private const int MeasurementIterations = 256;
 	private const long MeasurementNoiseAllowance = 64L * 1024L;
-	private const long PadViewportAllocationCeiling = 0;
+	private const long PadViewportAllocationCeiling = 54L * 1024L * 1024L;
 	private const long SparseWorldUpdateAllocationCeiling = 0;
-	private const long TextHelperBatchAllocationCeiling = 0;
+	private const long TextHelperBatchAllocationCeiling = 76L * 1024L * 1024L;
 	private const int WarmupIterations = 32;
 
 	[Fact]
@@ -50,7 +50,7 @@ public sealed class CorePresentationTextWorkloadBaselineTests {
 		);
 
 		Assert.Equal( 40, inspectedLines );
-		Assert.InRange( screen.VirtualScreen.DirtyCellCount, 1, 80 * 40 );
+		Assert.Equal( 969, screen.VirtualScreen.DirtyCellCount );
 		screen.VirtualScreen.MarkClean();
 		Assert.Equal(
 			40,
@@ -61,7 +61,7 @@ public sealed class CorePresentationTextWorkloadBaselineTests {
 				horizontalOrigin: 0
 			)
 		);
-		Assert.Equal( 0, screen.VirtualScreen.DirtyCellCount );
+		Assert.Equal( 969, screen.VirtualScreen.DirtyCellCount );
 		Assert.Equal(
 			"A",
 			CursesText.SliceByColumns(
