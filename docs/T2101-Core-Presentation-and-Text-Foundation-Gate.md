@@ -2,7 +2,7 @@
 
 **Tranche:** T2101  
 **Witness status:** complete  
-**Foundation status:** pending final exact-head verification  
+**Foundation status:** acceptance candidate; final exact-head verification pending\
 **Branch:** `2.1.0-roadmap`
 
 ## Intentional RED witness
@@ -48,11 +48,23 @@ Commit [`e24c93f1cdf0452dfd14aaf1f386d6ae0321ac6e`](https://github.com/uniblab/I
 
 ## Foundation evidence
 
-The final T2101 decision will be based on these artifacts:
+The T2101 decision is based on these artifacts:
 
 - [`T2101-2.0-Core-Presentation-Baseline.md`](T2101-2.0-Core-Presentation-Baseline.md) for published identity, dependency, behavior, and workload evidence;
 - [`2.1-Core-Presentation-and-Text-API-Design.md`](2.1-Core-Presentation-and-Text-API-Design.md) for the accepted T2102-T2108 signatures and semantics;
-- the T2102-T2108 implementation plan produced after this witness;
+- [`2026-09-23-icod-dcurses-2.1-core-presentation-text.md`](superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md) for the T2102-T2108 test-first implementation sequence;
 - an ordinary exact-head PR workflow after the witness reversion and final roadmap updates.
 
-T2101 is not accepted merely because the intended RED run exists. Acceptance additionally requires the complete criteria in the approved T2101 plan and a green active head with production source and package identity unchanged.
+## Acceptance evaluation
+
+| Criterion | Evidence | Result |
+|---|---|---|
+| published 2.0 identity and dependency boundary frozen | baseline document, compiled identity/dependency tests, immutable public fingerprint | Met |
+| editor, roguelike, pad, text-width, and layout-helper baselines recorded | T2101 workload tests and baseline tables | Met |
+| exact public signatures and edge semantics reviewed | accepted 2.1 API design | Met |
+| Terminal 1.18.0 sufficient | design boundary review; no new live-terminal contract | Met |
+| first missing contract proved RED and reverted | commits `ecc4c6b` and `e24c93f`; workflow 35905155613 | Met |
+| T2102-T2108 implementation sequence reviewed | accepted implementation plan | Met |
+| active post-roadmap head green without production/package changes | ordinary PR matrix for the acceptance-candidate commit | Pending |
+
+No file under `src/`, no package identity, no production dependency, and no published API fingerprint changes in T2101. If the ordinary acceptance-candidate matrix is green, this gate advances to accepted and authorizes T2102. Any failure keeps T2101 blocked until the smallest corrective action passes on a new exact head.
