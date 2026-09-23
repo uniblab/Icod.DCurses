@@ -28,6 +28,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <TestTfmsInParallel>false</TestTfmsInParallel>
     <AssemblyName>Icod.DCurses.Tests</AssemblyName>
     <RootNamespace>Icod.DCurses.Tests</RootNamespace>
     <Configurations>Debug;Staging;Release</Configurations>
