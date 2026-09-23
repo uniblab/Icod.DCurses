@@ -8,8 +8,10 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** planning; implementation has not begun\
+**Status:** T2101 foundation acceptance candidate; T2102 implementation pending\
 **Planning snapshot:** 2026-09-23
+
+**T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
 
 ---
 
@@ -278,7 +280,7 @@ Hard limits must fail predictably before integer overflow, excessive allocation 
 
 The 2.0 public API fingerprint and baseline remain immutable historical evidence. T2101 captures a new 2.1 development baseline; T2111 freezes the final additive delta.
 
-Public names remain provisional until T2101 accepts the API design. The expected type families are:
+T2101 freezes the public names and semantics in the [2.1 core presentation and text API design](docs/2.1-Core-Presentation-and-Text-API-Design.md). The accepted type families are:
 
 - immutable rich-text spans and layout options;
 - immutable visual-line/fragment and mapping results;
@@ -316,7 +318,7 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 ## 15. Tranche sequence
 
-### T2101 — architecture, baseline and API regret gate
+### T2101 — architecture, baseline and API regret gate — acceptance candidate
 
 - Capture the published 2.0 API, package, behavior, performance and dependency baseline.
 - Turn the coordinate/text model in this roadmap into reviewed public API candidates.
@@ -325,7 +327,7 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 - Confirm that Terminal 1.18.0 remains sufficient.
 - Write the implementation plan for accepted APIs.
 
-**Acceptance:** reviewed design and plan; explicit RED tests for the first missing contract; no production behavior change.
+**Acceptance:** the baseline, reviewed design, reversible RED witness, T2102-T2108 plan and foundation gate are complete. Final acceptance requires the ordinary exact-head PR matrix for the roadmap/gate update. No production behavior or package identity changed.
 
 ### T2102 — development identity and text coordinate foundation
 
@@ -441,4 +443,4 @@ These remain candidates for later releases or sibling packages. The intended seq
 
 ## 17. Immediate next step
 
-Review and accept this roadmap. After acceptance, T2101 begins with the 2.0 baseline, application workload definitions and detailed API design. No 2.1 production code or package-version change is authorized by the planning PR alone.
+Complete the exact-head T2101 acceptance matrix. After that gate is green, begin T2102 from the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): advance `Version` and `PackageVersion` together to `2.1.0-alpha.1`, retain `AssemblyVersion 2.0.0.0`, and implement the source-position/rich-span foundation test-first. T2102 remains pending until the T2101 gate is green.
