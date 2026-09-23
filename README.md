@@ -11,6 +11,8 @@
 
 Current stable release: **`Icod.DCurses 1.6.0`**.
 
+The `2.0.0-alpha.1` development branch has completed the direct dependency cutover: production DCurses depends only on `Icod.Terminal 1.18.0`, which may restore `Icod.TermInfo` transitively. Version 2.0 changes the public profile and dimensions types and the assembly identity. It has **not** been published. See the [2.0 migration guide](docs/2.0-Migration-Guide.md) and [development roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md).
+
 Version 1.6 adds retained mixed-media presentation over the published `Icod.Terminal 1.15.0` persistent-raster / Unicode-placeholder ownership model. Raster placeholder cells participate in ordinary DCurses windows, pads, viewports, panels, clipping, scrolling, composition, damage, and refresh while Terminal remains the sole owner of live raster protocol identity, acknowledgement, encoding, and lifecycle certainty.
 
 The frozen 1.6 public contract is:
@@ -66,7 +68,7 @@ Icod.Terminal 1.15.0
 Icod.TermInfo  1.14.0
 ```
 
-The next development track is **2.0.0**, a focused breaking release that removes direct TermInfo coupling and routes all terminal-facing work through the published `Icod.Terminal 1.17.0` semantic screen boundary. The current 1.6 package and dependencies are unchanged. See the [2.0 development roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md); implementation has not started. TermInfo will remain a transitive dependency of Terminal.
+The published 1.6 package retains those direct dependencies. The in-progress 2.0 branch uses the published `Icod.Terminal 1.18.0` semantic screen boundary and declares Terminal as its only direct package dependency. This major version requires a consumer rebuild; follow the [2.0 migration guide](docs/2.0-Migration-Guide.md). TermInfo remains a transitive dependency of Terminal.
 
 ## Install
 
@@ -175,6 +177,8 @@ CursesSession
 Recommended documentation entry points:
 
 - [`CHANGELOG.md`](CHANGELOG.md)
+- [`docs/2.0-Migration-Guide.md`](docs/2.0-Migration-Guide.md) for the in-progress 2.0 branch
+- [`samples/README.md`](samples/README.md) for runnable consumer examples
 - [`docs/1.0-Stable-Compatibility-and-Migration-Guide.md`](docs/1.0-Stable-Compatibility-and-Migration-Guide.md)
 - [`Icod.DCurses-Development-Roadmap.md`](Icod.DCurses-Development-Roadmap.md)
 - [`Icod.DCurses-2.0.0-Development-Roadmap.md`](Icod.DCurses-2.0.0-Development-Roadmap.md)
@@ -209,4 +213,3 @@ Copyright (c) 2026 Timothy J. Bruce
 `Icod.DCurses` is licensed under the GNU Lesser General Public License, version 3 or later. Sample applications are licensed under the GNU General Public License, version 3 or later, as stated in their source headers.
 
 See `LICENSE` and the per-project/source declarations for the applicable terms.
-

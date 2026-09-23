@@ -6,6 +6,8 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`.\
 **Status:** T2002 development baseline; not a stable release contract.
 
+This document records the T2002 checkpoint. The temporary direct TermInfo reference and renderer debt described below were removed in T2007; see [the accepted dependency gate](T2007-TermInfo-Dependency-Removal-Gate.md) and [the current migration guide](2.0-Migration-Guide.md). The public fingerprint remains the T2002 baseline.
+
 ## Compiled fingerprint
 
 ```text

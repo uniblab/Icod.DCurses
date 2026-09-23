@@ -90,6 +90,19 @@ static void VerifyApprovedDependencySurface() {
 			"DCurses package-only dependency-surface smoke validation failed."
 		);
 	}
+
+	if ( typeof( TerminalProfile ) != typeof( CursesSession )
+			.GetProperty( nameof( CursesSession.Profile ) )?.PropertyType
+		|| typeof( TerminalControlResult<TerminalDimensions> ) != typeof( CursesSession )
+			.GetMethod( nameof( CursesSession.GetDimensions ), Type.EmptyTypes )?.ReturnType
+		|| typeof( TerminalControlResult<TerminalDimensions> ) != typeof( CursesSession )
+			.GetMethod( nameof( CursesSession.SynchronizeDimensions ), Type.EmptyTypes )?.ReturnType
+		|| typeof( TerminalDimensions? ) != typeof( CursesLifecycleEvent )
+			.GetProperty( nameof( CursesLifecycleEvent.Dimensions ) )?.PropertyType ) {
+		throw new InvalidOperationException(
+			"DCurses package-only Terminal profile/dimensions contract is unavailable."
+		);
+	}
 }
 
 static void VerifySemanticMetadataSurface() {
@@ -786,6 +799,8 @@ static async Task<int> RunInteractiveAsync() {
 			HideCursor = true
 		}
 	);
+	TerminalProfile profile = session.Profile;
+	TerminalControlResult<TerminalDimensions> dimensions = session.GetDimensions();
 
 	CursesWindow screen = session.StandardScreen;
 	screen.Clear();
@@ -794,7 +809,11 @@ static async Task<int> RunInteractiveAsync() {
 		0
 	);
 	screen.Write(
-		"Icod.DCurses package-only interactive smoke. Press any key to exit.",
+		$"Icod.DCurses on {profile.Name}: "
+			+ ( dimensions.IsAvailable
+				? $"{dimensions.GetRequiredValue().Columns}x{dimensions.GetRequiredValue().Rows}"
+				: "dimensions unavailable" )
+			+ ". Press any key to exit.",
 		new CursesStyle(
 			CursesColor.Default,
 			CursesColor.Default,

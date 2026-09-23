@@ -20,6 +20,7 @@
 */
 
 using Icod.DCurses;
+using Icod.Terminal;
 
 TimeSpan updateInterval = TimeSpan.FromMilliseconds( 250 );
 
@@ -33,7 +34,9 @@ while ( running ) {
 	if ( dirty ) {
 		DrawQuickStart(
 			screen,
-			tick
+			tick,
+			session.Profile,
+			session.GetDimensions()
 		);
 		await session.RefreshAsync();
 		dirty = false;
@@ -71,9 +74,12 @@ return 0;
 
 static void DrawQuickStart(
 	CursesWindow screen,
-	int tick
+	int tick,
+	TerminalProfile profile,
+	TerminalControlResult<TerminalDimensions> dimensions
 ) {
 	ArgumentNullException.ThrowIfNull( screen );
+	ArgumentNullException.ThrowIfNull( profile );
 
 	CursesStyle titleStyle = new(
 		CursesColor.Default,
@@ -98,12 +104,14 @@ static void DrawQuickStart(
 	WriteLine(
 		screen,
 		2,
-		"This text is drawn through CursesSession.StandardScreen."
+		$"Terminal profile: {profile.Name}"
 	);
 	WriteLine(
 		screen,
 		3,
-		"Resize the terminal to exercise repaint handling."
+		dimensions.IsAvailable
+			? $"Terminal dimensions: {dimensions.GetRequiredValue().Columns}x{dimensions.GetRequiredValue().Rows}"
+			: "Terminal dimensions unavailable; resize to retry."
 	);
 	if ( 4 < screen.Rows ) {
 		screen.Move(

@@ -9,7 +9,7 @@ Dependency versions are not duplicated as verifier policy. The package metadata 
 The ordinary CI execution uses only non-interactive public APIs, so it never requires or mutates the runner's real terminal. The consumer validates representative stable surfaces including:
 
 - virtual screens, windows, editing, damage, pads, Unicode-width helpers, presentation, and semantic metadata;
-- modern semantic-input contracts and the Terminal-only public-type boundary;
+- modern semantic-input contracts and the Terminal-only public-type boundary, including `Profile`, both dimensions methods, and nullable lifecycle dimensions;
 - retained panels, geometry/layout helpers, and explicit bounds application;
 - 1.4/1.5 interaction routing, focus, scopes, gesture bindings, pointer capture, pointer target/gesture results, and pointer-shape leases;
 - the 1.6 retained-raster facade and its one intentional lower-layer image input, `TerminalRasterImage`.
@@ -18,7 +18,7 @@ The ordinary CI execution uses only non-interactive public APIs, so it never req
 
 The established `Program.cs` remains the package consumer entry point and continues to carry the prior interaction/package contract. Keeping that filename stable is intentional because release validation and existing acceptance tests treat it as the canonical packed-consumer source.
 
-The same package-only program also contains a real `CursesSession.OpenAsync` interactive path selected only when:
+The same package-only program also contains a real `CursesSession.OpenAsync` interactive path. It reads the Terminal-owned profile and live dimensions and displays them through the retained screen. This path is selected only when:
 
 ```text
 ICOD_DCURSES_SMOKE_INTERACTIVE=1

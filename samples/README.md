@@ -2,7 +2,7 @@
 
 The repository contains ten executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
-All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project, which currently declares `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`.
+All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project. The 2.0 development project declares only `Icod.Terminal 1.18.0` directly. Terminal may restore TermInfo transitively. The separately published 1.6 package still has its historical direct dependency set. To migrate external applications, see [the 2.0 migration guide](../docs/2.0-Migration-Guide.md).
 
 ## Which sample should I run?
 
@@ -32,7 +32,7 @@ The samples follow the production ownership model:
 
 ## Icod.DCurses.Sample
 
-`Icod.DCurses.Sample` is the minimal quick-start demonstration. It opens a `CursesSession`, writes styled retained content, demonstrates one retained hyperlink, updates a small moving marker, repaints after resize, accepts input, and restores terminal state through asynchronous disposal.
+`Icod.DCurses.Sample` is the minimal quick-start demonstration. It opens a `CursesSession`, reads its Terminal-owned `Profile` and `GetDimensions()` result, writes styled retained content, demonstrates one retained hyperlink, updates a small moving marker, repaints after resize, accepts input, and restores terminal state through asynchronous disposal. An unavailable live-size result is displayed without replacing the logical screen dimensions.
 
 ```text
 dotnet run --project samples/Icod.DCurses.Sample/Icod.DCurses.Sample.csproj
@@ -77,7 +77,7 @@ The layer boundary remains explicit:
 
 Resource or placeholder creation may report unavailable. The sample reports that condition and continues with ordinary text/metadata/panel presentation; it does not infer a backend from terminal identity, emit raw Kitty/Sixel commands, rank hidden fallbacks, retain a source-image cache for replay, or silently switch protocols. When raster ownership is available, the second frame pans the same retained mixed-media pad to exercise damage-driven sparse projection and refresh.
 
-The optional TermInfo backend-planning demonstration originally considered for this tranche is intentionally not included. The maintainer has deferred the broader DCurses/Terminal/TermInfo layering decision to the 1.7 development track; 1.6 keeps its existing dependency architecture unchanged.
+This sample never asks TermInfo to select a backend. The 2.0 branch has completed the Terminal-only production boundary; raster availability and resource ownership still come from the live Terminal session. The published 1.6 package retains its original dependency architecture.
 
 ```text
 dotnet run --project samples/Icod.DCurses.MixedMedia.Sample/Icod.DCurses.MixedMedia.Sample.csproj

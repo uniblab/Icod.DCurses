@@ -6,12 +6,12 @@
 **Current published package:** `1.6.0`\
 **Current development source/package identity:** `2.0.0-alpha.1`\
 **Current development assembly version:** `2.0.0.0`\
-**Current development runtime dependencies:** `Icod.Terminal 1.18.0`; temporary direct `Icod.TermInfo 1.15.0` through T2007\
+**Current development runtime dependency:** direct `Icod.Terminal 1.18.0` only; TermInfo remains transitive\
 **Planned 2.0 direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.0.0` — Terminal-only terminal integration\
-**Status:** T2001-T2005 accepted; T2006 lifecycle and recovery qualification is next
+**Status:** T2001-T2007 accepted; T2008 consumer migration and documentation are next
 
 **Planning snapshot:** 2026-09-18
 
@@ -19,7 +19,7 @@
 
 ## Current authorities
 
-The active 2.0 plan is [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md). The accepted T2005 evidence is [docs/T2005-Transactional-Refresh-Hardening-Gate.md](docs/T2005-Transactional-Refresh-Hardening-Gate.md), governed by the detailed [T2005 execution plan](docs/superpowers/plans/2026-09-23-icod-dcurses-t2005-transaction-hardening.md). These documents define the public API break, source/dependency boundary, Terminal readiness checks, ordered tranches T2001-T2011, and release gates. Approval of planning documentation does not mean an implementation tranche has passed.
+The active 2.0 plan is [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md). The accepted T2007 evidence is [docs/T2007-TermInfo-Dependency-Removal-Gate.md](docs/T2007-TermInfo-Dependency-Removal-Gate.md), and the current [2.0 migration guide](docs/2.0-Migration-Guide.md) addresses consumers. These documents define the public API break, source/dependency boundary, Terminal readiness checks, ordered tranches T2001-T2011, and release gates. Approval of planning documentation does not mean an implementation tranche has passed.
 
 The published [Terminal 1.18.0 contract](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.18.0) supplies the semantic profile, dimensions, screen planner, session-bound output transaction, and safe unknown-rendition baseline required by DCurses 2.0. Any later integration gap must be fixed and released in the owning dependency before the affected DCurses gate advances; it must not be bypassed with TermInfo calls or raw terminal strings.
 
@@ -56,7 +56,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.5.0` | Advanced interaction control: scopes, capture, spatial focus, pointer gestures, scoped commands | Published |
 | `1.6.0` | Retained mixed-media presentation | **Current published release; 1.x feature endpoint** |
 | `1.6.x` | Necessary maintenance only | As needed; no new feature track |
-| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **In development; T2001-T2005 accepted, T2006 next** |
+| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **In development; T2001-T2007 accepted, T2008 next** |
 | `2.1+` | New features built on the completed Terminal boundary | Deferred until 2.0 acceptance |
 
 The post-1.0 progression is intentionally cumulative:
