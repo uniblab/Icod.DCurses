@@ -29,6 +29,7 @@ internal static class CursesTextLayoutBuilder {
 	) {
 		ArgumentNullException.ThrowIfNull( text );
 		ArgumentNullException.ThrowIfNull( options );
+		ValidateOptions( options );
 		CursesTextSpan[] spanCopy = spans?.ToArray() ?? [];
 		CursesTextLayoutOptions optionCopy = new( options.Columns ) {
 			MaximumRows = options.MaximumRows,
@@ -80,6 +81,46 @@ internal static class CursesTextLayoutBuilder {
 			[ line ],
 			columns,
 			false
+		);
+	}
+
+	private static void ValidateOptions( CursesTextLayoutOptions options ) {
+		if ( options.MaximumRows is < 0 or > CursesTextLayoutOptions.MaximumExtent ) {
+			throw new ArgumentOutOfRangeException(
+				nameof( CursesTextLayoutOptions.MaximumRows )
+			);
+		}
+		if ( !Enum.IsDefined( options.WrapMode ) ) {
+			throw new ArgumentOutOfRangeException(
+				nameof( CursesTextLayoutOptions.WrapMode )
+			);
+		}
+		if ( !Enum.IsDefined( options.Alignment ) ) {
+			throw new ArgumentOutOfRangeException(
+				nameof( CursesTextLayoutOptions.Alignment )
+			);
+		}
+		if ( !Enum.IsDefined( options.Overflow ) ) {
+			throw new ArgumentOutOfRangeException(
+				nameof( CursesTextLayoutOptions.Overflow )
+			);
+		}
+		if ( 0 > options.StartingColumn
+			|| CursesTextLayoutOptions.MaximumExtent < options.StartingColumn
+			|| int.MaxValue - options.Columns < options.StartingColumn ) {
+			throw new ArgumentOutOfRangeException(
+				nameof( CursesTextLayoutOptions.StartingColumn )
+			);
+		}
+		if ( 1 > options.TabInterval
+			|| CursesTextLayoutOptions.MaximumExtent < options.TabInterval ) {
+			throw new ArgumentOutOfRangeException(
+				nameof( CursesTextLayoutOptions.TabInterval )
+			);
+		}
+		ArgumentNullException.ThrowIfNull(
+			options.WidthProvider,
+			nameof( CursesTextLayoutOptions.WidthProvider )
 		);
 	}
 }
