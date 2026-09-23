@@ -24,4 +24,6 @@ The same package-only program also contains a real `CursesSession.OpenAsync` int
 ICOD_DCURSES_SMOKE_INTERACTIVE=1
 ```
 
+The Linux package validator also runs this path non-interactively inside a bounded `script` pseudo-terminal with an `80x24` size and `ICOD_DCURSES_SMOKE_ONESHOT=1`. It restores only the packed DCurses package, presents styled text, line drawing, a hyperlink, a pad viewport and panel, attempts a raster resource and placeholder when available, refreshes, invalidates physical state, refreshes again, and exits without waiting for input. The raster operation may be unavailable on an xterm terminal; that outcome still exercises the public capability result without fabricating a raster identity. An underlying command failure or timeout fails package validation. Windows and macOS package validation retain their platform-neutral isolated consumer runs.
+
 The package-only consumer targets `net8.0`, `net9.0`, and `net10.0`; each framework is restored, built, and executed independently by the validation wrappers. This verifies the packed public contract rather than relying only on project-reference compilation.
