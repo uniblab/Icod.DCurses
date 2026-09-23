@@ -39,7 +39,7 @@
 
 **Exact public increment:** `CursesTextPosition(int offset)` with `Offset`; `CursesTextSpan(CursesTextPosition start, int length, CursesStyle style, CursesCellMetadata? metadata = null)` with `Start`, `Length`, checked `End`, `Style`, and `Metadata`.
 
-- [ ] **Step 1: Restore the durable RED as a permanent contract test**
+- [x] **Step 1: Restore the durable RED as a permanent contract test**
 
 Create `CursesTextSourceContractTests` with the T2101 witness plus validation tests:
 
@@ -66,13 +66,13 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 
 Expected RED: CS0246 for `CursesTextPosition` and `CursesTextSpan`, matching the T2101 workflow.
 
-- [ ] **Step 2: Implement the smallest immutable values**
+- [x] **Step 2: Implement the smallest immutable values**
 
 Implement the two public files with ordinary explicit constructors and get-only properties. Convert checked `Start.Offset + Length` overflow to `ArgumentOutOfRangeException(nameof(length))`. Do not add layout behavior to these types.
 
 Run the focused command. Expected GREEN.
 
-- [ ] **Step 3: Add the shared internal text-element scanner test-first**
+- [x] **Step 3: Add the shared internal text-element scanner test-first**
 
 In `CursesTextSourceUnicodeTests`, use `InternalsVisibleTo` already provided by the project and specify the scanner contract through the public results it will later support. Cover:
 
@@ -86,7 +86,7 @@ In `CursesTextSourceUnicodeTests`, use `InternalsVisibleTo` already provided by 
 
 First assert one known boundary list and observe RED because the scanner is absent. Then implement `CursesTextElementScanner` as a single-pass internal analyzer over one supplied string/provider. Reuse existing Unicode normalization and width policy helpers rather than forking Unicode tables. Store compact element records with source start/end, width, and hard-break/tab flags. No terminal or retained-surface reference is allowed.
 
-- [ ] **Step 4: Advance development identity and guard the boundary**
+- [x] **Step 4: Advance development identity and guard the boundary**
 
 Set:
 
@@ -98,7 +98,7 @@ Set:
 
 Update package release notes to describe development status without claiming unimplemented T2103-T2108 features. In `PublicTwoOneDevelopmentIdentityTests`, assert those values, the target-framework list, the sole `Icod.Terminal` package reference at `1.18.0`, and no production `Icod.TermInfo` reference.
 
-- [ ] **Step 5: Verify and commit T2102**
+- [x] **Step 5: Verify and commit T2102**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug \
