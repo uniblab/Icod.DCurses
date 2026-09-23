@@ -109,6 +109,47 @@ public sealed class CursesPreparedRefreshTests {
 	}
 
 	[Fact]
+	public async Task PreCancelledCommitEmitsNothingAndConsumesPreparedRefresh() {
+		RecordingTerminalOutput output = new();
+		await using TerminalSession session = await TerminalScreenTestSession.OpenAsync(
+			TerminalProfiles.Dumb,
+			output
+		);
+		CursesPreparedRefresh cancelled = new(
+			session,
+			useSynchronizedOutput: true
+		);
+		cancelled.WriteText( "cancelled" );
+		using CancellationTokenSource cancellation = new();
+		cancellation.Cancel();
+
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(
+			() => cancelled.CommitAsync( cancellation.Token ).AsTask()
+		);
+
+		Assert.Equal( string.Empty, output.Text );
+		Assert.Equal( 0, output.FlushCount );
+		InvalidOperationException reused =
+			await Assert.ThrowsAsync<InvalidOperationException>(
+				() => cancelled.CommitAsync().AsTask()
+			);
+		Assert.Equal(
+			"A screen-output transaction can be committed only once.",
+			reused.Message
+		);
+
+		CursesPreparedRefresh recovery = new(
+			session,
+			useSynchronizedOutput: false
+		);
+		recovery.WriteText( "recovery" );
+		await recovery.CommitAsync();
+
+		Assert.Equal( "recovery", output.Text );
+		Assert.Equal( 1, output.FlushCount );
+	}
+
+	[Fact]
 	public void SurfaceDoesNotExposeRawControlsOrUnderlyingTransaction() {
 		string[] methodNames = typeof( CursesPreparedRefresh )
 			.GetMethods(
