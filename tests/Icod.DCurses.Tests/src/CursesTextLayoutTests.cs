@@ -138,6 +138,129 @@ public sealed class CursesTextLayoutTests {
 	}
 
 	[Fact]
+	public void EmptyTextProducesOneEmptyVisualLine() {
+		CursesTextLayout layout = CursesTextLayout.Create(
+			string.Empty,
+			new CursesTextLayoutOptions( 5 ) { StartingColumn = 2 }
+		);
+
+		CursesTextVisualLine line = Assert.Single( layout.Lines );
+		Assert.Equal( 0, line.SourceStart.Offset );
+		Assert.Equal( 0, line.SourceEnd.Offset );
+		Assert.Equal( 2, line.Column );
+		Assert.Equal( 0, line.Columns );
+		Assert.Empty( line.Fragments );
+		Assert.False( line.EndsWithHardBreak );
+		Assert.False( line.EndsWithSoftWrap );
+		Assert.False( line.IsClipped );
+		Assert.Equal( 0, layout.CellCount );
+		Assert.False( layout.IsTruncated );
+	}
+
+	[Fact]
+	public void HardBreaksProduceLogicalLinesAndTrailingEmptyLine() {
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"ab\r\nc\n",
+			new CursesTextLayoutOptions( 5 )
+		);
+
+		Assert.Collection(
+			layout.Lines,
+			line => AssertLine( line, 0, 2, "ab", 2, endsWithHardBreak: true ),
+			line => AssertLine( line, 4, 5, "c", 1, endsWithHardBreak: true ),
+			line => AssertLine( line, 6, 6, string.Empty, 0 )
+		);
+		Assert.Equal( 3, layout.CellCount );
+		Assert.False( layout.IsTruncated );
+	}
+
+	[Fact]
+	public void MaximumRowsZeroPublishesNoPartialLine() {
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"abc",
+			new CursesTextLayoutOptions( 5 ) { MaximumRows = 0 }
+		);
+
+		Assert.Empty( layout.Lines );
+		Assert.Equal( 0, layout.CellCount );
+		Assert.True( layout.IsTruncated );
+	}
+
+	[Fact]
+	public void MaximumRowsHidesLaterLogicalLines() {
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"a\nb",
+			new CursesTextLayoutOptions( 5 ) { MaximumRows = 1 }
+		);
+
+		CursesTextVisualLine line = Assert.Single( layout.Lines );
+		AssertLine( line, 0, 1, "a", 1, endsWithHardBreak: true );
+		Assert.Equal( 1, layout.CellCount );
+		Assert.True( layout.IsTruncated );
+	}
+
+	[Fact]
+	public void NoWrapClipsOnlyAtCompleteElementBoundaries() {
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"abcd",
+			new CursesTextLayoutOptions( 2 )
+		);
+
+		CursesTextVisualLine line = Assert.Single( layout.Lines );
+		Assert.Equal( 0, line.SourceStart.Offset );
+		Assert.Equal( 2, line.SourceEnd.Offset );
+		Assert.Equal( 2, line.Columns );
+		Assert.True( line.IsClipped );
+		CursesTextFragment fragment = Assert.Single( line.Fragments );
+		Assert.Equal( "ab", fragment.Text );
+		Assert.Equal( 0, fragment.SourceStart.Offset );
+		Assert.Equal( 2, fragment.SourceEnd.Offset );
+		Assert.Equal( 2, layout.CellCount );
+		Assert.True( layout.IsTruncated );
+	}
+
+	[Fact]
+	public void StartingColumnOffsetsLineAndFragments() {
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"abc",
+			new CursesTextLayoutOptions( 5 ) { StartingColumn = 3 }
+		);
+
+		CursesTextVisualLine line = Assert.Single( layout.Lines );
+		Assert.Equal( 3, line.Column );
+		Assert.Equal( 3, Assert.Single( line.Fragments ).Column );
+	}
+
+	[Fact]
+	public void StyledSpansSplitUncoveredSourceWithoutPrecedence() {
+		CursesStyle emphasized = CursesStyle.Default.WithAttributes(
+			CursesTextAttributes.Bold
+		);
+		CursesCellMetadata metadata = new(
+			new CursesHyperlink( "https://example.invalid/" )
+		);
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"abcde",
+			new CursesTextLayoutOptions( 5 ),
+			[
+				new CursesTextSpan(
+					new CursesTextPosition( 1 ),
+					2,
+					emphasized,
+					metadata
+				)
+			]
+		);
+
+		Assert.Collection(
+			Assert.Single( layout.Lines ).Fragments,
+			fragment => AssertFragment( fragment, 0, 1, "a", CursesStyle.Default, null ),
+			fragment => AssertFragment( fragment, 1, 3, "bc", emphasized, metadata ),
+			fragment => AssertFragment( fragment, 3, 5, "de", CursesStyle.Default, null )
+		);
+	}
+
+	[Fact]
 	public void CreateProducesOneStyledVisualLine() {
 		CursesTextLayout layout = CursesTextLayout.Create(
 			"abc",
@@ -162,5 +285,43 @@ public sealed class CursesTextLayoutTests {
 			)
 		);
 		Assert.Equal( parameterName, exception.ParamName );
+	}
+
+	private static void AssertLine(
+		CursesTextVisualLine line,
+		int sourceStart,
+		int sourceEnd,
+		string text,
+		int columns,
+		bool endsWithHardBreak = false
+	) {
+		Assert.Equal( sourceStart, line.SourceStart.Offset );
+		Assert.Equal( sourceEnd, line.SourceEnd.Offset );
+		Assert.Equal( columns, line.Columns );
+		Assert.Equal( endsWithHardBreak, line.EndsWithHardBreak );
+		Assert.False( line.EndsWithSoftWrap );
+		Assert.False( line.IsClipped );
+		if ( 0 == text.Length ) {
+			Assert.Empty( line.Fragments );
+			return;
+		}
+
+		Assert.Equal( text, Assert.Single( line.Fragments ).Text );
+	}
+
+	private static void AssertFragment(
+		CursesTextFragment fragment,
+		int sourceStart,
+		int sourceEnd,
+		string text,
+		CursesStyle style,
+		CursesCellMetadata? metadata
+	) {
+		Assert.Equal( sourceStart, fragment.SourceStart.Offset );
+		Assert.Equal( sourceEnd, fragment.SourceEnd.Offset );
+		Assert.Equal( text, fragment.Text );
+		Assert.Equal( style, fragment.Style );
+		Assert.Same( metadata, fragment.Metadata );
+		Assert.False( fragment.IsEllipsis );
 	}
 }
