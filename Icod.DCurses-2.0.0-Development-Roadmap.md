@@ -1,7 +1,7 @@
 # Icod.DCurses 2.0.0 Development Roadmap
 
 **Theme:** Terminal-only integration; remove direct TermInfo coupling.\
-**Status:** T2001-T2007 accepted; T2008 is the next implementation tranche.
+**Status:** T2001-T2008 accepted; T2009 is the next qualification tranche.
 
 **Planning date:** 2026-09-18.\
 **Behavioral baseline:** published `Icod.DCurses 1.6.0`.\
@@ -27,7 +27,7 @@ This means:
 
 Version 1.6 is the endpoint for new 1.x features. Necessary 1.6.x maintenance may continue independently. New features belong to 2.1+ after this migration is accepted. Do not mix widgets, new input protocols, animation scheduling, physical raster scenes, or application-framework work into 2.0.
 
-This PR now carries the ordered 2.0 migration. T2002 established the development identity, selected Terminal 1.18.0, and completed the approved public profile/dimensions cutover. T2003 moved the core presentation path and ordinary rewrite refresh through Terminal-owned planners and one semantic output transaction. T2004 restored erase, character-shift, line-shift, and scroll-region optimization through opaque Terminal plans and Terminal-owned costs. T2005 deleted obsolete raw-output/capability seams and accepted exhaustive transaction capacity, cancellation, synchronization, ordering, stale-epoch, lease-conflict, direct-operation, and publication hardening. T2006 qualified partial-write, flush, cleanup, raster-identity, lifecycle, resize, disposal, and recovery behavior. T2007 removed the direct TermInfo dependency and qualified independent production, assembly, package, and consumer guards. T2008 consumer migration and documentation remain; no checkpoint authorizes publication.
+This PR now carries the ordered 2.0 migration. T2002 established the development identity, selected Terminal 1.18.0, and completed the approved public profile/dimensions cutover. T2003 moved the core presentation path and ordinary rewrite refresh through Terminal-owned planners and one semantic output transaction. T2004 restored erase, character-shift, line-shift, and scroll-region optimization through opaque Terminal plans and Terminal-owned costs. T2005 deleted obsolete raw-output/capability seams and accepted exhaustive transaction capacity, cancellation, synchronization, ordering, stale-epoch, lease-conflict, direct-operation, and publication hardening. T2006 qualified partial-write, flush, cleanup, raster-identity, lifecycle, resize, disposal, and recovery behavior. T2007 removed the direct TermInfo dependency and qualified independent production, assembly, package, and consumer guards. T2008 qualified the samples, migration guide, isolated package consumer and live packaged refresh. T2009 parity/performance and later release gates remain; no checkpoint authorizes publication.
 
 ## 2. Reference snapshot and authorities
 
@@ -251,10 +251,12 @@ No T2003 package was published. T2004 closes the temporary ordinary-rewrite diff
 **Depends on:** T2007.\
 **Files:** `samples/`, `tools/package-smoke/`, package verification scripts, `README.md`, `CHANGELOG.md`; create `docs/2.0-Migration-Guide.md`.
 
-- [ ] Update all samples and current guidance to `Profile`/`TerminalDimensions`, preserving retained mixed-media and interaction demonstrations.
-- [ ] Write before/after examples for every API break, rebuild/version guidance, transaction cancellation/limits, physical invalidation and advanced Terminal configuration boundaries.
-- [ ] Restore a freshly packed DCurses candidate into an isolated NuGet-only consumer with no project references or direct TermInfo package/source usage; run across every supported TFM.
-- [ ] Exercise dimensions/profile, plain/styled/line-drawing refresh, hyperlink text, media lifecycle and panel/pad composition through the published surface.
+**Status:** accepted on exact executable head `9ecf1293b6401c7e6b47d893f401da37a40e3084`; see `docs/T2008-Consumer-Migration-Gate.md`.
+
+- [x] Update all samples and current guidance to `Profile`/`TerminalDimensions`, preserving retained mixed-media and interaction demonstrations.
+- [x] Write before/after examples for every API break, rebuild/version guidance, transaction cancellation/limits, physical invalidation and advanced Terminal configuration boundaries.
+- [x] Restore a freshly packed DCurses candidate into an isolated NuGet-only consumer with no project references or direct TermInfo package/source usage; run across every supported TFM.
+- [x] Exercise dimensions/profile, plain/styled/line-drawing refresh, hyperlink text, media lifecycle and panel/pad composition through the published surface.
 
 **Acceptance:** documented migration examples compile; consumers use only DCurses and, where explicitly needed, Terminal types. Current documentation no longer suggests 1.7 decoupling or claims 2.0 is additive over 1.x.
 
@@ -321,4 +323,4 @@ Completion requires all of the following, not just successful compilation:
 
 ## 10. Immediate next checkpoint
 
-Plan and execute T2008 consumer migration and current documentation. T2007 is accepted on exact executable head `59ad23df36a8ec40ca66b8151770acf69d1257b5`, qualified by workflow `35819157649`; see `docs/T2007-TermInfo-Dependency-Removal-Gate.md`. Preserve the test-only TermInfo fixture bootstrap where necessary. No merge, release tag, or publication is authorized by this checkpoint.
+Qualify T2009 behavioral parity and performance against the frozen T2001 1.6 baseline. T2008 is accepted on exact executable head `9ecf1293b6401c7e6b47d893f401da37a40e3084`, qualified by workflow `35823291712`; see `docs/T2008-Consumer-Migration-Gate.md`. No merge, release tag, or publication is authorized by this checkpoint.

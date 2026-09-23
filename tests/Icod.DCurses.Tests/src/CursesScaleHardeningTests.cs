@@ -56,22 +56,33 @@ public sealed class CursesScaleHardeningTests {
 
 		Assert.True( 0 < output.WriteCount );
 		Assert.Equal( 1, output.FlushCount );
+		long fullFrameBytes = output.ByteCount;
+		Assert.InRange( fullFrameBytes, 1L, 1024L * 1024 );
 
 		output.Clear();
 		await context.Engine.RefreshAsync( screen, 0, 0 );
 		Assert.Equal( 0, output.WriteCount );
 		Assert.Equal( 0, output.FlushCount );
+		Assert.Equal( 0, output.ByteCount );
 
 		ApplySparseApplicationUpdate( screen, shape, raster );
+		int measurementThread = Environment.CurrentManagedThreadId;
+		long beforeSparseAllocation = GC.GetAllocatedBytesForCurrentThread();
 		await context.Engine.RefreshAsync( screen, 0, 0 );
+		long sparseAllocation = GC.GetAllocatedBytesForCurrentThread()
+			- beforeSparseAllocation;
 
+		Assert.Equal( measurementThread, Environment.CurrentManagedThreadId );
 		Assert.True( 0 < output.WriteCount );
 		Assert.Equal( 1, output.FlushCount );
+		Assert.InRange( output.ByteCount, 1L, fullFrameBytes - 1 );
+		Assert.InRange( sparseAllocation, 0, 4L * 1024 * 1024 );
 
 		output.Clear();
 		await context.Engine.RefreshAsync( screen, 0, 0 );
 		Assert.Equal( 0, output.WriteCount );
 		Assert.Equal( 0, output.FlushCount );
+		Assert.Equal( 0, output.ByteCount );
 	}
 
 	[Fact]
@@ -176,13 +187,19 @@ public sealed class CursesScaleHardeningTests {
 		session.StandardScreen.Write( "stable" );
 		await session.RefreshAsync();
 		long baselineWrites = output.WriteCount;
+		int measurementThread = Environment.CurrentManagedThreadId;
+		long beforeNoOpAllocation = GC.GetAllocatedBytesForCurrentThread();
 
 		for ( int iteration = 0; 512 > iteration; ++iteration ) {
 			await session.RefreshAsync();
 		}
+		long noOpAllocation = GC.GetAllocatedBytesForCurrentThread()
+			- beforeNoOpAllocation;
 
+		Assert.Equal( measurementThread, Environment.CurrentManagedThreadId );
 		Assert.Equal( baselineWrites, output.WriteCount );
 		Assert.Equal( 1, output.FlushCount );
+		Assert.InRange( noOpAllocation, 0, 2L * 1024 * 1024 );
 	}
 
 	private static CursesSessionOptions NoPresentationOptions() {
@@ -367,11 +384,18 @@ public sealed class CursesScaleHardeningTests {
 
 	private sealed class CountingOutput : ITerminalOutput {
 		private long writeCount;
+		private long byteCount;
 		private int flushCount;
 
 		internal long WriteCount {
 			get {
 				return Interlocked.Read( ref this.writeCount );
+			}
+		}
+
+		internal long ByteCount {
+			get {
+				return Interlocked.Read( ref this.byteCount );
 			}
 		}
 
@@ -383,6 +407,7 @@ public sealed class CursesScaleHardeningTests {
 
 		internal void Clear() {
 			Interlocked.Exchange( ref this.writeCount, 0 );
+			Interlocked.Exchange( ref this.byteCount, 0 );
 			Interlocked.Exchange( ref this.flushCount, 0 );
 		}
 
@@ -390,8 +415,8 @@ public sealed class CursesScaleHardeningTests {
 			ReadOnlyMemory<byte> buffer,
 			CancellationToken cancellationToken = default
 		) {
-			_ = buffer;
 			cancellationToken.ThrowIfCancellationRequested();
+			Interlocked.Add( ref this.byteCount, buffer.Length );
 			Interlocked.Increment( ref this.writeCount );
 			return ValueTask.CompletedTask;
 		}

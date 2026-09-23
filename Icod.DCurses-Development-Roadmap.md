@@ -11,7 +11,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.0.0` — Terminal-only terminal integration\
-**Status:** T2001-T2007 accepted; T2008 consumer migration and documentation are next
+**Status:** T2001-T2008 accepted; T2009 behavioral parity and performance are next
 
 **Planning snapshot:** 2026-09-18
 
@@ -56,7 +56,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.5.0` | Advanced interaction control: scopes, capture, spatial focus, pointer gestures, scoped commands | Published |
 | `1.6.0` | Retained mixed-media presentation | **Current published release; 1.x feature endpoint** |
 | `1.6.x` | Necessary maintenance only | As needed; no new feature track |
-| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **In development; T2001-T2007 accepted, T2008 next** |
+| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **In development; T2001-T2008 accepted, T2009 next** |
 | `2.1+` | New features built on the completed Terminal boundary | Deferred until 2.0 acceptance |
 
 The post-1.0 progression is intentionally cumulative:
