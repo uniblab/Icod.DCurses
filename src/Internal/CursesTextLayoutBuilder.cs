@@ -50,7 +50,7 @@ internal static class CursesTextLayoutBuilder {
 			elements
 		);
 
-		return BuildNoWrap(
+		return BuildLines(
 			text,
 			optionCopy,
 			spanCopy,
@@ -58,7 +58,7 @@ internal static class CursesTextLayoutBuilder {
 		);
 	}
 
-	private static CursesTextLayout BuildNoWrap(
+	private static CursesTextLayout BuildLines(
 		string text,
 		CursesTextLayoutOptions options,
 		CursesTextSpan[] spans,
@@ -77,101 +77,181 @@ internal static class CursesTextLayoutBuilder {
 
 		string normalized = CursesUnicodeText.NormalizeMalformedUtf16( text );
 		List<CursesTextVisualLine> lines = [];
-		int elementIndex = 0;
-		int logicalStart = 0;
+		int logicalElementStart = 0;
+		int logicalSourceStart = 0;
 		int cellCount = 0;
 		int fragmentCount = 0;
 		bool isTruncated = false;
 		while ( true ) {
-			if ( options.MaximumRows is int maximumRows
-				&& maximumRows <= lines.Count ) {
-				isTruncated |= logicalStart < text.Length;
-				break;
+			int logicalElementEnd = logicalElementStart;
+			while ( logicalElementEnd < elements.Length
+				&& !elements[ logicalElementEnd ].IsHardBreak ) {
+				logicalElementEnd++;
 			}
+			bool hasHardBreak = logicalElementEnd < elements.Length;
+			int nextLogicalSourceStart = hasHardBreak
+				? elements[ logicalElementEnd ].SourceEnd
+				: text.Length
+			;
+			int visualElementStart = logicalElementStart;
+			bool producedLine = false;
+			while ( !producedLine || visualElementStart < logicalElementEnd ) {
+				if ( options.MaximumRows is int maximumRows
+					&& maximumRows <= lines.Count ) {
+					isTruncated |= logicalSourceStart < text.Length;
+					return CreateLayout(
+						text,
+						options,
+						spans,
+						lines,
+						cellCount,
+						isTruncated
+					);
+				}
 
-			List<MutableFragment> fragments = [];
-			int absoluteColumn = options.StartingColumn;
-			int sourceEnd = logicalStart;
-			int nextLogicalStart = logicalStart;
-			bool endsWithHardBreak = false;
-			bool isClipped = false;
-			while ( elementIndex < elements.Length ) {
-				CursesTextElement element = elements[ elementIndex ];
-				if ( element.IsHardBreak ) {
-					endsWithHardBreak = true;
-					nextLogicalStart = element.SourceEnd;
-					elementIndex++;
+				int fitEnd = FindFitEnd(
+					elements,
+					visualElementStart,
+					logicalElementEnd,
+					options,
+					options.StartingColumn
+				);
+				bool noWrap = CursesTextWrapMode.NoWrap == options.WrapMode;
+				bool tooWide = visualElementStart < logicalElementEnd
+					&& fitEnd == visualElementStart;
+				int advanceEnd;
+				int visibleEnd;
+				bool isClipped;
+				if ( noWrap ) {
+					advanceEnd = logicalElementEnd;
+					visibleEnd = fitEnd;
+					isClipped = fitEnd < logicalElementEnd;
+				} else if ( tooWide ) {
+					advanceEnd = visualElementStart + 1;
+					visibleEnd = visualElementStart;
+					isClipped = true;
+				} else {
+					advanceEnd = fitEnd;
+					if ( CursesTextWrapMode.Word == options.WrapMode
+						&& fitEnd < logicalElementEnd ) {
+						int wordEnd = FindWordEnd(
+							normalized,
+							elements,
+							visualElementStart,
+							fitEnd
+						);
+						if ( visualElementStart < wordEnd ) {
+							advanceEnd = wordEnd;
+						}
+					}
+					visibleEnd = advanceEnd;
+					isClipped = false;
+				}
+
+				int sourceStart = visualElementStart < logicalElementEnd
+					? elements[ visualElementStart ].SourceStart
+					: logicalSourceStart
+				;
+				int sourceEnd = sourceStart;
+				if ( visibleEnd > visualElementStart ) {
+					sourceEnd = elements[ visibleEnd - 1 ].SourceEnd;
+				}
+				int contentColumns = MeasureColumns(
+					elements,
+					visualElementStart,
+					visibleEnd,
+					options,
+					options.StartingColumn
+				);
+				int lineColumn = GetAlignedColumn(
+					options,
+					contentColumns
+				);
+				List<MutableFragment> fragments = [];
+				int fragmentColumn = lineColumn;
+				for ( int index = visualElementStart; index < visibleEnd; index++ ) {
+					CursesTextElement element = elements[ index ];
+					int width = GetElementWidth(
+						element,
+						fragmentColumn,
+						options
+					);
+					AppendElement(
+						fragments,
+						element,
+						fragmentColumn,
+						width,
+						options,
+						spans
+					);
+					fragmentColumn += width;
+				}
+				CursesTextFragment[] publishedFragments = fragments
+					.Select(
+						current => current.Publish( normalized )
+					)
+					.ToArray();
+				fragmentCount = checked( fragmentCount + publishedFragments.Length );
+				if ( MaximumFragmentCount < fragmentCount ) {
+					throw new InvalidOperationException(
+						"Text layout exceeded the supported fragment capacity."
+					);
+				}
+				cellCount = checked( cellCount + contentColumns );
+				if ( MaximumCellCount < cellCount ) {
+					throw new InvalidOperationException(
+						"Text layout exceeded the supported cell capacity."
+					);
+				}
+				bool endsWithSoftWrap = !noWrap && advanceEnd < logicalElementEnd;
+				bool endsWithHardBreak = hasHardBreak
+					&& advanceEnd >= logicalElementEnd;
+				lines.Add(
+					new CursesTextVisualLine(
+						lines.Count,
+						new CursesTextPosition( sourceStart ),
+						new CursesTextPosition( sourceEnd ),
+						lineColumn,
+						contentColumns,
+						endsWithHardBreak,
+						endsWithSoftWrap,
+						isClipped,
+						publishedFragments
+					)
+				);
+				producedLine = true;
+				isTruncated |= isClipped;
+				visualElementStart = advanceEnd;
+				if ( noWrap ) {
 					break;
 				}
-
-				if ( isClipped ) {
-					elementIndex++;
-					continue;
-				}
-
-				int width = element.IsTab
-					? options.TabInterval - ( absoluteColumn % options.TabInterval )
-					: element.Width
-				;
-				int usedColumns = absoluteColumn - options.StartingColumn;
-				if ( options.Columns - usedColumns < width ) {
-					isClipped = true;
-					isTruncated = true;
-					elementIndex++;
-					continue;
-				}
-
-				AppendElement(
-					fragments,
-					element,
-					absoluteColumn,
-					width,
-					options,
-					spans
-				);
-				absoluteColumn += width;
-				sourceEnd = element.SourceEnd;
-				elementIndex++;
 			}
 
-			CursesTextFragment[] publishedFragments = fragments
-				.Select(
-					current => current.Publish( normalized )
-				)
-				.ToArray();
-			fragmentCount = checked( fragmentCount + publishedFragments.Length );
-			if ( MaximumFragmentCount < fragmentCount ) {
-				throw new InvalidOperationException(
-					"Text layout exceeded the supported fragment capacity."
-				);
-			}
-			int lineColumns = absoluteColumn - options.StartingColumn;
-			cellCount = checked( cellCount + lineColumns );
-			if ( MaximumCellCount < cellCount ) {
-				throw new InvalidOperationException(
-					"Text layout exceeded the supported cell capacity."
-				);
-			}
-			lines.Add(
-				new CursesTextVisualLine(
-					lines.Count,
-					new CursesTextPosition( logicalStart ),
-					new CursesTextPosition( sourceEnd ),
-					options.StartingColumn,
-					lineColumns,
-					endsWithHardBreak,
-					false,
-					isClipped,
-					publishedFragments
-				)
-			);
-
-			if ( !endsWithHardBreak ) {
+			if ( !hasHardBreak ) {
 				break;
 			}
-			logicalStart = nextLogicalStart;
+			logicalElementStart = logicalElementEnd + 1;
+			logicalSourceStart = nextLogicalSourceStart;
 		}
 
+		return CreateLayout(
+			text,
+			options,
+			spans,
+			lines,
+			cellCount,
+			isTruncated
+		);
+	}
+
+	private static CursesTextLayout CreateLayout(
+		string text,
+		CursesTextLayoutOptions options,
+		CursesTextSpan[] spans,
+		List<CursesTextVisualLine> lines,
+		int cellCount,
+		bool isTruncated
+	) {
 		return new CursesTextLayout(
 			text,
 			options,
@@ -180,6 +260,90 @@ internal static class CursesTextLayoutBuilder {
 			cellCount,
 			isTruncated
 		);
+	}
+
+	private static int FindFitEnd(
+		CursesTextElement[] elements,
+		int start,
+		int end,
+		CursesTextLayoutOptions options,
+		int column
+	) {
+		int currentColumn = column;
+		for ( int index = start; index < end; index++ ) {
+			int width = GetElementWidth(
+				elements[ index ],
+				currentColumn,
+				options
+			);
+			if ( options.Columns - ( currentColumn - column ) < width ) {
+				return index;
+			}
+			currentColumn += width;
+		}
+		return end;
+	}
+
+	private static int FindWordEnd(
+		string normalized,
+		CursesTextElement[] elements,
+		int start,
+		int fitEnd
+	) {
+		for ( int index = fitEnd - 1; index >= start; index-- ) {
+			CursesTextElement element = elements[ index ];
+			if ( string.IsNullOrWhiteSpace(
+				normalized.Substring(
+					element.SourceStart,
+					element.SourceEnd - element.SourceStart
+				)
+			) ) {
+				return index + 1;
+			}
+		}
+		return start;
+	}
+
+	private static int MeasureColumns(
+		CursesTextElement[] elements,
+		int start,
+		int end,
+		CursesTextLayoutOptions options,
+		int column
+	) {
+		int currentColumn = column;
+		for ( int index = start; index < end; index++ ) {
+			currentColumn += GetElementWidth(
+				elements[ index ],
+				currentColumn,
+				options
+			);
+		}
+		return currentColumn - column;
+	}
+
+	private static int GetElementWidth(
+		CursesTextElement element,
+		int column,
+		CursesTextLayoutOptions options
+	) {
+		return element.IsTab
+			? options.TabInterval - ( column % options.TabInterval )
+			: element.Width
+		;
+	}
+
+	private static int GetAlignedColumn(
+		CursesTextLayoutOptions options,
+		int contentColumns
+	) {
+		int unused = options.Columns - contentColumns;
+		return options.Alignment switch {
+			CursesTextAlignment.Start => options.StartingColumn,
+			CursesTextAlignment.Center => options.StartingColumn + ( unused / 2 ),
+			CursesTextAlignment.End => options.StartingColumn + unused,
+			_ => throw new InvalidOperationException()
+		};
 	}
 
 	private static void AppendElement(
