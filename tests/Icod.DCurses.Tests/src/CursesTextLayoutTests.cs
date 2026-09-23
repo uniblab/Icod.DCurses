@@ -261,6 +261,134 @@ public sealed class CursesTextLayoutTests {
 	}
 
 	[Fact]
+	public void AllWrapAlignmentAndOverflowOptionsAlignExactlyFittingText() {
+		foreach ( CursesTextWrapMode wrapMode in Enum.GetValues<CursesTextWrapMode>() ) {
+			foreach ( CursesTextAlignment alignment in Enum.GetValues<CursesTextAlignment>() ) {
+				foreach ( CursesTextOverflow overflow in Enum.GetValues<CursesTextOverflow>() ) {
+					CursesTextLayout layout = CursesTextLayout.Create(
+						"ab",
+						new CursesTextLayoutOptions( 5 ) {
+							WrapMode = wrapMode,
+							Alignment = alignment,
+							Overflow = overflow,
+							StartingColumn = 2
+						}
+					);
+					int expectedColumn = alignment switch {
+						CursesTextAlignment.Start => 2,
+						CursesTextAlignment.Center => 3,
+						CursesTextAlignment.End => 5,
+						_ => throw new InvalidOperationException()
+					};
+
+					CursesTextVisualLine line = Assert.Single( layout.Lines );
+					Assert.Equal( expectedColumn, line.Column );
+					Assert.Equal( expectedColumn, Assert.Single( line.Fragments ).Column );
+					Assert.Equal( 2, line.Columns );
+					Assert.False( line.EndsWithSoftWrap );
+					Assert.False( line.IsClipped );
+					Assert.False( layout.IsTruncated );
+				}
+			}
+		}
+	}
+
+	[Fact]
+	public void TextElementWrapProducesCompleteSoftWrappedLines() {
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"abcde",
+			new CursesTextLayoutOptions( 2 ) {
+				WrapMode = CursesTextWrapMode.TextElement
+			}
+		);
+
+		Assert.Collection(
+			layout.Lines,
+			line => AssertLine( line, 0, 2, "ab", 2, endsWithSoftWrap: true ),
+			line => AssertLine( line, 2, 4, "cd", 2, endsWithSoftWrap: true ),
+			line => AssertLine( line, 4, 5, "e", 1 )
+		);
+		Assert.Equal( 5, layout.CellCount );
+		Assert.False( layout.IsTruncated );
+	}
+
+	[Fact]
+	public void WordWrapPrefersLatestWhitespaceBoundaryThatFits() {
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"ab cd",
+			new CursesTextLayoutOptions( 4 ) {
+				WrapMode = CursesTextWrapMode.Word
+			}
+		);
+
+		Assert.Collection(
+			layout.Lines,
+			line => AssertLine( line, 0, 3, "ab ", 3, endsWithSoftWrap: true ),
+			line => AssertLine( line, 3, 5, "cd", 2 )
+		);
+		Assert.Equal( 5, layout.CellCount );
+		Assert.False( layout.IsTruncated );
+	}
+
+	[Fact]
+	public void WordWrapFallsBackToTextElementBoundary() {
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"abcd",
+			new CursesTextLayoutOptions( 2 ) {
+				WrapMode = CursesTextWrapMode.Word,
+				Alignment = CursesTextAlignment.End,
+				StartingColumn = 3
+			}
+		);
+
+		Assert.Collection(
+			layout.Lines,
+			line => AssertLine( line, 0, 2, "ab", 2, endsWithSoftWrap: true ),
+			line => AssertLine( line, 2, 4, "cd", 2 )
+		);
+		Assert.All( layout.Lines, static line => Assert.Equal( 3, line.Column ) );
+	}
+
+	[Fact]
+	public void InvalidSpanRangesReportTheirElementIndex() {
+		CursesTextSpan valid = new(
+			new CursesTextPosition( 0 ),
+			2,
+			CursesStyle.Default
+		);
+		CursesTextSpan overlapping = new(
+			new CursesTextPosition( 1 ),
+			1,
+			CursesStyle.Default
+		);
+		ArgumentException overlap = Assert.Throws<ArgumentException>(
+			() => CursesTextLayout.Create(
+				"abc",
+				new CursesTextLayoutOptions( 3 ),
+				[ valid, overlapping ]
+			)
+		);
+		ArgumentException boundary = Assert.Throws<ArgumentException>(
+			() => CursesTextLayout.Create(
+				"a\u0301",
+				new CursesTextLayoutOptions( 2 ),
+				[
+					new CursesTextSpan(
+						new CursesTextPosition( 1 ),
+						1,
+						CursesStyle.Default
+					)
+				]
+			)
+		);
+
+		Assert.Equal( "spans", overlap.ParamName );
+		Assert.Contains( "index 1", overlap.Message, StringComparison.Ordinal );
+		Assert.Equal( "spans", boundary.ParamName );
+		Assert.Contains( "index 0", boundary.Message, StringComparison.Ordinal );
+	}
+
+	[Fact]
 	public void CreateProducesOneStyledVisualLine() {
 		CursesTextLayout layout = CursesTextLayout.Create(
 			"abc",
@@ -293,13 +421,14 @@ public sealed class CursesTextLayoutTests {
 		int sourceEnd,
 		string text,
 		int columns,
-		bool endsWithHardBreak = false
+		bool endsWithHardBreak = false,
+		bool endsWithSoftWrap = false
 	) {
 		Assert.Equal( sourceStart, line.SourceStart.Offset );
 		Assert.Equal( sourceEnd, line.SourceEnd.Offset );
 		Assert.Equal( columns, line.Columns );
 		Assert.Equal( endsWithHardBreak, line.EndsWithHardBreak );
-		Assert.False( line.EndsWithSoftWrap );
+		Assert.Equal( endsWithSoftWrap, line.EndsWithSoftWrap );
 		Assert.False( line.IsClipped );
 		if ( 0 == text.Length ) {
 			Assert.Empty( line.Fragments );
