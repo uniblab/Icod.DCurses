@@ -2,7 +2,7 @@
 
 **Tranche:** T2101  
 **Witness status:** complete  
-**Foundation status:** acceptance candidate; final exact-head verification pending\
+**Foundation status:** blocked; one pre-existing allocation-noise matrix job remains red\
 **Branch:** `2.1.0-roadmap`
 
 ## Intentional RED witness
@@ -65,6 +65,17 @@ The T2101 decision is based on these artifacts:
 | Terminal 1.18.0 sufficient | design boundary review; no new live-terminal contract | Met |
 | first missing contract proved RED and reverted | commits `ecc4c6b` and `e24c93f`; workflow 35905155613 | Met |
 | T2102-T2108 implementation sequence reviewed | accepted implementation plan | Met |
-| active post-roadmap head green without production/package changes | ordinary PR matrix for the acceptance-candidate commit | Pending |
+| active post-roadmap head green without production/package changes | exact head `3b8213142ddee9abdbadc4abb37b2c5170cbe3ae`, workflow 35906986670 | Blocked: 13/14 jobs green |
 
-No file under `src/`, no package identity, no production dependency, and no published API fingerprint changes in T2101. If the ordinary acceptance-candidate matrix is green, this gate advances to accepted and authorizes T2102. Any failure keeps T2101 blocked until the smallest corrective action passes on a new exact head.
+No file under `src/`, no package identity, no production dependency, and no published API fingerprint changes in T2101.
+
+## Blocking evidence and corrective action
+
+[Workflow 35906986670](https://github.com/uniblab/Icod.DCurses/actions/runs/35906986670) leaves 13 jobs successful after targeted reruns. The remaining [macOS ARM64 Staging job](https://github.com/uniblab/Icod.DCurses/actions/runs/35906986670/job/107344831063) fails only these previously documented allocation-noise tests:
+
+- `CursesInteractionPerformanceHardeningTests.FocusTraversalStaysWithinMeasurementNoiseFloor`, with observed values 3,328 and 3,472 against 0-1,024;
+- `CursesInteraction15PerformanceTests.SpatialFocusIsAllocationFreeApartFromMeasurementNoise`, with observed value 1,488 against 0-1,024.
+
+The new T2101 tests, package jobs, and the other runtime jobs are green. Repeated isolated reruns on the unchanged SHA have produced the same class of noise-only failure; no T2101 file is named in the diagnostics.
+
+The smallest corrective action is either a successful unchanged rerun of that one job or an explicit maintainer exception for these known noise-floor tests. The user chose to keep the tests unchanged, so this gate does not alter their thresholds. Until one of those actions occurs, T2101 is blocked and T2102 is not authorized.
