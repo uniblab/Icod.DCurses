@@ -2,6 +2,8 @@ namespace Icod.DCurses.PackageVerifier;
 
 using System.IO.Compression;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
@@ -11,6 +13,8 @@ internal static class Program {
 	private const string PackageAuthor = "Timothy J. Bruce";
 	private const string PackageCopyright = "Copyright (c) 2026 Timothy J. Bruce";
 	private const string RepositoryUrl = "https://github.com/uniblab/Icod.DCurses";
+	private const string TerminalPackageId = "Icod.Terminal";
+	private const string TerminalMinimumVersion = "1.18.0";
 	private static readonly string[] TargetFrameworks = [
 		"net8.0",
 		"net9.0",
@@ -31,6 +35,7 @@ internal static class Program {
 		}
 
 		try {
+			VerifyDependencyNegativeControls();
 			string root = FindRepositoryRoot();
 			string artifactDirectory = 0 == args.Length
 				? Path.Combine(
@@ -239,6 +244,13 @@ internal static class Program {
 			),
 			LoadOptions.None
 		);
+		return ReadProjectDependencyIds( project );
+	}
+
+	private static string[] ReadProjectDependencyIds(
+		XDocument project
+	) {
+		ArgumentNullException.ThrowIfNull( project );
 
 		string[] dependencyIds = project
 			.Descendants()
@@ -262,11 +274,78 @@ internal static class Program {
 			.ToArray();
 
 		Require(
-			0 < dependencyIds.Length,
-			"Project must declare at least one direct package dependency."
+			1 == dependencyIds.Length
+				&& TerminalPackageId == dependencyIds[ 0 ],
+			"Production project must depend directly only on Icod.Terminal."
+		);
+		XElement[] references = project.Descendants()
+			.Where( element => "PackageReference" == element.Name.LocalName )
+			.ToArray();
+		Require(
+			1 == references.Length
+				&& TerminalMinimumVersion == references[ 0 ].Attribute( "Version" )?.Value,
+			"Production project must require Icod.Terminal 1.18.0."
 		);
 
 		return dependencyIds;
+	}
+
+	private static void VerifyDependencyNegativeControls() {
+		XDocument extraProjectDependency = XDocument.Parse(
+			"<Project><ItemGroup>"
+				+ "<PackageReference Include='Icod.Terminal' Version='1.18.0' />"
+				+ "<PackageReference Include='Icod.TermInfo' Version='1.15.0' />"
+				+ "</ItemGroup></Project>"
+		);
+		RequireRejected(
+			() => ReadProjectDependencyIds( extraProjectDependency ),
+			"A direct TermInfo project dependency"
+		);
+
+		XElement metadata = new(
+			"metadata",
+			new XElement(
+				"dependencies",
+				TargetFrameworks.Select(
+					framework => new XElement(
+						"group",
+						new XAttribute( "targetFramework", framework ),
+						new XElement(
+							"dependency",
+							new XAttribute( "id", TerminalPackageId ),
+							new XAttribute( "version", $"[{TerminalMinimumVersion}, )" )
+						)
+					)
+				)
+			)
+		);
+		VerifyDependencies( metadata, [ TerminalPackageId ] );
+		metadata.Descendants( "group" ).First().Add(
+			new XElement(
+				"dependency",
+				new XAttribute( "id", "Icod.TermInfo" ),
+				new XAttribute( "version", "[1.15.0, )" )
+			)
+		);
+		RequireRejected(
+			() => VerifyDependencies( metadata, [ TerminalPackageId ] ),
+			"A direct TermInfo package dependency"
+		);
+	}
+
+	private static void RequireRejected(
+		Action action,
+		string description
+	) {
+		ArgumentNullException.ThrowIfNull( action );
+		try {
+			action();
+		} catch ( InvalidDataException ) {
+			return;
+		}
+		throw new InvalidDataException(
+			$"Negative control was accepted: {description}."
+		);
 	}
 
 	private static void VerifyPrimaryPackage(
@@ -445,6 +524,26 @@ internal static class Program {
 					|| 0 == publicKeyToken.Length,
 				$"{assemblyPath} unexpectedly has a strong-name public key token."
 			);
+			using FileStream metadataStream = File.OpenRead( temporaryPath );
+			using PEReader pe = new( metadataStream );
+			MetadataReader metadata = pe.GetMetadataReader();
+			foreach ( AssemblyReferenceHandle handle in metadata.AssemblyReferences ) {
+				string name = metadata.GetString( metadata.GetAssemblyReference( handle ).Name );
+				Require(
+					!string.Equals( name, "Icod.TermInfo", StringComparison.Ordinal ),
+					$"{assemblyPath} directly references Icod.TermInfo."
+				);
+			}
+			foreach ( TypeReferenceHandle handle in metadata.TypeReferences ) {
+				TypeReference type = metadata.GetTypeReference( handle );
+				string namespaceName = metadata.GetString( type.Namespace );
+				Require(
+					!string.Equals( namespaceName, "Icod.TermInfo", StringComparison.Ordinal )
+						&& !namespaceName.StartsWith( "Icod.TermInfo.", StringComparison.Ordinal ),
+					$"{assemblyPath} contains a TermInfo TypeRef: "
+						+ $"{namespaceName}.{metadata.GetString( type.Name )}."
+				);
+			}
 		} finally {
 			if ( File.Exists( temporaryPath ) ) {
 				File.Delete( temporaryPath );
@@ -713,6 +812,10 @@ internal static class Program {
 				StringComparer.Ordinal
 			)
 			.ToArray();
+		Require(
+			1 == expectedIds.Length && TerminalPackageId == expectedIds[ 0 ],
+			"Expected package dependencies must follow the independent Terminal-only policy."
+		);
 
 		foreach ( string targetFramework in TargetFrameworks ) {
 			string frameworkVersion = targetFramework[ "net".Length.. ];
@@ -756,8 +859,17 @@ internal static class Program {
 					actualIds,
 					StringComparer.Ordinal
 				),
-				$"Package dependency set for {targetFramework} does not match "
-					+ "the project's direct PackageReference set."
+				$"Package dependency set for {targetFramework} must contain only Icod.Terminal."
+			);
+			XElement terminalDependency = matchingGroups[ 0 ]
+				.Elements()
+				.Single( element => "dependency" == element.Name.LocalName );
+			string? version = terminalDependency.Attribute( "version" )?.Value;
+			Require(
+				TerminalMinimumVersion == version
+					|| $"[{TerminalMinimumVersion}, )" == version
+					|| $"[{TerminalMinimumVersion},)" == version,
+				$"Package dependency for {targetFramework} must require Icod.Terminal 1.18.0."
 			);
 		}
 	}

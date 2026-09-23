@@ -16,23 +16,19 @@ It verifies:
 - package metadata identifies the expected id, title, project, readme, icon,
   LGPL license expression, repository, and required license acceptance;
 - the package contains non-empty `LICENSE` and `icod_tui_toolchain.jpg` payloads;
-- each target-framework dependency group contains the same direct dependency IDs
-  declared by the project's `PackageReference` items;
+- the production project and each target-framework dependency group declare
+  only `Icod.Terminal` at the qualified `1.18.0` minimum;
+- every packaged DCurses assembly has no direct `Icod.TermInfo` assembly
+  reference or metadata type reference;
 - dependency assemblies are not accidentally bundled into the primary package;
 - native/runtime and repository-only payloads are absent;
 - the symbol package contains exactly one non-empty portable PDB for each target
   framework.
 
-Dependency versions are deliberately **not** policy in this verifier. The
-project file is the dependency source of truth, and compatibility with the
-resolved dependency versions is established by restore, compilation, tests, and
-the fresh package-consumer smoke checks. The verifier checks only that packing
-preserves the project's dependency set; it does not pin or duplicate dependency
-version requirements.
-
-This keeps package validation concerned with package integrity rather than
-introducing a second, strongly coupled dependency policy that must be manually
-updated whenever a compatible dependency advances.
+The Terminal-only direct dependency and its minimum are independent verifier
+policy. A matching but incorrect project and package dependency set must fail.
+The verifier checks direct dependencies and emitted assembly metadata; it does
+not reject `Icod.TermInfo` when restored transitively through Terminal.
 
 Run after packing:
 

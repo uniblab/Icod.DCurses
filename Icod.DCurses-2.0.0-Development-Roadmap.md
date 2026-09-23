@@ -1,7 +1,7 @@
 # Icod.DCurses 2.0.0 Development Roadmap
 
 **Theme:** Terminal-only integration; remove direct TermInfo coupling.\
-**Status:** T2001-T2005 accepted; T2006 is the next implementation tranche.
+**Status:** T2001-T2006 accepted; T2007 is the next implementation tranche.
 
 **Planning date:** 2026-09-18.\
 **Behavioral baseline:** published `Icod.DCurses 1.6.0`.\
@@ -27,7 +27,7 @@ This means:
 
 Version 1.6 is the endpoint for new 1.x features. Necessary 1.6.x maintenance may continue independently. New features belong to 2.1+ after this migration is accepted. Do not mix widgets, new input protocols, animation scheduling, physical raster scenes, or application-framework work into 2.0.
 
-This PR now carries the ordered 2.0 migration. T2002 established the development identity, selected Terminal 1.18.0, and completed the approved public profile/dimensions cutover. T2003 moved the core presentation path and ordinary rewrite refresh through Terminal-owned planners and one semantic output transaction. T2004 restored erase, character-shift, line-shift, and scroll-region optimization through opaque Terminal plans and Terminal-owned costs. T2005 deleted obsolete raw-output/capability seams and accepted exhaustive transaction capacity, cancellation, synchronization, ordering, stale-epoch, lease-conflict, direct-operation, and publication hardening. The direct TermInfo dependency plus T2006 lifecycle/recovery and T2007 package/reference-removal work remain migration debt, and no checkpoint authorizes publication.
+This PR now carries the ordered 2.0 migration. T2002 established the development identity, selected Terminal 1.18.0, and completed the approved public profile/dimensions cutover. T2003 moved the core presentation path and ordinary rewrite refresh through Terminal-owned planners and one semantic output transaction. T2004 restored erase, character-shift, line-shift, and scroll-region optimization through opaque Terminal plans and Terminal-owned costs. T2005 deleted obsolete raw-output/capability seams and accepted exhaustive transaction capacity, cancellation, synchronization, ordering, stale-epoch, lease-conflict, direct-operation, and publication hardening. T2006 qualified partial-write, flush, cleanup, raster-identity, lifecycle, resize, disposal, and recovery behavior. The direct TermInfo dependency and T2007 package/reference-removal work remain migration debt, and no checkpoint authorizes publication.
 
 ## 2. Reference snapshot and authorities
 
@@ -223,11 +223,11 @@ No T2003 package was published. T2004 closes the temporary ordinary-rewrite diff
 **Depends on:** T2005.\
 **Files:** lifecycle/session disposal/refresh/raster integration, session lifetime and mixed-media hardening tests.
 
-**Status:** next implementation tranche.
+**Status:** accepted on exact executable head `5d25874aacb3235a25087ce442b4c7ed1fe04678`; see `docs/T2006-Lifecycle-and-Recovery-Gate.md`.
 
-- [ ] Exercise partial writes, flush failure, primary plus cleanup failure, foreign/stale/released raster tokens and disposal races.
-- [ ] Verify suspend/resume and resize preserve logical intent, invalidate physical knowledge, and never replay stale raster identity or silently recreate resources.
-- [ ] Prove no deadlock from activity/refresh/lifecycle coordination and Terminal manager/output gate ordering.
+- [x] Exercise partial writes, flush failure, primary plus cleanup failure, foreign/stale/released raster tokens and disposal races.
+- [x] Verify suspend/resume and resize preserve logical intent, invalidate physical knowledge, and never replay stale raster identity or silently recreate resources.
+- [x] Prove no deadlock from activity/refresh/lifecycle coordination and Terminal manager/output gate ordering.
 
 **Acceptance:** recovery and failure evidence closes every readiness condition; required cleanup is attempted, failures stay observable, and unsafe recovery fails closed.
 
@@ -319,4 +319,4 @@ Completion requires all of the following, not just successful compilation:
 
 ## 10. Immediate next checkpoint
 
-Plan and execute T2006 lifecycle, failure, output-uncertainty, cleanup, disposal-race, and recovery qualification without reopening raw output or TermInfo interpretation. T2005 is accepted on exact executable head `262f4ff8aedabd703c03f5f5f5cdcf2bce9e0417`, qualified by workflow `35814067829`; see `docs/T2005-Transactional-Refresh-Hardening-Gate.md`. Keep the direct TermInfo reference only for still-unmigrated paths; its final package/reference removal remains T2007. No merge, release tag, or publication is authorized by this checkpoint.
+Plan and execute T2007 direct dependency removal and permanent production-source, assembly-metadata, and NuGet guards. T2006 is accepted on exact executable head `5d25874aacb3235a25087ce442b4c7ed1fe04678`, qualified by workflow `35817879433` including the same-head Windows x64 rerun; see `docs/T2006-Lifecycle-and-Recovery-Gate.md`. Preserve the test-only TermInfo fixture bootstrap where necessary. No merge, release tag, or publication is authorized by this checkpoint.

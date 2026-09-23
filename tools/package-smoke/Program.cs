@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Text;
 using Icod.DCurses;
 using Icod.Terminal;
-using Icod.TermInfo;
 
 CursesScreen logicalScreen = new(
 	80,
@@ -81,9 +80,9 @@ static void VerifyApprovedDependencySurface() {
 	Type[] approvedDependencyTypes = [
 		typeof( TerminalSession ),
 		typeof( TerminalEndpoint ),
-		typeof( TerminalControlResult<TerminalSize> ),
-		typeof( TerminalDescription ),
-		typeof( TerminalSize )
+		typeof( TerminalControlResult<TerminalDimensions> ),
+		typeof( TerminalProfile ),
+		typeof( TerminalDimensions )
 	];
 
 	if ( 5 != approvedDependencyTypes.Length ) {

@@ -43,7 +43,7 @@
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-style terminal UI library for .NET with retained text and mixed-media presentation, panels, layout, and deterministic interaction routing.</Description>
-		<PackageReleaseNotes>2.0.0-alpha.1 begins the Terminal-only public integration cutover over Icod.Terminal 1.18.0. It replaces the public TerminalDescription escape hatch with TerminalProfile, moves live and lifecycle dimensions to TerminalDimensions, and establishes AssemblyVersion 2.0.0.0. Internal renderer decoupling and removal of the temporary direct Icod.TermInfo dependency remain incomplete pre-release work.</PackageReleaseNotes>
+		<PackageReleaseNotes>2.0.0-alpha.1 migrates the public profile and dimensions contracts to Icod.Terminal 1.18.0, moves screen refresh through Terminal-owned semantic transactions, and removes the direct Icod.TermInfo package dependency. This is an unpublished development candidate.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -117,6 +117,5 @@
 
 	<ItemGroup>
 		<PackageReference Include="Icod.Terminal" Version="1.18.0" />
-		<PackageReference Include="Icod.TermInfo" Version="1.15.0" />
 	</ItemGroup>
 </Project>

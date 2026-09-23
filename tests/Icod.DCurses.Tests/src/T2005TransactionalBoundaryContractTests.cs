@@ -82,14 +82,18 @@ public sealed class T2005TransactionalBoundaryContractTests {
 			SearchOption.AllDirectories
 		) ) {
 			string source = File.ReadAllText( path );
-			foreach ( string token in ForbiddenProductionTokens ) {
-				Assert.DoesNotContain(
-					token,
-					source,
-					StringComparison.Ordinal
-				);
-			}
+			Assert.False(
+				ContainsForbiddenProductionToken( source ),
+				$"Production source contains a forbidden terminal boundary token: {path}"
+			);
 		}
+	}
+
+	internal static bool ContainsForbiddenProductionToken( string source ) {
+		ArgumentNullException.ThrowIfNull( source );
+		return ForbiddenProductionTokens.Any(
+			token => source.Contains( token, StringComparison.Ordinal )
+		);
 	}
 
 	private static string FindRepositoryRoot() {
