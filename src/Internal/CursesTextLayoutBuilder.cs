@@ -23,15 +23,36 @@ namespace Icod.DCurses.Internal;
 
 internal static class CursesTextLayoutBuilder {
 	private const string EllipsisText = "\u2026";
-	private const int MaximumSourceLength = 16_777_216;
-	private const int MaximumSpanCount = 1_048_576;
-	private const int MaximumFragmentCount = 4_194_304;
-	private const int MaximumCellCount = 16_777_216;
+	internal const int MaximumSourceLength = 16_777_216;
+	internal const int MaximumSpanCount = 1_048_576;
+	internal static Capacity ProductionCapacity { get; } = new(
+		4_194_304,
+		16_777_216
+	);
+
+	internal readonly record struct Capacity(
+		int MaximumFragments,
+		int MaximumCells
+	);
 
 	internal static CursesTextLayout Build(
 		string text,
 		CursesTextLayoutOptions options,
 		IReadOnlyList<CursesTextSpan>? spans
+	) {
+		return Build(
+			text,
+			options,
+			spans,
+			ProductionCapacity
+		);
+	}
+
+	internal static CursesTextLayout Build(
+		string text,
+		CursesTextLayoutOptions options,
+		IReadOnlyList<CursesTextSpan>? spans,
+		Capacity capacity
 	) {
 		ArgumentNullException.ThrowIfNull( text );
 		ArgumentNullException.ThrowIfNull( options );
@@ -55,7 +76,8 @@ internal static class CursesTextLayoutBuilder {
 			text,
 			optionCopy,
 			spanCopy,
-			elements
+			elements,
+			capacity
 		);
 	}
 
@@ -63,7 +85,8 @@ internal static class CursesTextLayoutBuilder {
 		string text,
 		CursesTextLayoutOptions options,
 		CursesTextSpan[] spans,
-		CursesTextElement[] elements
+		CursesTextElement[] elements,
+		Capacity capacity
 	) {
 		if ( 0 == options.MaximumRows ) {
 			return new CursesTextLayout(
@@ -247,13 +270,13 @@ internal static class CursesTextLayoutBuilder {
 				}
 				CursesTextFragment[] publishedFragments = [ .. published ];
 				fragmentCount = checked( fragmentCount + publishedFragments.Length );
-				if ( MaximumFragmentCount < fragmentCount ) {
+				if ( capacity.MaximumFragments < fragmentCount ) {
 					throw new InvalidOperationException(
 						"Text layout exceeded the supported fragment capacity."
 					);
 				}
 				cellCount = checked( cellCount + contentColumns );
-				if ( MaximumCellCount < cellCount ) {
+				if ( capacity.MaximumCells < cellCount ) {
 					throw new InvalidOperationException(
 						"Text layout exceeded the supported cell capacity."
 					);
