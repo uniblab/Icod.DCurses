@@ -84,7 +84,7 @@ public sealed class CursesVerticalCutoverApplicationTests {
 		messageLog.DeleteLines();
 		await context.Engine.RefreshAsync( screen, 3, 0 );
 
-		Assert.Equal( "<dl:1>", output.Text );
+		Assert.Equal( "D", output.Text );
 		Assert.Equal( "new message", ReadText( screen, 3, 0, 11 ) );
 		Assert.DoesNotContain( "<smacs>", output.Text, StringComparison.Ordinal );
 		Assert.DoesNotContain( "界", output.Text, StringComparison.Ordinal );
@@ -213,7 +213,7 @@ public sealed class CursesVerticalCutoverApplicationTests {
 		Assert.Contains( "T界", output.Text, StringComparison.Ordinal );
 		Assert.Contains( "<smacs>=<rmacs>", output.Text, StringComparison.Ordinal );
 		Assert.Contains( RasterPlaceholder, output.Text, StringComparison.Ordinal );
-		Assert.DoesNotContain( "<dl:", output.Text, StringComparison.Ordinal );
+		Assert.DoesNotContain( "D", output.Text, StringComparison.Ordinal );
 		Assert.DoesNotContain( "<ich:", output.Text, StringComparison.Ordinal );
 		Assert.Equal( rasterTile, screen.VirtualScreen.GetRasterCell( 0, 6 ) );
 		Assert.Equal( 1, output.FlushCount );
@@ -249,8 +249,9 @@ public sealed class CursesVerticalCutoverApplicationTests {
 		Assert.Equal( "X2", output.Text );
 		output.Clear();
 
-		editor.Move( 1, 8 );
-		editor.ClearToEndOfLine();
+		for ( int column = 8; column < screen.Columns; column++ ) {
+			screen.VirtualScreen[ 1, column ] = CursesCell.Blank();
+		}
 		await context.Engine.RefreshAsync( screen, 2, 0 );
 		Assert.Contains( "E", output.Text, StringComparison.Ordinal );
 		output.Clear();
@@ -304,7 +305,7 @@ public sealed class CursesVerticalCutoverApplicationTests {
 			.SetString( StringCapability.AlternateCharacterSet, "q=" )
 			.SetString( StringCapability.ClearToEndOfLine, "<el>" )
 			.SetString( StringCapability.InsertCharacters, "<ich:%p1%d>" )
-			.SetString( StringCapability.DeleteLines, "<dl:%p1%d>" )
+			.SetString( StringCapability.DeleteLines, "D" )
 			.Build();
 	}
 
