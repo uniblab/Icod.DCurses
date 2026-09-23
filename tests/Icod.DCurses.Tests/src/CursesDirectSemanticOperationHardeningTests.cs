@@ -168,14 +168,21 @@ public sealed class CursesDirectSemanticOperationHardeningTests {
 		CursesSession session,
 		DirectOperation operation
 	) {
-		CursesStyle style = DirectOperation.ResetRendition == operation
-			? new CursesStyle(
-				CursesColor.Default,
-				CursesColor.Default,
-				CursesTextAttributes.Bold
-			)
-			: CursesStyle.Default;
-		session.StandardScreen.Write( "K", style );
+		if ( DirectOperation.ResetRendition == operation ) {
+			session.Screen.VirtualScreen[
+				session.Screen.Rows - 1,
+				session.Screen.Columns - 1
+			] = new CursesCell(
+				"K",
+				new CursesStyle(
+					CursesColor.Default,
+					CursesColor.Default,
+					CursesTextAttributes.Bold
+				)
+			);
+		} else {
+			session.StandardScreen.Write( "K" );
+		}
 		await session.RefreshAsync();
 	}
 
