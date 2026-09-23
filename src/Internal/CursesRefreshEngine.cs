@@ -36,10 +36,12 @@ internal sealed class CursesRefreshEngine {
 	private readonly CursesCursorMotionResolver cursorMotionResolver;
 	private readonly CursesEraseResolver eraseResolver;
 	private readonly CursesCharacterShiftResolver characterShiftResolver;
+	private readonly CursesLineShiftResolver lineShiftResolver;
 	private readonly SemaphoreSlim refreshGate = new( 1, 1 );
 
 	private CursesRefreshPhysicalState? physicalState;
 	private int invalidationRequested = 1;
+	private bool scrollRegionResetRequired;
 
 	/// <summary>Initializes a physical refresh engine for one Terminal session.</summary>
 	internal CursesRefreshEngine(
@@ -59,6 +61,10 @@ internal sealed class CursesRefreshEngine {
 		);
 		this.eraseResolver = new CursesEraseResolver( this.planner, costModel );
 		this.characterShiftResolver = new CursesCharacterShiftResolver(
+			this.planner,
+			costModel
+		);
+		this.lineShiftResolver = new CursesLineShiftResolver(
 			this.planner,
 			costModel
 		);
@@ -221,6 +227,88 @@ internal sealed class CursesRefreshEngine {
 			)
 		);
 
+		if ( this.scrollRegionResetRequired ) {
+			TerminalScreenOperationPlan? recovery = this.planner.PlanScrollRegion(
+				0,
+				desired.Rows - 1,
+				desired.Rows
+			);
+			if ( !recovery.HasValue || 0 == recovery.Value.ByteCount ) {
+				throw new NotSupportedException(
+					$"Terminal '{this.planner.Profile.Name}' cannot restore the full-screen scroll region."
+				);
+			}
+			preparation.Prepared.AddPlan( recovery.Value );
+			preparation.HasOutput = true;
+			preparation.RestoresFullScrollRegion = true;
+			speculative.CursorRow = null;
+			speculative.CursorColumn = null;
+		}
+
+		CursesLineShiftPlan? lineShift = this.lineShiftResolver.Resolve(
+			desired,
+			speculative.Screen,
+			speculative.CurrentStyle,
+			speculative.CursorRow,
+			speculative.CursorColumn,
+			requestedCursorRow,
+			requestedCursorColumn
+		);
+		if ( lineShift.HasValue ) {
+			CursesLineShiftPlan plan = lineShift.Value;
+			AddPlanSequence( preparation, plan.Sequence );
+			CopyDesiredRange(
+				desired,
+				speculative.Screen,
+				plan.TopRow,
+				plan.BottomRow + 1,
+				0,
+				desired.Columns
+			);
+			speculative.CurrentStyle = plan.StyleAfter;
+			speculative.CursorRow = plan.CursorAfterRow;
+			speculative.CursorColumn = plan.CursorAfterColumn;
+			preparation.UsesTemporaryScrollRegion =
+				plan.Sequence.UsesTemporaryScrollRegion;
+			if ( plan.Sequence.UsesTemporaryScrollRegion ) {
+				preparation.RestoresFullScrollRegion = true;
+			}
+		} else {
+			this.PrepareRows(
+				preparation,
+				speculative,
+				desired,
+				screen.TextWidthProvider
+			);
+		}
+
+		this.PrepareCursor(
+			preparation,
+			speculative,
+			requestedCursorRow,
+			requestedCursorColumn
+		);
+		if ( !preparation.HasOutput ) {
+			return;
+		}
+
+		if ( preparation.UsesTemporaryScrollRegion ) {
+			this.scrollRegionResetRequired = true;
+		}
+		await preparation.Prepared.CommitAsync( cancellationToken ).ConfigureAwait( false );
+		if ( preparation.RestoresFullScrollRegion ) {
+			this.scrollRegionResetRequired = false;
+		}
+		this.physicalState = speculative;
+		desired.MarkCleanThrough( capturedRevision );
+	}
+
+	private void PrepareRows(
+		Preparation preparation,
+		CursesRefreshPhysicalState speculative,
+		CursesVirtualScreen desired,
+		ICursesTextWidthProvider textWidthProvider
+	) {
 		bool screenComplete = false;
 		for ( int row = 0; row < desired.Rows; row++ ) {
 			CursesCharacterShiftPlan? characterShift =
@@ -344,7 +432,7 @@ internal sealed class CursesRefreshEngine {
 					row,
 					start,
 					end,
-					screen.TextWidthProvider
+					textWidthProvider
 				);
 				column = end + 1;
 			}
@@ -352,20 +440,6 @@ internal sealed class CursesRefreshEngine {
 				break;
 			}
 		}
-
-		this.PrepareCursor(
-			preparation,
-			speculative,
-			requestedCursorRow,
-			requestedCursorColumn
-		);
-		if ( !preparation.HasOutput ) {
-			return;
-		}
-
-		await preparation.Prepared.CommitAsync( cancellationToken ).ConfigureAwait( false );
-		this.physicalState = speculative;
-		desired.MarkCleanThrough( capturedRevision );
 	}
 
 	private bool RequiresOutput(
@@ -374,6 +448,9 @@ internal sealed class CursesRefreshEngine {
 		int requestedCursorRow,
 		int requestedCursorColumn
 	) {
+		if ( this.scrollRegionResetRequired ) {
+			return true;
+		}
 		if ( state.CursorRow != requestedCursorRow
 			|| state.CursorColumn != requestedCursorColumn ) {
 			return true;
@@ -874,6 +951,16 @@ internal sealed class CursesRefreshEngine {
 		}
 
 		internal bool HasOutput {
+			get;
+			set;
+		}
+
+		internal bool UsesTemporaryScrollRegion {
+			get;
+			set;
+		}
+
+		internal bool RestoresFullScrollRegion {
 			get;
 			set;
 		}
