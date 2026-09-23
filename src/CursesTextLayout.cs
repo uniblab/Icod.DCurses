@@ -34,7 +34,8 @@ public sealed partial class CursesTextLayout {
 		CursesTextSpan[] spans,
 		CursesTextVisualLine[] lines,
 		int cellCount,
-		bool isTruncated
+		bool isTruncated,
+		CursesTextElement[] elements
 	) {
 		Text = text;
 		Options = options;
@@ -42,6 +43,11 @@ public sealed partial class CursesTextLayout {
 		this.lines = Array.AsReadOnly( lines );
 		CellCount = cellCount;
 		IsTruncated = isTruncated;
+		( legalOffsets, geometryLines ) = CreateGeometryIndexes(
+			elements,
+			lines,
+			options
+		);
 	}
 
 	/// <summary>Creates an immutable rich-text layout.</summary>
