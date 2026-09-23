@@ -223,4 +223,55 @@ public sealed class CursesTextLayoutUnicodeTests {
 		Assert.True( line.IsClipped );
 		Assert.True( layout.IsTruncated );
 	}
+
+	[Fact]
+	public void RowLimitEllipsisUsesDefaultsAtFirstHiddenLine() {
+		CursesStyle visibleStyle = CursesStyle.Default.WithAttributes(
+			CursesTextAttributes.Underline
+		);
+		CursesStyle defaultStyle = CursesStyle.Default.WithAttributes(
+			CursesTextAttributes.Bold
+		);
+		CursesCellMetadata defaultMetadata = new(
+			new CursesHyperlink( "https://example.invalid/more" )
+		);
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"a\nb",
+			new CursesTextLayoutOptions( 3 ) {
+				MaximumRows = 1,
+				Overflow = CursesTextOverflow.Ellipsis,
+				DefaultStyle = defaultStyle,
+				DefaultMetadata = defaultMetadata
+			},
+			[
+				new CursesTextSpan(
+					new CursesTextPosition( 0 ),
+					1,
+					visibleStyle
+				)
+			]
+		);
+
+		CursesTextVisualLine line = Assert.Single( layout.Lines );
+		Assert.Collection(
+			line.Fragments,
+			fragment => {
+				Assert.Equal( "a", fragment.Text );
+				Assert.Equal( visibleStyle, fragment.Style );
+			},
+			fragment => {
+				Assert.Equal( "\u2026", fragment.Text );
+				Assert.Equal( 2, fragment.SourceStart.Offset );
+				Assert.Equal( 2, fragment.SourceEnd.Offset );
+				Assert.Equal( defaultStyle, fragment.Style );
+				Assert.Same( defaultMetadata, fragment.Metadata );
+				Assert.True( fragment.IsEllipsis );
+			}
+		);
+		Assert.Equal( 2, line.Columns );
+		Assert.True( line.EndsWithHardBreak );
+		Assert.True( line.IsClipped );
+		Assert.Equal( 2, layout.CellCount );
+		Assert.True( layout.IsTruncated );
+	}
 }
