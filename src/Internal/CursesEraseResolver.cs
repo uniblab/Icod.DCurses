@@ -21,7 +21,7 @@
 
 namespace Icod.DCurses.Internal;
 
-using Icod.TermInfo;
+using Icod.Terminal;
 
 /// <summary>Identifies the physical erase operation selected for one blank refresh region.</summary>
 internal enum CursesEraseKind {
@@ -30,35 +30,43 @@ internal enum CursesEraseKind {
 	ClearScreen
 }
 
-/// <summary>Represents one advertised erase sequence and its deterministic terminal-byte cost.</summary>
+/// <summary>Represents one Terminal-planned erase and its resulting retained observations.</summary>
 internal readonly record struct CursesErasePlan(
 	CursesEraseKind Kind,
-	string Sequence,
-	int ByteCount,
-	int AffectedLines
+	CursesTerminalPlanSequence Sequence,
+	CursesStyle StyleAfter,
+	int? CursorAfterRow,
+	int? CursorAfterColumn
 );
 
-/// <summary>Selects the cheapest safe advertised erase operation for default-styled blank cells.</summary>
+/// <summary>Selects the cheapest safe Terminal-planned erase for default-styled blank cells.</summary>
 internal sealed class CursesEraseResolver {
-	private readonly TerminalDescription terminal;
+	private readonly TerminalScreenPlanner planner;
+	private readonly CursesPresentationResolver presentationResolver;
+	private readonly CursesCursorMotionResolver cursorMotionResolver;
 	private readonly int blankByteCount;
 
 	internal CursesEraseResolver(
-		TerminalDescription terminal,
+		TerminalScreenPlanner planner,
 		CursesOutputCostModel costModel
 	) {
-		ArgumentNullException.ThrowIfNull( terminal );
+		ArgumentNullException.ThrowIfNull( planner );
 		ArgumentNullException.ThrowIfNull( costModel );
 
-		this.terminal = terminal;
-		blankByteCount = costModel.GetApplicationTextByteCount( " " );
+		this.planner = planner;
+		this.presentationResolver = new CursesPresentationResolver( planner );
+		this.cursorMotionResolver = new CursesCursorMotionResolver( planner );
+		this.blankByteCount = costModel.GetApplicationTextByteCount( " " );
 	}
 
 	internal CursesErasePlan? Resolve(
 		CursesVirtualScreen desired,
 		CursesPhysicalScreenState physicalScreen,
 		int row,
-		int startColumn
+		int startColumn,
+		CursesStyle? currentStyle,
+		int? currentCursorRow,
+		int? currentCursorColumn
 	) {
 		ArgumentNullException.ThrowIfNull( desired );
 		ArgumentNullException.ThrowIfNull( physicalScreen );
@@ -81,122 +89,222 @@ internal sealed class CursesEraseResolver {
 			row,
 			startColumn,
 			desired.Columns
+		) || !CursesEditingRegionSafety.IsRetainedStateFree(
+			desired,
+			physicalScreen,
+			row,
+			row + 1,
+			startColumn,
+			desired.Columns
 		) ) {
 			return null;
 		}
 
-		string? eraseLine = this.terminal.GetString(
-			StringCapability.ClearToEndOfLine
-		);
 		int rowLiteralCost = EstimateLiteralBlankCost(
 			desired,
 			physicalScreen,
 			row,
 			startColumn
 		);
-
 		CursesErasePlan? selected = null;
 		int selectedTotalCost = rowLiteralCost;
-		if ( null != eraseLine ) {
-			int eraseLineCost = CursesOutputCostModel.GetTerminalStringByteCount(
-				eraseLine
+		CursesTerminalPlanSequence? eraseLine = TryCreateSequence(
+			TerminalScreenEraseKind.ToEndOfLine,
+			affectedLines: 1,
+			currentStyle,
+			currentCursorRow,
+			currentCursorColumn,
+			row,
+			startColumn,
+			moveCursor: true
+		);
+		if ( eraseLine is not null
+			&& eraseLine.ByteCount < selectedTotalCost ) {
+			selected = new CursesErasePlan(
+				CursesEraseKind.ClearToEndOfLine,
+				eraseLine,
+				CursesStyle.Default,
+				row,
+				startColumn
 			);
-			if ( eraseLineCost < rowLiteralCost ) {
-				selected = new CursesErasePlan(
-					CursesEraseKind.ClearToEndOfLine,
-					eraseLine,
-					eraseLineCost,
-					1
-				);
-				selectedTotalCost = eraseLineCost;
-			}
+			selectedTotalCost = eraseLine.ByteCount;
 		}
 
-		if ( !IsDefaultBlankTail(
-			desired,
-			row,
-			startColumn
-		) ) {
+		if ( !IsDefaultBlankTail( desired, row, startColumn ) ) {
 			return selected;
 		}
 
-		for ( int candidateRow = row + 1; candidateRow < desired.Rows; candidateRow++ ) {
-			selectedTotalCost = checked(
-				selectedTotalCost
-				+ EstimateBestRowCost(
-					desired,
-					physicalScreen,
-					candidateRow,
-					0,
-					eraseLine
-				)
-			);
+		try {
+			for ( int candidateRow = row + 1; candidateRow < desired.Rows; candidateRow++ ) {
+				selectedTotalCost = checked(
+					selectedTotalCost
+						+ EstimateLiteralBlankCost(
+							desired,
+							physicalScreen,
+							candidateRow,
+							0
+						)
+				);
+			}
+		} catch ( OverflowException ) {
+			return selected;
 		}
 
-		string? eraseScreen = this.terminal.GetString(
-			StringCapability.ClearToEndOfScreen
-		);
-		if ( null != eraseScreen ) {
-			int affectedLines = desired.Rows - row;
-			int eraseScreenCost = CursesOutputCostModel.GetTerminalStringByteCount(
-				eraseScreen,
-				affectedLines
+		if ( IsTailRetainedStateFree(
+			desired,
+			physicalScreen,
+			row,
+			startColumn
+		) ) {
+			CursesTerminalPlanSequence? eraseScreen = TryCreateSequence(
+				TerminalScreenEraseKind.ToEndOfScreen,
+				desired.Rows - row,
+				currentStyle,
+				currentCursorRow,
+				currentCursorColumn,
+				row,
+				startColumn,
+				moveCursor: true
 			);
-			if ( eraseScreenCost < selectedTotalCost ) {
+			if ( eraseScreen is not null
+				&& eraseScreen.ByteCount < selectedTotalCost ) {
 				selected = new CursesErasePlan(
 					CursesEraseKind.ClearToEndOfScreen,
 					eraseScreen,
-					eraseScreenCost,
-					affectedLines
+					CursesStyle.Default,
+					row,
+					startColumn
 				);
-				selectedTotalCost = eraseScreenCost;
+				selectedTotalCost = eraseScreen.ByteCount;
 			}
 		}
 
-		if ( IsWholeScreenDefaultBlank( desired ) ) {
-			string? clearScreen = this.terminal.GetString(
-				StringCapability.ClearScreen
+		if ( IsWholeScreenDefaultBlank( desired )
+			&& CursesEditingRegionSafety.IsRetainedStateFree(
+				desired,
+				physicalScreen,
+				0,
+				desired.Rows,
+				0,
+				desired.Columns
+			) ) {
+			CursesTerminalPlanSequence? clearScreen = TryCreateSequence(
+				TerminalScreenEraseKind.Screen,
+				desired.Rows,
+				currentStyle,
+				currentCursorRow,
+				currentCursorColumn,
+				row,
+				startColumn,
+				moveCursor: false
 			);
-			if ( null != clearScreen ) {
-				int clearScreenCost = CursesOutputCostModel.GetTerminalStringByteCount(
+			if ( clearScreen is not null
+				&& clearScreen.ByteCount < selectedTotalCost ) {
+				selected = new CursesErasePlan(
+					CursesEraseKind.ClearScreen,
 					clearScreen,
-					desired.Rows
+					CursesStyle.Default,
+					CursorAfterRow: null,
+					CursorAfterColumn: null
 				);
-				if ( clearScreenCost < selectedTotalCost ) {
-					selected = new CursesErasePlan(
-						CursesEraseKind.ClearScreen,
-						clearScreen,
-						clearScreenCost,
-						desired.Rows
-					);
-				}
 			}
 		}
 
 		return selected;
 	}
 
-	private int EstimateBestRowCost(
+	private CursesTerminalPlanSequence? TryCreateSequence(
+		TerminalScreenEraseKind kind,
+		int affectedLines,
+		CursesStyle? currentStyle,
+		int? currentCursorRow,
+		int? currentCursorColumn,
+		int targetRow,
+		int targetColumn,
+		bool moveCursor
+	) {
+		TerminalScreenOperationPlan? operation = this.planner.PlanErase(
+			kind,
+			affectedLines
+		);
+		if ( !operation.HasValue || 0 == operation.Value.ByteCount ) {
+			return null;
+		}
+
+		List<TerminalScreenOperationPlan> plans = [];
+		if ( !TryPrepareDefaultRendition( plans, currentStyle ) ) {
+			return null;
+		}
+		if ( moveCursor
+			&& ( currentCursorRow != targetRow
+				|| currentCursorColumn != targetColumn ) ) {
+			try {
+				plans.Add(
+					this.cursorMotionResolver.Resolve(
+						currentCursorRow,
+						currentCursorColumn,
+						targetRow,
+						targetColumn
+					)
+				);
+			} catch ( NotSupportedException ) {
+				return null;
+			}
+		}
+		plans.Add( operation.Value );
+
+		try {
+			return new CursesTerminalPlanSequence( plans );
+		} catch ( OverflowException ) {
+			return null;
+		}
+	}
+
+	private bool TryPrepareDefaultRendition(
+		List<TerminalScreenOperationPlan> plans,
+		CursesStyle? currentStyle
+	) {
+		TerminalScreenOperationPlan? setup = null;
+		if ( !currentStyle.HasValue ) {
+			setup = this.presentationResolver.PlanBaseline();
+		} else if ( !currentStyle.Value.IsDefault ) {
+			setup = this.presentationResolver.PlanReset( currentStyle.Value );
+		}
+
+		if ( !currentStyle.HasValue || !currentStyle.Value.IsDefault ) {
+			if ( !setup.HasValue ) {
+				return false;
+			}
+			plans.Add( setup.Value );
+		}
+		return true;
+	}
+
+	private static bool IsTailRetainedStateFree(
 		CursesVirtualScreen desired,
 		CursesPhysicalScreenState physicalScreen,
 		int row,
-		int startColumn,
-		string? eraseLine
+		int startColumn
 	) {
-		int literalCost = EstimateLiteralBlankCost(
+		if ( !CursesEditingRegionSafety.IsRetainedStateFree(
 			desired,
 			physicalScreen,
 			row,
-			startColumn
-		);
-		if ( 0 == literalCost || null == eraseLine ) {
-			return literalCost;
+			row + 1,
+			startColumn,
+			desired.Columns
+		) ) {
+			return false;
 		}
-
-		int eraseLineCost = CursesOutputCostModel.GetTerminalStringByteCount(
-			eraseLine
-		);
-		return Math.Min( literalCost, eraseLineCost );
+		return row + 1 >= desired.Rows
+			|| CursesEditingRegionSafety.IsRetainedStateFree(
+				desired,
+				physicalScreen,
+				row + 1,
+				desired.Rows,
+				0,
+				desired.Columns
+			);
 	}
 
 	private int EstimateLiteralBlankCost(
@@ -216,7 +324,7 @@ internal sealed class CursesEraseResolver {
 				changedCellCount++;
 			}
 		}
-		return checked( changedCellCount * blankByteCount );
+		return checked( changedCellCount * this.blankByteCount );
 	}
 
 	private static bool IsDefaultBlankTail(
@@ -286,7 +394,6 @@ internal sealed class CursesEraseResolver {
 		if ( desired.IsDirty( row, column ) ) {
 			return true;
 		}
-
 		if ( !physicalScreen.TryGetCell(
 			row,
 			column,

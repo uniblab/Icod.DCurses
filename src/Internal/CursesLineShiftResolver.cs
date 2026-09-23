@@ -21,8 +21,7 @@
 
 namespace Icod.DCurses.Internal;
 
-using System.Text;
-using Icod.TermInfo;
+using Icod.Terminal;
 
 /// <summary>Identifies the logical direction of one exact physical line shift.</summary>
 internal enum CursesLineShiftKind {
@@ -38,25 +37,17 @@ internal enum CursesLineShiftOperation {
 	ScrollForward
 }
 
-/// <summary>Represents one exact vertical region shift selected by deterministic byte cost.</summary>
+/// <summary>Represents one exact Terminal-planned vertical-region shift.</summary>
 internal readonly record struct CursesLineShiftPlan(
 	CursesLineShiftKind Kind,
 	CursesLineShiftOperation Operation,
 	int TopRow,
 	int BottomRow,
 	int Count,
-	string OperationSequence,
-	int OperationAffectedLines,
-	bool UsesTemporaryScrollRegion,
-	string? SetRegionSequence,
-	int SetRegionAffectedLines,
-	string? RestoreRegionSequence,
-	int RestoreRegionAffectedLines,
-	int OperationRow,
-	int OperationColumn,
-	int? CursorAfterRow,
-	int? CursorAfterColumn,
-	int ByteCount
+	CursesTerminalPlanSequence Sequence,
+	CursesStyle StyleAfter,
+	int CursorAfterRow,
+	int CursorAfterColumn
 );
 
 /// <summary>
@@ -64,20 +55,22 @@ internal readonly record struct CursesLineShiftPlan(
 /// complete desired screen and are strictly cheaper than a conservative direct-rewrite lower bound.
 /// </summary>
 internal sealed class CursesLineShiftResolver {
-	private readonly TerminalDescription terminal;
+	private readonly TerminalScreenPlanner planner;
 	private readonly CursesOutputCostModel costModel;
+	private readonly CursesPresentationResolver presentationResolver;
 	private readonly CursesCursorMotionResolver cursorMotionResolver;
 
 	internal CursesLineShiftResolver(
-		TerminalDescription terminal,
+		TerminalScreenPlanner planner,
 		CursesOutputCostModel costModel
 	) {
-		ArgumentNullException.ThrowIfNull( terminal );
+		ArgumentNullException.ThrowIfNull( planner );
 		ArgumentNullException.ThrowIfNull( costModel );
 
-		this.terminal = terminal;
+		this.planner = planner;
 		this.costModel = costModel;
-		cursorMotionResolver = new CursesCursorMotionResolver( terminal );
+		this.presentationResolver = new CursesPresentationResolver( planner );
+		this.cursorMotionResolver = new CursesCursorMotionResolver( planner );
 	}
 
 	internal CursesLineShiftPlan? Resolve(
@@ -109,10 +102,6 @@ internal sealed class CursesLineShiftResolver {
 				"Current cursor row and column knowledge must either both be known or both be unknown."
 			);
 		}
-		if ( !currentStyle.HasValue
-			|| CursesStyle.Default != currentStyle.Value ) {
-			return null;
-		}
 
 		if ( !TryFindDifferenceRange(
 			desired,
@@ -123,18 +112,33 @@ internal sealed class CursesLineShiftResolver {
 			return null;
 		}
 
-		int rewriteLowerBound = GetChangedNonblankByteCount(
-			desired,
-			physicalScreen,
-			firstDifferenceRow,
-			lastDifferenceRow
-		);
+		int rewriteLowerBound;
+		try {
+			rewriteLowerBound = GetChangedNonblankByteCount(
+				desired,
+				physicalScreen,
+				firstDifferenceRow,
+				lastDifferenceRow
+			);
+		} catch ( OverflowException ) {
+			return null;
+		}
 		if ( 0 >= rewriteLowerBound ) {
 			return null;
 		}
 
 		CursesLineShiftPlan? best = null;
 		for ( int bottomRow = lastDifferenceRow; bottomRow < desired.Rows; bottomRow++ ) {
+			if ( !CursesEditingRegionSafety.IsRetainedStateFree(
+				desired,
+				physicalScreen,
+				firstDifferenceRow,
+				bottomRow + 1,
+				0,
+				desired.Columns
+			) ) {
+				continue;
+			}
 			int regionHeight = bottomRow - firstDifferenceRow + 1;
 			for ( int count = 1; count <= regionHeight; count++ ) {
 				if ( MatchesInsertion(
@@ -151,6 +155,7 @@ internal sealed class CursesLineShiftResolver {
 						bottomRow,
 						count,
 						rewriteLowerBound,
+						currentStyle,
 						currentCursorRow,
 						currentCursorColumn,
 						requestedCursorRow,
@@ -171,6 +176,7 @@ internal sealed class CursesLineShiftResolver {
 						bottomRow,
 						count,
 						rewriteLowerBound,
+						currentStyle,
 						currentCursorRow,
 						currentCursorColumn,
 						requestedCursorRow,
@@ -189,60 +195,36 @@ internal sealed class CursesLineShiftResolver {
 		int bottomRow,
 		int count,
 		int rewriteLowerBound,
+		CursesStyle? currentStyle,
 		int? currentCursorRow,
 		int? currentCursorColumn,
 		int requestedCursorRow,
 		int requestedCursorColumn
 	) {
 		bool reachesScreenBottom = bottomRow + 1 == desired.Rows;
-		if ( reachesScreenBottom ) {
-			TryAddLineOperationCandidate(
-				ref best,
-				CursesLineShiftKind.Insert,
-				CursesLineShiftOperation.InsertLines,
-				StringCapability.InsertLines,
-				StringCapability.InsertLine,
-				desired,
-				topRow,
-				bottomRow,
-				count,
-				temporaryScrollRegion: false,
-				operationRow: topRow,
-				rewriteLowerBound,
-				currentCursorRow,
-				currentCursorColumn,
-				requestedCursorRow,
-				requestedCursorColumn
-			);
-		} else {
-			TryAddLineOperationCandidate(
-				ref best,
-				CursesLineShiftKind.Insert,
-				CursesLineShiftOperation.InsertLines,
-				StringCapability.InsertLines,
-				StringCapability.InsertLine,
-				desired,
-				topRow,
-				bottomRow,
-				count,
-				temporaryScrollRegion: true,
-				operationRow: topRow,
-				rewriteLowerBound,
-				currentCursorRow,
-				currentCursorColumn,
-				requestedCursorRow,
-				requestedCursorColumn
-			);
-		}
+		TryAddCandidate(
+			ref best,
+			CursesLineShiftKind.Insert,
+			CursesLineShiftOperation.InsertLines,
+			desired,
+			topRow,
+			bottomRow,
+			count,
+			temporaryScrollRegion: !reachesScreenBottom,
+			operationRow: topRow,
+			rewriteLowerBound,
+			currentStyle,
+			currentCursorRow,
+			currentCursorColumn,
+			requestedCursorRow,
+			requestedCursorColumn
+		);
 
-		bool fullScreenRegion = 0 == topRow
-			&& bottomRow + 1 == desired.Rows;
-		TryAddScrollCandidate(
+		bool fullScreenRegion = 0 == topRow && reachesScreenBottom;
+		TryAddCandidate(
 			ref best,
 			CursesLineShiftKind.Insert,
 			CursesLineShiftOperation.ScrollReverse,
-			StringCapability.ScrollReverseLines,
-			StringCapability.ScrollReverse,
 			desired,
 			topRow,
 			bottomRow,
@@ -250,6 +232,7 @@ internal sealed class CursesLineShiftResolver {
 			temporaryScrollRegion: !fullScreenRegion,
 			operationRow: topRow,
 			rewriteLowerBound,
+			currentStyle,
 			currentCursorRow,
 			currentCursorColumn,
 			requestedCursorRow,
@@ -264,60 +247,36 @@ internal sealed class CursesLineShiftResolver {
 		int bottomRow,
 		int count,
 		int rewriteLowerBound,
+		CursesStyle? currentStyle,
 		int? currentCursorRow,
 		int? currentCursorColumn,
 		int requestedCursorRow,
 		int requestedCursorColumn
 	) {
 		bool reachesScreenBottom = bottomRow + 1 == desired.Rows;
-		if ( reachesScreenBottom ) {
-			TryAddLineOperationCandidate(
-				ref best,
-				CursesLineShiftKind.Delete,
-				CursesLineShiftOperation.DeleteLines,
-				StringCapability.DeleteLines,
-				StringCapability.DeleteLine,
-				desired,
-				topRow,
-				bottomRow,
-				count,
-				temporaryScrollRegion: false,
-				operationRow: topRow,
-				rewriteLowerBound,
-				currentCursorRow,
-				currentCursorColumn,
-				requestedCursorRow,
-				requestedCursorColumn
-			);
-		} else {
-			TryAddLineOperationCandidate(
-				ref best,
-				CursesLineShiftKind.Delete,
-				CursesLineShiftOperation.DeleteLines,
-				StringCapability.DeleteLines,
-				StringCapability.DeleteLine,
-				desired,
-				topRow,
-				bottomRow,
-				count,
-				temporaryScrollRegion: true,
-				operationRow: topRow,
-				rewriteLowerBound,
-				currentCursorRow,
-				currentCursorColumn,
-				requestedCursorRow,
-				requestedCursorColumn
-			);
-		}
+		TryAddCandidate(
+			ref best,
+			CursesLineShiftKind.Delete,
+			CursesLineShiftOperation.DeleteLines,
+			desired,
+			topRow,
+			bottomRow,
+			count,
+			temporaryScrollRegion: !reachesScreenBottom,
+			operationRow: topRow,
+			rewriteLowerBound,
+			currentStyle,
+			currentCursorRow,
+			currentCursorColumn,
+			requestedCursorRow,
+			requestedCursorColumn
+		);
 
-		bool fullScreenRegion = 0 == topRow
-			&& bottomRow + 1 == desired.Rows;
-		TryAddScrollCandidate(
+		bool fullScreenRegion = 0 == topRow && reachesScreenBottom;
+		TryAddCandidate(
 			ref best,
 			CursesLineShiftKind.Delete,
 			CursesLineShiftOperation.ScrollForward,
-			StringCapability.ScrollForwardLines,
-			StringCapability.ScrollForward,
 			desired,
 			topRow,
 			bottomRow,
@@ -325,82 +284,7 @@ internal sealed class CursesLineShiftResolver {
 			temporaryScrollRegion: !fullScreenRegion,
 			operationRow: bottomRow,
 			rewriteLowerBound,
-			currentCursorRow,
-			currentCursorColumn,
-			requestedCursorRow,
-			requestedCursorColumn
-		);
-	}
-
-	private void TryAddLineOperationCandidate(
-		ref CursesLineShiftPlan? best,
-		CursesLineShiftKind kind,
-		CursesLineShiftOperation operation,
-		StringCapability parameterizedCapability,
-		StringCapability oneCapability,
-		CursesVirtualScreen desired,
-		int topRow,
-		int bottomRow,
-		int count,
-		bool temporaryScrollRegion,
-		int operationRow,
-		int rewriteLowerBound,
-		int? currentCursorRow,
-		int? currentCursorColumn,
-		int requestedCursorRow,
-		int requestedCursorColumn
-	) {
-		TryAddCandidate(
-			ref best,
-			kind,
-			operation,
-			parameterizedCapability,
-			oneCapability,
-			desired,
-			topRow,
-			bottomRow,
-			count,
-			temporaryScrollRegion,
-			operationRow,
-			rewriteLowerBound,
-			currentCursorRow,
-			currentCursorColumn,
-			requestedCursorRow,
-			requestedCursorColumn
-		);
-	}
-
-	private void TryAddScrollCandidate(
-		ref CursesLineShiftPlan? best,
-		CursesLineShiftKind kind,
-		CursesLineShiftOperation operation,
-		StringCapability parameterizedCapability,
-		StringCapability oneCapability,
-		CursesVirtualScreen desired,
-		int topRow,
-		int bottomRow,
-		int count,
-		bool temporaryScrollRegion,
-		int operationRow,
-		int rewriteLowerBound,
-		int? currentCursorRow,
-		int? currentCursorColumn,
-		int requestedCursorRow,
-		int requestedCursorColumn
-	) {
-		TryAddCandidate(
-			ref best,
-			kind,
-			operation,
-			parameterizedCapability,
-			oneCapability,
-			desired,
-			topRow,
-			bottomRow,
-			count,
-			temporaryScrollRegion,
-			operationRow,
-			rewriteLowerBound,
+			currentStyle,
 			currentCursorRow,
 			currentCursorColumn,
 			requestedCursorRow,
@@ -412,8 +296,6 @@ internal sealed class CursesLineShiftResolver {
 		ref CursesLineShiftPlan? best,
 		CursesLineShiftKind kind,
 		CursesLineShiftOperation operation,
-		StringCapability parameterizedCapability,
-		StringCapability oneCapability,
 		CursesVirtualScreen desired,
 		int topRow,
 		int bottomRow,
@@ -421,92 +303,27 @@ internal sealed class CursesLineShiftResolver {
 		bool temporaryScrollRegion,
 		int operationRow,
 		int rewriteLowerBound,
+		CursesStyle? currentStyle,
 		int? currentCursorRow,
 		int? currentCursorColumn,
 		int requestedCursorRow,
 		int requestedCursorColumn
 	) {
-		int regionHeight = bottomRow - topRow + 1;
-		if ( !TryResolveOperation(
-			parameterizedCapability,
-			oneCapability,
+		CursesTerminalPlanSequence? sequence = TryCreateSequence(
+			operation,
+			desired.Rows,
+			topRow,
+			bottomRow,
 			count,
-			regionHeight,
-			out string operationSequence,
-			out int operationByteCount
-		) ) {
-			return;
-		}
-
-		string? setRegionSequence = null;
-		string? restoreRegionSequence = null;
-		int setRegionAffectedLines = 0;
-		int restoreRegionAffectedLines = 0;
-		int setRegionByteCount = 0;
-		int restoreRegionByteCount = 0;
-		int? motionStartRow = currentCursorRow;
-		int? motionStartColumn = currentCursorColumn;
-		if ( temporaryScrollRegion ) {
-			if ( !TryExpandScrollRegion(
-				topRow,
-				bottomRow,
-				regionHeight,
-				out setRegionSequence,
-				out setRegionByteCount
-			) || !TryExpandScrollRegion(
-				0,
-				desired.Rows - 1,
-				desired.Rows,
-				out restoreRegionSequence,
-				out restoreRegionByteCount
-			) ) {
-				return;
-			}
-			setRegionAffectedLines = regionHeight;
-			restoreRegionAffectedLines = desired.Rows;
-			motionStartRow = null;
-			motionStartColumn = null;
-		}
-
-		CursesCursorMotion operationMotion;
-		try {
-			operationMotion = cursorMotionResolver.Resolve(
-				motionStartRow,
-				motionStartColumn,
-				operationRow,
-				0
-			);
-		} catch ( NotSupportedException ) {
-			return;
-		}
-
-		int? cursorAfterRow = operationRow;
-		int? cursorAfterColumn = 0;
-		if ( temporaryScrollRegion ) {
-			cursorAfterRow = null;
-			cursorAfterColumn = null;
-		}
-
-		CursesCursorMotion finalMotion;
-		try {
-			finalMotion = cursorMotionResolver.Resolve(
-				cursorAfterRow,
-				cursorAfterColumn,
-				requestedCursorRow,
-				requestedCursorColumn
-			);
-		} catch ( NotSupportedException ) {
-			return;
-		}
-
-		int totalByteCount = checked(
-			setRegionByteCount
-			+ operationMotion.ByteCount
-			+ operationByteCount
-			+ restoreRegionByteCount
-			+ finalMotion.ByteCount
+			temporaryScrollRegion,
+			operationRow,
+			currentStyle,
+			currentCursorRow,
+			currentCursorColumn,
+			requestedCursorRow,
+			requestedCursorColumn
 		);
-		if ( totalByteCount >= rewriteLowerBound ) {
+		if ( sequence is null || sequence.ByteCount >= rewriteLowerBound ) {
 			return;
 		}
 
@@ -516,120 +333,163 @@ internal sealed class CursesLineShiftResolver {
 			topRow,
 			bottomRow,
 			count,
-			operationSequence,
-			regionHeight,
-			temporaryScrollRegion,
-			setRegionSequence,
-			setRegionAffectedLines,
-			restoreRegionSequence,
-			restoreRegionAffectedLines,
-			operationRow,
-			0,
-			cursorAfterRow,
-			cursorAfterColumn,
-			totalByteCount
+			sequence,
+			CursesStyle.Default,
+			requestedCursorRow,
+			requestedCursorColumn
 		);
 		ChooseBetter( ref best, candidate );
 	}
 
-	private bool TryExpandScrollRegion(
+	private CursesTerminalPlanSequence? TryCreateSequence(
+		CursesLineShiftOperation operation,
+		int screenRows,
 		int topRow,
 		int bottomRow,
-		int affectedLines,
-		out string? sequence,
-		out int byteCount
-	) {
-		string? capability = this.terminal.GetString(
-			StringCapability.ChangeScrollRegion
-		);
-		if ( string.IsNullOrEmpty( capability ) ) {
-			sequence = null;
-			byteCount = 0;
-			return false;
-		}
-
-		string expanded = this.terminal.Expand(
-			StringCapability.ChangeScrollRegion,
-			topRow,
-			bottomRow
-		);
-		if ( 0 == expanded.Length ) {
-			sequence = null;
-			byteCount = 0;
-			return false;
-		}
-
-		sequence = expanded;
-		byteCount = CursesOutputCostModel.GetTerminalStringByteCount(
-			expanded,
-			affectedLines
-		);
-		return true;
-	}
-
-	private bool TryResolveOperation(
-		StringCapability parameterizedCapability,
-		StringCapability oneCapability,
 		int count,
-		int affectedLines,
-		out string sequence,
-		out int byteCount
+		bool temporaryScrollRegion,
+		int operationRow,
+		CursesStyle? currentStyle,
+		int? currentCursorRow,
+		int? currentCursorColumn,
+		int requestedCursorRow,
+		int requestedCursorColumn
 	) {
-		if ( 0 >= count ) {
-			throw new ArgumentOutOfRangeException( nameof( count ) );
-		}
-		if ( 0 >= affectedLines ) {
-			throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
+		int regionHeight = bottomRow - topRow + 1;
+		TerminalScreenOperationPlan? lineShift = this.planner.PlanLineShift(
+			MapOperation( operation ),
+			count,
+			regionHeight
+		);
+		if ( !lineShift.HasValue || 0 == lineShift.Value.ByteCount ) {
+			return null;
 		}
 
-		string? bestSequence = null;
-		int bestByteCount = int.MaxValue;
-		string? parameterized = this.terminal.GetString( parameterizedCapability );
-		if ( !string.IsNullOrEmpty( parameterized ) ) {
-			string expanded = this.terminal.Expand(
-				parameterizedCapability,
-				count
+		List<TerminalScreenOperationPlan> plans = [];
+		if ( !TryPrepareDefaultRendition( plans, currentStyle ) ) {
+			return null;
+		}
+
+		if ( temporaryScrollRegion ) {
+			TerminalScreenOperationPlan? setRegion = this.planner.PlanScrollRegion(
+				topRow,
+				bottomRow,
+				regionHeight
 			);
-			if ( 0 < expanded.Length ) {
-				bestSequence = expanded;
-				bestByteCount = CursesOutputCostModel.GetTerminalStringByteCount(
-					expanded,
-					affectedLines
-				);
+			TerminalScreenOperationPlan? restoreRegion = this.planner.PlanScrollRegion(
+				0,
+				screenRows - 1,
+				screenRows
+			);
+			if ( !setRegion.HasValue
+				|| 0 == setRegion.Value.ByteCount
+				|| !restoreRegion.HasValue
+				|| 0 == restoreRegion.Value.ByteCount ) {
+				return null;
+			}
+
+			plans.Add( setRegion.Value );
+			if ( !TryAddCursorMotion( plans, null, null, operationRow, 0 ) ) {
+				return null;
+			}
+			plans.Add( lineShift.Value );
+			plans.Add( restoreRegion.Value );
+			if ( !TryAddCursorMotion(
+				plans,
+				null,
+				null,
+				requestedCursorRow,
+				requestedCursorColumn
+			) ) {
+				return null;
+			}
+		} else {
+			if ( !TryAddCursorMotion(
+				plans,
+				currentCursorRow,
+				currentCursorColumn,
+				operationRow,
+				0
+			) ) {
+				return null;
+			}
+			plans.Add( lineShift.Value );
+			if ( !TryAddCursorMotion(
+				plans,
+				operationRow,
+				0,
+				requestedCursorRow,
+				requestedCursorColumn
+			) ) {
+				return null;
 			}
 		}
 
-		string? one = this.terminal.GetString( oneCapability );
-		if ( !string.IsNullOrEmpty( one ) ) {
-			StringBuilder repeated = new(
-				checked( one.Length * count )
+		try {
+			return new CursesTerminalPlanSequence(
+				plans,
+				temporaryScrollRegion
 			);
-			for ( int index = 0; index < count; index++ ) {
-				repeated.Append( one );
-			}
-			string repeatedSequence = repeated.ToString();
-			int repeatedByteCount = CursesOutputCostModel.GetTerminalStringByteCount(
-				repeatedSequence,
-				affectedLines
-			);
-			if ( repeatedByteCount < bestByteCount ) {
-				bestSequence = repeatedSequence;
-				bestByteCount = repeatedByteCount;
-			}
+		} catch ( OverflowException ) {
+			return null;
+		}
+	}
+
+	private bool TryPrepareDefaultRendition(
+		List<TerminalScreenOperationPlan> plans,
+		CursesStyle? currentStyle
+	) {
+		TerminalScreenOperationPlan? setup = null;
+		if ( !currentStyle.HasValue ) {
+			setup = this.presentationResolver.PlanBaseline();
+		} else if ( !currentStyle.Value.IsDefault ) {
+			setup = this.presentationResolver.PlanReset( currentStyle.Value );
 		}
 
-		if ( null == bestSequence ) {
-			sequence = string.Empty;
-			byteCount = 0;
-			return false;
+		if ( !currentStyle.HasValue || !currentStyle.Value.IsDefault ) {
+			if ( !setup.HasValue ) {
+				return false;
+			}
+			plans.Add( setup.Value );
 		}
-
-		sequence = bestSequence;
-		byteCount = bestByteCount;
 		return true;
 	}
 
-	private bool TryFindDifferenceRange(
+	private bool TryAddCursorMotion(
+		List<TerminalScreenOperationPlan> plans,
+		int? currentRow,
+		int? currentColumn,
+		int targetRow,
+		int targetColumn
+	) {
+		try {
+			plans.Add(
+				this.cursorMotionResolver.Resolve(
+					currentRow,
+					currentColumn,
+					targetRow,
+					targetColumn
+				)
+			);
+			return true;
+		} catch ( NotSupportedException ) {
+			return false;
+		}
+	}
+
+	private static TerminalScreenLineShiftKind MapOperation(
+		CursesLineShiftOperation operation
+	) {
+		return operation switch {
+			CursesLineShiftOperation.InsertLines => TerminalScreenLineShiftKind.Insert,
+			CursesLineShiftOperation.DeleteLines => TerminalScreenLineShiftKind.Delete,
+			CursesLineShiftOperation.ScrollForward => TerminalScreenLineShiftKind.ScrollForward,
+			CursesLineShiftOperation.ScrollReverse => TerminalScreenLineShiftKind.ScrollReverse,
+			_ => throw new ArgumentOutOfRangeException( nameof( operation ) )
+		};
+	}
+
+	private static bool TryFindDifferenceRange(
 		CursesVirtualScreen desired,
 		CursesPhysicalScreenState physicalScreen,
 		out int firstDifferenceRow,
@@ -685,9 +545,9 @@ internal sealed class CursesLineShiftResolver {
 				}
 				byteCount = checked(
 					byteCount
-					+ this.costModel.GetApplicationTextByteCount(
-						desiredCell.Content
-					)
+						+ this.costModel.GetApplicationTextByteCount(
+							desiredCell.Content
+						)
 				);
 			}
 		}
@@ -786,7 +646,8 @@ internal sealed class CursesLineShiftResolver {
 		CursesLineShiftPlan candidate
 	) {
 		if ( !current.HasValue
-			|| candidate.ByteCount < current.Value.ByteCount ) {
+			|| candidate.Sequence.ByteCount
+				< current.Value.Sequence.ByteCount ) {
 			current = candidate;
 		}
 	}

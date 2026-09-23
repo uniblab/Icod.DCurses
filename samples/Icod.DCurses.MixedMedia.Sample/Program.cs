@@ -1,6 +1,6 @@
 /*
 	Icod.DCurses.MixedMedia.Sample
-	Retained mixed-media presentation acceptance sample for Icod.DCurses 1.6.
+	Retained mixed-media presentation acceptance sample for Icod.DCurses.
 	Copyright (C) 2026  Timothy J. Bruce <uniblab@hotmail.com>
 */
 
@@ -51,7 +51,7 @@ WriteLabel(
 	standard,
 	0,
 	0,
-	"Icod.DCurses 1.6 retained mixed-media presentation"
+	"Icod.DCurses retained mixed-media presentation"
 );
 WriteLabel(
 	standard,
@@ -215,11 +215,17 @@ try {
 		}
 	);
 
-	standard.Move(
-		Math.Min( screen.Rows - 1, 14 ),
-		0
+	int statusRow = Math.Min( screen.Rows - 1, 14 );
+	WriteLabel(
+		standard,
+		statusRow,
+		0,
+		"Press any key to pan the retained mixed-media viewport."
 	);
 	await session.RefreshAsync();
+	if ( !await WaitForInputAsync( session ) ) {
+		return;
+	}
 
 	if ( viewport.PadColumn + 1 <= pad.Columns - viewport.Columns ) {
 		viewport.PanBy(
@@ -233,7 +239,14 @@ try {
 			0,
 			"Second frame pans retained text, metadata, and raster through the viewport."
 		);
+		WriteLabel(
+			standard,
+			statusRow,
+			0,
+			"Second frame is visible. Press any key to exit."
+		);
 		await session.RefreshAsync();
+		await WaitForInputAsync( session );
 	}
 } finally {
 	if ( placeholder is not null ) {
@@ -241,6 +254,29 @@ try {
 	}
 	if ( resource is not null ) {
 		await resource.DisposeAsync();
+	}
+}
+
+static async Task<bool> WaitForInputAsync(
+	CursesSession session
+) {
+	ArgumentNullException.ThrowIfNull( session );
+	while ( true ) {
+		CursesEvent current = await session.ReadEventAsync();
+		switch ( current.Kind ) {
+			case CursesEventKind.Input:
+				if ( null == current.Input ) {
+					break;
+				}
+				return CursesInputEventKind.EndOfInput != current.Input.Kind;
+
+			case CursesEventKind.Lifecycle:
+				if ( current.Lifecycle?.Kind is CursesLifecycleEventKind.Interrupt
+					or CursesLifecycleEventKind.Termination ) {
+					return false;
+				}
+				break;
+		}
 	}
 }
 

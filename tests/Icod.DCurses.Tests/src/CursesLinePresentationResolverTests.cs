@@ -19,22 +19,24 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+namespace Icod.DCurses.Tests;
+
 using Icod.DCurses.Internal;
+using Icod.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
-namespace Icod.DCurses.Tests;
-
-/// <summary>Verifies capability-aware physical resolution of semantic line glyphs.</summary>
+/// <summary>Verifies Terminal-planned physical resolution of semantic line glyphs.</summary>
 public sealed class CursesLinePresentationResolverTests {
 	[Fact]
-	public void AdvertisedAlternateCharacterSetIsPreferred() {
+	public async Task AdvertisedAlternateCharacterSetIsPreferred() {
 		TerminalDescription terminal = new TerminalDescriptionBuilder( "acs-test" )
 			.SetString( StringCapability.EnterAlternateCharacterSetMode, "<smacs>" )
 			.SetString( StringCapability.ExitAlternateCharacterSetMode, "<rmacs>" )
 			.SetString( StringCapability.AlternateCharacterSet, "q=x|" )
 			.Build();
-		CursesLinePresentationResolver resolver = new( terminal );
+		await using TerminalSession session = await OpenSessionAsync( terminal );
+		CursesLinePresentationResolver resolver = new( session.Screen );
 
 		CursesPhysicalLineGlyph horizontal = resolver.Resolve(
 			CursesLineGlyph.Horizontal,
@@ -52,10 +54,10 @@ public sealed class CursesLinePresentationResolverTests {
 	}
 
 	[Fact]
-	public void MissingAcsMappingFallsBackToCanonicalUnicode() {
-		TerminalDescription terminal = new TerminalDescriptionBuilder( "unicode-test" )
-			.Build();
-		CursesLinePresentationResolver resolver = new( terminal );
+	public async Task MissingAcsMappingFallsBackToCanonicalUnicode() {
+		TerminalDescription terminal = new TerminalDescriptionBuilder( "unicode-test" ).Build();
+		await using TerminalSession session = await OpenSessionAsync( terminal );
+		CursesLinePresentationResolver resolver = new( session.Screen );
 
 		CursesPhysicalLineGlyph resolved = resolver.Resolve(
 			CursesLineGlyph.Crossing,
@@ -67,10 +69,10 @@ public sealed class CursesLinePresentationResolverTests {
 	}
 
 	[Fact]
-	public void UnsafeUnicodeWidthFallsBackToAscii() {
-		TerminalDescription terminal = new TerminalDescriptionBuilder( "ascii-test" )
-			.Build();
-		CursesLinePresentationResolver resolver = new( terminal );
+	public async Task UnsafeUnicodeWidthFallsBackToAscii() {
+		TerminalDescription terminal = new TerminalDescriptionBuilder( "ascii-test" ).Build();
+		await using TerminalSession session = await OpenSessionAsync( terminal );
+		CursesLinePresentationResolver resolver = new( session.Screen );
 		ICursesTextWidthProvider widthProvider = new TwoColumnBoxDrawingWidthProvider();
 
 		CursesPhysicalLineGlyph horizontal = resolver.Resolve(
@@ -89,8 +91,9 @@ public sealed class CursesLinePresentationResolverTests {
 	}
 
 	[Fact]
-	public void ResolverValidatesGlyphAndWidthProvider() {
-		CursesLinePresentationResolver resolver = new( TerminalProfiles.Dumb );
+	public async Task ResolverValidatesGlyphAndWidthProvider() {
+		await using TerminalSession session = await OpenSessionAsync( TerminalProfiles.Dumb );
+		CursesLinePresentationResolver resolver = new( session.Screen );
 
 		Assert.Throws<ArgumentOutOfRangeException>(
 			() => resolver.Resolve(
@@ -103,6 +106,45 @@ public sealed class CursesLinePresentationResolverTests {
 				CursesLineGlyph.Horizontal,
 				null!
 			)
+		);
+	}
+
+	[Fact]
+	public async Task AlternateCharacterSetPlansCommitInRequestedOrder() {
+		TerminalDescription terminal = new TerminalDescriptionBuilder( "acs-plans" )
+			.SetString( StringCapability.EnterAlternateCharacterSetMode, "<smacs>" )
+			.SetString( StringCapability.ExitAlternateCharacterSetMode, "<rmacs>" )
+			.SetString( StringCapability.AlternateCharacterSet, "q=" )
+			.Build();
+		RecordingTerminalOutput output = new();
+		await using TerminalSession session = await TerminalScreenTestSession.OpenAsync(
+			terminal,
+			output
+		);
+		CursesLinePresentationResolver resolver = new( session.Screen );
+		TerminalScreenOperationPlan enter = Assert.IsType<TerminalScreenOperationPlan>(
+			resolver.PlanAlternateCharacterSet( enabled: true )
+		);
+		TerminalScreenOperationPlan exit = Assert.IsType<TerminalScreenOperationPlan>(
+			resolver.PlanAlternateCharacterSet( enabled: false )
+		);
+		TerminalScreenOutputTransaction transaction = session.CreateScreenOutputTransaction();
+		transaction.Add( enter );
+		transaction.Add( exit );
+
+		await transaction.CommitAsync();
+
+		Assert.Equal( TerminalScreenOperationKind.AlternateCharacterSet, enter.Kind );
+		Assert.Equal( "<smacs><rmacs>", output.Text );
+		Assert.Equal( 1, output.FlushCount );
+	}
+
+	private static ValueTask<TerminalSession> OpenSessionAsync(
+		TerminalDescription terminal
+	) {
+		return TerminalScreenTestSession.OpenAsync(
+			terminal,
+			new RecordingTerminalOutput()
 		);
 	}
 

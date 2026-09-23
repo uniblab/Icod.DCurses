@@ -2,9 +2,16 @@
 
 All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/` and the versioned roadmap files.
 
+## 2.0.0 — Terminal Integration
+
+- Replaced the public `CursesSession.Terminal` description with `CursesSession.Profile : Icod.Terminal.TerminalProfile`; live size results and lifecycle size events now use `Icod.Terminal.TerminalDimensions`.
+- Moved refresh, cursor/rendition/edit planning, output serialization, and mixed-media transactions through Terminal-owned semantic APIs while retaining DCurses presentation and interaction behavior.
+- Removed the production direct `Icod.TermInfo` package and assembly dependency. The sole direct terminal package dependency is `Icod.Terminal 1.18.0`; TermInfo can still be restored transitively.
+- Advanced `AssemblyVersion` to `2.0.0.0`. Applications upgrading from 1.6 must rebuild against the new signatures; consult [the 2.0 migration guide](docs/2.0-Migration-Guide.md).
+
 ## 1.6.0 — Retained Mixed-Media Presentation
 
-Status: stable-source candidate qualified for publication after final branch verification.
+Status: published stable release.
 
 ### Added
 
@@ -34,7 +41,7 @@ Status: stable-source candidate qualified for publication after final branch ver
 - Additive over the published `1.5.0` contract.
 - `AssemblyVersion` remains `1.0.0.0`.
 - Targets remain `net8.0`, `net9.0`, and `net10.0`.
-- Direct dependencies remain `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0` for 1.6. The broader dependency-layering question is deferred to the 1.7 development track.
+- The published 1.6 package directly depends on `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`. Version 2.0 changes that boundary as described above.
 - No widget framework, hidden application event loop, generic raster scene graph, raw Kitty/Sixel command API, hidden source-image cache/re-upload, or automatic graphics-backend fallback is added.
 
 ## 1.5.0 — Advanced Interaction Control

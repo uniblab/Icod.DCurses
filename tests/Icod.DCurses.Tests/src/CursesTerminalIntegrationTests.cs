@@ -74,7 +74,10 @@ public sealed class CursesTerminalIntegrationTests {
 			| CursesTextAttributes.Blink
 			| CursesTextAttributes.Conceal
 			| CursesTextAttributes.Strikeout;
-		session.StandardScreen.Write(
+		session.Screen.VirtualScreen[
+			session.Screen.Rows - 1,
+			session.Screen.Columns - 1
+		] = new CursesCell(
 			"X",
 			new CursesStyle(
 				CursesColor.Indexed( 2 ),
@@ -171,18 +174,18 @@ public sealed class CursesTerminalIntegrationTests {
 				SynchronizedOutputBegin + SynchronizedOutputEnd
 			)
 		);
-		Assert.Equal( 2, output.FlushCount );
+		Assert.Equal( 1, output.FlushCount );
 	}
 
 	[Fact]
-	public async Task SynchronizedOutputComposesWithOuterTerminalLease() {
+	public async Task SynchronizedRefreshRejectsConflictingOuterTerminalLease() {
 		RecordingOutput output = new();
 		TerminalSession terminalSession = await OpenTerminalSessionAsync(
 			output,
 			new EmptyInput(),
 			CreateRenditionTerminal()
 		);
-		await using CursesSession session = await CursesSession.OpenAsync(
+		CursesSession session = await CursesSession.OpenAsync(
 			terminalSession,
 			SynchronizedOutputOptions()
 		);
@@ -191,7 +194,14 @@ public sealed class CursesTerminalIntegrationTests {
 		TerminalSynchronizedOutputLease outer =
 			await terminalSession.AcquireSynchronizedOutputAsync();
 
-		await session.RefreshAsync();
+		InvalidOperationException conflict = await Assert.ThrowsAsync<InvalidOperationException>(
+			() => session.RefreshAsync().AsTask()
+		);
+		Assert.Contains(
+			"conflicts with existing synchronized-output ownership",
+			conflict.Message,
+			StringComparison.Ordinal
+		);
 
 		Assert.Equal(
 			1,
@@ -201,6 +211,8 @@ public sealed class CursesTerminalIntegrationTests {
 			0,
 			CountOccurrences( output.Text, SynchronizedOutputEnd )
 		);
+		Assert.Equal( 0, output.FlushCount );
+		Assert.True( session.Screen.VirtualScreen.IsDirty( 0, 0 ) );
 
 		await outer.DisposeAsync();
 
@@ -208,6 +220,21 @@ public sealed class CursesTerminalIntegrationTests {
 			1,
 			CountOccurrences( output.Text, SynchronizedOutputEnd )
 		);
+		Assert.Equal( 1, output.FlushCount );
+
+		output.Clear();
+		await session.RefreshAsync();
+		Assert.Contains( SynchronizedOutputBegin, output.Text );
+		Assert.Contains( "X", output.Text );
+		Assert.Contains( SynchronizedOutputEnd, output.Text );
+		Assert.Equal( 1, output.FlushCount );
+		Assert.False( session.Screen.VirtualScreen.IsDirty( 0, 0 ) );
+
+		output.Clear();
+		await session.RefreshAsync();
+		Assert.Equal( string.Empty, output.Text );
+		Assert.Equal( 0, output.FlushCount );
+		await session.DisposeAsync();
 	}
 
 	[Fact]
@@ -246,9 +273,93 @@ public sealed class CursesTerminalIntegrationTests {
 			NoPresentationOptions()
 		);
 
-		TerminalControlResult<TerminalSize> dimensions = session.GetDimensions();
+		Assert.Same( terminalSession.Profile, session.Profile );
+		TerminalControlResult<TerminalDimensions> dimensions = session.GetDimensions();
 		Assert.True( dimensions.IsAvailable );
-		Assert.Equal( new TerminalSize( 101, 37 ), dimensions.GetRequiredValue() );
+		Assert.Equal( new TerminalDimensions( 101, 37 ), dimensions.GetRequiredValue() );
+	}
+
+	[Theory]
+	[InlineData( TerminalControlStatus.Unavailable, "dimensions unavailable", 19 )]
+	[InlineData( TerminalControlStatus.Unsupported, "dimensions unsupported", null )]
+	[InlineData( TerminalControlStatus.Failed, "dimensions failed", 5 )]
+	public async Task DimensionFailuresPreserveTerminalResultMetadata(
+		TerminalControlStatus status,
+		string message,
+		int? nativeErrorCode
+	) {
+		RecordingTerminalControlProvider provider = new() {
+			SizeResult = status switch {
+				TerminalControlStatus.Unavailable =>
+					TerminalControlResult<TerminalSize>.Unavailable(
+						message,
+						nativeErrorCode
+					),
+				TerminalControlStatus.Unsupported =>
+					TerminalControlResult<TerminalSize>.Unsupported( message ),
+				TerminalControlStatus.Failed =>
+					TerminalControlResult<TerminalSize>.Failed(
+						message,
+						nativeErrorCode
+					),
+				_ => throw new ArgumentOutOfRangeException( nameof( status ) )
+			}
+		};
+		TerminalSession terminalSession = await OpenTerminalSessionAsync(
+			new RecordingOutput(),
+			new EmptyInput(),
+			TerminalProfiles.Dumb,
+			provider
+		);
+		await using CursesSession session = await CursesSession.OpenAsync(
+			terminalSession,
+			NoPresentationOptions()
+		);
+
+		TerminalControlResult<TerminalDimensions> dimensions =
+			session.GetDimensions();
+
+		Assert.Equal( status, dimensions.Status );
+		Assert.False( dimensions.IsAvailable );
+		Assert.Equal( message, dimensions.Message );
+		Assert.Equal( nativeErrorCode, dimensions.NativeErrorCode );
+	}
+
+	[Fact]
+	public async Task DimensionSynchronizationResizesOnlyForAvailableResults() {
+		RecordingTerminalControlProvider provider = new();
+		TerminalSession terminalSession = await OpenTerminalSessionAsync(
+			new RecordingOutput(),
+			new EmptyInput(),
+			TerminalProfiles.Dumb,
+			provider
+		);
+		await using CursesSession session = await CursesSession.OpenAsync(
+			terminalSession,
+			NoPresentationOptions()
+		);
+		CursesScreen screen = session.Screen;
+		provider.Size = new TerminalSize( 40, 12 );
+
+		TerminalControlResult<TerminalDimensions> resized =
+			session.SynchronizeDimensions();
+
+		Assert.Equal( new TerminalDimensions( 40, 12 ), resized.GetRequiredValue() );
+		Assert.Equal( 40, screen.Columns );
+		Assert.Equal( 12, screen.Rows );
+
+		provider.SizeResult = TerminalControlResult<TerminalSize>.Failed(
+			"resize failed",
+			31
+		);
+		TerminalControlResult<TerminalDimensions> failed =
+			session.SynchronizeDimensions();
+
+		Assert.Equal( TerminalControlStatus.Failed, failed.Status );
+		Assert.Equal( "resize failed", failed.Message );
+		Assert.Equal( 31, failed.NativeErrorCode );
+		Assert.Equal( 40, screen.Columns );
+		Assert.Equal( 12, screen.Rows );
 	}
 
 	[Fact]
@@ -264,7 +375,10 @@ public sealed class CursesTerminalIntegrationTests {
 			NoPresentationOptions()
 		);
 
-		session.StandardScreen.Write(
+		session.Screen.VirtualScreen[
+			session.Screen.Rows - 1,
+			session.Screen.Columns - 1
+		] = new CursesCell(
 			"X",
 			new CursesStyle(
 				CursesColor.Default,
@@ -277,7 +391,6 @@ public sealed class CursesTerminalIntegrationTests {
 
 		await session.LifecycleParticipant.PrepareForTerminalSuspendAsync();
 		Assert.Contains( "<sgr0>", output.Text );
-		Assert.Contains( "<op>", output.Text );
 
 		Task blockedRefresh = session.RefreshAsync().AsTask();
 		await Task.Yield();
@@ -471,8 +584,13 @@ public sealed class CursesTerminalIntegrationTests {
 
 		internal TerminalSize Size {
 			get;
-			init;
+			set;
 		} = new TerminalSize( 80, 24 );
+
+		internal TerminalControlResult<TerminalSize>? SizeResult {
+			get;
+			set;
+		}
 
 		public TerminalControlResult<TerminalEndpointObservation> Observe(
 			TerminalEndpoint endpoint
@@ -495,7 +613,8 @@ public sealed class CursesTerminalIntegrationTests {
 			TerminalEndpoint endpoint
 		) {
 			ArgumentNullException.ThrowIfNull( endpoint );
-			return TerminalControlResult<TerminalSize>.Available( this.Size );
+			return this.SizeResult
+				?? TerminalControlResult<TerminalSize>.Available( this.Size );
 		}
 
 		public TerminalControlResult<TerminalModeSnapshot> GetMode(

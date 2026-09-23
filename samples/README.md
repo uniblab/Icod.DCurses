@@ -2,7 +2,7 @@
 
 The repository contains ten executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
-All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project, which currently declares `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`.
+All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project. Icod.DCurses 2.0 declares only `Icod.Terminal 1.18.0` directly. Terminal may restore TermInfo transitively. The previous 1.6 package keeps its historical direct dependency set. To migrate external applications, see [the 2.0 migration guide](../docs/2.0-Migration-Guide.md).
 
 ## Which sample should I run?
 
@@ -14,7 +14,7 @@ All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the rep
 | Retained text + hyperlink metadata + raster presentation, panning, panels, and interaction geometry | `Icod.DCurses.MixedMedia.Sample` |
 | Interaction scopes, capture, spatial focus, gestures, commands, and pointer preferences | `Icod.DCurses.Interaction.Sample` |
 | General interactive API showcase | `Icod.DCurses.Showcase` |
-| Raw semantic input inspection | `Icod.DCurses.Input.Showcase` |
+| Semantic input inspection | `Icod.DCurses.Input.Showcase` |
 | Application-shaped periodic-command acceptance | `Icod.DCurses.Watch.Acceptance` |
 | Application-shaped slab-table acceptance | `Icod.DCurses.Slabtop.Acceptance` |
 | Larger application-shaped multi-window acceptance | `Icod.DCurses.Top.Acceptance` |
@@ -30,12 +30,14 @@ The samples follow the production ownership model:
 - Terminal remains responsible for authoritative terminal restoration and live raster identity/lifecycle;
 - canceling one public input wait does not discard Terminal decoder state.
 
+Run the commands below from the repository root. The examples select `net10.0` explicitly because each project targets multiple frameworks; substitute `net8.0` or `net9.0` as needed.
+
 ## Icod.DCurses.Sample
 
-`Icod.DCurses.Sample` is the minimal quick-start demonstration. It opens a `CursesSession`, writes styled retained content, demonstrates one retained hyperlink, updates a small moving marker, repaints after resize, accepts input, and restores terminal state through asynchronous disposal.
+`Icod.DCurses.Sample` is the minimal quick-start demonstration. It opens a `CursesSession`, reads its Terminal-owned `Profile` and `GetDimensions()` result, writes styled retained content, demonstrates one retained hyperlink, updates a small moving marker, repaints after resize, accepts input, and restores terminal state through asynchronous disposal. An unavailable live-size result is displayed without replacing the logical screen dimensions.
 
 ```text
-dotnet run --project samples/Icod.DCurses.Sample/Icod.DCurses.Sample.csproj
+dotnet run --project samples/Icod.DCurses.Sample/Icod.DCurses.Sample.csproj --framework net10.0
 ```
 
 ## Icod.DCurses.Panel.Sample
@@ -43,7 +45,7 @@ dotnet run --project samples/Icod.DCurses.Sample/Icod.DCurses.Sample.csproj
 `Icod.DCurses.Panel.Sample` is the focused 1.2 panel demonstration. It keeps base-screen content retained while an independent panel is shown, hidden, moved, switched to blank-cell transparency, and finally disposed. Panel content is edited through the ordinary `CursesWindow` API and no Terminal protocol output is emitted directly by the sample.
 
 ```text
-dotnet run --project samples/Icod.DCurses.Panel.Sample/Icod.DCurses.Panel.Sample.csproj
+dotnet run --project samples/Icod.DCurses.Panel.Sample/Icod.DCurses.Panel.Sample.csproj --framework net10.0
 ```
 
 Press a key between each stage to observe the retained content beneath the panel. Disposal permanently removes the panel from the owning screen; hide/show remains the reversible visibility mechanism.
@@ -53,14 +55,14 @@ Press a key between each stage to observe the retained content beneath the panel
 `Icod.DCurses.Layout.Sample` demonstrates the 1.3 explicit resize/recomputation model. It derives a header region, body region, and retained side panel from `session.Screen.Bounds`, then reapplies those rectangles with `CursesWindow.SetBounds(...)` and `CursesPanel.SetBounds(...)` after resize lifecycle repaint requests. No retained layout tree or automatic application-layout owner is introduced.
 
 ```text
-dotnet run --project samples/Icod.DCurses.Layout.Sample/Icod.DCurses.Layout.Sample.csproj
+dotnet run --project samples/Icod.DCurses.Layout.Sample/Icod.DCurses.Layout.Sample.csproj --framework net10.0
 ```
 
 Resize the terminal while the sample is running to see the two windows and retained panel recompute from the new screen bounds. Press `Q` or `Escape` to exit.
 
 ## Icod.DCurses.MixedMedia.Sample
 
-`Icod.DCurses.MixedMedia.Sample` is the focused 1.6 retained mixed-media acceptance sample. It constructs a backend-neutral `TerminalRasterImage`, asks the owning `CursesSession` to create a raster resource and placeholder, retains placeholder cells inside a `CursesPad`, writes retained hyperlink metadata into that same pad, projects the combined retained state through a pannable `CursesPadViewport`, composes an independent blank-transparent `CursesPanel`, and registers ordinary 1.5 interaction regions over the same logical geometry.
+`Icod.DCurses.MixedMedia.Sample` demonstrates the retained mixed-media presentation introduced in 1.6 and carried forward in 2.0. It constructs a backend-neutral `TerminalRasterImage`, asks the owning `CursesSession` to create a raster resource and placeholder, retains placeholder cells inside a `CursesPad`, writes retained hyperlink metadata into that same pad, projects the combined retained state through a pannable `CursesPadViewport`, composes an independent blank-transparent `CursesPanel`, and registers interaction regions over the same logical geometry.
 
 The sample deliberately keeps the three retained presentation axes visible together:
 
@@ -77,10 +79,12 @@ The layer boundary remains explicit:
 
 Resource or placeholder creation may report unavailable. The sample reports that condition and continues with ordinary text/metadata/panel presentation; it does not infer a backend from terminal identity, emit raw Kitty/Sixel commands, rank hidden fallbacks, retain a source-image cache for replay, or silently switch protocols. When raster ownership is available, the second frame pans the same retained mixed-media pad to exercise damage-driven sparse projection and refresh.
 
-The optional TermInfo backend-planning demonstration originally considered for this tranche is intentionally not included. The maintainer has deferred the broader DCurses/Terminal/TermInfo layering decision to the 1.7 development track; 1.6 keeps its existing dependency architecture unchanged.
+This sample never asks TermInfo to select a backend. Icod.DCurses 2.0 uses the Terminal-only direct production boundary; raster availability and resource ownership still come from the live Terminal session. The previous 1.6 package retains its original dependency architecture.
+
+Press any input key after the first frame to pan the retained content one column, then press another input key to exit. End-of-input, interrupt, and termination events exit cleanly from either wait.
 
 ```text
-dotnet run --project samples/Icod.DCurses.MixedMedia.Sample/Icod.DCurses.MixedMedia.Sample.csproj
+dotnet run --project samples/Icod.DCurses.MixedMedia.Sample/Icod.DCurses.MixedMedia.Sample.csproj --framework net10.0
 ```
 
 ## Icod.DCurses.Interaction.Sample
@@ -117,7 +121,7 @@ Mouse, focus, keyboard-protocol behavior, and visible pointer-shape changes ulti
 Resize handling remains application-owned: the sample synchronizes terminal dimensions, recomputes header/footer and equal left/right pane rectangles, reapplies window/panel/interaction bounds, and repaints. If the terminal falls below `64x16`, any live popup scope/capture is closed in LIFO order before geometry becomes unavailable. Growing the terminal restores the ordinary root layout. Terminal focus reports remain distinct from logical `CursesInteractionRouter` focus.
 
 ```text
-dotnet run --project samples/Icod.DCurses.Interaction.Sample/Icod.DCurses.Interaction.Sample.csproj
+dotnet run --project samples/Icod.DCurses.Interaction.Sample/Icod.DCurses.Interaction.Sample.csproj --framework net10.0
 ```
 
 ## Icod.DCurses.Showcase
@@ -136,7 +140,7 @@ Q / Escape   Exit
 ```
 
 ```text
-dotnet run --project samples/Icod.DCurses.Showcase/Icod.DCurses.Showcase.csproj
+dotnet run --project samples/Icod.DCurses.Showcase/Icod.DCurses.Showcase.csproj --framework net10.0
 ```
 
 ## Icod.DCurses.Input.Showcase
@@ -146,7 +150,7 @@ dotnet run --project samples/Icod.DCurses.Showcase/Icod.DCurses.Showcase.csproj
 The showcase never installs a private keyboard parser, mouse parser, paste reader, protocol escape emitter, or fallback negotiation path.
 
 ```text
-dotnet run --project samples/Icod.DCurses.Input.Showcase/Icod.DCurses.Input.Showcase.csproj
+dotnet run --project samples/Icod.DCurses.Input.Showcase/Icod.DCurses.Input.Showcase.csproj --framework net10.0
 ```
 
 ## Icod.DCurses.Watch.Acceptance
@@ -155,24 +159,30 @@ dotnet run --project samples/Icod.DCurses.Input.Showcase/Icod.DCurses.Input.Show
 
 It covers periodic retained refresh, immediate refresh, resize/resume repaint, title/no-title layouts, wrap/clip selection, semantic styles, failure alerts, and paused presentation.
 
+Controls: `Space` samples immediately; `T` toggles the title; `W` toggles wrap/clip; `C` toggles color interpretation; `B` toggles failure alerts; `P` pauses/resumes periodic presentation; `F` selects a failing snapshot; `Q` exits.
+
 ```text
-dotnet run --project samples/Icod.DCurses.Watch.Acceptance/Icod.DCurses.Watch.Acceptance.csproj
+dotnet run --project samples/Icod.DCurses.Watch.Acceptance/Icod.DCurses.Watch.Acceptance.csproj --framework net10.0
 ```
 
 ## Icod.DCurses.Slabtop.Acceptance
 
 `Icod.DCurses.Slabtop.Acceptance` uses synthetic slab-cache snapshots to exercise periodic refresh, resize/resume repaint, all documented sort keys, styled summaries/tables, and retained terminal output without taking `/proc/slabinfo` observation into DCurses.
 
+Controls: `A/B/C/L/V/N/O/P/S/U` select the documented sort columns, `Space` samples immediately, and `Q` exits.
+
 ```text
-dotnet run --project samples/Icod.DCurses.Slabtop.Acceptance/Icod.DCurses.Slabtop.Acceptance.csproj
+dotnet run --project samples/Icod.DCurses.Slabtop.Acceptance/Icod.DCurses.Slabtop.Acceptance.csproj --framework net10.0
 ```
 
 ## Icod.DCurses.Top.Acceptance
 
 `Icod.DCurses.Top.Acceptance` is the largest application-shaped harness. It covers multiple windows, rapid retained refresh, navigation, focus-like application policy, help/prompt views, styling, resize-driven relayout, and cursor presentation.
 
+Controls: `P/M/N/T` select CPU/memory/PID/time sorting; arrow keys, `PageUp`, `PageDown`, `Home`, and `End` navigate; left/right also scroll horizontally; `Tab` changes focus; `C` toggles command display; `D` or `S` edits the refresh delay; `h` or `?` opens help; `Ctrl+L` invalidates physical-screen state; `Q` exits.
+
 ```text
-dotnet run --project samples/Icod.DCurses.Top.Acceptance/Icod.DCurses.Top.Acceptance.csproj
+dotnet run --project samples/Icod.DCurses.Top.Acceptance/Icod.DCurses.Top.Acceptance.csproj --framework net10.0
 ```
 
 These samples complement, but do not replace, package-only consumer validation and application-specific downstream acceptance.

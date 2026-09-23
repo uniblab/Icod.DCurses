@@ -116,4 +116,18 @@ cp \
     -f net10.0 \
     --no-restore \
     -p:IcodDCursesPackageVersion="${package_version}"
+
+  if [[ "$(uname -s)" == Linux ]]; then
+    echo
+    echo "=== Fresh package consumer: live pseudo-terminal refresh ==="
+    command -v script >/dev/null
+    command -v timeout >/dev/null
+    live_command="stty rows 24 cols 80 && env TERM=xterm ICOD_DCURSES_SMOKE_INTERACTIVE=1 ICOD_DCURSES_SMOKE_ONESHOT=1 dotnet run --project '${smoke_root}/Icod.DCurses.PackageSmoke.csproj' -c '${configuration}' -f net10.0 --no-build --no-restore -p:IcodDCursesPackageVersion='${package_version}'"
+    if ! timeout 60s script -q -e -c "${live_command}" /dev/null >"${smoke_root}/live-pty.log" 2>&1; then
+      cat "${smoke_root}/live-pty.log" >&2
+      echo "Package-only live pseudo-terminal refresh failed." >&2
+      exit 1
+    fi
+    echo "Package-only live pseudo-terminal refresh completed successfully."
+  fi
 )

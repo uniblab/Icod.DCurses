@@ -21,8 +21,7 @@
 
 namespace Icod.DCurses.Internal;
 
-using System.Text;
-using Icod.TermInfo;
+using Icod.Terminal;
 
 /// <summary>Identifies a row-local physical character shift.</summary>
 internal enum CursesCharacterShiftKind {
@@ -30,14 +29,16 @@ internal enum CursesCharacterShiftKind {
 	Delete
 }
 
-/// <summary>Represents one exact row-local character shift selected by deterministic byte cost.</summary>
+/// <summary>Represents one exact Terminal-planned row-local character shift.</summary>
 internal readonly record struct CursesCharacterShiftPlan(
 	CursesCharacterShiftKind Kind,
 	int Row,
 	int Column,
 	int Count,
-	string Sequence,
-	int ByteCount
+	CursesTerminalPlanSequence Sequence,
+	CursesStyle StyleAfter,
+	int CursorAfterRow,
+	int CursorAfterColumn
 );
 
 /// <summary>
@@ -45,17 +46,21 @@ internal readonly record struct CursesCharacterShiftPlan(
 /// strictly cheaper than rewriting the changed nonblank payload.
 /// </summary>
 internal sealed class CursesCharacterShiftResolver {
-	private readonly TerminalDescription terminal;
+	private readonly TerminalScreenPlanner planner;
+	private readonly CursesPresentationResolver presentationResolver;
+	private readonly CursesCursorMotionResolver cursorMotionResolver;
 	private readonly CursesOutputCostModel costModel;
 
 	internal CursesCharacterShiftResolver(
-		TerminalDescription terminal,
+		TerminalScreenPlanner planner,
 		CursesOutputCostModel costModel
 	) {
-		ArgumentNullException.ThrowIfNull( terminal );
+		ArgumentNullException.ThrowIfNull( planner );
 		ArgumentNullException.ThrowIfNull( costModel );
 
-		this.terminal = terminal;
+		this.planner = planner;
+		this.presentationResolver = new CursesPresentationResolver( planner );
+		this.cursorMotionResolver = new CursesCursorMotionResolver( planner );
 		this.costModel = costModel;
 	}
 
@@ -63,7 +68,9 @@ internal sealed class CursesCharacterShiftResolver {
 		CursesVirtualScreen desired,
 		CursesPhysicalScreenState physicalScreen,
 		int row,
-		CursesStyle? currentStyle
+		CursesStyle? currentStyle,
+		int? currentCursorRow,
+		int? currentCursorColumn
 	) {
 		ArgumentNullException.ThrowIfNull( desired );
 		ArgumentNullException.ThrowIfNull( physicalScreen );
@@ -76,11 +83,6 @@ internal sealed class CursesCharacterShiftResolver {
 		}
 		if ( 0 > row || row >= desired.Rows ) {
 			throw new ArgumentOutOfRangeException( nameof( row ) );
-		}
-
-		if ( !currentStyle.HasValue
-			|| CursesStyle.Default != currentStyle.Value ) {
-			return null;
 		}
 
 		int firstDifference = -1;
@@ -106,16 +108,28 @@ internal sealed class CursesCharacterShiftResolver {
 			physicalScreen,
 			row,
 			firstDifference
+		) || !CursesEditingRegionSafety.IsRetainedStateFree(
+			desired,
+			physicalScreen,
+			row,
+			row + 1,
+			firstDifference,
+			desired.Columns
 		) ) {
 			return null;
 		}
 
-		int rewriteLowerBound = GetChangedNonblankByteCount(
-			desired,
-			physicalScreen,
-			row,
-			firstDifference
-		);
+		int rewriteLowerBound;
+		try {
+			rewriteLowerBound = GetChangedNonblankByteCount(
+				desired,
+				physicalScreen,
+				row,
+				firstDifference
+			);
+		} catch ( OverflowException ) {
+			return null;
+		}
 		if ( 0 >= rewriteLowerBound ) {
 			return null;
 		}
@@ -125,18 +139,25 @@ internal sealed class CursesCharacterShiftResolver {
 			physicalScreen,
 			row,
 			firstDifference,
-			rewriteLowerBound
+			rewriteLowerBound,
+			currentStyle,
+			currentCursorRow,
+			currentCursorColumn
 		);
 		CursesCharacterShiftPlan? deletion = ResolveDeletion(
 			desired,
 			physicalScreen,
 			row,
 			firstDifference,
-			rewriteLowerBound
+			rewriteLowerBound,
+			currentStyle,
+			currentCursorRow,
+			currentCursorColumn
 		);
 		if ( deletion.HasValue
 			&& ( !best.HasValue
-				|| deletion.Value.ByteCount < best.Value.ByteCount ) ) {
+				|| deletion.Value.Sequence.ByteCount
+					< best.Value.Sequence.ByteCount ) ) {
 			best = deletion;
 		}
 		return best;
@@ -147,7 +168,10 @@ internal sealed class CursesCharacterShiftResolver {
 		CursesPhysicalScreenState physicalScreen,
 		int row,
 		int startColumn,
-		int rewriteLowerBound
+		int rewriteLowerBound,
+		CursesStyle? currentStyle,
+		int? currentCursorRow,
+		int? currentCursorColumn
 	) {
 		CursesCharacterShiftPlan? best = null;
 		for ( int count = 1; startColumn + count <= desired.Columns; count++ ) {
@@ -164,25 +188,33 @@ internal sealed class CursesCharacterShiftResolver {
 			) ) {
 				continue;
 			}
-			if ( !TryResolveOperation(
-				StringCapability.InsertCharacters,
-				StringCapability.InsertCharacter,
+			CursesTerminalPlanSequence? sequence = TryCreateSequence(
+				CursesCharacterShiftKind.Insert,
 				count,
-				out string sequence,
-				out int byteCount
-			) || byteCount >= rewriteLowerBound ) {
+				currentStyle,
+				currentCursorRow,
+				currentCursorColumn,
+				row,
+				startColumn
+			);
+			if ( sequence is null
+				|| sequence.ByteCount >= rewriteLowerBound ) {
 				continue;
 			}
 
-			CursesCharacterShiftPlan candidate = new(
-				CursesCharacterShiftKind.Insert,
-				row,
-				startColumn,
-				count,
-				sequence,
-				byteCount
+			ChooseBetter(
+				ref best,
+				new CursesCharacterShiftPlan(
+					CursesCharacterShiftKind.Insert,
+					row,
+					startColumn,
+					count,
+					sequence,
+					CursesStyle.Default,
+					row,
+					startColumn
+				)
 			);
-			ChooseBetter( ref best, candidate );
 		}
 		return best;
 	}
@@ -192,7 +224,10 @@ internal sealed class CursesCharacterShiftResolver {
 		CursesPhysicalScreenState physicalScreen,
 		int row,
 		int startColumn,
-		int rewriteLowerBound
+		int rewriteLowerBound,
+		CursesStyle? currentStyle,
+		int? currentCursorRow,
+		int? currentCursorColumn
 	) {
 		CursesCharacterShiftPlan? best = null;
 		for ( int count = 1; startColumn + count <= desired.Columns; count++ ) {
@@ -209,27 +244,102 @@ internal sealed class CursesCharacterShiftResolver {
 			) ) {
 				continue;
 			}
-			if ( !TryResolveOperation(
-				StringCapability.DeleteCharacters,
-				StringCapability.DeleteCharacter,
+			CursesTerminalPlanSequence? sequence = TryCreateSequence(
+				CursesCharacterShiftKind.Delete,
 				count,
-				out string sequence,
-				out int byteCount
-			) || byteCount >= rewriteLowerBound ) {
+				currentStyle,
+				currentCursorRow,
+				currentCursorColumn,
+				row,
+				startColumn
+			);
+			if ( sequence is null
+				|| sequence.ByteCount >= rewriteLowerBound ) {
 				continue;
 			}
 
-			CursesCharacterShiftPlan candidate = new(
-				CursesCharacterShiftKind.Delete,
-				row,
-				startColumn,
-				count,
-				sequence,
-				byteCount
+			ChooseBetter(
+				ref best,
+				new CursesCharacterShiftPlan(
+					CursesCharacterShiftKind.Delete,
+					row,
+					startColumn,
+					count,
+					sequence,
+					CursesStyle.Default,
+					row,
+					startColumn
+				)
 			);
-			ChooseBetter( ref best, candidate );
 		}
 		return best;
+	}
+
+	private CursesTerminalPlanSequence? TryCreateSequence(
+		CursesCharacterShiftKind kind,
+		int count,
+		CursesStyle? currentStyle,
+		int? currentCursorRow,
+		int? currentCursorColumn,
+		int targetRow,
+		int targetColumn
+	) {
+		TerminalScreenOperationPlan? operation = this.planner.PlanCharacterShift(
+			CursesCharacterShiftKind.Insert == kind
+				? TerminalScreenCharacterShiftKind.Insert
+				: TerminalScreenCharacterShiftKind.Delete,
+			count
+		);
+		if ( !operation.HasValue || 0 == operation.Value.ByteCount ) {
+			return null;
+		}
+
+		List<TerminalScreenOperationPlan> plans = [];
+		if ( !TryPrepareDefaultRendition( plans, currentStyle ) ) {
+			return null;
+		}
+		if ( currentCursorRow != targetRow
+			|| currentCursorColumn != targetColumn ) {
+			try {
+				plans.Add(
+					this.cursorMotionResolver.Resolve(
+						currentCursorRow,
+						currentCursorColumn,
+						targetRow,
+						targetColumn
+					)
+				);
+			} catch ( NotSupportedException ) {
+				return null;
+			}
+		}
+		plans.Add( operation.Value );
+
+		try {
+			return new CursesTerminalPlanSequence( plans );
+		} catch ( OverflowException ) {
+			return null;
+		}
+	}
+
+	private bool TryPrepareDefaultRendition(
+		List<TerminalScreenOperationPlan> plans,
+		CursesStyle? currentStyle
+	) {
+		TerminalScreenOperationPlan? setup = null;
+		if ( !currentStyle.HasValue ) {
+			setup = this.presentationResolver.PlanBaseline();
+		} else if ( !currentStyle.Value.IsDefault ) {
+			setup = this.presentationResolver.PlanReset( currentStyle.Value );
+		}
+
+		if ( !currentStyle.HasValue || !currentStyle.Value.IsDefault ) {
+			if ( !setup.HasValue ) {
+				return false;
+			}
+			plans.Add( setup.Value );
+		}
+		return true;
 	}
 
 	private static bool MatchesInsertion(
@@ -292,9 +402,9 @@ internal sealed class CursesCharacterShiftResolver {
 			}
 			byteCount = checked(
 				byteCount
-				+ this.costModel.GetApplicationTextByteCount(
-					desiredCell.Content
-				)
+					+ this.costModel.GetApplicationTextByteCount(
+						desiredCell.Content
+					)
 			);
 		}
 		return byteCount;
@@ -322,75 +432,15 @@ internal sealed class CursesCharacterShiftResolver {
 		return true;
 	}
 
-	private static bool IsSimpleCell(
-		CursesCell cell
-	) {
+	private static bool IsSimpleCell( CursesCell cell ) {
 		return !cell.IsContinuation
 			&& 1 == cell.DisplayWidth
 			&& !cell.IsLineGlyph;
 	}
 
-	private static bool IsDefaultBlank(
-		CursesCell cell
-	) {
+	private static bool IsDefaultBlank( CursesCell cell ) {
 		return cell.IsBlank
 			&& cell.Style.IsDefault;
-	}
-
-	private bool TryResolveOperation(
-		StringCapability parameterizedCapability,
-		StringCapability oneCapability,
-		int count,
-		out string sequence,
-		out int byteCount
-	) {
-		if ( 0 >= count ) {
-			throw new ArgumentOutOfRangeException( nameof( count ) );
-		}
-
-		string? parameterized = this.terminal.GetString( parameterizedCapability );
-		string? bestSequence = null;
-		int bestByteCount = int.MaxValue;
-		if ( !string.IsNullOrEmpty( parameterized ) ) {
-			string expanded = this.terminal.Expand(
-				parameterizedCapability,
-				count
-			);
-			if ( 0 < expanded.Length ) {
-				bestSequence = expanded;
-				bestByteCount = CursesOutputCostModel.GetTerminalStringByteCount(
-					expanded
-				);
-			}
-		}
-
-		string? one = this.terminal.GetString( oneCapability );
-		if ( !string.IsNullOrEmpty( one ) ) {
-			StringBuilder repeated = new(
-				checked( one.Length * count )
-			);
-			for ( int index = 0; index < count; index++ ) {
-				repeated.Append( one );
-			}
-			string repeatedSequence = repeated.ToString();
-			int repeatedByteCount = CursesOutputCostModel.GetTerminalStringByteCount(
-				repeatedSequence
-			);
-			if ( repeatedByteCount < bestByteCount ) {
-				bestSequence = repeatedSequence;
-				bestByteCount = repeatedByteCount;
-			}
-		}
-
-		if ( null == bestSequence ) {
-			sequence = string.Empty;
-			byteCount = 0;
-			return false;
-		}
-
-		sequence = bestSequence;
-		byteCount = bestByteCount;
-		return true;
 	}
 
 	private static void ChooseBetter(
@@ -398,7 +448,8 @@ internal sealed class CursesCharacterShiftResolver {
 		CursesCharacterShiftPlan candidate
 	) {
 		if ( !current.HasValue
-			|| candidate.ByteCount < current.Value.ByteCount ) {
+			|| candidate.Sequence.ByteCount
+				< current.Value.Sequence.ByteCount ) {
 			current = candidate;
 		}
 	}

@@ -23,9 +23,7 @@ namespace Icod.DCurses;
 
 using System.Runtime.ExceptionServices;
 using Icod.DCurses.Internal;
-using CursesTerminalOutput = Icod.DCurses.Terminal.ITerminalOutput;
 using Icod.Terminal;
-using Icod.TermInfo;
 
 /// <summary>
 /// Owns one curses presentation over a canonical <see cref="TerminalSession"/>.
@@ -35,7 +33,6 @@ public sealed partial class CursesSession : IAsyncDisposable {
 	private readonly SemaphoreSlim terminalActivityGate = new( 1, 1 );
 	private readonly CancellationTokenSource sessionLifetimeStop = new();
 	private readonly TerminalSession terminalSession;
-	private readonly CursesTerminalOutput refreshOutput;
 	private readonly CursesTerminalLifecycleParticipant lifecycleParticipant;
 	private readonly IDisposable lifecycleParticipantRegistration;
 
@@ -50,7 +47,6 @@ public sealed partial class CursesSession : IAsyncDisposable {
 		ArgumentNullException.ThrowIfNull( options );
 
 		this.terminalSession = terminalSession;
-		this.refreshOutput = new Icod.DCurses.Terminal.TerminalSessionCursesOutput( terminalSession );
 		this.Options = options;
 		this.lifecycleParticipant = new CursesTerminalLifecycleParticipant( this );
 		this.lifecycleParticipantRegistration = terminalSession.RegisterLifecycleParticipant(
@@ -58,10 +54,10 @@ public sealed partial class CursesSession : IAsyncDisposable {
 		);
 	}
 
-	/// <summary>Gets the terminal profile selected for this session.</summary>
-	public TerminalDescription Terminal {
+	/// <summary>Gets the Terminal-owned semantic profile selected for this session.</summary>
+	public TerminalProfile Profile {
 		get {
-			return this.terminalSession.Terminal;
+			return this.terminalSession.Profile;
 		}
 	}
 
@@ -205,8 +201,8 @@ public sealed partial class CursesSession : IAsyncDisposable {
 
 	/// <summary>Queries the current live terminal dimensions.</summary>
 	/// <returns>The canonical Terminal live-size result.</returns>
-	public TerminalControlResult<TerminalSize> GetDimensions() {
-		return this.terminalSession.GetSize();
+	public TerminalControlResult<TerminalDimensions> GetDimensions() {
+		return this.terminalSession.GetDimensions();
 	}
 
 	/// <summary>Restores curses and Terminal-owned state exactly once.</summary>

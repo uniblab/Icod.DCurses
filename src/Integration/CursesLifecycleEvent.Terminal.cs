@@ -21,7 +21,7 @@
 
 namespace Icod.DCurses;
 
-using Icod.TermInfo;
+using Icod.Terminal;
 
 /// <summary>
 /// Identifies a managed terminal or process lifecycle event observed by a curses session.
@@ -47,7 +47,7 @@ public enum CursesLifecycleEventKind {
 public sealed class CursesLifecycleEvent {
 	internal CursesLifecycleEvent(
 		CursesLifecycleEventKind kind,
-		TerminalSize? dimensions = null
+		TerminalDimensions? dimensions = null
 	) {
 		if ( !Enum.IsDefined( kind ) ) {
 			throw new ArgumentOutOfRangeException( nameof( kind ) );
@@ -63,7 +63,7 @@ public sealed class CursesLifecycleEvent {
 	}
 
 	/// <summary>Gets fresh dimensions for resize/resume events when available.</summary>
-	public TerminalSize? Dimensions {
+	public TerminalDimensions? Dimensions {
 		get;
 	}
 

@@ -21,23 +21,24 @@
 
 using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
 namespace Icod.DCurses.Tests;
 
-/// <summary>Runs deterministic release-gate workloads for the accepted 0.7 optimization set.</summary>
+/// <summary>Runs deterministic release-gate workloads for the T2004 editing optimization set.</summary>
 public sealed class CursesOptimizationRegretTests {
 	[Fact]
 	public async Task LargeFullRepaintHasDeterministicOutputCost() {
 		const int columns = 160;
 		const int rows = 60;
 		MeasuringOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateCursorOnlyTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateCursorOnlyTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( columns, rows );
 		FillScreen( screen, "X" );
 
@@ -52,10 +53,12 @@ public sealed class CursesOptimizationRegretTests {
 	public async Task ThousandSmallUpdatesRemainDeterministicAndBounded() {
 		const int iterations = 1000;
 		MeasuringOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateCursorOnlyTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateCursorOnlyTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 8, 1 );
 		await engine.RefreshAsync( screen, 0, 0 );
 		output.Reset();
@@ -75,21 +78,27 @@ public sealed class CursesOptimizationRegretTests {
 	}
 
 	[Fact]
-	public async Task EditorCharacterShiftBeatsOrdinaryRewrite() {
+	public async Task EditorCharacterShiftUsesExactCheaperTerminalPlan() {
 		const string initial = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEF";
 		MeasuringOutput optimizedOutput = new();
 		MeasuringOutput fallbackOutput = new();
-		CursesRefreshEngine optimizedEngine = new(
+		TerminalDescription optimizedTerminal =
 			new TerminalDescriptionBuilder( "editor-optimized" )
 				.SetString( StringCapability.CursorAddress, "C" )
 				.SetString( StringCapability.InsertCharacters, "I%p1%d" )
-				.Build(),
-			optimizedOutput
-		);
-		CursesRefreshEngine fallbackEngine = new(
-			CreateCursorOnlyTerminal(),
-			fallbackOutput
-		);
+				.Build();
+		await using CursesRefreshEngineTestContext optimizedContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				optimizedTerminal,
+				optimizedOutput
+			);
+		await using CursesRefreshEngineTestContext fallbackContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateCursorOnlyTerminal(),
+				fallbackOutput
+			);
+		CursesRefreshEngine optimizedEngine = optimizedContext.Engine;
+		CursesRefreshEngine fallbackEngine = fallbackContext.Engine;
 		CursesScreen optimizedScreen = CreateSingleRowScreen( initial );
 		CursesScreen fallbackScreen = CreateSingleRowScreen( initial );
 		optimizedScreen.StandardWindow.Move( 0, 1 );
@@ -105,28 +114,37 @@ public sealed class CursesOptimizationRegretTests {
 		await fallbackEngine.RefreshAsync( fallbackScreen, 0, 1 );
 
 		Assert.Equal( 2, optimizedOutput.ByteCount );
-		Assert.Equal( 34, fallbackOutput.ByteCount );
 		Assert.Equal( 1, optimizedOutput.WriteCount );
+		Assert.Equal( 1, optimizedOutput.FlushCount );
+		Assert.Equal( 34, fallbackOutput.ByteCount );
 		Assert.Equal( 3, fallbackOutput.WriteCount );
+		Assert.Equal( 1, fallbackOutput.FlushCount );
+		Assert.True( optimizedOutput.ByteCount < fallbackOutput.ByteCount );
 		AssertRowsEqual( optimizedScreen, fallbackScreen );
 	}
 
 	[Fact]
-	public async Task PagerLineShiftBeatsOrdinaryRewrite() {
+	public async Task PagerLineShiftUsesExactCheaperTerminalPlan() {
 		const int columns = 32;
 		MeasuringOutput optimizedOutput = new();
 		MeasuringOutput fallbackOutput = new();
-		CursesRefreshEngine optimizedEngine = new(
+		TerminalDescription optimizedTerminal =
 			new TerminalDescriptionBuilder( "pager-optimized" )
 				.SetString( StringCapability.CursorAddress, "C" )
 				.SetString( StringCapability.DeleteLines, "D%p1%d" )
-				.Build(),
-			optimizedOutput
-		);
-		CursesRefreshEngine fallbackEngine = new(
-			CreateCursorOnlyTerminal(),
-			fallbackOutput
-		);
+				.Build();
+		await using CursesRefreshEngineTestContext optimizedContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				optimizedTerminal,
+				optimizedOutput
+			);
+		await using CursesRefreshEngineTestContext fallbackContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateCursorOnlyTerminal(),
+				fallbackOutput
+			);
+		CursesRefreshEngine optimizedEngine = optimizedContext.Engine;
+		CursesRefreshEngine fallbackEngine = fallbackContext.Engine;
 		CursesScreen optimizedScreen = CreateRowPatternScreen( columns );
 		CursesScreen fallbackScreen = CreateRowPatternScreen( columns );
 		await optimizedEngine.RefreshAsync( optimizedScreen, 0, 0 );
@@ -142,9 +160,12 @@ public sealed class CursesOptimizationRegretTests {
 		await fallbackEngine.RefreshAsync( fallbackScreen, 0, 0 );
 
 		Assert.Equal( 4, optimizedOutput.ByteCount );
-		Assert.Equal( 166, fallbackOutput.ByteCount );
 		Assert.Equal( 3, optimizedOutput.WriteCount );
+		Assert.Equal( 1, optimizedOutput.FlushCount );
+		Assert.Equal( 166, fallbackOutput.ByteCount );
 		Assert.Equal( 11, fallbackOutput.WriteCount );
+		Assert.Equal( 1, fallbackOutput.FlushCount );
+		Assert.True( optimizedOutput.ByteCount < fallbackOutput.ByteCount );
 		AssertRowsEqual( optimizedScreen, fallbackScreen );
 	}
 
@@ -215,7 +236,17 @@ public sealed class CursesOptimizationRegretTests {
 		}
 	}
 
-	private sealed class MeasuringOutput : ITerminalOutput {
+	private static int GetTerminalStringByteCount( string value, int affectedLines ) {
+		int byteCount = 0;
+		TermInfoOutput.TPuts(
+			value,
+			affectedLines,
+			_ => byteCount = checked( byteCount + 1 )
+		);
+		return byteCount;
+	}
+
+	private sealed class MeasuringOutput : ILegacyTerminalOutputFixture {
 		private readonly CursesOutputCostModel costModel = new( Encoding.UTF8 );
 
 		internal int ByteCount {
@@ -264,7 +295,7 @@ public sealed class CursesOptimizationRegretTests {
 			cancellationToken.ThrowIfCancellationRequested();
 			ByteCount = checked(
 				ByteCount
-					+ CursesOutputCostModel.GetTerminalStringByteCount(
+					+ CursesOptimizationRegretTests.GetTerminalStringByteCount(
 						value,
 						affectedLines
 					)

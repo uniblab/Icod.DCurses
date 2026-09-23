@@ -19,117 +19,106 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+namespace Icod.DCurses.Tests;
+
 using Icod.DCurses.Internal;
+using Icod.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
-namespace Icod.DCurses.Tests;
-
-/// <summary>Verifies deterministic logical-to-physical presentation degradation.</summary>
+/// <summary>Verifies Terminal-owned logical-to-physical presentation planning.</summary>
 public sealed class CursesPresentationResolverTests {
 	[Fact]
-	public void InRangeIndexedColorIsPreserved() {
-		CursesPresentationResolver resolver = new( CreateEightColorTerminal() );
-		CursesStyle requested = new(
-			CursesColor.Indexed( 7 ),
-			CursesColor.Default
-		);
+	public async Task InRangeIndexedColorIsPreserved() {
+		await using TerminalSession session = await OpenSessionAsync( CreateEightColorTerminal() );
+		CursesPresentationResolver resolver = new( session.Screen );
+		CursesStyle requested = new( CursesColor.Indexed( 7 ), CursesColor.Default );
 
-		CursesStyle resolved = resolver.Resolve( requested );
+		CursesStyle resolved = resolver.Normalize( requested );
 
 		Assert.Equal( requested, resolved );
 	}
 
 	[Fact]
-	public void OutOfRangeIndexedColorDegradesToTerminalDefault() {
-		CursesPresentationResolver resolver = new( CreateEightColorTerminal() );
-		CursesStyle requested = new(
-			CursesColor.Indexed( 8 ),
-			CursesColor.Default
-		);
+	public async Task OutOfRangeIndexedColorDegradesToTerminalDefault() {
+		await using TerminalSession session = await OpenSessionAsync( CreateEightColorTerminal() );
+		CursesPresentationResolver resolver = new( session.Screen );
+		CursesStyle requested = new( CursesColor.Indexed( 8 ), CursesColor.Default );
 
-		CursesStyle resolved = resolver.Resolve( requested );
+		CursesStyle resolved = resolver.Normalize( requested );
 
 		Assert.True( resolved.Foreground.IsDefault );
 		Assert.True( resolved.Background.IsDefault );
 	}
 
 	[Fact]
-	public void IndexedColorWithoutSafeDefaultRestorationDegradesToDefault() {
+	public async Task IndexedColorWithoutSafeDefaultRestorationDegradesToDefault() {
 		TerminalDescription terminal = new TerminalDescriptionBuilder( "no-op" )
 			.SetNumber( NumericCapability.Colors, 8 )
 			.SetString( StringCapability.SetForegroundColor, "<fg:%p1%d>" )
 			.SetString( StringCapability.SetBackgroundColor, "<bg:%p1%d>" )
 			.Build();
-		CursesPresentationResolver resolver = new( terminal );
+		await using TerminalSession session = await OpenSessionAsync( terminal );
+		CursesPresentationResolver resolver = new( session.Screen );
 
-		CursesStyle resolved = resolver.Resolve(
-			new CursesStyle(
-				CursesColor.Indexed( 2 ),
-				CursesColor.Default
-			)
+		CursesStyle resolved = resolver.Normalize(
+			new CursesStyle( CursesColor.Indexed( 2 ), CursesColor.Default )
 		);
 
 		Assert.True( resolved.Foreground.IsDefault );
 	}
 
 	[Fact]
-	public void RgbOnIndexedTerminalDegradesToDefault() {
-		CursesPresentationResolver resolver = new( CreateEightColorTerminal() );
+	public async Task RgbOnIndexedTerminalDegradesToDefault() {
+		await using TerminalSession session = await OpenSessionAsync( CreateEightColorTerminal() );
+		CursesPresentationResolver resolver = new( session.Screen );
 
-		CursesStyle resolved = resolver.Resolve(
-			new CursesStyle(
-				CursesColor.Rgb( 12, 34, 56 ),
-				CursesColor.Default
-			)
+		CursesStyle resolved = resolver.Normalize(
+			new CursesStyle( CursesColor.Rgb( 12, 34, 56 ), CursesColor.Default )
 		);
 
 		Assert.True( resolved.Foreground.IsDefault );
 	}
 
 	[Fact]
-	public void DirectRgbIsPreservedWhenPackedValueIsSafe() {
-		CursesPresentationResolver resolver = new( TerminalProfiles.XtermDirect256 );
+	public async Task DirectRgbIsPreservedWhenPackedValueIsSafe() {
+		await using TerminalSession session = await OpenSessionAsync( TerminalProfiles.XtermDirect256 );
+		CursesPresentationResolver resolver = new( session.Screen );
 		CursesColor requested = CursesColor.Rgb( 255, 0, 0 );
 
-		CursesStyle resolved = resolver.Resolve(
-			new CursesStyle(
-				requested,
-				CursesColor.Default
-			)
+		CursesStyle resolved = resolver.Normalize(
+			new CursesStyle( requested, CursesColor.Default )
 		);
 
 		Assert.Equal( requested, resolved.Foreground );
 	}
 
 	[Fact]
-	public void DirectRgbCollisionWithRetainedIndexedPrefixDegradesToDefault() {
-		CursesPresentationResolver resolver = new( TerminalProfiles.XtermDirect256 );
+	public async Task DirectRgbCollisionWithRetainedIndexedPrefixDegradesToDefault() {
+		await using TerminalSession session = await OpenSessionAsync( TerminalProfiles.XtermDirect256 );
+		CursesPresentationResolver resolver = new( session.Screen );
 
-		CursesStyle resolved = resolver.Resolve(
-			new CursesStyle(
-				CursesColor.Rgb( 0, 0, 1 ),
-				CursesColor.Default
-			)
+		CursesStyle resolved = resolver.Normalize(
+			new CursesStyle( CursesColor.Rgb( 0, 0, 1 ), CursesColor.Default )
 		);
 
 		Assert.True( resolved.Foreground.IsDefault );
 	}
 
 	[Fact]
-	public void UnsupportedAttributesAreOmittedAndStandoutFallsBackToReverse() {
+	public async Task UnsupportedAttributesAreOmittedAndStandoutFallsBackToReverse() {
 		TerminalDescription terminal = new TerminalDescriptionBuilder( "reverse-only" )
 			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
 			.SetString( StringCapability.EnterReverseMode, "<reverse>" )
 			.Build();
-		CursesPresentationResolver resolver = new( terminal );
+		await using TerminalSession session = await OpenSessionAsync( terminal );
+		CursesPresentationResolver resolver = new( session.Screen );
 
-		CursesStyle resolved = resolver.Resolve(
+		CursesStyle resolved = resolver.Normalize(
 			new CursesStyle(
 				CursesColor.Default,
 				CursesColor.Default,
-				CursesTextAttributes.Standout
-					| CursesTextAttributes.Italic
+				CursesTextAttributes.Standout | CursesTextAttributes.Italic
 			)
 		);
 
@@ -137,7 +126,7 @@ public sealed class CursesPresentationResolverTests {
 	}
 
 	[Fact]
-	public void NoColorVideoRestrictionsApplyOnlyWhenPhysicalColorIsActive() {
+	public async Task NoColorVideoRestrictionsApplyOnlyWhenPhysicalColorIsActive() {
 		TerminalDescription terminal = new TerminalDescriptionBuilder( "ncv" )
 			.SetNumber( NumericCapability.Colors, 8 )
 			.SetNumber( NumericCapability.NoColorVideo, 32 )
@@ -147,16 +136,17 @@ public sealed class CursesPresentationResolverTests {
 			.SetString( StringCapability.SetForegroundColor, "<fg:%p1%d>" )
 			.SetString( StringCapability.SetBackgroundColor, "<bg:%p1%d>" )
 			.Build();
-		CursesPresentationResolver resolver = new( terminal );
+		await using TerminalSession session = await OpenSessionAsync( terminal );
+		CursesPresentationResolver resolver = new( session.Screen );
 
-		CursesStyle colored = resolver.Resolve(
+		CursesStyle colored = resolver.Normalize(
 			new CursesStyle(
 				CursesColor.Indexed( 1 ),
 				CursesColor.Default,
 				CursesTextAttributes.Bold
 			)
 		);
-		CursesStyle uncolored = resolver.Resolve(
+		CursesStyle uncolored = resolver.Normalize(
 			new CursesStyle(
 				CursesColor.Default,
 				CursesColor.Default,
@@ -166,6 +156,69 @@ public sealed class CursesPresentationResolverTests {
 
 		Assert.Equal( CursesTextAttributes.None, colored.Attributes );
 		Assert.Equal( CursesTextAttributes.Bold, uncolored.Attributes );
+	}
+
+	[Fact]
+	public async Task BaselineTransitionAndResetPlansCommitTerminalOwnedOutput() {
+		TerminalDescription terminal = new TerminalDescriptionBuilder( "rendition-plans" )
+			.SetNumber( NumericCapability.Colors, 8 )
+			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
+			.SetString( StringCapability.OriginalColorPair, "<op>" )
+			.SetString( StringCapability.EnterBoldMode, "<bold>" )
+			.SetString( StringCapability.SetForegroundColor, "<fg:%p1%d>" )
+			.SetString( StringCapability.SetBackgroundColor, "<bg:%p1%d>" )
+			.Build();
+		RecordingTerminalOutput output = new();
+		await using TerminalSession session = await TerminalScreenTestSession.OpenAsync(
+			terminal,
+			output
+		);
+		CursesPresentationResolver resolver = new( session.Screen );
+		CursesStyle target = new(
+			CursesColor.Indexed( 2 ),
+			CursesColor.Indexed( 3 ),
+			CursesTextAttributes.Bold
+		);
+		TerminalScreenOperationPlan baseline = Assert.IsType<TerminalScreenOperationPlan>(
+			resolver.PlanBaseline()
+		);
+		TerminalScreenOperationPlan transition = Assert.IsType<TerminalScreenOperationPlan>(
+			resolver.PlanTransition( CursesStyle.Default, target )
+		);
+		TerminalScreenOperationPlan reset = Assert.IsType<TerminalScreenOperationPlan>(
+			resolver.PlanReset( target )
+		);
+		TerminalScreenOutputTransaction transaction = session.CreateScreenOutputTransaction();
+		transaction.Add( baseline );
+		transaction.Add( transition );
+		transaction.Add( reset );
+
+		await transaction.CommitAsync();
+
+		Assert.Equal( TerminalScreenOperationKind.Rendition, baseline.Kind );
+		Assert.Equal( 10, baseline.ByteCount );
+		Assert.Equal( "<sgr0><op><fg:2><bg:3><bold><sgr0><op>", output.Text );
+		Assert.Equal( 1, output.FlushCount );
+	}
+
+	[Fact]
+	public async Task UnsafeUnknownRenditionBaselineIsUnavailable() {
+		TerminalDescription terminal = new TerminalDescriptionBuilder( "unsafe-baseline" )
+			.SetString( StringCapability.EnterBoldMode, "<bold>" )
+			.Build();
+		await using TerminalSession session = await OpenSessionAsync( terminal );
+		CursesPresentationResolver resolver = new( session.Screen );
+
+		Assert.Null( resolver.PlanBaseline() );
+	}
+
+	private static ValueTask<TerminalSession> OpenSessionAsync(
+		TerminalDescription terminal
+	) {
+		return TerminalScreenTestSession.OpenAsync(
+			terminal,
+			new RecordingTerminalOutput()
+		);
 	}
 
 	private static TerminalDescription CreateEightColorTerminal() {

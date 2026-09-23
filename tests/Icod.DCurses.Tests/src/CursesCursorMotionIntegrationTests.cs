@@ -21,7 +21,6 @@
 
 using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -36,11 +35,27 @@ public sealed class CursesCursorMotionIntegrationTests {
 			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
 			.SetString( StringCapability.CursorRightOne, ">" )
 			.Build();
-		CursesRefreshEngine engine = new( terminal, output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				terminal,
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
+		CursesCursorMotionResolver resolver = new( refreshContext.Session.Screen );
 
-		await engine.SetCursorPositionAsync( 2, 3 );
+		await engine.SetCursorPositionAsync(
+			resolver.Resolve( null, null, 2, 3 ),
+			2,
+			3,
+			CancellationToken.None
+		);
 		output.Clear();
-		await engine.SetCursorPositionAsync( 2, 4 );
+		await engine.SetCursorPositionAsync(
+			resolver.Resolve( 2, 3, 2, 4 ),
+			2,
+			4,
+			CancellationToken.None
+		);
 
 		Assert.Equal( ">", output.Text );
 		Assert.Equal( 1, output.FlushCount );
@@ -52,11 +67,27 @@ public sealed class CursesCursorMotionIntegrationTests {
 		TerminalDescription terminal = new TerminalDescriptionBuilder( "absolute-fallback" )
 			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
 			.Build();
-		CursesRefreshEngine engine = new( terminal, output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				terminal,
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
+		CursesCursorMotionResolver resolver = new( refreshContext.Session.Screen );
 
-		await engine.SetCursorPositionAsync( 1, 1 );
+		await engine.SetCursorPositionAsync(
+			resolver.Resolve( null, null, 1, 1 ),
+			1,
+			1,
+			CancellationToken.None
+		);
 		output.Clear();
-		await engine.SetCursorPositionAsync( 3, 5 );
+		await engine.SetCursorPositionAsync(
+			resolver.Resolve( 1, 1, 3, 5 ),
+			3,
+			5,
+			CancellationToken.None
+		);
 
 		Assert.Equal( "<cup:3,5>", output.Text );
 		Assert.Equal( 1, output.FlushCount );
@@ -69,17 +100,33 @@ public sealed class CursesCursorMotionIntegrationTests {
 			.SetString( StringCapability.CursorAddress, "AB" )
 			.SetString( StringCapability.CarriageReturn, "CD" )
 			.Build();
-		CursesRefreshEngine engine = new( terminal, output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				terminal,
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
+		CursesCursorMotionResolver resolver = new( refreshContext.Session.Screen );
 
-		await engine.SetCursorPositionAsync( 4, 7 );
+		await engine.SetCursorPositionAsync(
+			resolver.Resolve( null, null, 4, 7 ),
+			4,
+			7,
+			CancellationToken.None
+		);
 		output.Clear();
-		await engine.SetCursorPositionAsync( 4, 0 );
+		await engine.SetCursorPositionAsync(
+			resolver.Resolve( 4, 7, 4, 0 ),
+			4,
+			0,
+			CancellationToken.None
+		);
 
 		Assert.Equal( "AB", output.Text );
 		Assert.Equal( 1, output.FlushCount );
 	}
 
-	private sealed class RecordingOutput : ITerminalOutput {
+	private sealed class RecordingOutput : ILegacyTerminalOutputFixture {
 		private readonly StringBuilder text = new();
 
 		internal int FlushCount {

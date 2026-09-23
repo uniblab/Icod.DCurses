@@ -22,7 +22,6 @@
 using System.Reflection;
 using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
 using Icod.Terminal;
 using Icod.TermInfo;
 using Xunit;
@@ -33,7 +32,7 @@ namespace Icod.DCurses.Tests;
 public sealed class CursesRasterSynchronizedRefreshTests {
 	private const string SynchronizedOutputBegin = "\u001b[?2026h";
 	private const string SynchronizedOutputEnd = "\u001b[?2026l";
-	private const string RasterMarker = "<raster>";
+	private const string RasterMarker = "\U0010EEEE";
 
 	[Fact]
 	public async Task MixedRasterAndTextStayInsideOneSynchronizedRefreshTransaction() {
@@ -50,14 +49,15 @@ public sealed class CursesRasterSynchronizedRefreshTests {
 		);
 
 		CursesScreen screen = session.Screen;
-		CursesRasterCell rasterCell = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
+		CursesRasterCell rasterCell = CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+			terminalSession
+		);
 		screen.VirtualScreen.SetRasterCell( 0, 0, rasterCell );
 		screen.VirtualScreen.SetCell( 0, 1, new CursesCell( "X" ) );
 
-		SharedRefreshOutput refreshOutput = new( rawOutput );
 		CursesRefreshEngine refreshEngine = new(
-			session.Terminal,
-			refreshOutput
+			session.HostSession,
+			useSynchronizedOutput: true
 		);
 		FieldInfo refreshEngineField = Assert.IsAssignableFrom<FieldInfo>(
 			typeof( CursesSession ).GetField(
@@ -138,63 +138,6 @@ public sealed class CursesRasterSynchronizedRefreshTests {
 			}
 			count++;
 			offset = match + value.Length;
-		}
-	}
-
-	private sealed class SharedRefreshOutput
-		: Icod.DCurses.Terminal.ITerminalOutput,
-		  ITerminalRasterPlaceholderOutput {
-		private readonly RecordingRawOutput output;
-
-		internal SharedRefreshOutput(
-			RecordingRawOutput output
-		) {
-			ArgumentNullException.ThrowIfNull( output );
-			this.output = output;
-		}
-
-		public ValueTask WriteTextAsync(
-			string value,
-			CancellationToken cancellationToken = default
-		) {
-			ArgumentNullException.ThrowIfNull( value );
-			return this.WriteAsync( value, cancellationToken );
-		}
-
-		public ValueTask WriteTerminalStringAsync(
-			string value,
-			int affectedLines = 1,
-			CancellationToken cancellationToken = default
-		) {
-			ArgumentNullException.ThrowIfNull( value );
-			if ( 0 >= affectedLines ) {
-				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
-			}
-			return this.WriteAsync( value, cancellationToken );
-		}
-
-		public ValueTask WriteRasterPlaceholderCellAsync(
-			CursesRasterCell cell,
-			CancellationToken cancellationToken = default
-		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			return this.WriteAsync( RasterMarker, cancellationToken );
-		}
-
-		public ValueTask FlushAsync(
-			CancellationToken cancellationToken = default
-		) {
-			return this.output.FlushAsync( cancellationToken );
-		}
-
-		private ValueTask WriteAsync(
-			string value,
-			CancellationToken cancellationToken
-		) {
-			return this.output.WriteAsync(
-				Encoding.UTF8.GetBytes( value ),
-				cancellationToken
-			);
 		}
 	}
 

@@ -21,7 +21,7 @@
 
 using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
+using Icod.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -30,12 +30,55 @@ namespace Icod.DCurses.Tests;
 /// <summary>Exercises application-shaped semantic workloads for the 1.1 acceptance gate.</summary>
 public sealed class CursesSemanticApplicationAcceptanceTests {
 	[Fact]
+	public async Task PlainStatusRowOptimizesBesideLinkedEditorRegion() {
+		SemanticRecordingOutput output = new();
+		TerminalDescription terminal = new TerminalDescriptionBuilder(
+			"regional-semantic-editing"
+		)
+			.SetString( StringCapability.CursorAddress, "C" )
+			.SetString( StringCapability.InsertCharacters, "I%p1%d" )
+			.Build();
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync( terminal, output );
+		CursesScreen screen = new( 32, 2 );
+		screen.StandardWindow.Write( "STATUS-ABCDEFGHIJKLMNOPQRSTUVW" );
+		screen.StandardWindow.Move( 1, 0 );
+		screen.StandardWindow.WriteWithMetadata(
+			"linked-editor-region-abcdefghij",
+			LinkMetadata( "regional-editor" )
+		);
+		await context.Engine.RefreshAsync( screen, 0, 1 );
+		output.Clear();
+
+		screen.StandardWindow.Move( 0, 1 );
+		screen.StandardWindow.InsertCells( 2 );
+		await context.Engine.RefreshAsync( screen, 0, 1 );
+
+		Assert.Contains( "I2", output.Text, StringComparison.Ordinal );
+		Assert.Empty( output.HyperlinkWrites );
+		output.Clear();
+
+		screen.StandardWindow.Move( 1, 1 );
+		screen.StandardWindow.InsertCells( 2 );
+		await context.Engine.RefreshAsync( screen, 1, 1 );
+
+		Assert.DoesNotContain( "I2", output.Text, StringComparison.Ordinal );
+		Assert.NotEmpty( output.HyperlinkWrites );
+		Assert.Equal(
+			"regional-editor",
+			screen.StandardWindow.GetMetadata( 1, 3 )!.Hyperlink!.Identifier
+		);
+	}
+
+	[Fact]
 	public async Task EditorLikeMutationCoalescesWideLinkedSpanAfterInsertion() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 24, 3 );
 		CursesWindow window = screen.StandardWindow;
 		CursesCellMetadata link = LinkMetadata( "editor" );
@@ -80,10 +123,12 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 	[Fact]
 	public async Task EditorLikeStyleBeforeEditAndRepeatedRetargetingRemainIndependent() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 24, 3 );
 		CursesWindow window = screen.StandardWindow;
 		CursesCellMetadata stableLink = LinkMetadata( "stable" );
@@ -167,10 +212,12 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 	[Fact]
 	public async Task PagerLikeManyLinksSettlesToNoOpRefresh() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 80, 20 );
 		CursesWindow window = screen.StandardWindow;
 
@@ -345,10 +392,12 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 	[Fact]
 	public async Task DenseEquivalentLinkedRowUsesOneSemanticTransaction() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 256, 1 );
 		CursesCellMetadata metadata = LinkMetadata( "dense-row" );
 		screen.StandardWindow.WriteWithMetadata(
@@ -370,10 +419,12 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 	[Fact]
 	public async Task ManyDistinctLinksRemainDistinctSemanticTransactions() {
 		SemanticRecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateTerminal(),
-			output
-		);
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 64, 1 );
 		CursesWindow window = screen.StandardWindow;
 
@@ -421,11 +472,10 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 			.Build();
 	}
 
-	private sealed class SemanticRecordingOutput
-		: ITerminalOutput,
-		  ITerminalHyperlinkOutput {
+	private sealed class SemanticRecordingOutput : ITerminalOutput {
 		private readonly StringBuilder text = new();
 		private readonly List<HyperlinkWrite> hyperlinkWrites = [];
+		private CursesHyperlink? activeHyperlink;
 
 		internal IReadOnlyList<HyperlinkWrite> HyperlinkWrites => hyperlinkWrites;
 
@@ -434,46 +484,44 @@ public sealed class CursesSemanticApplicationAcceptanceTests {
 		internal void Clear() {
 			text.Clear();
 			hyperlinkWrites.Clear();
+			activeHyperlink = null;
 		}
 
-		public ValueTask WriteTextAsync(
-			string value,
+		public ValueTask WriteAsync(
+			ReadOnlyMemory<byte> buffer,
 			CancellationToken cancellationToken = default
 		) {
-			ArgumentNullException.ThrowIfNull( value );
 			cancellationToken.ThrowIfCancellationRequested();
-			text.Append( value );
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask WriteTerminalStringAsync(
-			string value,
-			int affectedLines = 1,
-			CancellationToken cancellationToken = default
-		) {
-			ArgumentNullException.ThrowIfNull( value );
-			if ( 0 >= affectedLines ) {
-				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
+			string value = Encoding.UTF8.GetString( buffer.Span );
+			if ( "\u001b]8;;\u001b\\" == value ) {
+				this.activeHyperlink = null;
+				return ValueTask.CompletedTask;
 			}
-			cancellationToken.ThrowIfCancellationRequested();
-			text.Append( value );
-			return ValueTask.CompletedTask;
-		}
-
-		public ValueTask WriteHyperlinkTextAsync(
-			string value,
-			CursesHyperlink hyperlink,
-			CancellationToken cancellationToken = default
-		) {
-			ArgumentNullException.ThrowIfNull( value );
-			ArgumentNullException.ThrowIfNull( hyperlink );
-			cancellationToken.ThrowIfCancellationRequested();
-			hyperlinkWrites.Add(
-				new HyperlinkWrite(
-					value,
-					hyperlink
-				)
-			);
+			if ( value.StartsWith( "\u001b]8;", StringComparison.Ordinal )
+				&& value.EndsWith( "\u001b\\", StringComparison.Ordinal ) ) {
+				int targetSeparator = value.IndexOf( ';', 4 );
+				if ( 0 > targetSeparator ) {
+					throw new InvalidOperationException( "Malformed recorded hyperlink frame." );
+				}
+				string parameters = value[ 4..targetSeparator ];
+				string uri = value[ ( targetSeparator + 1 )..^2 ];
+				string? identifier = parameters.StartsWith(
+					"id=",
+					StringComparison.Ordinal
+				) ? parameters[ 3.. ] : null;
+				this.activeHyperlink = new CursesHyperlink( uri, identifier );
+				return ValueTask.CompletedTask;
+			}
+			if ( this.activeHyperlink is not null ) {
+				this.hyperlinkWrites.Add(
+					new HyperlinkWrite(
+						value,
+						this.activeHyperlink
+					)
+				);
+			} else {
+				this.text.Append( value );
+			}
 			return ValueTask.CompletedTask;
 		}
 

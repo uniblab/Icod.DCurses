@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Text;
 using Icod.DCurses;
 using Icod.Terminal;
-using Icod.TermInfo;
 
 CursesScreen logicalScreen = new(
 	80,
@@ -81,14 +80,27 @@ static void VerifyApprovedDependencySurface() {
 	Type[] approvedDependencyTypes = [
 		typeof( TerminalSession ),
 		typeof( TerminalEndpoint ),
-		typeof( TerminalControlResult<TerminalSize> ),
-		typeof( TerminalDescription ),
-		typeof( TerminalSize )
+		typeof( TerminalControlResult<TerminalDimensions> ),
+		typeof( TerminalProfile ),
+		typeof( TerminalDimensions )
 	];
 
 	if ( 5 != approvedDependencyTypes.Length ) {
 		throw new InvalidOperationException(
 			"DCurses package-only dependency-surface smoke validation failed."
+		);
+	}
+
+	if ( typeof( TerminalProfile ) != typeof( CursesSession )
+			.GetProperty( nameof( CursesSession.Profile ) )?.PropertyType
+		|| typeof( TerminalControlResult<TerminalDimensions> ) != typeof( CursesSession )
+			.GetMethod( nameof( CursesSession.GetDimensions ), Type.EmptyTypes )?.ReturnType
+		|| typeof( TerminalControlResult<TerminalDimensions> ) != typeof( CursesSession )
+			.GetMethod( nameof( CursesSession.SynchronizeDimensions ), Type.EmptyTypes )?.ReturnType
+		|| typeof( TerminalDimensions? ) != typeof( CursesLifecycleEvent )
+			.GetProperty( nameof( CursesLifecycleEvent.Dimensions ) )?.PropertyType ) {
+		throw new InvalidOperationException(
+			"DCurses package-only Terminal profile/dimensions contract is unavailable."
 		);
 	}
 }
@@ -787,6 +799,8 @@ static async Task<int> RunInteractiveAsync() {
 			HideCursor = true
 		}
 	);
+	TerminalProfile profile = session.Profile;
+	TerminalControlResult<TerminalDimensions> dimensions = session.GetDimensions();
 
 	CursesWindow screen = session.StandardScreen;
 	screen.Clear();
@@ -795,13 +809,74 @@ static async Task<int> RunInteractiveAsync() {
 		0
 	);
 	screen.Write(
-		"Icod.DCurses package-only interactive smoke. Press any key to exit.",
+		$"Icod.DCurses on {profile.Name}: "
+			+ ( dimensions.IsAvailable
+				? $"{dimensions.GetRequiredValue().Columns}x{dimensions.GetRequiredValue().Rows}"
+				: "dimensions unavailable" )
+			+ ". Press any key to exit.",
 		new CursesStyle(
 			CursesColor.Default,
 			CursesColor.Default,
 			CursesTextAttributes.Bold
 		)
 	);
+	if ( string.Equals(
+		Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_ONESHOT" ),
+		"1",
+		StringComparison.Ordinal
+	) ) {
+		if ( !dimensions.IsAvailable
+			|| 24 > dimensions.GetRequiredValue().Rows
+			|| 80 > dimensions.GetRequiredValue().Columns ) {
+			throw new InvalidOperationException(
+				"Package-only live consumer needs an 80x24 terminal."
+			);
+		}
+
+		screen.Move( 1, 0 );
+		screen.WriteWithMetadata(
+			"linked text",
+			new CursesCellMetadata(
+				new CursesHyperlink( "https://example.test/live", "live-smoke" )
+			)
+		);
+		screen.DrawHorizontalLine( 2, 0, 12 );
+
+		CursesPad pad = new( 18, 2 );
+		pad.ContentWindow.Write( "retained pad" );
+		CursesPadViewport viewport = pad.CreateViewport(
+			screen, 0, 0, 1, 18, 4, 0
+		);
+		viewport.Present();
+
+		using CursesPanel panel = session.Screen.CreatePanel( 6, 0, 2, 18 );
+		panel.ContentWindow.Write( "retained panel" );
+
+		TerminalRasterImage image = TerminalRasterImage.CreateRgb24(
+			1, 1, [ 0x20, 0x40, 0x80 ]
+		);
+		TerminalControlResult<CursesRasterResource> resourceResult =
+			await session.CreateRasterResourceAsync( image );
+		if ( resourceResult.IsAvailable ) {
+			await using CursesRasterResource resource = resourceResult.GetRequiredValue();
+			TerminalControlResult<CursesRasterPlaceholder> placeholderResult =
+				await resource.CreatePlaceholderAsync( 1, 1 );
+			if ( placeholderResult.IsAvailable ) {
+				await using CursesRasterPlaceholder placeholder =
+					placeholderResult.GetRequiredValue();
+				screen.Move( 9, 0 );
+				screen.WriteRasterCell( placeholder.GetCell( 0, 0 ) );
+				await session.RefreshAsync();
+				screen.SetRasterCell( 9, 0, null );
+			}
+		} else {
+			await session.RefreshAsync();
+		}
+
+		session.Invalidate();
+		await session.RefreshAsync();
+		return 0;
+	}
 	await session.RefreshAsync();
 	_ = await session.ReadEventAsync();
 	return 0;

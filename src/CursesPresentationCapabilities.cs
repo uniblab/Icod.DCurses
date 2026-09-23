@@ -21,26 +21,18 @@
 
 namespace Icod.DCurses;
 
-using Icod.TermInfo;
+using Icod.DCurses.Internal;
+using Icod.Terminal;
 
 /// <summary>
 /// Describes terminal presentation capabilities through curses-shaped semantic observations.
 /// </summary>
 /// <remarks>
 /// This value contains no terminal escape sequences. It reports immutable facts derived from the
-/// session's selected terminal description so ordinary applications do not need to inspect raw
-/// terminfo capability strings merely to make common presentation decisions.
+/// session's Terminal-owned profile so ordinary applications do not need to inspect raw
+/// terminal capability strings merely to make common presentation decisions.
 /// </remarks>
 public readonly record struct CursesPresentationCapabilities {
-	private const int NoColorVideoStandout = 1;
-	private const int NoColorVideoUnderline = 2;
-	private const int NoColorVideoReverse = 4;
-	private const int NoColorVideoBlink = 8;
-	private const int NoColorVideoDim = 16;
-	private const int NoColorVideoBold = 32;
-	private const int NoColorVideoInvisible = 64;
-	private const int NoColorVideoItalic = 32768;
-
 	internal CursesPresentationCapabilities(
 		int indexedColorCount,
 		bool supportsDirectRgb,
@@ -154,98 +146,22 @@ public readonly record struct CursesPresentationCapabilities {
 	/// <summary>Gets whether strikeout rendition has a directly advertised representation.</summary>
 	public bool SupportsStrikeout => 0 != ( SupportedAttributes & CursesTextAttributes.Strikeout );
 
-	/// <summary>Derives a curses-shaped presentation view from one immutable terminal description.</summary>
-	internal static CursesPresentationCapabilities Create( TerminalDescription terminal ) {
-		ArgumentNullException.ThrowIfNull( terminal );
-
-		TerminalColorSupport colors = TerminalColors.GetColorSupport( terminal );
-		CursesTextAttributes supportedAttributes = CursesTextAttributes.None;
-
-		if ( null != terminal.GetString( StringCapability.EnterBoldMode ) ) {
-			supportedAttributes |= CursesTextAttributes.Bold;
-		}
-		if ( null != terminal.GetString( StringCapability.EnterDimMode ) ) {
-			supportedAttributes |= CursesTextAttributes.Dim;
-		}
-		if ( null != terminal.GetString( StringCapability.EnterUnderlineMode ) ) {
-			supportedAttributes |= CursesTextAttributes.Underline;
-		}
-		if ( null != terminal.GetString( StringCapability.EnterReverseMode ) ) {
-			supportedAttributes |= CursesTextAttributes.Reverse;
-		}
-		if ( null != terminal.GetString( StringCapability.EnterStandoutMode ) ) {
-			supportedAttributes |= CursesTextAttributes.Standout;
-		}
-		if ( null != terminal.GetString( StringCapability.EnterItalicMode ) ) {
-			supportedAttributes |= CursesTextAttributes.Italic;
-		}
-		if ( null != terminal.GetString( StringCapability.EnterBlinkMode ) ) {
-			supportedAttributes |= CursesTextAttributes.Blink;
-		}
-		if ( null != terminal.GetString( StringCapability.EnterInvisibleMode ) ) {
-			supportedAttributes |= CursesTextAttributes.Conceal;
-		}
-		if ( terminal.TryGetExtendedString(
-			"smxx",
-			out _
-		) ) {
-			supportedAttributes |= CursesTextAttributes.Strikeout;
-		}
-
-		bool supportsAlternateCharacterSet =
-			null != terminal.GetString( StringCapability.AlternateCharacterSet )
-			&& null != terminal.GetString( StringCapability.EnterAlternateCharacterSetMode )
-			&& null != terminal.GetString( StringCapability.ExitAlternateCharacterSetMode );
-		CursesTextAttributes colorRestrictedAttributes =
-			TranslateNoColorVideoMask( colors.NoColorVideoMask )
-				& supportedAttributes;
-
+	/// <summary>Derives a curses-shaped presentation view from Terminal-owned capabilities.</summary>
+	internal static CursesPresentationCapabilities Create(
+		TerminalScreenCapabilities capabilities
+	) {
 		return new CursesPresentationCapabilities(
-			colors.IndexedColorCount,
-			TerminalColorModel.DirectRgb == colors.Model,
-			colors.HasForegroundSelector,
-			colors.HasBackgroundSelector,
-			colors.HasOriginalColorPair,
-			supportedAttributes,
-			colorRestrictedAttributes,
-			supportsAlternateCharacterSet,
-			null != terminal.GetString( StringCapability.CursorInvisible ),
-			null != terminal.GetString( StringCapability.CursorNormal ),
-			null != terminal.GetString( StringCapability.CursorVeryVisible )
+			capabilities.IndexedColorCount,
+			capabilities.SupportsDirectRgb,
+			capabilities.SupportsForegroundColor,
+			capabilities.SupportsBackgroundColor,
+			capabilities.SupportsDefaultColorRestoration,
+			CursesTerminalScreenMapper.ToCurses( capabilities.SupportedAttributes ),
+			CursesTerminalScreenMapper.ToCurses( capabilities.ColorRestrictedAttributes ),
+			capabilities.SupportsAlternateCharacterSet,
+			capabilities.SupportsCursorHidden,
+			capabilities.SupportsCursorNormal,
+			capabilities.SupportsCursorVeryVisible
 		);
-	}
-
-	private static CursesTextAttributes TranslateNoColorVideoMask( int? mask ) {
-		if ( !mask.HasValue ) {
-			return CursesTextAttributes.None;
-		}
-
-		int value = mask.Value;
-		CursesTextAttributes result = CursesTextAttributes.None;
-		if ( 0 != ( value & NoColorVideoStandout ) ) {
-			result |= CursesTextAttributes.Standout;
-		}
-		if ( 0 != ( value & NoColorVideoUnderline ) ) {
-			result |= CursesTextAttributes.Underline;
-		}
-		if ( 0 != ( value & NoColorVideoReverse ) ) {
-			result |= CursesTextAttributes.Reverse;
-		}
-		if ( 0 != ( value & NoColorVideoBlink ) ) {
-			result |= CursesTextAttributes.Blink;
-		}
-		if ( 0 != ( value & NoColorVideoDim ) ) {
-			result |= CursesTextAttributes.Dim;
-		}
-		if ( 0 != ( value & NoColorVideoBold ) ) {
-			result |= CursesTextAttributes.Bold;
-		}
-		if ( 0 != ( value & NoColorVideoInvisible ) ) {
-			result |= CursesTextAttributes.Conceal;
-		}
-		if ( 0 != ( value & NoColorVideoItalic ) ) {
-			result |= CursesTextAttributes.Italic;
-		}
-		return result;
 	}
 }

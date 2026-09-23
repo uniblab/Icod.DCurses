@@ -59,6 +59,41 @@ internal sealed class CursesPhysicalScreenState {
 		knownCells = new bool[ (int)cellCount ];
 	}
 
+	private CursesPhysicalScreenState(
+		CursesPhysicalScreenState source
+	) {
+		ArgumentNullException.ThrowIfNull( source );
+
+		Columns = source.Columns;
+		Rows = source.Rows;
+		cells = (CursesCell[])source.cells.Clone();
+		knownCells = (bool[])source.knownCells.Clone();
+		if ( source.semanticMetadata is not null ) {
+			semanticMetadata = new CursesSparseCellPlane<CursesCellMetadata>(
+				Columns,
+				Rows
+			);
+			for ( int row = 0; row < Rows; row++ ) {
+				semanticMetadata.ReplaceRow(
+					row,
+					source.semanticMetadata.SnapshotRow( row )
+				);
+			}
+		}
+		if ( source.retainedRaster is not null ) {
+			retainedRaster = new CursesSparseCellPlane<CursesRasterCellReference>(
+				Columns,
+				Rows
+			);
+			for ( int row = 0; row < Rows; row++ ) {
+				retainedRaster.ReplaceRow(
+					row,
+					source.retainedRaster.SnapshotRow( row )
+				);
+			}
+		}
+	}
+
 	/// <summary>Gets the physical-screen column count.</summary>
 	internal int Columns {
 		get;
@@ -74,6 +109,11 @@ internal sealed class CursesPhysicalScreenState {
 
 	/// <summary>Gets the number of retained coordinates carrying raster state.</summary>
 	internal int RasterCellCount => retainedRaster?.Count ?? 0;
+
+	/// <summary>Creates a detached copy preserving known and unknown coordinates.</summary>
+	internal CursesPhysicalScreenState Clone() {
+		return new CursesPhysicalScreenState( this );
+	}
 
 	/// <summary>Gets a known physical cell when one has been recorded.</summary>
 	/// <param name="row">The zero-based row.</param>

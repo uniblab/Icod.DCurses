@@ -28,6 +28,63 @@ namespace Icod.DCurses.Tests;
 
 /// <summary>Exercises bounded production-scale surfaces and refresh frequency.</summary>
 public sealed class CursesScaleHardeningTests {
+	[Theory]
+	[InlineData( ApplicationShape.Roguelike )]
+	[InlineData( ApplicationShape.FullScreenEditor )]
+	[InlineData( ApplicationShape.PixelArt )]
+	[InlineData( ApplicationShape.TileMap )]
+	[InlineData( ApplicationShape.SpriteAndHud )]
+	public async Task ApplicationShapedMixedWorkloadsFitOneBoundedTransaction(
+		ApplicationShape shape
+	) {
+		CountingOutput output = new();
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateScaleTerminal(),
+				output,
+				useSynchronizedOutput: true
+			);
+		CursesScreen screen = new( 160, 60 );
+		CursesRasterCell raster =
+			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell(
+				context.Session
+			);
+		PopulateApplicationFrame( screen, shape, raster );
+		output.Clear();
+
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+
+		Assert.True( 0 < output.WriteCount );
+		Assert.Equal( 1, output.FlushCount );
+		long fullFrameBytes = output.ByteCount;
+		Assert.InRange( fullFrameBytes, 1L, 1024L * 1024 );
+
+		output.Clear();
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+		Assert.Equal( 0, output.WriteCount );
+		Assert.Equal( 0, output.FlushCount );
+		Assert.Equal( 0, output.ByteCount );
+
+		ApplySparseApplicationUpdate( screen, shape, raster );
+		int measurementThread = Environment.CurrentManagedThreadId;
+		long beforeSparseAllocation = GC.GetAllocatedBytesForCurrentThread();
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+		long sparseAllocation = GC.GetAllocatedBytesForCurrentThread()
+			- beforeSparseAllocation;
+
+		Assert.Equal( measurementThread, Environment.CurrentManagedThreadId );
+		Assert.True( 0 < output.WriteCount );
+		Assert.Equal( 1, output.FlushCount );
+		Assert.InRange( output.ByteCount, 1L, fullFrameBytes - 1 );
+		Assert.InRange( sparseAllocation, 0, 4L * 1024 * 1024 );
+
+		output.Clear();
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+		Assert.Equal( 0, output.WriteCount );
+		Assert.Equal( 0, output.FlushCount );
+		Assert.Equal( 0, output.ByteCount );
+	}
+
 	[Fact]
 	public void LargePadSupportsRepeatedTwoAxisPanningWithStableFootprints() {
 		CursesPad pad = new(
@@ -115,6 +172,8 @@ public sealed class CursesScaleHardeningTests {
 		);
 		Assert.Equal( "9", finalCell.Content );
 		Assert.True( writesAfterFullPaint < output.WriteCount );
+		Assert.True( output.WriteCount <= writesAfterFullPaint + 3_000 );
+		Assert.Equal( 1_001, output.FlushCount );
 	}
 
 	[Fact]
@@ -128,13 +187,19 @@ public sealed class CursesScaleHardeningTests {
 		session.StandardScreen.Write( "stable" );
 		await session.RefreshAsync();
 		long baselineWrites = output.WriteCount;
+		int measurementThread = Environment.CurrentManagedThreadId;
+		long beforeNoOpAllocation = GC.GetAllocatedBytesForCurrentThread();
 
 		for ( int iteration = 0; 512 > iteration; ++iteration ) {
 			await session.RefreshAsync();
 		}
+		long noOpAllocation = GC.GetAllocatedBytesForCurrentThread()
+			- beforeNoOpAllocation;
 
+		Assert.Equal( measurementThread, Environment.CurrentManagedThreadId );
 		Assert.Equal( baselineWrites, output.WriteCount );
-		Assert.Equal( 513, output.FlushCount );
+		Assert.Equal( 1, output.FlushCount );
+		Assert.InRange( noOpAllocation, 0, 2L * 1024 * 1024 );
 	}
 
 	private static CursesSessionOptions NoPresentationOptions() {
@@ -156,15 +221,154 @@ public sealed class CursesScaleHardeningTests {
 			new EmptyInput(),
 			output,
 			new TerminalSessionOptions {
-				TerminalOverride = new TerminalDescriptionBuilder( "hardening-scale" )
-					.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
-					.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
-					.SetString( StringCapability.OriginalColorPair, "<op>" )
-					.Build(),
+				TerminalOverride = CreateScaleTerminal(),
 				ConfigureOutput = false,
 				ObserveLifecycleEvents = false
 			}
 		);
+	}
+
+	private static TerminalDescription CreateScaleTerminal() {
+		return new TerminalDescriptionBuilder( "hardening-scale" )
+			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
+			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
+			.SetString( StringCapability.OriginalColorPair, "<op>" )
+			.SetString( StringCapability.EnterBoldMode, "<bold>" )
+			.SetString( StringCapability.EnterUnderlineMode, "<underline>" )
+			.Build();
+	}
+
+	private static void PopulateApplicationFrame(
+		CursesScreen screen,
+		ApplicationShape shape,
+		CursesRasterCell raster
+	) {
+		ArgumentNullException.ThrowIfNull( screen );
+		string palette = shape switch {
+			ApplicationShape.Roguelike => ".#@+",
+			ApplicationShape.FullScreenEditor => "edit",
+			ApplicationShape.PixelArt => "0123",
+			ApplicationShape.TileMap => "^~#.",
+			ApplicationShape.SpriteAndHud => "HUD!",
+			_ => throw new ArgumentOutOfRangeException( nameof( shape ) )
+		};
+		CursesStyle bold = CursesStyle.Default.WithAttributes(
+			CursesTextAttributes.Bold
+		);
+		for ( int row = 0; row < screen.Rows; ++row ) {
+			for ( int column = 0; column < screen.Columns; ++column ) {
+				int block = ( column / 8 ) + row + (int)shape;
+				CursesStyle style = 0 == ( block & 1 )
+					? CursesStyle.Default
+					: bold;
+				string content = palette[
+					( row * 7 + column + (int)shape ) % palette.Length
+				].ToString();
+				screen.VirtualScreen[ row, column ] = new CursesCell(
+					content,
+					style
+				);
+			}
+		}
+
+		for ( int index = 0; 5 > index; ++index ) {
+			int row = ( index * 11 + (int)shape * 3 ) % screen.Rows;
+			int column = 7 + ( index * 29 % ( screen.Columns - 8 ) );
+			screen.VirtualScreen.SetMetadata(
+				row,
+				column,
+				CreateLinkMetadata( shape, $"frame-{index}" )
+			);
+		}
+
+		for ( int index = 0; 3 > index; ++index ) {
+			GetRasterPosition(
+				screen,
+				shape,
+				index,
+				out int row,
+				out int column
+			);
+			screen.VirtualScreen.SetRasterCell( row, column, raster );
+		}
+	}
+
+	private static void ApplySparseApplicationUpdate(
+		CursesScreen screen,
+		ApplicationShape shape,
+		CursesRasterCell raster
+	) {
+		ArgumentNullException.ThrowIfNull( screen );
+		CursesStyle underline = CursesStyle.Default.WithAttributes(
+			CursesTextAttributes.Underline
+		);
+		for ( int index = 0; 12 > index; ++index ) {
+			int row = ( index * 13 + (int)shape ) % screen.Rows;
+			int column = ( index * 37 + (int)shape * 5 ) % screen.Columns;
+			screen.VirtualScreen[ row, column ] = new CursesCell(
+				"*",
+				0 == ( index & 1 ) ? CursesStyle.Default : underline
+			);
+		}
+
+		int linkRow = ( 17 + (int)shape * 7 ) % screen.Rows;
+		int linkColumn = ( 31 + (int)shape * 19 ) % screen.Columns;
+		screen.VirtualScreen.SetMetadata(
+			linkRow,
+			linkColumn,
+			CreateLinkMetadata( shape, "sparse" )
+		);
+
+		GetRasterPosition(
+			screen,
+			shape,
+			0,
+			out int oldRasterRow,
+			out int oldRasterColumn
+		);
+		screen.VirtualScreen.SetRasterCell(
+			oldRasterRow,
+			oldRasterColumn,
+			null
+		);
+		int newRasterRow = ( oldRasterRow + 5 ) % screen.Rows;
+		int newRasterColumn = ( oldRasterColumn + 17 ) % screen.Columns;
+		screen.VirtualScreen.SetRasterCell(
+			newRasterRow,
+			newRasterColumn,
+			raster
+		);
+	}
+
+	private static CursesCellMetadata CreateLinkMetadata(
+		ApplicationShape shape,
+		string suffix
+	) {
+		return new CursesCellMetadata(
+			new CursesHyperlink(
+				$"https://example.test/t2005/{shape}/{suffix}",
+				$"{shape}-{suffix}"
+			)
+		);
+	}
+
+	private static void GetRasterPosition(
+		CursesScreen screen,
+		ApplicationShape shape,
+		int index,
+		out int row,
+		out int column
+	) {
+		row = ( 9 + (int)shape * 7 + index * 13 ) % screen.Rows;
+		column = ( 23 + (int)shape * 17 + index * 41 ) % screen.Columns;
+	}
+
+	public enum ApplicationShape {
+		Roguelike,
+		FullScreenEditor,
+		PixelArt,
+		TileMap,
+		SpriteAndHud
 	}
 
 	private sealed class EmptyInput : ITerminalInput {
@@ -180,11 +384,18 @@ public sealed class CursesScaleHardeningTests {
 
 	private sealed class CountingOutput : ITerminalOutput {
 		private long writeCount;
+		private long byteCount;
 		private int flushCount;
 
 		internal long WriteCount {
 			get {
 				return Interlocked.Read( ref this.writeCount );
+			}
+		}
+
+		internal long ByteCount {
+			get {
+				return Interlocked.Read( ref this.byteCount );
 			}
 		}
 
@@ -194,12 +405,18 @@ public sealed class CursesScaleHardeningTests {
 			}
 		}
 
+		internal void Clear() {
+			Interlocked.Exchange( ref this.writeCount, 0 );
+			Interlocked.Exchange( ref this.byteCount, 0 );
+			Interlocked.Exchange( ref this.flushCount, 0 );
+		}
+
 		public ValueTask WriteAsync(
 			ReadOnlyMemory<byte> buffer,
 			CancellationToken cancellationToken = default
 		) {
-			_ = buffer;
 			cancellationToken.ThrowIfCancellationRequested();
+			Interlocked.Add( ref this.byteCount, buffer.Length );
 			Interlocked.Increment( ref this.writeCount );
 			return ValueTask.CompletedTask;
 		}

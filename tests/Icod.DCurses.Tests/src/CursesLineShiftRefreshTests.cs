@@ -19,30 +19,25 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+namespace Icod.DCurses.Tests;
+
 using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
-namespace Icod.DCurses.Tests;
-
-/// <summary>Verifies whole-row line and scroll optimization through the retained refresh engine.</summary>
+/// <summary>Verifies cost-aware line-shift selection through the retained refresh engine.</summary>
 public sealed class CursesLineShiftRefreshTests {
 	[Fact]
-	public async Task DeleteLinesUsesPhysicalDeleteLinesAndRetainsExactScreen() {
+	public async Task DeleteLinesUsesTerminalPlanAndRetainsExactScreen() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateDirectLineTerminal(),
-			output
-		);
-		CursesScreen screen = CreateScreen(
-			16,
-			"A",
-			"B",
-			"C",
-			"D"
-		);
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = context.Engine;
+		CursesScreen screen = CreateScreen( 8, "A", "B", "C", "D" );
 		screen.StandardWindow.Move( 1, 0 );
 		await engine.RefreshAsync( screen, 1, 0 );
 		output.Clear();
@@ -51,37 +46,29 @@ public sealed class CursesLineShiftRefreshTests {
 		await engine.RefreshAsync( screen, 1, 0 );
 
 		Assert.Equal( "D1", output.Text );
-		Assert.Equal( 1, output.FlushCount );
-		Assert.Contains(
-			output.TerminalWrites,
-			write => "D1" == write.Value
-				&& 3 == write.AffectedLines
+		Assert.Equal(
+			new[] { "AAAAAAAA", "CCCCCCCC", "DDDDDDDD", "        " },
+			ReadRows( screen )
 		);
-		Assert.Equal( new string( 'A', 16 ), ReadRow( screen, 0 ) );
-		Assert.Equal( new string( 'C', 16 ), ReadRow( screen, 1 ) );
-		Assert.Equal( new string( 'D', 16 ), ReadRow( screen, 2 ) );
-		Assert.Equal( new string( ' ', 16 ), ReadRow( screen, 3 ) );
+		Assert.Equal( 1, output.FlushCount );
 
 		output.Clear();
 		await engine.RefreshAsync( screen, 1, 0 );
 		Assert.Equal( string.Empty, output.Text );
-		Assert.Equal( 1, output.FlushCount );
+		Assert.Equal( 0, output.WriteCount );
+		Assert.Equal( 0, output.FlushCount );
 	}
 
 	[Fact]
-	public async Task InsertLinesUsesPhysicalInsertLinesAndRetainsExactScreen() {
+	public async Task InsertLinesUsesTerminalPlanAndRetainsExactScreen() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateDirectLineTerminal(),
-			output
-		);
-		CursesScreen screen = CreateScreen(
-			16,
-			"A",
-			"B",
-			"C",
-			"D"
-		);
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = context.Engine;
+		CursesScreen screen = CreateScreen( 8, "A", "B", "C", "D" );
 		screen.StandardWindow.Move( 1, 0 );
 		await engine.RefreshAsync( screen, 1, 0 );
 		output.Clear();
@@ -90,40 +77,30 @@ public sealed class CursesLineShiftRefreshTests {
 		await engine.RefreshAsync( screen, 1, 0 );
 
 		Assert.Equal( "I1", output.Text );
-		Assert.Equal( 1, output.FlushCount );
-		Assert.Contains(
-			output.TerminalWrites,
-			write => "I1" == write.Value
-				&& 3 == write.AffectedLines
+		Assert.Equal(
+			new[] { "AAAAAAAA", "        ", "BBBBBBBB", "CCCCCCCC" },
+			ReadRows( screen )
 		);
-		Assert.Equal( new string( 'A', 16 ), ReadRow( screen, 0 ) );
-		Assert.Equal( new string( ' ', 16 ), ReadRow( screen, 1 ) );
-		Assert.Equal( new string( 'B', 16 ), ReadRow( screen, 2 ) );
-		Assert.Equal( new string( 'C', 16 ), ReadRow( screen, 3 ) );
+		Assert.Equal( 1, output.FlushCount );
+
+		output.Clear();
+		await engine.RefreshAsync( screen, 1, 0 );
+		Assert.Equal( string.Empty, output.Text );
+		Assert.Equal( 0, output.WriteCount );
+		Assert.Equal( 0, output.FlushCount );
 	}
 
 	[Fact]
-	public async Task InteriorFullWidthWindowUsesTemporaryScrollRegionAndRestoresIt() {
+	public async Task InteriorWindowUsesOrderedTemporaryScrollRegion() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateBoundedLineTerminal(),
-			output
-		);
-		CursesScreen screen = CreateScreen(
-			16,
-			"A",
-			"B",
-			"C",
-			"D",
-			"E"
-		);
-		CursesWindow editor = screen.CreateWindow(
-			1,
-			0,
-			2,
-			16
-		);
-		screen.StandardWindow.Move( 0, 0 );
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateInteriorTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = context.Engine;
+		CursesScreen screen = CreateScreen( 8, "A", "B", "C", "D", "E" );
+		CursesWindow editor = screen.CreateWindow( 1, 0, 2, 8 );
 		await engine.RefreshAsync( screen, 0, 0 );
 		output.Clear();
 
@@ -131,50 +108,31 @@ public sealed class CursesLineShiftRefreshTests {
 		editor.DeleteLines();
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Equal( "R12CDR04C", output.Text );
-		Assert.Contains(
-			output.TerminalWrites,
-			write => "R12" == write.Value
-				&& 2 == write.AffectedLines
+		Assert.Equal( "RCLRC", output.Text );
+		Assert.Equal(
+			new[] { "AAAAAAAA", "CCCCCCCC", "        ", "DDDDDDDD", "EEEEEEEE" },
+			ReadRows( screen )
 		);
-		Assert.Contains(
-			output.TerminalWrites,
-			write => "D" == write.Value
-				&& 2 == write.AffectedLines
-		);
-		Assert.Contains(
-			output.TerminalWrites,
-			write => "R04" == write.Value
-				&& 5 == write.AffectedLines
-		);
-		Assert.Equal( new string( 'A', 16 ), ReadRow( screen, 0 ) );
-		Assert.Equal( new string( 'C', 16 ), ReadRow( screen, 1 ) );
-		Assert.Equal( new string( ' ', 16 ), ReadRow( screen, 2 ) );
-		Assert.Equal( new string( 'D', 16 ), ReadRow( screen, 3 ) );
-		Assert.Equal( new string( 'E', 16 ), ReadRow( screen, 4 ) );
+		Assert.Equal( 1, output.FlushCount );
 
 		output.Clear();
 		await engine.RefreshAsync( screen, 0, 0 );
 		Assert.Equal( string.Empty, output.Text );
+		Assert.Equal( 0, output.WriteCount );
+		Assert.Equal( 0, output.FlushCount );
 	}
 
 	[Fact]
-	public async Task FullScreenDeleteCanPreferScrollForward() {
+	public async Task FullScreenDeleteUsesScrollForwardWhenCheaper() {
 		RecordingOutput output = new();
-		TerminalDescription terminal = new TerminalDescriptionBuilder( "scroll-forward" )
+		TerminalDescription terminal = new TerminalDescriptionBuilder( "full-scroll" )
 			.SetString( StringCapability.CursorAddress, "C" )
-			.SetString( StringCapability.DeleteLines, "VERYLONG%p1%d" )
 			.SetString( StringCapability.ScrollForwardLines, "F%p1%d" )
 			.Build();
-		CursesRefreshEngine engine = new( terminal, output );
-		CursesScreen screen = CreateScreen(
-			16,
-			"A",
-			"B",
-			"C",
-			"D"
-		);
-		screen.StandardWindow.Move( 0, 0 );
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync( terminal, output );
+		CursesRefreshEngine engine = context.Engine;
+		CursesScreen screen = CreateScreen( 8, "A", "B", "C", "D" );
 		await engine.RefreshAsync( screen, 0, 0 );
 		output.Clear();
 
@@ -182,160 +140,32 @@ public sealed class CursesLineShiftRefreshTests {
 		await engine.RefreshAsync( screen, 0, 0 );
 
 		Assert.Equal( "CF1C", output.Text );
-		Assert.DoesNotContain( "VERYLONG", output.Text );
-		Assert.Contains(
-			output.TerminalWrites,
-			write => "F1" == write.Value
-				&& 4 == write.AffectedLines
+		Assert.Equal(
+			new[] { "BBBBBBBB", "CCCCCCCC", "DDDDDDDD", "        " },
+			ReadRows( screen )
 		);
-	}
+		Assert.Equal( 1, output.FlushCount );
 
-	[Fact]
-	public async Task PartialWidthWindowDoesNotClaimTerminalScrollRegionOwnership() {
-		RecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateBoundedLineTerminal(),
-			output
-		);
-		CursesScreen screen = CreateScreen(
-			16,
-			"A",
-			"B",
-			"C",
-			"D"
-		);
-		CursesWindow editor = screen.CreateWindow(
-			1,
-			4,
-			2,
-			8
-		);
-		screen.StandardWindow.Move( 0, 0 );
-		await engine.RefreshAsync( screen, 0, 0 );
-		output.Clear();
-
-		editor.Move( 0, 0 );
-		editor.DeleteLines();
-		await engine.RefreshAsync( screen, 0, 0 );
-
-		Assert.DoesNotContain(
-			output.TerminalWrites,
-			write => "D" == write.Value
-		);
-		Assert.DoesNotContain(
-			output.TerminalWrites,
-			write => write.Value.StartsWith(
-				"R",
-				StringComparison.Ordinal
-			)
-		);
-		Assert.Contains( new string( 'C', 8 ), output.Text );
-	}
-
-	[Fact]
-	public async Task FailedBoundedLineShiftRestoresFullScrollRegionBeforeRethrow() {
-		RecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateBoundedLineTerminal(),
-			output
-		);
-		CursesScreen screen = CreateScreen(
-			16,
-			"A",
-			"B",
-			"C",
-			"D",
-			"E"
-		);
-		CursesWindow editor = screen.CreateWindow(
-			1,
-			0,
-			2,
-			16
-		);
-		screen.StandardWindow.Move( 0, 0 );
-		await engine.RefreshAsync( screen, 0, 0 );
-		output.Clear();
-		editor.Move( 0, 0 );
-		editor.DeleteLines();
-		output.ThrowOnWrites = new HashSet<int> {
-			3
-		};
-
-		await Assert.ThrowsAsync<IOException>(
-			async () => await engine.RefreshAsync( screen, 0, 0 )
-		);
-
-		Assert.Equal( "R12CR04", output.Text );
-		Assert.Contains(
-			output.TerminalWrites,
-			write => "R04" == write.Value
-		);
-
-		output.ThrowOnWrites = null;
 		output.Clear();
 		await engine.RefreshAsync( screen, 0, 0 );
-		Assert.DoesNotContain( "R12", output.Text );
-		Assert.Contains( new string( 'C', 16 ), output.Text );
+		Assert.Equal( string.Empty, output.Text );
+		Assert.Equal( 0, output.WriteCount );
+		Assert.Equal( 0, output.FlushCount );
 	}
 
-	[Fact]
-	public async Task OperationAndScrollRegionRestorationFailuresAreBothPreserved() {
-		RecordingOutput output = new();
-		CursesRefreshEngine engine = new(
-			CreateBoundedLineTerminal(),
-			output
-		);
-		CursesScreen screen = CreateScreen(
-			16,
-			"A",
-			"B",
-			"C",
-			"D",
-			"E"
-		);
-		CursesWindow editor = screen.CreateWindow(
-			1,
-			0,
-			2,
-			16
-		);
-		screen.StandardWindow.Move( 0, 0 );
-		await engine.RefreshAsync( screen, 0, 0 );
-		output.Clear();
-		editor.Move( 0, 0 );
-		editor.DeleteLines();
-		output.ThrowOnWrites = new HashSet<int> {
-			3,
-			4
-		};
-
-		AggregateException failure = await Assert.ThrowsAsync<AggregateException>(
-			async () => await engine.RefreshAsync( screen, 0, 0 )
-		);
-
-		Assert.Equal( 2, failure.InnerExceptions.Count );
-		Assert.All(
-			failure.InnerExceptions,
-			inner => Assert.IsType<IOException>( inner )
-		);
-		Assert.Equal( "R12C", output.Text );
-	}
-
-	private static TerminalDescription CreateDirectLineTerminal() {
-		return new TerminalDescriptionBuilder( "direct-line" )
-			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
+	private static TerminalDescription CreateTerminal() {
+		return new TerminalDescriptionBuilder( "line-selection" )
+			.SetString( StringCapability.CursorAddress, "C" )
 			.SetString( StringCapability.DeleteLines, "D%p1%d" )
 			.SetString( StringCapability.InsertLines, "I%p1%d" )
 			.Build();
 	}
 
-	private static TerminalDescription CreateBoundedLineTerminal() {
-		return new TerminalDescriptionBuilder( "bounded-line" )
+	private static TerminalDescription CreateInteriorTerminal() {
+		return new TerminalDescriptionBuilder( "interior-line-selection" )
 			.SetString( StringCapability.CursorAddress, "C" )
-			.SetString( StringCapability.ChangeScrollRegion, "R%p1%d%p2%d" )
-			.SetString( StringCapability.DeleteLine, "D" )
-			.SetString( StringCapability.InsertLine, "I" )
+			.SetString( StringCapability.ChangeScrollRegion, "R" )
+			.SetString( StringCapability.DeleteLine, "L" )
 			.Build();
 	}
 
@@ -343,25 +173,8 @@ public sealed class CursesLineShiftRefreshTests {
 		int columns,
 		params string[] rowValues
 	) {
-		if ( 0 >= columns ) {
-			throw new ArgumentOutOfRangeException( nameof( columns ) );
-		}
-		ArgumentNullException.ThrowIfNull( rowValues );
-		if ( 0 == rowValues.Length ) {
-			throw new ArgumentException(
-				"At least one row value is required.",
-				nameof( rowValues )
-			);
-		}
-
 		CursesScreen screen = new( columns, rowValues.Length );
 		for ( int row = 0; row < rowValues.Length; row++ ) {
-			if ( 1 != rowValues[ row ].Length ) {
-				throw new ArgumentException(
-					"Each row value must contain exactly one character.",
-					nameof( rowValues )
-				);
-			}
 			for ( int column = 0; column < columns; column++ ) {
 				screen.VirtualScreen[ row, column ] = new CursesCell(
 					rowValues[ row ]
@@ -371,39 +184,26 @@ public sealed class CursesLineShiftRefreshTests {
 		return screen;
 	}
 
-	private static string ReadRow(
-		CursesScreen screen,
-		int row
-	) {
+	private static string[] ReadRows( CursesScreen screen ) {
 		ArgumentNullException.ThrowIfNull( screen );
-		if ( 0 > row || row >= screen.Rows ) {
-			throw new ArgumentOutOfRangeException( nameof( row ) );
-		}
-
-		StringBuilder result = new();
-		for ( int column = 0; column < screen.Columns; column++ ) {
-			CursesCell cell = screen.VirtualScreen[ row, column ];
-			if ( cell.IsBlank ) {
-				result.Append( ' ' );
-			} else {
-				result.Append( cell.Content );
+		string[] result = new string[ screen.Rows ];
+		for ( int row = 0; row < screen.Rows; row++ ) {
+			StringBuilder value = new();
+			for ( int column = 0; column < screen.Columns; column++ ) {
+				CursesCell cell = screen.VirtualScreen[ row, column ];
+				value.Append( cell.IsBlank ? " " : cell.Content );
 			}
+			result[ row ] = value.ToString();
 		}
-		return result.ToString();
+		return result;
 	}
 
-	private readonly record struct RecordedTerminalWrite(
-		string Value,
-		int AffectedLines
-	);
-
-	private sealed class RecordingOutput : ITerminalOutput {
+	private sealed class RecordingOutput : ILegacyTerminalOutputFixture {
 		private readonly StringBuilder text = new();
-		private int writeCount;
 
-		internal HashSet<int>? ThrowOnWrites {
+		internal int WriteCount {
 			get;
-			set;
+			private set;
 		}
 
 		internal int FlushCount {
@@ -411,29 +211,21 @@ public sealed class CursesLineShiftRefreshTests {
 			private set;
 		}
 
-		internal List<RecordedTerminalWrite> TerminalWrites {
-			get;
-		} = [];
-
-		internal string Text => text.ToString();
+		internal string Text => this.text.ToString();
 
 		internal void Clear() {
-			text.Clear();
-			writeCount = 0;
-			FlushCount = 0;
-			TerminalWrites.Clear();
+			this.text.Clear();
+			this.WriteCount = 0;
+			this.FlushCount = 0;
 		}
 
 		public ValueTask WriteTextAsync(
 			string value,
 			CancellationToken cancellationToken = default
 		) {
-			ArgumentNullException.ThrowIfNull( value );
-			return WriteCoreAsync(
+			return this.WriteTerminalStringAsync(
 				value,
-				affectedLines: 1,
-				terminalString: false,
-				cancellationToken
+				cancellationToken: cancellationToken
 			);
 		}
 
@@ -443,49 +235,17 @@ public sealed class CursesLineShiftRefreshTests {
 			CancellationToken cancellationToken = default
 		) {
 			ArgumentNullException.ThrowIfNull( value );
-			if ( 0 >= affectedLines ) {
-				throw new ArgumentOutOfRangeException( nameof( affectedLines ) );
-			}
-			return WriteCoreAsync(
-				value,
-				affectedLines,
-				terminalString: true,
-				cancellationToken
-			);
+			cancellationToken.ThrowIfCancellationRequested();
+			this.WriteCount++;
+			this.text.Append( value );
+			return ValueTask.CompletedTask;
 		}
 
 		public ValueTask FlushAsync(
 			CancellationToken cancellationToken = default
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
-			FlushCount++;
-			return ValueTask.CompletedTask;
-		}
-
-		private ValueTask WriteCoreAsync(
-			string value,
-			int affectedLines,
-			bool terminalString,
-			CancellationToken cancellationToken
-		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			writeCount++;
-			if ( null != ThrowOnWrites
-				&& ThrowOnWrites.Contains( writeCount ) ) {
-				throw new IOException(
-					$"Synthetic T706 output failure at write {writeCount}."
-				);
-			}
-
-			text.Append( value );
-			if ( terminalString ) {
-				TerminalWrites.Add(
-					new RecordedTerminalWrite(
-						value,
-						affectedLines
-					)
-				);
-			}
+			this.FlushCount++;
 			return ValueTask.CompletedTask;
 		}
 	}

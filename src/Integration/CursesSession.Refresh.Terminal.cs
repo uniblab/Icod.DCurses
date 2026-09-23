@@ -21,7 +21,6 @@
 
 namespace Icod.DCurses;
 
-using System.Runtime.ExceptionServices;
 using Icod.DCurses.Internal;
 using Icod.Terminal;
 
@@ -30,7 +29,6 @@ public sealed partial class CursesSession {
 	private readonly object refreshSync = new();
 	private CursesRefreshEngine? refreshEngine;
 	private CursesScreen? panelRefreshProjection;
-	private TerminalSynchronizedOutputLease? pendingSynchronizedOutputCleanup;
 
 	/// <summary>
 	/// Synchronizes the desired logical screen with the terminal and leaves the physical cursor
@@ -44,45 +42,9 @@ public sealed partial class CursesSession {
 			cancellationToken
 		).ConfigureAwait( false );
 
-		if ( !this.Options.UseSynchronizedOutput ) {
-			await this.RefreshCoreAsync(
-				cancellationToken
-			).ConfigureAwait( false );
-			return;
-		}
-
-		await this.RetryPendingSynchronizedOutputCleanupAsync().ConfigureAwait( false );
-		TerminalSynchronizedOutputLease synchronizedOutput =
-			await this.HostSession.AcquireSynchronizedOutputAsync(
-				cancellationToken
-			).ConfigureAwait( false );
-		Exception? refreshFailure = null;
-		try {
-			await this.RefreshCoreAsync(
-				cancellationToken
-			).ConfigureAwait( false );
-		} catch ( Exception exception ) {
-			refreshFailure = exception;
-		}
-
-		try {
-			await synchronizedOutput.DisposeAsync().ConfigureAwait( false );
-		} catch ( Exception synchronizationFailure ) {
-			this.pendingSynchronizedOutputCleanup = synchronizedOutput;
-			this.InvalidatePhysicalScreen();
-			if ( refreshFailure is not null ) {
-				throw new AggregateException(
-					"Curses refresh failed and synchronized-output restoration also reported an error.",
-					refreshFailure,
-					synchronizationFailure
-				);
-			}
-			throw;
-		}
-
-		if ( refreshFailure is not null ) {
-			ExceptionDispatchInfo.Capture( refreshFailure ).Throw();
-		}
+		await this.RefreshCoreAsync(
+			cancellationToken
+		).ConfigureAwait( false );
 	}
 
 	/// <summary>Invalidates all physical-screen knowledge for the next refresh.</summary>
@@ -265,8 +227,6 @@ public sealed partial class CursesSession {
 	}
 
 	private async ValueTask ResetRefreshRenditionAsync() {
-		await this.RetryPendingSynchronizedOutputCleanupAsync().ConfigureAwait( false );
-
 		CursesRefreshEngine? engine;
 		lock ( this.refreshSync ) {
 			engine = this.refreshEngine;
@@ -276,32 +236,21 @@ public sealed partial class CursesSession {
 			return;
 		}
 
-		await engine.ResetRenditionAsync(
-			CancellationToken.None
-		).ConfigureAwait( false );
-	}
-
-	private async ValueTask RetryPendingSynchronizedOutputCleanupAsync() {
-		TerminalSynchronizedOutputLease? pending = this.pendingSynchronizedOutputCleanup;
-		if ( pending is null ) {
+		TerminalScreenOperationPlan? plan = engine.PlanRenditionReset();
+		if ( !plan.HasValue ) {
 			return;
 		}
-
-		try {
-			await pending.DisposeAsync().ConfigureAwait( false );
-			this.pendingSynchronizedOutputCleanup = null;
-		} catch {
-			this.InvalidatePhysicalScreen();
-			throw;
-		}
+		await engine.ResetRenditionAsync(
+			plan.Value,
+			CancellationToken.None
+		).ConfigureAwait( false );
 	}
 
 	private CursesRefreshEngine GetRefreshEngine() {
 		lock ( this.refreshSync ) {
 			this.refreshEngine ??= new CursesRefreshEngine(
-				this.Terminal,
-				this.refreshOutput,
-				this.HostSession.ApplicationEncoding
+				this.HostSession,
+				this.Options.UseSynchronizedOutput
 			);
 			return this.refreshEngine;
 		}

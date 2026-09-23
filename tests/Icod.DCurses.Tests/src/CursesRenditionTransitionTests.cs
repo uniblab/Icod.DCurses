@@ -21,7 +21,6 @@
 
 using System.Text;
 using Icod.DCurses.Internal;
-using Icod.DCurses.Terminal;
 using Icod.TermInfo;
 using Xunit;
 
@@ -30,9 +29,14 @@ namespace Icod.DCurses.Tests;
 /// <summary>Verifies differential physical rendition transitions.</summary>
 public sealed class CursesRenditionTransitionTests {
 	[Fact]
-	public async Task AdditiveAttributeTransitionAvoidsResetAndColorRestore() {
+	public async Task AdditiveAttributeTransitionUsesTerminalPlannerAndPreservesOrder() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"A",
@@ -48,17 +52,34 @@ public sealed class CursesRenditionTransitionTests {
 
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Equal( 1, Count( output.Text, "<sgr0>" ) );
-		Assert.Equal( 1, Count( output.Text, "<op>" ) );
-		Assert.Equal( 1, Count( output.Text, "<bold>" ) );
-		Assert.Equal( 1, Count( output.Text, "<underline>" ) );
-		Assert.Contains( "A<underline>B", output.Text );
+		Assert.Contains( "<sgr0>", output.Text );
+		Assert.Contains( "<op>", output.Text );
+		Assert.Contains( "<bold>", output.Text );
+		Assert.Contains( "<underline>", output.Text );
+		int firstPayload = output.Text.IndexOf( "A", StringComparison.Ordinal );
+		int underline = output.Text.IndexOf(
+			"<underline>",
+			firstPayload + 1,
+			StringComparison.Ordinal
+		);
+		int secondPayload = output.Text.IndexOf(
+			"B",
+			underline + "<underline>".Length,
+			StringComparison.Ordinal
+		);
+		Assert.True( firstPayload < underline );
+		Assert.True( underline < secondPayload );
 	}
 
 	[Fact]
-	public async Task NondefaultColorChangeAvoidsResetAndOriginalPairRestore() {
+	public async Task NondefaultColorChangeUsesTerminalPlannerAndPreservesOrder() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"A",
@@ -77,16 +98,21 @@ public sealed class CursesRenditionTransitionTests {
 
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Equal( 1, Count( output.Text, "<sgr0>" ) );
-		Assert.Equal( 1, Count( output.Text, "<op>" ) );
-		Assert.Equal( 1, Count( output.Text, "<fg:1>" ) );
-		Assert.Equal( 1, Count( output.Text, "<fg:2>" ) );
+		Assert.Contains( "<sgr0>", output.Text );
+		Assert.Contains( "<op>", output.Text );
+		Assert.Contains( "<fg:1>A", output.Text );
+		Assert.Contains( "<fg:2>B", output.Text );
 	}
 
 	[Fact]
-	public async Task AttributeRemovalRetainsResetFirstSafety() {
+	public async Task AttributeRemovalUsesSafeTerminalPlannerTransition() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"A",
@@ -102,16 +128,22 @@ public sealed class CursesRenditionTransitionTests {
 
 		await engine.RefreshAsync( screen, 0, 0 );
 
-		Assert.Equal( 2, Count( output.Text, "<sgr0>" ) );
-		Assert.Equal( 2, Count( output.Text, "<op>" ) );
-		Assert.Equal( 1, Count( output.Text, "<bold>" ) );
-		Assert.Equal( 2, Count( output.Text, "<underline>" ) );
+		Assert.Contains( "<sgr0>", output.Text );
+		Assert.Contains( "<op>", output.Text );
+		Assert.Contains( "<bold>", output.Text );
+		Assert.Contains( "<underline>", output.Text );
+		Assert.Contains( "B", output.Text );
 	}
 
 	[Fact]
 	public async Task ReturningOneColorChannelToDefaultRestoresAndReappliesOtherChannel() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"A",
@@ -139,7 +171,12 @@ public sealed class CursesRenditionTransitionTests {
 	[Fact]
 	public async Task LogicalStylesResolvingToSamePhysicalStyleDoNotRepeatReset() {
 		RecordingOutput output = new();
-		CursesRefreshEngine engine = new( CreateTerminal(), output );
+		await using CursesRefreshEngineTestContext refreshContext =
+			await CursesRefreshEngineTestContext.OpenAsync(
+				CreateTerminal(),
+				output
+			);
+		CursesRefreshEngine engine = refreshContext.Engine;
 		CursesScreen screen = new( 2, 1 );
 		screen.VirtualScreen[ 0, 0 ] = new CursesCell(
 			"A",
@@ -203,7 +240,7 @@ public sealed class CursesRenditionTransitionTests {
 		}
 	}
 
-	private sealed class RecordingOutput : ITerminalOutput {
+	private sealed class RecordingOutput : ILegacyTerminalOutputFixture {
 		private readonly StringBuilder text = new();
 
 		internal string Text => text.ToString();

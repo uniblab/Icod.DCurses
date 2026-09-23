@@ -25,48 +25,37 @@ using Xunit;
 
 namespace Icod.DCurses.Tests;
 
-/// <summary>Freezes the internal T1606 raster-refresh seams before renderer behavior is implemented.</summary>
+/// <summary>Freezes raster refresh on the Terminal-owned transactional boundary.</summary>
 public sealed class CursesRasterRefreshContractTests {
 	[Fact]
-	public void RasterPlaceholderOutputBoundaryHasExactInternalShape() {
+	public void RasterPlaceholderOutputUsesPreparedTerminalTransaction() {
 		Assembly assembly = typeof( CursesRefreshEngine ).Assembly;
-		Type outputType = Assert.IsAssignableFrom<Type>(
+		MethodInfo method = Assert.IsAssignableFrom<MethodInfo>(
+			typeof( CursesPreparedRefresh ).GetMethod(
+				"WriteRasterPlaceholderCell",
+				BindingFlags.Instance | BindingFlags.NonPublic,
+				binder: null,
+				[ typeof( CursesRasterCell ) ],
+				modifiers: null
+			)
+		);
+		Assert.Equal( typeof( void ), method.ReturnType );
+		Assert.Null(
 			assembly.GetType(
 				"Icod.DCurses.Terminal.ITerminalRasterPlaceholderOutput",
 				throwOnError: false
 			)
 		);
-
-		Assert.True( outputType.IsInterface );
-		Assert.True( outputType.IsNotPublic );
-		MethodInfo method = Assert.IsAssignableFrom<MethodInfo>(
-			outputType.GetMethod(
-				"WriteRasterPlaceholderCellAsync",
-				[ typeof( CursesRasterCell ), typeof( CancellationToken ) ]
-			)
-		);
-		Assert.Equal( typeof( ValueTask ), method.ReturnType );
 	}
 
 	[Fact]
-	public void TerminalBackedOutputImplementsRasterPlaceholderBoundary() {
+	public void LegacyTerminalOutputAdapterRemainsDeleted() {
 		Assembly assembly = typeof( CursesRefreshEngine ).Assembly;
-		Type outputType = Assert.IsAssignableFrom<Type>(
-			assembly.GetType(
-				"Icod.DCurses.Terminal.ITerminalRasterPlaceholderOutput",
-				throwOnError: false
-			)
-		);
-		Type adapterType = Assert.IsAssignableFrom<Type>(
+		Assert.Null(
 			assembly.GetType(
 				"Icod.DCurses.Terminal.TerminalSessionCursesOutput",
 				throwOnError: false
 			)
-		);
-
-		Assert.Contains(
-			outputType,
-			adapterType.GetInterfaces()
 		);
 	}
 
