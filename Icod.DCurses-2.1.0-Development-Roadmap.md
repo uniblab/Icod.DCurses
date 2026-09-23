@@ -8,7 +8,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2101 blocked on one pre-existing allocation-noise matrix job; T2102 pending\
+**Status:** T2101 accepted; T2102 implementation pending\
 **Planning snapshot:** 2026-09-23
 
 **T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
@@ -318,7 +318,7 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 ## 15. Tranche sequence
 
-### T2101 — architecture, baseline and API regret gate — blocked
+### T2101 — architecture, baseline and API regret gate — accepted
 
 - Capture the published 2.0 API, package, behavior, performance and dependency baseline.
 - Turn the coordinate/text model in this roadmap into reviewed public API candidates.
@@ -327,7 +327,7 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 - Confirm that Terminal 1.18.0 remains sufficient.
 - Write the implementation plan for accepted APIs.
 
-**Acceptance:** the baseline, reviewed design, reversible RED witness, T2102-T2108 plan and foundation gate are complete. Exact-head workflow 35906986670 has 13 successful jobs and one repeatedly failing pre-existing macOS ARM64 Staging allocation-noise job. T2101 remains blocked under its all-green rule; no production behavior or package identity changed.
+**Acceptance:** the baseline, reviewed design, reversible RED witness, T2102-T2108 plan and foundation gate are complete. Exact-head workflow 35911150258 passed all 14 jobs after steady-state allocation fixtures were isolated from .NET 9 multi-TFM and xUnit collection parallelism. No allocation ceiling, production behavior or package identity changed.
 
 ### T2102 — development identity and text coordinate foundation
 
@@ -443,4 +443,4 @@ These remain candidates for later releases or sibling packages. The intended seq
 
 ## 17. Immediate next step
 
-Obtain a successful unchanged rerun of the macOS ARM64 Staging job, or make an explicit gate-exception decision for its already-documented allocation-noise tests. After T2101 is accepted, begin T2102 from the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): advance `Version` and `PackageVersion` together to `2.1.0-alpha.1`, retain `AssemblyVersion 2.0.0.0`, and implement the source-position/rich-span foundation test-first.
+Begin T2102 from the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): advance `Version` and `PackageVersion` together to `2.1.0-alpha.1`, retain `AssemblyVersion 2.0.0.0`, and implement the source-position/rich-span foundation test-first.
