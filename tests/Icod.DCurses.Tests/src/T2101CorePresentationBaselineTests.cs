@@ -20,6 +20,7 @@
 */
 
 using System.Reflection;
+using System.Text.Json;
 using Xunit;
 
 namespace Icod.DCurses.Tests;
@@ -27,14 +28,31 @@ namespace Icod.DCurses.Tests;
 /// <summary>Freezes the compiled 2.0 identity and production dependency boundary for T2101.</summary>
 public sealed class T2101CorePresentationBaselineTests {
 	[Fact]
-	public void PublishedTwoZeroAssemblyIdentityRemainsFrozen() {
+	public void PublishedTwoZeroAssemblyIdentityAndSurfaceRemainCompatible() {
 		Assembly assembly = typeof( CursesSession ).Assembly;
 
 		Assert.Equal(
 			new Version( 2, 0, 0, 0 ),
 			assembly.GetName().Version
 		);
-		Assert.Equal( 75, assembly.GetExportedTypes().Length );
+		string baselinePath = Path.Combine(
+			AppContext.BaseDirectory,
+			"Public-API-Fingerprint-2.0.json"
+		);
+		using JsonDocument document = JsonDocument.Parse(
+			File.ReadAllText( baselinePath )
+		);
+		string[] currentTypes = assembly.GetExportedTypes()
+			.Select( static type => type.FullName! )
+			.ToArray();
+		foreach ( JsonElement stableType in document.RootElement
+			.GetProperty( "exportedTypes" )
+			.EnumerateArray() ) {
+			Assert.Contains(
+				stableType.GetString()!,
+				currentTypes
+			);
+		}
 	}
 
 	[Fact]
