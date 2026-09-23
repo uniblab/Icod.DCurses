@@ -22,6 +22,7 @@
 namespace Icod.DCurses.Internal;
 
 internal static class CursesTextLayoutBuilder {
+	private const string EllipsisText = "\u2026";
 	private const int MaximumSourceLength = 16_777_216;
 	private const int MaximumSpanCount = 1_048_576;
 	private const int MaximumFragmentCount = 4_194_304;
@@ -148,6 +149,42 @@ internal static class CursesTextLayoutBuilder {
 					isClipped = false;
 				}
 
+				bool hasEllipsis = false;
+				int ellipsisWidth = 0;
+				int ellipsisSourceOffset = 0;
+				CursesStyle ellipsisStyle = options.DefaultStyle;
+				CursesCellMetadata? ellipsisMetadata = options.DefaultMetadata;
+				if ( isClipped
+					&& CursesTextOverflow.Ellipsis == options.Overflow ) {
+					ellipsisWidth = GetValidatedWidth(
+						options.WidthProvider,
+						EllipsisText
+					);
+					if ( ellipsisWidth <= options.Columns ) {
+						while ( visualElementStart < visibleEnd
+							&& options.Columns < ellipsisWidth + MeasureColumns(
+								elements,
+								visualElementStart,
+								visibleEnd,
+								options,
+								options.StartingColumn
+							) ) {
+							visibleEnd--;
+						}
+						hasEllipsis = true;
+						ellipsisSourceOffset = elements[ visibleEnd ].SourceStart;
+						ResolvePresentation(
+							elements[ visibleEnd ],
+							options,
+							spans,
+							out ellipsisStyle,
+							out ellipsisMetadata
+						);
+					} else {
+						visibleEnd = visualElementStart;
+					}
+				}
+
 				int sourceStart = visualElementStart < logicalElementEnd
 					? elements[ visualElementStart ].SourceStart
 					: logicalSourceStart
@@ -163,6 +200,9 @@ internal static class CursesTextLayoutBuilder {
 					options,
 					options.StartingColumn
 				);
+				if ( hasEllipsis ) {
+					contentColumns = checked( contentColumns + ellipsisWidth );
+				}
 				int lineColumn = GetAlignedColumn(
 					options,
 					contentColumns
@@ -186,11 +226,26 @@ internal static class CursesTextLayoutBuilder {
 					);
 					fragmentColumn += width;
 				}
-				CursesTextFragment[] publishedFragments = fragments
+				List<CursesTextFragment> published = fragments
 					.Select(
 						current => current.Publish( normalized )
 					)
-					.ToArray();
+					.ToList();
+				if ( hasEllipsis ) {
+					published.Add(
+						new CursesTextFragment(
+							new CursesTextPosition( ellipsisSourceOffset ),
+							new CursesTextPosition( ellipsisSourceOffset ),
+							fragmentColumn,
+							ellipsisWidth,
+							EllipsisText,
+							ellipsisStyle,
+							ellipsisMetadata,
+							true
+						)
+					);
+				}
+				CursesTextFragment[] publishedFragments = [ .. published ];
 				fragmentCount = checked( fragmentCount + publishedFragments.Length );
 				if ( MaximumFragmentCount < fragmentCount ) {
 					throw new InvalidOperationException(
@@ -333,6 +388,19 @@ internal static class CursesTextLayoutBuilder {
 		;
 	}
 
+	private static int GetValidatedWidth(
+		ICursesTextWidthProvider widthProvider,
+		string textElement
+	) {
+		int width = widthProvider.GetWidth( textElement );
+		if ( width < 0 || 2 < width ) {
+			throw new InvalidOperationException(
+				"The configured curses text-width provider returned a width outside the supported range."
+			);
+		}
+		return width;
+	}
+
 	private static int GetAlignedColumn(
 		CursesTextLayoutOptions options,
 		int contentColumns
@@ -358,18 +426,13 @@ internal static class CursesTextLayoutBuilder {
 			return;
 		}
 
-		CursesStyle style = options.DefaultStyle;
-		CursesCellMetadata? metadata = options.DefaultMetadata;
-		foreach ( CursesTextSpan span in spans ) {
-			if ( span.End.Offset <= element.SourceStart ) {
-				continue;
-			}
-			if ( span.Start.Offset <= element.SourceStart ) {
-				style = span.Style;
-				metadata = span.Metadata;
-			}
-			break;
-		}
+		ResolvePresentation(
+			element,
+			options,
+			spans,
+			out CursesStyle style,
+			out CursesCellMetadata? metadata
+		);
 
 		if ( 0 != fragments.Count ) {
 			MutableFragment previous = fragments[ ^1 ];
@@ -395,6 +458,27 @@ internal static class CursesTextLayoutBuilder {
 				metadata
 			)
 		);
+	}
+
+	private static void ResolvePresentation(
+		CursesTextElement element,
+		CursesTextLayoutOptions options,
+		CursesTextSpan[] spans,
+		out CursesStyle style,
+		out CursesCellMetadata? metadata
+	) {
+		style = options.DefaultStyle;
+		metadata = options.DefaultMetadata;
+		foreach ( CursesTextSpan span in spans ) {
+			if ( span.End.Offset <= element.SourceStart ) {
+				continue;
+			}
+			if ( span.Start.Offset <= element.SourceStart ) {
+				style = span.Style;
+				metadata = span.Metadata;
+			}
+			break;
+		}
 	}
 
 	private static CursesTextSpan[] CopySpans(
