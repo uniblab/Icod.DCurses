@@ -250,6 +250,48 @@ public sealed class CursesOutputFailureHardeningTests {
 	}
 
 	[Fact]
+	public async Task FailedSuspendResetReleasesActivityGateForExplicitRepaint() {
+		SelectiveFailingOutput output = new();
+		TerminalSession terminalSession = await OpenTerminalSessionAsync(
+			new CountingTerminalControlProvider(),
+			output,
+			CreateRenditionTerminal()
+		);
+		await using CursesSession session = await CursesSession.OpenAsync(
+			terminalSession,
+			NoPresentationOptions()
+		);
+		session.Screen.VirtualScreen[
+			session.Screen.Rows - 1,
+			session.Screen.Columns - 1
+		] = new CursesCell(
+			"X",
+			new CursesStyle(
+				CursesColor.Default,
+				CursesColor.Default,
+				CursesTextAttributes.Bold
+			)
+		);
+		await session.RefreshAsync();
+		output.Clear();
+		IOException injected = new( "suspend rendition reset failure" );
+		output.FailOnceWhen( value => "<sgr0>" == value, injected );
+
+		IOException observed = await Assert.ThrowsAsync<IOException>(
+			() => session.LifecycleParticipant.PrepareForTerminalSuspendAsync().AsTask()
+		);
+		Assert.Same( injected, observed );
+
+		output.Clear();
+		await session.RefreshAsync().AsTask().WaitAsync( TimeSpan.FromSeconds( 10 ) );
+		Assert.Contains( "X", output.Text, StringComparison.Ordinal );
+		await session.LifecycleParticipant.PrepareForTerminalSuspendAsync()
+			.AsTask().WaitAsync( TimeSpan.FromSeconds( 10 ) );
+		await session.LifecycleParticipant.ResumeAfterTerminalSuspendAsync()
+			.AsTask().WaitAsync( TimeSpan.FromSeconds( 10 ) );
+	}
+
+	[Fact]
 	public async Task EndOfInputRemainsAStableInputEvent() {
 		TerminalSession terminalSession = await OpenTerminalSessionAsync(
 			new CountingTerminalControlProvider(),
