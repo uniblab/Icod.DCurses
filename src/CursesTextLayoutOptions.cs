@@ -23,9 +23,15 @@ namespace Icod.DCurses;
 
 /// <summary>Configures one immutable rich-text layout operation.</summary>
 public sealed class CursesTextLayoutOptions {
+	internal const int MaximumExtent = 1_048_576;
+
 	/// <summary>Initializes layout options for a positive terminal-column extent.</summary>
 	/// <param name="columns">The available terminal columns.</param>
 	public CursesTextLayoutOptions( int columns ) {
+		if ( 1 > columns || MaximumExtent < columns ) {
+			throw new ArgumentOutOfRangeException( nameof( columns ) );
+		}
+
 		Columns = columns;
 	}
 
