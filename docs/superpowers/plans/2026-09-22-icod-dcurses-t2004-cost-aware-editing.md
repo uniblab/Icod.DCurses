@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-22-icod-dcurses-t2004-cost-aware-editing-design.md`
 
+**Execution status:** Tasks 1-8 complete. The accepted executable head is `049843eff8535718f5a7a3c9b10399b75880fd4e`, qualified by workflow `35803855740`; the final documentation head must pass the same seven-job matrix before handoff. See `docs/T2004-Cost-Aware-Editing-Cutover-Gate.md`.
+
 ## Global Constraints
 
 - Keep `Version` and `PackageVersion` at `2.0.0-alpha.1` and `AssemblyVersion` at `2.0.0.0`.
@@ -47,7 +49,7 @@
 - Consumes: same-session `TerminalScreenOperationPlan` values from `TerminalScreenPlanner` and desired/physical retained screen planes.
 - Produces: `CursesTerminalPlanSequence`, with ordered `Plans`, checked `ByteCount`, and `UsesTemporaryScrollRegion`; `CursesEditingRegionSafety.IsRetainedStateFree(...)` for Tasks 2-4.
 
-- [ ] **Step 1: Write the RED source-boundary contract**
+- [x] **Step 1: Write the RED source-boundary contract**
 
 Add a contract test that reads these production files and rejects the frozen token set:
 
@@ -86,7 +88,7 @@ public void EditingCutoverPathsContainNoTermInfoOrRawTerminalTokens() {
 
 Copy the private `FindRepositoryRoot()` helper already present in `T2003VerticalCutoverContractTests.cs`; do not invent another environment-variable convention.
 
-- [ ] **Step 2: Run the contract test and record RED**
+- [x] **Step 2: Run the contract test and record RED**
 
 Run:
 
@@ -97,7 +99,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: failure identifies TermInfo/raw-cost tokens in the retained resolvers and cost model. If the executor has no SDK, push this isolated test and retain the expected-red workflow link before production changes.
 
-- [ ] **Step 3: Write ordered-sequence tests**
+- [x] **Step 3: Write ordered-sequence tests**
 
 Open a real `TerminalSession` with `TerminalScreenTestSession`, obtain two cursor plans, and assert:
 
@@ -117,7 +119,7 @@ Assert.Throws<ArgumentException>(
 
 Also prove an empty sequence is rejected and that the input collection is copied rather than retained mutably.
 
-- [ ] **Step 4: Implement `CursesTerminalPlanSequence`**
+- [x] **Step 4: Implement `CursesTerminalPlanSequence`**
 
 Use this exact surface:
 
@@ -136,7 +138,7 @@ internal sealed class CursesTerminalPlanSequence {
 
 Materialize once into an array, reject zero plans and any plan with `AffectedLines <= 0`, and sum `ByteCount` in a checked context.
 
-- [ ] **Step 5: Write regional retained-state tests**
+- [x] **Step 5: Write regional retained-state tests**
 
 Create desired and physical 4x3 screens and cover:
 
@@ -149,7 +151,7 @@ Assert.True( CursesEditingRegionSafety.IsRetainedStateFree(
 
 Then independently place desired metadata, physical metadata, desired raster, and physical raster inside the range and expect `false`. Place each immediately outside the range and expect `true`. Mark one physical coordinate unknown and expect `false`. Assert null screens throw `ArgumentNullException`; mismatched dimensions throw `ArgumentException` for `physical`; invalid `topRow`/`bottomRowExclusive` throw `ArgumentOutOfRangeException`; and invalid `startColumn`/`endColumnExclusive` throw `ArgumentOutOfRangeException`.
 
-- [ ] **Step 6: Implement regional safety**
+- [x] **Step 6: Implement regional safety**
 
 Use this exact signature:
 
@@ -168,7 +170,7 @@ internal static class CursesEditingRegionSafety {
 
 Validate matching dimensions and a non-empty in-bounds rectangle. For every coordinate, require `physical.TryGetCell(...)`, then require null desired/physical metadata and null desired/physical raster state.
 
-- [ ] **Step 7: Run focused tests and commit the foundation**
+- [x] **Step 7: Run focused tests and commit the foundation**
 
 Run the two new helper test classes. The source-boundary test remains expected-red until Tasks 2-4 remove the legacy tokens.
 
@@ -195,7 +197,7 @@ git commit -m "test: freeze DCurses T2004 editing boundary"
 - Consumes: Task 1 plan sequences/safety, `TerminalScreenPlanner.PlanErase`, `CursesPresentationResolver`, and `CursesCursorMotionResolver`.
 - Produces: `CursesErasePlan` carrying an opaque ordered sequence and post-operation cursor/style observations for Task 5.
 
-- [ ] **Step 1: Rewrite cost-model tests around application text only**
+- [x] **Step 1: Rewrite cost-model tests around application text only**
 
 Keep UTF-8/UTF-16 application payload assertions and remove every test of terminal strings or padding. Assert null input throws `ArgumentNullException` and non-ASCII payloads use the configured encoding's exact `GetByteCount` result. The only production method after this task is:
 
@@ -203,7 +205,7 @@ Keep UTF-8/UTF-16 application payload assertions and remove every test of termin
 internal int GetApplicationTextByteCount( string value );
 ```
 
-- [ ] **Step 2: Rewrite erase resolver tests against a real planner**
+- [x] **Step 2: Rewrite erase resolver tests against a real planner**
 
 Convert tests to `async Task`, open a real session over `RecordingTerminalOutput`, and construct:
 
@@ -232,7 +234,7 @@ Assert the selected `Kind`, `Sequence.ByteCount`, operation `Kind == TerminalScr
 
 Retain literal-rewrite, erase-line, erase-screen, clear-screen, styled-blank, and application-encoding cases. Add null Terminal operation fallback; metadata/raster inside rejection; metadata/raster outside acceptance; unknown physical rejection; and clear-screen cursor-unknown coverage.
 
-- [ ] **Step 3: Verify RED**
+- [x] **Step 3: Verify RED**
 
 Run:
 
@@ -243,11 +245,11 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: compile failures because the resolver still requires `TerminalDescription` and exposes raw `Sequence` strings.
 
-- [ ] **Step 4: Remove terminal-string cost from `CursesOutputCostModel`**
+- [x] **Step 4: Remove terminal-string cost from `CursesOutputCostModel`**
 
 Delete `using Icod.TermInfo;` and `GetTerminalStringByteCount`. Retain the constructor and application-text method unchanged apart from XML wording that makes Terminal plan cost ownership explicit.
 
-- [ ] **Step 5: Convert the erase plan and resolver**
+- [x] **Step 5: Convert the erase plan and resolver**
 
 Use this result surface:
 
@@ -272,7 +274,7 @@ Request only `PlanErase(ToEndOfLine, 1)`, `PlanErase(ToEndOfScreen, rows-row)`, 
 
 Reject a returned erase operation whose `ByteCount` is zero before constructing the sequence; a zero-byte semantic edit cannot justify publishing the erased speculative region.
 
-- [ ] **Step 6: Run focused tests and source checks**
+- [x] **Step 6: Run focused tests and source checks**
 
 Run the Step 3 command and:
 
@@ -283,7 +285,7 @@ rg -n 'Icod\.TermInfo|TerminalDescription|StringCapability|TermInfoOutput|GetTer
 
 Expected: focused tests pass and source search is empty.
 
-- [ ] **Step 7: Commit erase migration**
+- [x] **Step 7: Commit erase migration**
 
 ```sh
 git add src/Internal/CursesOutputCostModel.cs \
@@ -305,7 +307,7 @@ git commit -m "refactor: plan erase operations through Terminal"
 - Consumes: Task 1 sequence/safety, Task 2 application-text cost model, `PlanCharacterShift`, presentation and cursor adapters.
 - Produces: `CursesCharacterShiftPlan` with opaque plans and post-operation state for Task 5.
 
-- [ ] **Step 1: Rewrite resolver tests against Terminal plans**
+- [x] **Step 1: Rewrite resolver tests against Terminal plans**
 
 Use real sessions and construct the resolver with `session.Screen`. Preserve tests for parameterized insert/delete, Terminal's repeated-single-operation choice, strict equal-cost fallback, application encoding, unknown physical cells, nondefault inserted blanks, and wide-cell rejection.
 
@@ -319,7 +321,7 @@ Add cases proving:
 
 Commit the returned plans through one Terminal transaction and assert exact bytes only after commit.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -328,7 +330,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: compile failures from the old constructor/raw plan contract.
 
-- [ ] **Step 3: Convert the character-shift result**
+- [x] **Step 3: Convert the character-shift result**
 
 Use:
 
@@ -345,7 +347,7 @@ internal readonly record struct CursesCharacterShiftPlan(
 );
 ```
 
-- [ ] **Step 4: Replace capability resolution with planner calls**
+- [x] **Step 4: Replace capability resolution with planner calls**
 
 Change the constructor to `(TerminalScreenPlanner planner, CursesOutputCostModel costModel)`. For each exact-match insertion/deletion candidate:
 
@@ -364,7 +366,7 @@ Use `CursesEditingRegionSafety` over `[row,row+1) x [firstDifference,columns)` i
 
 Reject a returned character-shift operation whose `ByteCount` is zero before constructing the sequence.
 
-- [ ] **Step 5: Run focused tests and source checks**
+- [x] **Step 5: Run focused tests and source checks**
 
 Run Step 2 and:
 
@@ -375,7 +377,7 @@ rg -n 'Icod\.TermInfo|TerminalDescription|StringCapability|TermInfoOutput|String
 
 Expected: no source match and all focused tests pass.
 
-- [ ] **Step 6: Commit character-shift migration**
+- [x] **Step 6: Commit character-shift migration**
 
 ```sh
 git add src/Internal/CursesCharacterShiftResolver.cs \
@@ -396,7 +398,7 @@ git commit -m "refactor: plan character shifts through Terminal"
 - Consumes: Task 1 sequence/safety, Task 2 cost model, `PlanLineShift`, `PlanScrollRegion`, and planner-backed presentation/cursor adapters.
 - Produces: `CursesLineShiftPlan` containing one complete ordered operation bundle for Task 6.
 
-- [ ] **Step 1: Rewrite line-shift tests around opaque ordered bundles**
+- [x] **Step 1: Rewrite line-shift tests around opaque ordered bundles**
 
 Preserve direct insert/delete to screen bottom, repeated-operation selection, interior temporary region, full-screen forward/reverse scrolling, wide-row preservation, styled-vacated-row rejection, unknown physical rejection, and equal-cost rewrite.
 
@@ -408,7 +410,7 @@ For the interior case, assert committed order:
 
 Assert `UsesTemporaryScrollRegion`, checked aggregate `ByteCount`, each operation's semantic `Kind`, and padding-sensitive `AffectedLines`. Add metadata/raster inside-region rejection and outside-region acceptance.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -417,7 +419,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: compile failures from raw strings and legacy cursor motion.
 
-- [ ] **Step 3: Reduce the result to semantic state plus an opaque sequence**
+- [x] **Step 3: Reduce the result to semantic state plus an opaque sequence**
 
 Use:
 
@@ -435,7 +437,7 @@ internal readonly record struct CursesLineShiftPlan(
 );
 ```
 
-- [ ] **Step 4: Replace every line/region/cursor capability path**
+- [x] **Step 4: Replace every line/region/cursor capability path**
 
 Change the constructor to `(TerminalScreenPlanner planner, CursesOutputCostModel costModel)`. Map operations exactly:
 
@@ -452,11 +454,11 @@ Prepend the safe default-rendition setup plan when needed. Sum the complete sequ
 
 Reject any zero-byte line-shift or scroll-region operation plan before constructing the sequence. A temporary-region candidate is unavailable unless both the temporary and full-screen region plans are non-null and non-empty.
 
-- [ ] **Step 5: Delete the obsolete legacy cursor resolver**
+- [x] **Step 5: Delete the obsolete legacy cursor resolver**
 
 After `rg -n 'CursesLegacyCursorMotion' src tests` shows only the legacy file, delete it. Do not relocate its TermInfo logic.
 
-- [ ] **Step 6: Run focused tests and the complete source-boundary contract**
+- [x] **Step 6: Run focused tests and the complete source-boundary contract**
 
 Run Step 2 plus:
 
@@ -467,7 +469,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: all pass; the original Task 1 RED boundary is now green.
 
-- [ ] **Step 7: Commit line-shift migration**
+- [x] **Step 7: Commit line-shift migration**
 
 ```sh
 git add src/Internal/CursesLineShiftResolver.cs \
@@ -490,7 +492,7 @@ git commit -m "refactor: plan line shifts through Terminal"
 - Consumes: Tasks 2-3 resolver results and T2003 `CursesPreparedRefresh`/speculative state.
 - Produces: transaction-backed erase/character optimization with correct speculative publication.
 
-- [ ] **Step 1: Change the T2003 fallback expectations to T2004 RED expectations**
+- [x] **Step 1: Change the T2003 fallback expectations to T2004 RED expectations**
 
 Rename the erase tests to require `<el>`, `<ed>`, and `<clear>` only when their complete candidate is cheaper. Change character insertion/deletion tests to require the selected Terminal plan and exact final row. Preserve the missing-capability ordinary-rewrite case.
 
@@ -503,7 +505,7 @@ Assert.Contains( expectedOperation, output.Text, StringComparison.Ordinal );
 
 Then run an unchanged second refresh and assert zero additional writes/flushes. Retain output-failure retry coverage and assert no speculative state was published before success.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -512,7 +514,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: T2003 ordinary rewrite does not emit editing plans.
 
-- [ ] **Step 3: Construct the migrated resolvers in `CursesRefreshEngine`**
+- [x] **Step 3: Construct the migrated resolvers in `CursesRefreshEngine`**
 
 Create one UTF-8 application cost model and initialize:
 
@@ -525,7 +527,7 @@ this.characterShiftResolver = new CursesCharacterShiftResolver( this.planner, co
 this.lineShiftResolver = new CursesLineShiftResolver( this.planner, costModel );
 ```
 
-- [ ] **Step 4: Add semantic plan-sequence preparation**
+- [x] **Step 4: Add semantic plan-sequence preparation**
 
 Add:
 
@@ -543,7 +545,7 @@ private static void AddPlanSequence(
 
 Add a `CopyDesiredRange` helper that writes desired cells/metadata/raster into the speculative physical screen only after the resolver has proved the operation.
 
-- [ ] **Step 5: Reintroduce row character-shift and span erase selection**
+- [x] **Step 5: Reintroduce row character-shift and span erase selection**
 
 Inside the existing row loop, try the character resolver before scanning spans. If selected, add its sequence, copy the complete row, set speculative style/cursor from the result, and continue to the next row.
 
@@ -551,7 +553,7 @@ At each changed span, try erase before ordinary `PrepareSpan`. If selected, add 
 
 Do not restore the old global `retainedStatePresent` gate; resolver-region safety owns the decision.
 
-- [ ] **Step 6: Run focused tests and commit**
+- [x] **Step 6: Run focused tests and commit**
 
 Run Step 2. Expected: erase and character-shift integration pass with one transaction/flush, correct retry, and clean no-op follow-up.
 
@@ -577,11 +579,11 @@ git commit -m "feat: restore Terminal-planned erase and character shifts"
 - Consumes: Task 4 line result and Task 5 plan preparation.
 - Produces: one-transaction line-shift application plus persistent `scrollRegionResetRequired` recovery state.
 
-- [ ] **Step 1: Change line-shift integration tests to RED**
+- [x] **Step 1: Change line-shift integration tests to RED**
 
 Require direct delete/insert plans, full-screen scroll selection, and interior ordered temporary-region output. Assert exact final desired cells, final cursor, one flush, and silent second refresh.
 
-- [ ] **Step 2: Write uncertain-region recovery tests**
+- [x] **Step 2: Write uncertain-region recovery tests**
 
 Use an output fixture that throws after accepting the temporary region setup bytes. Assert:
 
@@ -593,7 +595,7 @@ Use an output fixture that throws after accepting the temporary region setup byt
 
 Also cover conservative recovery when the original transaction fails before any bytes.
 
-- [ ] **Step 3: Verify RED**
+- [x] **Step 3: Verify RED**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -602,13 +604,13 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: line shifts remain disabled and no pending-region recovery exists.
 
-- [ ] **Step 4: Apply a line-shift bundle before the row loop**
+- [x] **Step 4: Apply a line-shift bundle before the row loop**
 
 Resolve once against the detached speculative state. If selected, add the entire ordered sequence, copy `[TopRow,BottomRow]` from desired, publish result style/final cursor into speculative state, set `Preparation.UsesTemporaryScrollRegion`, and skip the ordinary row loop.
 
 When the selected sequence is temporary, also set `Preparation.RestoresFullScrollRegion = true` because the ordered bundle contains the full-screen restoration before its final cursor plan.
 
-- [ ] **Step 5: Implement persistent region recovery**
+- [x] **Step 5: Implement persistent region recovery**
 
 Add:
 
@@ -626,7 +628,7 @@ Mark speculative cursor unknown afterward and set `Preparation.RestoresFullScrol
 
 Immediately before `CommitAsync`, set `scrollRegionResetRequired = true` if the batch uses a temporary region. Clear it only after a successful commit when `Preparation.RestoresFullScrollRegion` is true. Both a recovery prefix and a complete temporary-region bundle set that restoration marker. On any commitment failure, leave the persistent flag true. A preparation failure before a temporary-region batch reaches commitment must not create a new recovery requirement.
 
-- [ ] **Step 6: Run focused tests and commit**
+- [x] **Step 6: Run focused tests and commit**
 
 Run Step 3. Expected: all line-shift/recovery/failure tests pass.
 
@@ -654,27 +656,27 @@ git commit -m "feat: restore Terminal-planned line shifts"
 - Consumes: complete Tasks 1-6 editing path.
 - Produces: workload and boundary evidence needed for the T2004 gate.
 
-- [ ] **Step 1: Update roguelike and editor witnesses**
+- [x] **Step 1: Update roguelike and editor witnesses**
 
 Change only output expectations that now deliberately select cheaper Terminal plans. The roguelike witness must exercise a textual message-log scroll without touching map glyph footprints. The editor witness must exercise character insertion/deletion, line insertion/deletion, line-tail erase, and an interior scrolling region while preserving final text/cursor/rendition.
 
-- [ ] **Step 2: Retain pixel-art and sprite-like safety witnesses**
+- [x] **Step 2: Retain pixel-art and sprite-like safety witnesses**
 
 Keep raster viewport/sprite movement on semantic repaint. Add a text-only HUD region outside the raster safety region and prove it may optimize independently. Add a negative case with a raster cell inside the proposed shifted region and assert no character/line operation token is emitted.
 
-- [ ] **Step 3: Add the tile-based witness**
+- [x] **Step 3: Add the tile-based witness**
 
 Create a cell-aligned tile map containing text/Unicode/ACS tiles and at least one raster tile. Assert sparse text-tile updates remain correct, the raster tile is repainted semantically, and no edit operation moves a region containing that tile.
 
-- [ ] **Step 4: Update cost/regret and scale expectations**
+- [x] **Step 4: Update cost/regret and scale expectations**
 
 Replace the accepted T2003 rewrite-only editor/pager expectations with exact cheaper editing-plan output. Preserve deterministic byte counts, bounded allocations, high-frequency sparse refresh, and no-op write/flush counts. Do not add timing-only thresholds.
 
-- [ ] **Step 5: Expand the source-boundary contract**
+- [x] **Step 5: Expand the source-boundary contract**
 
 Add `src/Internal/CursesTerminalPlanSequence.cs` and `src/Internal/CursesEditingRegionSafety.cs` to the migrated-path search. Also assert `src/Internal/CursesLegacyCursorMotionResolver.cs` no longer exists.
 
-- [ ] **Step 6: Run application and hardening tests**
+- [x] **Step 6: Run application and hardening tests**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
@@ -683,7 +685,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Staging \
 
 Expected: all five workload classes pass, unrelated text can optimize beside retained media, and affected media regions always fall back.
 
-- [ ] **Step 7: Commit application qualification**
+- [x] **Step 7: Commit application qualification**
 
 ```sh
 git add tests/Icod.DCurses.Tests/src/CursesVerticalCutoverApplicationTests.cs \
@@ -711,7 +713,7 @@ git commit -m "test: qualify T2004 editing workloads"
 - Consumes: Tasks 1-7 and exact-head workflow evidence.
 - Produces: accepted T2004 evidence authorizing T2005, or one precise blocker.
 
-- [ ] **Step 1: Run complete static boundary checks**
+- [x] **Step 1: Run complete static boundary checks**
 
 ```sh
 rg -n '<Version>|<PackageVersion>|<AssemblyVersion>|Icod\.Terminal|Icod\.TermInfo' Icod.DCurses.csproj
@@ -730,7 +732,7 @@ git diff 70c391d9f2722d05c073ff16ddc1a59ce436fba2 -- README.md docs/Public-API-F
 
 Expected: exact identities/dependencies, no migrated-path token output, deleted legacy resolver, clean whitespace, and no protected-file diff.
 
-- [ ] **Step 2: Run focused and full qualification**
+- [x] **Step 2: Run focused and full qualification**
 
 When an SDK executor is available:
 
@@ -743,7 +745,7 @@ pwsh ./packaging/Invoke-Build.ps1 -Section validate -Configuration Staging
 
 If the executor lacks .NET, use exact-head PR CI and do not claim local execution.
 
-- [ ] **Step 3: Verify API identity**
+- [x] **Step 3: Verify API identity**
 
 Require the active/historical API tests to retain:
 
@@ -755,7 +757,7 @@ sha256 1d33658358af26049d858e084a80d9f3b80abab974c1c4d3bfb36c2c2b477c65
 
 Stop on any public contract or dependency-identity change.
 
-- [ ] **Step 4: Require the exact-head matrix**
+- [x] **Step 4: Require the exact-head matrix**
 
 Require all seven jobs on the same commit:
 
@@ -771,7 +773,7 @@ Runtime macOS ARM64
 
 Record per-framework totals from Linux x64 and inspect at least one second architecture. Do not accept a rerun from another head.
 
-- [ ] **Step 5: Record and commit the T2004 gate**
+- [x] **Step 5: Record and commit the T2004 gate**
 
 The gate must include exact commit/workflow/job links, identities, test totals, source-boundary result, operation/cost/fallback evidence, regional retained-state evidence, temporary-region recovery behavior, all five workload witnesses, and remaining T2005-T2007 debt. State explicitly that no package is published.
 
@@ -785,6 +787,6 @@ git add docs/T2004-Cost-Aware-Editing-Cutover-Gate.md \
 git commit -m "docs: record DCurses T2004 editing cutover gate"
 ```
 
-- [ ] **Step 6: Requalify the final documentation head**
+- [x] **Step 6: Requalify the final documentation head**
 
 Require the complete seven-job matrix again on the final PR head. Report the accepted executable parent and final documentation head separately. Do not merge, tag, release, or publish.

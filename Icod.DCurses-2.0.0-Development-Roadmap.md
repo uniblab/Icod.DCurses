@@ -1,7 +1,7 @@
 # Icod.DCurses 2.0.0 Development Roadmap
 
 **Theme:** Terminal-only integration; remove direct TermInfo coupling.\
-**Status:** T2001-T2003 accepted; T2004 is the next implementation tranche.
+**Status:** T2001-T2004 accepted; T2005 is the next implementation tranche.
 
 **Planning date:** 2026-09-18.\
 **Behavioral baseline:** published `Icod.DCurses 1.6.0`.\
@@ -27,7 +27,7 @@ This means:
 
 Version 1.6 is the endpoint for new 1.x features. Necessary 1.6.x maintenance may continue independently. New features belong to 2.1+ after this migration is accepted. Do not mix widgets, new input protocols, animation scheduling, physical raster scenes, or application-framework work into 2.0.
 
-This PR now carries the ordered 2.0 migration. T2002 established the development identity, selected Terminal 1.18.0, and completed the approved public profile/dimensions cutover. T2003 moved the core presentation path and ordinary rewrite refresh through Terminal-owned planners and one semantic output transaction. The direct TermInfo dependency and T2004-owned optimization paths remain migration debt, and no checkpoint authorizes publication.
+This PR now carries the ordered 2.0 migration. T2002 established the development identity, selected Terminal 1.18.0, and completed the approved public profile/dimensions cutover. T2003 moved the core presentation path and ordinary rewrite refresh through Terminal-owned planners and one semantic output transaction. T2004 restored erase, character-shift, line-shift, and scroll-region optimization through opaque Terminal plans and Terminal-owned costs. The direct TermInfo dependency and T2005-T2007 hardening/removal work remain migration debt, and no checkpoint authorizes publication.
 
 ## 2. Reference snapshot and authorities
 
@@ -181,7 +181,7 @@ T2004: restore erase/character-shift/line-shift/scroll optimizations with Termin
 T2005: exhaustive transaction/capacity/cancellation/synchronization/publication hardening and legacy-shim deletion
 ```
 
-No T2003 package is published. The temporary rewrite difference is accepted only until T2004.
+No T2003 package was published. T2004 closes the temporary ordinary-rewrite difference for accepted erase and shift candidates.
 
 - [x] Map DCurses colors/attributes/glyphs into Terminal-owned values; delegate normalization, safe transitions, reset, ACS and cursor/alert planning.
 - [x] Preserve Unicode-width/ASCII fallback, unsupported-profile behavior, alert preference/fallback, and existing presentation lease ownership.
@@ -194,11 +194,13 @@ No T2003 package is published. The temporary rewrite difference is accepted only
 **Depends on:** T2003.\
 **Files:** erase/character/line resolvers, output cost model, corresponding tests and refresh optimization fixtures.
 
-- [ ] Replace expanded capability strings with `TerminalScreenOperationPlan` values and use their `ByteCount`/`AffectedLines`.
-- [ ] Keep eligibility and total-alternative selection in DCurses, including setup/restoration cursor, rendition and scroll-region costs. Retain deterministic tie rules and encoding-aware application-text cost.
-- [ ] Cover wide-cell footprints, styled blanks, metadata/media boundaries, lower-right behavior, absent operations, region restoration, and padding-sensitive affected-line counts.
+**Status:** accepted on exact executable head `049843eff8535718f5a7a3c9b10399b75880fd4e`; see `docs/T2004-Cost-Aware-Editing-Cutover-Gate.md`.
 
-**Acceptance:** each chosen optimization reproduces the desired screen and beats or ties rewrite according to the frozen policy; no `TPuts`, expansion or raw capability cost path remains in these helpers.
+- [x] Replace expanded capability strings with `TerminalScreenOperationPlan` values and use their `ByteCount`/`AffectedLines`.
+- [x] Keep eligibility and total-alternative selection in DCurses, including setup/restoration cursor, rendition and scroll-region costs. Retain deterministic tie rules and encoding-aware application-text cost.
+- [x] Cover wide-cell footprints, styled blanks, metadata/media boundaries, lower-right behavior, absent operations, region restoration, and padding-sensitive affected-line counts.
+
+**Acceptance:** each chosen optimization reproduces the desired screen and strictly beats rewrite according to the frozen policy; equal cost retains rewrite, and no `TPuts`, expansion or raw capability cost path remains in these helpers.
 
 ### T2005 — Transactional refresh and exhaustive hardening
 
@@ -312,4 +314,4 @@ Completion requires all of the following, not just successful compilation:
 
 ## 10. Immediate next checkpoint
 
-Write and review the detailed T2004 implementation plan. Then restore erase, character-shift, line-shift, and scroll-region optimizations with opaque Terminal operation plans and `ByteCount`/`AffectedLines`, while retaining semantic eligibility and deterministic alternative selection in DCurses. Keep the direct TermInfo reference only for still-unmigrated paths; its final package/reference removal remains T2007.
+Write and review the detailed T2005 implementation plan. Then complete exhaustive transaction capacity, cancellation, synchronization, and publication hardening and delete obsolete raw-output/capability-writer shims without expanding the public backend surface. T2004 is accepted on executable head `049843eff8535718f5a7a3c9b10399b75880fd4e`; see `docs/T2004-Cost-Aware-Editing-Cutover-Gate.md`. Keep the direct TermInfo reference only for still-unmigrated paths; its final package/reference removal remains T2007. No merge, release tag, or publication is authorized by this checkpoint.

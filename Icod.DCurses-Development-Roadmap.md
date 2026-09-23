@@ -11,7 +11,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.0.0` — Terminal-only terminal integration\
-**Status:** T2001-T2003 accepted; T2004 cost-aware erase/shift/scroll planning is next
+**Status:** T2001-T2004 accepted; T2005 transaction and publication hardening is next
 
 **Planning snapshot:** 2026-09-18
 
@@ -262,11 +262,11 @@ T2004: restore erase/character-shift/line-shift/scroll optimizations with Termin
 T2005: exhaustive transaction/capacity/cancellation/synchronization/publication hardening and legacy-shim deletion
 ```
 
-No T2003 package is published. The temporary rewrite difference is accepted only until T2004.
+No T2003 or T2004 package is published. T2004 closes the temporary ordinary-rewrite difference for accepted erase and shift candidates.
 
 T2007 retains final direct `Icod.TermInfo` package/reference removal; obsolete raw-output and capability-writer shims are deleted in T2005.
 
-T2001-T2003 are accepted. T2001 froze the dependency inventory and approved break manifest, qualified published Terminal 1.18.0 recovery/transaction/planner behavior, and captured the DCurses 1.6 behavioral baseline. T2002 established the 2.0 development identity, moved the public profile/dimensions boundary to Terminal-owned types, and froze the reviewed 2.0 development API. T2003 moved capability projection, rendition, ACS, cursor, alert, ordinary text, hyperlink, and raster presentation through Terminal-owned semantic plans and one transaction, with ordinary rewrite as the explicit temporary fallback. T2004-T2011 remain pending. See the [T2001 readiness gate](docs/T2001-Terminal-Boundary-and-Readiness-Gate.md), [T2002 public cutover gate](docs/T2002-Public-Terminal-Cutover-Gate.md), [T2003 vertical-cutover gate](docs/T2003-Semantic-Presentation-Vertical-Cutover-Gate.md), and [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) for evidence, file ownership, dependencies and acceptance criteria.
+T2001-T2004 are accepted. T2001 froze the dependency inventory and approved break manifest, qualified published Terminal 1.18.0 recovery/transaction/planner behavior, and captured the DCurses 1.6 behavioral baseline. T2002 established the 2.0 development identity, moved the public profile/dimensions boundary to Terminal-owned types, and froze the reviewed 2.0 development API. T2003 moved capability projection, rendition, ACS, cursor, alert, ordinary text, hyperlink, and raster presentation through Terminal-owned semantic plans and one transaction. T2004 restored erase, character-shift, line-shift, and scroll-region optimization through opaque Terminal plans and Terminal-owned costs with regional retained-state safety and fail-closed scroll-region recovery. T2005-T2011 remain pending. See the [T2001 readiness gate](docs/T2001-Terminal-Boundary-and-Readiness-Gate.md), [T2002 public cutover gate](docs/T2002-Public-Terminal-Cutover-Gate.md), [T2003 vertical-cutover gate](docs/T2003-Semantic-Presentation-Vertical-Cutover-Gate.md), [T2004 editing-cutover gate](docs/T2004-Cost-Aware-Editing-Cutover-Gate.md), and [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) for evidence, file ownership, dependencies and acceptance criteria.
 
 ---
 
@@ -323,6 +323,6 @@ For 2.0, the 1.6 API artifacts remain immutable historical evidence. New 2.0 sna
 
 ## Immediate next step
 
-Write and review the detailed T2004 implementation plan, then restore erase, character-shift, line-shift, and scroll-region optimizations with opaque Terminal operation plans and encoded-byte costs. Preserve DCurses ownership of semantic eligibility, Unicode/wide-cell safety, media/metadata boundaries, total-alternative cost, and deterministic ties.
+Write and review the detailed T2005 implementation plan, then complete exhaustive transaction capacity, cancellation, synchronization, and publication hardening and delete obsolete raw-output/capability-writer shims. Preserve the one-transaction prepare/commit/publish boundary and keep any newly discovered Terminal gap in the owning dependency.
 
-T2003 is accepted on exact head `448313a41162293eb809ad83e1b68af1b86bf1eb`; see `docs/T2003-Semantic-Presentation-Vertical-Cutover-Gate.md`. The direct TermInfo package reference and remaining legacy optimization seams are intentionally retained migration debt; final direct dependency removal remains T2007. No merge, release tag, or publication is authorized by this checkpoint. The published 1.6 release remains available for consumers that need the old API.
+T2004 is accepted on exact executable head `049843eff8535718f5a7a3c9b10399b75880fd4e`; see `docs/T2004-Cost-Aware-Editing-Cutover-Gate.md`. The direct TermInfo package reference remains intentional migration debt; final direct dependency removal remains T2007. No T2004 package has been published, and no merge, release tag, or publication is authorized by this checkpoint. The published 1.6 release remains available for consumers that need the old API.
