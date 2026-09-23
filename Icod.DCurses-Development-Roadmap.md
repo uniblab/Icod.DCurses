@@ -11,7 +11,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.0.0` — Terminal-only terminal integration\
-**Status:** T2001-T2004 accepted; T2005 transaction and publication hardening plan drafted for review
+**Status:** T2001-T2005 accepted; T2006 lifecycle and recovery qualification is next
 
 **Planning snapshot:** 2026-09-18
 
@@ -19,7 +19,7 @@
 
 ## Current authorities
 
-The active 2.0 plan is [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md). The detailed T2005 execution plan is [docs/superpowers/plans/2026-09-23-icod-dcurses-t2005-transaction-hardening.md](docs/superpowers/plans/2026-09-23-icod-dcurses-t2005-transaction-hardening.md). These documents define the public API break, source/dependency boundary, Terminal readiness checks, ordered tranches T2001-T2011, and release gates. Approval of planning documentation does not mean an implementation tranche has passed.
+The active 2.0 plan is [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md). The accepted T2005 evidence is [docs/T2005-Transactional-Refresh-Hardening-Gate.md](docs/T2005-Transactional-Refresh-Hardening-Gate.md), governed by the detailed [T2005 execution plan](docs/superpowers/plans/2026-09-23-icod-dcurses-t2005-transaction-hardening.md). These documents define the public API break, source/dependency boundary, Terminal readiness checks, ordered tranches T2001-T2011, and release gates. Approval of planning documentation does not mean an implementation tranche has passed.
 
 The published [Terminal 1.18.0 contract](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.18.0) supplies the semantic profile, dimensions, screen planner, session-bound output transaction, and safe unknown-rendition baseline required by DCurses 2.0. Any later integration gap must be fixed and released in the owning dependency before the affected DCurses gate advances; it must not be bypassed with TermInfo calls or raw terminal strings.
 
@@ -56,7 +56,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.5.0` | Advanced interaction control: scopes, capture, spatial focus, pointer gestures, scoped commands | Published |
 | `1.6.0` | Retained mixed-media presentation | **Current published release; 1.x feature endpoint** |
 | `1.6.x` | Necessary maintenance only | As needed; no new feature track |
-| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **In development; T2001-T2004 accepted, T2005 plan under review** |
+| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **In development; T2001-T2005 accepted, T2006 next** |
 | `2.1+` | New features built on the completed Terminal boundary | Deferred until 2.0 acceptance |
 
 The post-1.0 progression is intentionally cumulative:
@@ -266,7 +266,7 @@ No T2003 or T2004 package is published. T2004 closes the temporary ordinary-rewr
 
 T2007 retains final direct `Icod.TermInfo` package/reference removal; obsolete raw-output and capability-writer shims are deleted in T2005.
 
-T2001-T2004 are accepted. T2001 froze the dependency inventory and approved break manifest, qualified published Terminal 1.18.0 recovery/transaction/planner behavior, and captured the DCurses 1.6 behavioral baseline. T2002 established the 2.0 development identity, moved the public profile/dimensions boundary to Terminal-owned types, and froze the reviewed 2.0 development API. T2003 moved capability projection, rendition, ACS, cursor, alert, ordinary text, hyperlink, and raster presentation through Terminal-owned semantic plans and one transaction. T2004 restored erase, character-shift, line-shift, and scroll-region optimization through opaque Terminal plans and Terminal-owned costs with regional retained-state safety and fail-closed scroll-region recovery. T2005-T2011 remain pending. See the [T2001 readiness gate](docs/T2001-Terminal-Boundary-and-Readiness-Gate.md), [T2002 public cutover gate](docs/T2002-Public-Terminal-Cutover-Gate.md), [T2003 vertical-cutover gate](docs/T2003-Semantic-Presentation-Vertical-Cutover-Gate.md), [T2004 editing-cutover gate](docs/T2004-Cost-Aware-Editing-Cutover-Gate.md), and [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) for evidence, file ownership, dependencies and acceptance criteria.
+T2001-T2005 are accepted. T2001 froze the dependency inventory and approved break manifest, qualified published Terminal 1.18.0 recovery/transaction/planner behavior, and captured the DCurses 1.6 behavioral baseline. T2002 established the 2.0 development identity, moved the public profile/dimensions boundary to Terminal-owned types, and froze the reviewed 2.0 development API. T2003 moved capability projection, rendition, ACS, cursor, alert, ordinary text, hyperlink, and raster presentation through Terminal-owned semantic plans and one transaction. T2004 restored erase, character-shift, line-shift, and scroll-region optimization through opaque Terminal plans and Terminal-owned costs with regional retained-state safety and fail-closed scroll-region recovery. T2005 deleted obsolete raw-output/capability seams and accepted exhaustive transaction capacity, cancellation, synchronization, ordering, epoch, lease-conflict, direct-operation, workload, and publication hardening. T2006-T2011 remain pending. See the [T2001 readiness gate](docs/T2001-Terminal-Boundary-and-Readiness-Gate.md), [T2002 public cutover gate](docs/T2002-Public-Terminal-Cutover-Gate.md), [T2003 vertical-cutover gate](docs/T2003-Semantic-Presentation-Vertical-Cutover-Gate.md), [T2004 editing-cutover gate](docs/T2004-Cost-Aware-Editing-Cutover-Gate.md), [T2005 transaction-hardening gate](docs/T2005-Transactional-Refresh-Hardening-Gate.md), and [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) for evidence, file ownership, dependencies and acceptance criteria.
 
 ---
 
@@ -323,6 +323,6 @@ For 2.0, the 1.6 API artifacts remain immutable historical evidence. New 2.0 sna
 
 ## Immediate next step
 
-Write and review the detailed T2005 implementation plan, then complete exhaustive transaction capacity, cancellation, synchronization, and publication hardening and delete obsolete raw-output/capability-writer shims. Preserve the one-transaction prepare/commit/publish boundary and keep any newly discovered Terminal gap in the owning dependency.
+Plan and execute T2006 lifecycle, failure, output-uncertainty, cleanup, disposal-race, and recovery qualification while preserving T2005's one-transaction prepare/commit/publish boundary. Keep any newly discovered Terminal gap in the owning dependency.
 
-T2004 is accepted on exact executable head `049843eff8535718f5a7a3c9b10399b75880fd4e`; see `docs/T2004-Cost-Aware-Editing-Cutover-Gate.md`. The direct TermInfo package reference remains intentional migration debt; final direct dependency removal remains T2007. No T2004 package has been published, and no merge, release tag, or publication is authorized by this checkpoint. The published 1.6 release remains available for consumers that need the old API.
+T2005 is accepted on exact executable head `262f4ff8aedabd703c03f5f5f5cdcf2bce9e0417`, qualified by workflow `35814067829`; see `docs/T2005-Transactional-Refresh-Hardening-Gate.md`. The direct TermInfo package reference remains intentional migration debt; final direct dependency removal remains T2007. No 2.0 package has been published, and no merge, release tag, or publication is authorized by this checkpoint. The published 1.6 release remains available for consumers that need the old API.
