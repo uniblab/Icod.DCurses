@@ -196,7 +196,93 @@ public sealed partial class CursesTextLayout {
 		int firstLine,
 		int lineCount
 	) {
-		throw new NotImplementedException();
+		if ( 0 > Array.BinarySearch(
+			legalOffsets,
+			selection.Start.Offset
+		) || 0 > Array.BinarySearch(
+			legalOffsets,
+			selection.End.Offset
+		) ) {
+			throw new ArgumentOutOfRangeException( nameof( selection ) );
+		}
+		if ( 0 > firstLine || lines.Count < firstLine ) {
+			throw new ArgumentOutOfRangeException( nameof( firstLine ) );
+		}
+		if ( 0 > lineCount || lines.Count - firstLine < lineCount ) {
+			throw new ArgumentOutOfRangeException( nameof( lineCount ) );
+		}
+		if ( selection.IsEmpty || 0 == lineCount ) {
+			return [];
+		}
+
+		int endLine = firstLine + lineCount;
+		int rectangleCount = 0;
+		for ( int line = firstLine; line < endLine; line++ ) {
+			if ( TryGetSelectionRectangle(
+				geometryLines[ line ],
+				line,
+				selection.Start.Offset,
+				selection.End.Offset,
+				out _
+			) ) {
+				rectangleCount++;
+			}
+		}
+		if ( 0 == rectangleCount ) {
+			return [];
+		}
+
+		CursesRectangle[] rectangles = new CursesRectangle[ rectangleCount ];
+		int rectangleIndex = 0;
+		for ( int line = firstLine; line < endLine; line++ ) {
+			if ( TryGetSelectionRectangle(
+				geometryLines[ line ],
+				line,
+				selection.Start.Offset,
+				selection.End.Offset,
+				out CursesRectangle rectangle
+			) ) {
+				rectangles[ rectangleIndex++ ] = rectangle;
+			}
+		}
+		return rectangles;
+	}
+
+	private static bool TryGetSelectionRectangle(
+		GeometryLine line,
+		int lineIndex,
+		int selectionStart,
+		int selectionEnd,
+		out CursesRectangle rectangle
+	) {
+		int firstColumn = int.MaxValue;
+		int endColumn = -1;
+		foreach ( GeometryElement element in line.Elements ) {
+			if ( element.IsEllipsis
+				|| 0 == element.Columns
+				|| element.SourceEnd <= selectionStart
+				|| selectionEnd <= element.SourceStart ) {
+				continue;
+			}
+
+			firstColumn = Math.Min( firstColumn, element.Column );
+			endColumn = Math.Max(
+				endColumn,
+				element.Column + element.Columns
+			);
+		}
+
+		if ( firstColumn >= endColumn ) {
+			rectangle = default;
+			return false;
+		}
+		rectangle = new CursesRectangle(
+			lineIndex,
+			firstColumn,
+			1,
+			endColumn - firstColumn
+		);
+		return true;
 	}
 
 	private int FindLeadingLine( int sourceOffset ) {
