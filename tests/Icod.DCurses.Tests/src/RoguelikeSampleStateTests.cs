@@ -86,10 +86,10 @@ public sealed class RoguelikeSampleStateTests {
 		Assert.Equal( RoguelikeSampleState.WorldRows - 1, state.PlayerRow );
 		Assert.Equal( RoguelikeSampleState.WorldColumns - 1, state.PlayerColumn );
 		Assert.True( state.TryGetPlayerViewportPosition( out _ ) );
-		Assert.True( state.Move( int.MinValue, int.MinValue ) );
-		Assert.Equal( 0, state.PlayerRow );
-		Assert.Equal( 0, state.PlayerColumn );
-		Assert.Equal( new CursesCell( "." ), state.TerrainCellAt( 1, 1 ) );
+		Assert.False( state.Move( int.MinValue, int.MinValue ) );
+		Assert.Equal( RoguelikeSampleState.WorldRows - 1, state.PlayerRow );
+		Assert.Equal( RoguelikeSampleState.WorldColumns - 1, state.PlayerColumn );
+		Assert.Equal( new CursesCell( " " ), state.TerrainCellAt( 1, 1 ) );
 		Assert.Equal( state.TerrainCellAt( 100, 200 ), state.TerrainCellAt( 100, 200 ) );
 		Assert.Equal( 24 * 80, state.CreateVisibleFrame().Length );
 	}

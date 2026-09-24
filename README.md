@@ -9,9 +9,9 @@
 
 ## Status
 
-Current release: **`Icod.DCurses 2.0.0`**.
+This source tree targets **`Icod.DCurses 2.1.0`**. Check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published package versions.
 
-Version **2.1.0 is an unpublished stable-source candidate** on [PR #33](https://github.com/uniblab/Icod.DCurses/pull/33). It adds immutable Unicode text layout, source-position and selection geometry, retained layout projection, prepared bulk cell writes, large-content viewport coordinates, stateless track layout, and bounded opt-in refresh diagnostics. The [roguelike and editor samples](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md) demonstrate the public APIs with application-owned state. The 2.1 [API baseline](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/docs/Public-API-Baseline-2.1.md) and [stable-source qualification](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/docs/T2112-Stable-Source-Release-Gate.md) describe the candidate and its Staging evidence. Release validation still awaits a separately authorized push to `main`. The current install command below remains the published 2.0 release until a maintainer publishes 2.1.
+Version 2.1.0 adds immutable Unicode text layout, source-position and selection geometry, retained layout projection, prepared bulk cell writes, large-content viewport coordinates, stateless track layout, and bounded opt-in refresh diagnostics. The [roguelike and editor samples](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md) demonstrate the public APIs with application-owned state. The 2.1 [API baseline](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/docs/Public-API-Baseline-2.1.md) and [stable-source qualification](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/docs/T2112-Stable-Source-Release-Gate.md) describe the source contract and Staging evidence. The `main` push workflow validates Release configuration before publication.
 
 Version `2.0.0` completes the direct dependency cutover: production DCurses depends only on `Icod.Terminal 1.18.0`, which may restore `Icod.TermInfo` transitively. Version 2.0 changes the public profile and dimensions types and the assembly identity. See the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md) and [2.0 roadmap](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/Icod.DCurses-2.0.0-Development-Roadmap.md).
 
@@ -73,6 +73,14 @@ Icod.Terminal 1.18.0
 
 ## Install
 
+When version 2.1.0 is available on NuGet:
+
+```text
+dotnet add package Icod.DCurses --version 2.1.0
+```
+
+For the previous 2.0 release:
+
 ```text
 dotnet add package Icod.DCurses --version 2.0.0
 ```
@@ -110,7 +118,7 @@ CursesEvent terminalEvent = await session.ReadEventAsync();
 
 ## 2.1 Text Layout Example
 
-On the 2.1 source branch, the session and `screen` from the quick start above can present an immutable layout. Source positions use UTF-16 offsets at legal text-element boundaries; visual positions use rows and terminal columns. DCurses computes the layout and projects the selected lines into retained cells, while the application decides what text to show and when to refresh.
+With 2.1, the session and `screen` from the quick start above can present an immutable layout. Source positions use UTF-16 offsets at legal text-element boundaries; visual positions use rows and terminal columns. DCurses computes the layout and projects the selected lines into retained cells, while the application decides what text to show and when to refresh.
 
 ```csharp
 CursesTextLayout layout = CursesTextLayout.Create(
@@ -129,7 +137,7 @@ if ( caret.Line < screen.Rows && caret.Column < screen.Columns ) {
 await session.RefreshAsync();
 ```
 
-The application chooses the cursor position and can call `HitTest` and `GetSelectionRectangles` for editing and selection. See the [editor sample](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md#icoddcurseseditorsample) for a complete event loop and the [roguelike sample](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md#icoddcursesroguelikesample) for viewport geometry, track layout, and sparse updates. These APIs are in the unpublished 2.1 candidate; the 2.0 NuGet package does not contain them.
+The application chooses the cursor position and can call `HitTest` and `GetSelectionRectangles` for editing and selection. See the [editor sample](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md#icoddcurseseditorsample) for a complete event loop and the [roguelike sample](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md#icoddcursesroguelikesample) for viewport geometry, track layout, and sparse updates. These APIs first appear in 2.1.0; the 2.0 package does not contain them.
 
 ## Retained Raster Presentation
 

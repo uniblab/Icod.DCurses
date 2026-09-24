@@ -129,6 +129,8 @@ while ( running ) {
 	}
 }
 
+session.StandardScreen.Clear();
+await session.RefreshAsync();
 return 0;
 
 static void WriteLine( CursesWindow window, string value ) {

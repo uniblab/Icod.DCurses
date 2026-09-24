@@ -140,6 +140,9 @@ while ( running ) {
 	}
 }
 
+help.Hide();
+standard.Clear();
+await session.RefreshAsync();
 return 0;
 
 static void DrawSidebar( CursesWindow window, RoguelikeSampleState state ) {
@@ -147,8 +150,9 @@ static void DrawSidebar( CursesWindow window, RoguelikeSampleState state ) {
 	WriteLine( window, 0, "WORLD" );
 	WriteLine( window, 1, $"Row {state.PlayerRow}" );
 	WriteLine( window, 2, $"Col {state.PlayerColumn}" );
-	WriteLine( window, 4, "@ you  # wall" );
-	WriteLine( window, 5, ". floor ~ water" );
+	WriteLine( window, 4, "@ you  + door" );
+	WriteLine( window, 5, ". room # corridor" );
+	WriteLine( window, 6, "-| wall ~ water" );
 	WriteLine( window, 7, "? help" );
 }
 
@@ -164,8 +168,8 @@ static void DrawHelp( CursesWindow window ) {
 	window.Clear();
 	WriteLine( window, 0, " ROGUELIKE HELP" );
 	WriteLine( window, 2, " Arrows or WASD: move through the world" );
-	WriteLine( window, 3, " The map only retains the visible frame." );
-	WriteLine( window, 4, " Resize to recompute map and sidebar tracks." );
+	WriteLine( window, 3, " + doors and # corridors connect rooms." );
+	WriteLine( window, 4, " -| walls, ~ water, and void block movement." );
 	WriteLine( window, 5, " ?: close overlay   Q / Escape: quit" );
 }
 

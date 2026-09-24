@@ -2,7 +2,7 @@
 
 The repository contains twelve executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
-All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project. The unpublished 2.1 source candidate and published 2.0 package both declare only `Icod.Terminal 1.18.0` directly; Terminal may restore TermInfo transitively. The previous 1.6 package keeps its historical direct dependency set. To migrate external applications, see [the 2.0 migration guide](../docs/2.0-Migration-Guide.md). The editor and roguelike samples exercise 2.1 APIs from this repository branch and cannot run against the currently published 2.0 NuGet package.
+All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project. Versions 2.1 and 2.0 both declare only `Icod.Terminal 1.18.0` directly; Terminal may restore TermInfo transitively. The previous 1.6 package keeps its historical direct dependency set. To migrate external applications, see [the 2.0 migration guide](../docs/2.0-Migration-Guide.md). The editor and roguelike samples exercise 2.1 APIs from repository source; they cannot run against the earlier 2.0 NuGet package.
 
 ## Which sample should I run?
 
@@ -64,7 +64,7 @@ Resize the terminal while the sample is running to see the two windows and retai
 
 ## Icod.DCurses.Roguelike.Sample
 
-`Icod.DCurses.Roguelike.Sample` is the 2.1 application acceptance sample. It generates a ten-million-row world by coordinate without allocating a world-sized grid or pad. The application owns player movement, terrain and four recent messages. `CursesViewport` locates the visible slice, `CursesLayout.ArrangeRows`/`ArrangeColumns` divide the current screen, prepared `WriteCells` draws an initial map, and movement within the same viewport updates only the old and new player cells. A retained `CursesPanel` overlays help without changing the base map. Resize explicitly recomputes rectangles; opt-in refresh diagnostics report the previous attempt's prepared item count in the status row.
+`Icod.DCurses.Roguelike.Sample` is the 2.1 application acceptance sample. It generates a ten-million-row world of connected rooms and corridors by coordinate without allocating a world-sized grid or pad. The application owns player movement, terrain and four recent messages. `CursesViewport` locates the visible slice, `CursesLayout.ArrangeRows`/`ArrangeColumns` divide the current screen, prepared `WriteCells` draws an initial map, and movement within the same viewport updates only the old and new player cells. A retained `CursesPanel` overlays help without changing the base map. Resize explicitly recomputes rectangles; opt-in refresh diagnostics report the previous attempt's prepared item count in the status row.
 
 Run from the repository root on an interactive terminal:
 
@@ -72,7 +72,7 @@ Run from the repository root on an interactive terminal:
 dotnet run --project samples/Icod.DCurses.Roguelike.Sample/Icod.DCurses.Roguelike.Sample.csproj --framework net10.0
 ```
 
-Use arrows or WASD to move, `?` to show or hide help, and `Q` or `Escape` to exit. The minimum supported terminal size is 30 columns by 6 rows; resize above that limit to resume the map. This is application code using public DCurses APIs, not a game engine or a terminal protocol implementation.
+Use arrows or WASD to move through `+` doors and `#` corridors; `-`/`|` walls, `~` water, and blank rock block movement. Press `?` to show or hide help, and `Q` or `Escape` to exit. Both samples clear the retained screen and refresh before returning to the shell. The minimum supported terminal size is 30 columns by 6 rows; resize above that limit to resume the map. This is application code using public DCurses APIs, not a game engine or a terminal protocol implementation.
 
 ## Icod.DCurses.Editor.Sample
 

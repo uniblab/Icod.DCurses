@@ -27,8 +27,12 @@ internal sealed class RoguelikeSampleState {
 	internal const int WorldRows = 10_000_000;
 	internal const int WorldColumns = 2048;
 	private static readonly CursesCell Floor = new( "." );
-	private static readonly CursesCell Wall = new( "#" );
+	private static readonly CursesCell HorizontalWall = new( "-" );
+	private static readonly CursesCell VerticalWall = new( "|" );
+	private static readonly CursesCell Door = new( "+" );
+	private static readonly CursesCell Corridor = new( "#" );
 	private static readonly CursesCell Water = new( "~" );
+	private static readonly CursesCell Void = new( " " );
 	private static readonly CursesCell Player = new( "@" );
 	private readonly List<string> messages = [];
 
@@ -45,7 +49,8 @@ internal sealed class RoguelikeSampleState {
 	internal bool Move( int rowDelta, int columnDelta ) {
 		int row = (int)Math.Clamp( (long)PlayerRow + rowDelta, 0, WorldRows - 1 );
 		int column = (int)Math.Clamp( (long)PlayerColumn + columnDelta, 0, WorldColumns - 1 );
-		if ( row == PlayerRow && column == PlayerColumn ) {
+		if ( row == PlayerRow && column == PlayerColumn
+			|| TerrainGlyphAt( row, column ) is not ( '.' or '+' or '#' ) ) {
 			return false;
 		}
 		PlayerRow = row;
@@ -69,8 +74,42 @@ internal sealed class RoguelikeSampleState {
 		if ( column < 0 || column >= WorldColumns ) {
 			throw new ArgumentOutOfRangeException( nameof( column ) );
 		}
-		long value = (long)row * 31 + (long)column * 17;
-		return value % 23 == 0 ? Wall : value % 41 == 0 ? Water : Floor;
+		return TerrainGlyphAt( row, column ) switch {
+			'.' => Floor,
+			'-' => HorizontalWall,
+			'|' => VerticalWall,
+			'+' => Door,
+			'#' => Corridor,
+			'~' => Water,
+			_ => Void
+		};
+	}
+
+	private static char TerrainGlyphAt( int row, int column ) {
+		const int roomRows = 12;
+		const int roomColumns = 24;
+		int localRow = row % roomRows;
+		int localColumn = column % roomColumns;
+		int variant = ( row / roomRows + column / roomColumns ) & 1;
+		int top = 1 + variant;
+		int bottom = 9 - variant;
+		int left = 2 + variant;
+		int right = 20 - variant;
+
+		if ( localRow < top || localRow > bottom
+			|| localColumn < left || localColumn > right ) {
+			return localRow == 5 || localColumn == 11 ? '#' : ' ';
+		}
+		if ( localRow == top || localRow == bottom ) {
+			return localColumn == 11 ? '+' : '-';
+		}
+		if ( localColumn == left || localColumn == right ) {
+			return localRow == 5 ? '+' : '|';
+		}
+		if ( ( localRow is 3 or 4 ) && ( localColumn is >= 15 and <= 17 ) ) {
+			return '~';
+		}
+		return '.';
 	}
 
 	internal CursesCell[] CreateVisibleFrame() {
