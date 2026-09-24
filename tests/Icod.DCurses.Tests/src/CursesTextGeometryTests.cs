@@ -236,4 +236,119 @@ public sealed class CursesTextGeometryTests {
 			).ParamName
 		);
 	}
+
+	[Fact]
+	public void ReversedSelectionProducesOwnedRectanglesAcrossWrappedLines() {
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"abcdef",
+			new CursesTextLayoutOptions( 2 ) {
+				WrapMode = CursesTextWrapMode.TextElement
+			}
+		);
+		CursesTextSelection selection = new(
+			new CursesTextPosition( 5 ),
+			new CursesTextPosition( 1 )
+		);
+
+		CursesRectangle[] actual = layout.GetSelectionRectangles(
+			selection,
+			0,
+			3
+		);
+		Assert.Equal<CursesRectangle>(
+			[
+				new CursesRectangle( 0, 1, 1, 1 ),
+				new CursesRectangle( 1, 0, 1, 2 ),
+				new CursesRectangle( 2, 0, 1, 1 )
+			],
+			actual
+		);
+		Assert.NotSame(
+			actual,
+			layout.GetSelectionRectangles( selection, 0, 3 )
+		);
+	}
+
+	[Fact]
+	public void SelectionRectanglesClipToRequestedLinesAndVisibleSource() {
+		CursesTextSelection selection = new(
+			new CursesTextPosition( 1 ),
+			new CursesTextPosition( 5 )
+		);
+		CursesTextLayout wrapped = CursesTextLayout.Create(
+			"abcdef",
+			new CursesTextLayoutOptions( 2 ) {
+				WrapMode = CursesTextWrapMode.TextElement
+			}
+		);
+		Assert.Equal<CursesRectangle>(
+			[ new CursesRectangle( 1, 0, 1, 2 ) ],
+			wrapped.GetSelectionRectangles( selection, 1, 1 )
+		);
+
+		CursesTextLayout clipped = CursesTextLayout.Create(
+			"abcdef",
+			new CursesTextLayoutOptions( 2 )
+		);
+		Assert.Equal<CursesRectangle>(
+			[ new CursesRectangle( 0, 1, 1, 1 ) ],
+			clipped.GetSelectionRectangles( selection, 0, 1 )
+		);
+		Assert.Empty(
+			clipped.GetSelectionRectangles(
+				new CursesTextSelection(
+					new CursesTextPosition( 3 ),
+					new CursesTextPosition( 5 )
+				),
+				0,
+				1
+			)
+		);
+	}
+
+	[Fact]
+	public void EmptySelectionProducesNoRectanglesAndRangesAreValidated() {
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"ab",
+			new CursesTextLayoutOptions( 2 )
+		);
+		CursesTextSelection empty = new(
+			new CursesTextPosition( 1 ),
+			new CursesTextPosition( 1 )
+		);
+
+		Assert.Empty( layout.GetSelectionRectangles( empty, 0, 1 ) );
+		Assert.Empty( layout.GetSelectionRectangles( empty, 1, 0 ) );
+		Assert.Equal(
+			"firstLine",
+			Assert.Throws<ArgumentOutOfRangeException>(
+				() => layout.GetSelectionRectangles( empty, -1, 0 )
+			).ParamName
+		);
+		Assert.Equal(
+			"lineCount",
+			Assert.Throws<ArgumentOutOfRangeException>(
+				() => layout.GetSelectionRectangles( empty, 0, -1 )
+			).ParamName
+		);
+		Assert.Equal(
+			"lineCount",
+			Assert.Throws<ArgumentOutOfRangeException>(
+				() => layout.GetSelectionRectangles( empty, 1, 1 )
+			).ParamName
+		);
+		Assert.Equal(
+			"selection",
+			Assert.Throws<ArgumentOutOfRangeException>(
+				() => layout.GetSelectionRectangles(
+					new CursesTextSelection(
+						new CursesTextPosition( 1 ),
+						new CursesTextPosition( 3 )
+					),
+					0,
+					1
+				)
+			).ParamName
+		);
+	}
 }
