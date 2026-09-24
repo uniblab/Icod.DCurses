@@ -1,6 +1,6 @@
 # Icod.DCurses Samples
 
-The repository contains eleven executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
+The repository contains twelve executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
 All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project. Icod.DCurses 2.0 declares only `Icod.Terminal 1.18.0` directly. Terminal may restore TermInfo transitively. The previous 1.6 package keeps its historical direct dependency set. To migrate external applications, see [the 2.0 migration guide](../docs/2.0-Migration-Guide.md).
 
@@ -13,6 +13,7 @@ All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the rep
 | Explicit geometry/layout and resize recomputation | `Icod.DCurses.Layout.Sample` |
 | Retained text + hyperlink metadata + raster presentation, panning, panels, and interaction geometry | `Icod.DCurses.MixedMedia.Sample` |
 | Virtualized large world, sparse movement, track layout, and retained help overlay | `Icod.DCurses.Roguelike.Sample` |
+| Sparse synthetic document, Unicode editing, selection, wrap, and two-axis scrolling | `Icod.DCurses.Editor.Sample` |
 | Interaction scopes, capture, spatial focus, gestures, commands, and pointer preferences | `Icod.DCurses.Interaction.Sample` |
 | General interactive API showcase | `Icod.DCurses.Showcase` |
 | Semantic input inspection | `Icod.DCurses.Input.Showcase` |
@@ -72,6 +73,16 @@ dotnet run --project samples/Icod.DCurses.Roguelike.Sample/Icod.DCurses.Roguelik
 ```
 
 Use arrows or WASD to move, `?` to show or hide help, and `Q` or `Escape` to exit. The minimum supported terminal size is 30 columns by 6 rows; resize above that limit to resume the map. This is application code using public DCurses APIs, not a game engine or a terminal protocol implementation.
+
+## Icod.DCurses.Editor.Sample
+
+`Icod.DCurses.Editor.Sample` owns a synthetic ten-million-record document. It generates untouched records on demand, stores only changed records and lays out only records intersecting the viewport. Each record has four reserved visual rows; wrapping is capped at four lines, and edits that would exceed that bound are rejected. This deliberate fixed-record policy keeps document positions stable without a document-sized pad or a general-purpose buffer. A newline is an in-record hard break; it does not split or renumber records. Selection is within the active record and is cleared when moving to another record.
+
+The sample uses public `CursesTextLayout` source positions and geometry for Unicode navigation, editing and selection, `CursesViewport` for scrolling, and retained `PresentTextLayout` for clipped presentation. `Ctrl+W` toggles wrap; `Ctrl+V` starts/stops selection; `Ctrl+G` opens the 1-based record prompt. Arrows navigate; `PageUp`/`PageDown` jump records; `Home`/`End` jump within the current record; typing, `Tab`, `Enter`, `Backspace` and `Delete` edit. `Escape` exits. Terminal control-key reporting may differ by terminal. Resize recomputes the document, status and prompt tracks. Minimum size is 30 columns by 6 rows.
+
+```text
+dotnet run --project samples/Icod.DCurses.Editor.Sample/Icod.DCurses.Editor.Sample.csproj --framework net10.0
+```
 
 ## Icod.DCurses.MixedMedia.Sample
 
