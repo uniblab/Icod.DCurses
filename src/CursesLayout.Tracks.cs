@@ -63,54 +63,129 @@ public static partial class CursesLayout {
 		if ( available < 0 ) {
 			throw new ArgumentOutOfRangeException( nameof( gap ) );
 		}
-		int[] sizes = new int[ tracks.Length ];
-		long totalWeight = 0;
-		long assigned = 0;
+		long minimumTotal = 0;
 		for ( int index = 0; index < tracks.Length; index++ ) {
 			CursesTrack track = tracks[ index ];
-			if ( track.Kind == CursesTrackKind.Fixed ) {
-				sizes[ index ] = Math.Clamp( track.Value, track.Minimum, track.Maximum ?? int.MaxValue );
-			} else if ( track.Kind == CursesTrackKind.Weighted && track.Value > 0 ) {
-				sizes[ index ] = track.Minimum;
-				totalWeight += track.Value;
-			} else {
+			if ( ( track.Kind != CursesTrackKind.Fixed && track.Kind != CursesTrackKind.Weighted )
+				|| track.Value < ( track.Kind == CursesTrackKind.Weighted ? 1 : 0 )
+				|| track.Minimum < 0
+				|| ( track.Maximum.HasValue && track.Maximum.Value < track.Minimum ) ) {
 				throw new ArgumentOutOfRangeException( nameof( tracks ) );
 			}
-			assigned += sizes[ index ];
+			minimumTotal += track.Minimum;
 		}
-		if ( assigned > available ) {
-			throw new ArgumentException( "Tracks exceed the available extent.", nameof( tracks ) );
+		if ( minimumTotal > available ) {
+			throw new ArgumentException( "Track minimums exceed the available extent.", nameof( tracks ) );
 		}
 
-		long remaining = available - assigned;
-		if ( totalWeight > 0 ) {
-			for ( int index = 0; index < tracks.Length; index++ ) {
-				if ( tracks[ index ].Kind != CursesTrackKind.Weighted ) {
-					continue;
-				}
-				int share = (int)( remaining * tracks[ index ].Value / totalWeight );
-				sizes[ index ] += share;
-				assigned += share;
-			}
-			for ( int index = 0; index < tracks.Length && assigned < available; index++ ) {
-				if ( tracks[ index ].Kind == CursesTrackKind.Weighted ) {
-					sizes[ index ]++;
-					assigned++;
-				}
+		int[] sizes = new int[ tracks.Length ];
+		long remaining = available - minimumTotal;
+		for ( int index = 0; index < tracks.Length; index++ ) {
+			CursesTrack track = tracks[ index ];
+			sizes[ index ] = track.Minimum;
+			if ( track.Kind == CursesTrackKind.Fixed ) {
+				int ideal = Math.Clamp( track.Value, track.Minimum, track.Maximum ?? int.MaxValue );
+				int extra = (int)Math.Min( remaining, (long)ideal - track.Minimum );
+				sizes[ index ] += extra;
+				remaining -= extra;
 			}
 		}
+		DistributeWeighted( tracks, sizes, ref remaining );
+		int[] spaces = DistributeSurplus( tracks.Length, remaining, distribution );
 
 		CursesRectangle[] result = new CursesRectangle[ tracks.Length ];
-		int cursor = rows ? bounds.Row : bounds.Column;
+		int cursor = ( rows ? bounds.Row : bounds.Column ) + spaces[ 0 ];
 		for ( int index = 0; index < tracks.Length; index++ ) {
+			if ( index > 0 ) {
+				cursor += gap + spaces[ index ];
+			}
 			result[ index ] = rows
 				? new CursesRectangle( cursor, bounds.Column, sizes[ index ], bounds.Columns )
 				: new CursesRectangle( bounds.Row, cursor, bounds.Rows, sizes[ index ] );
 			cursor += sizes[ index ];
-			if ( index + 1 < tracks.Length ) {
-				cursor += gap;
-			}
 		}
 		return result;
+	}
+
+	private static void DistributeWeighted( ReadOnlySpan<CursesTrack> tracks, int[] sizes, ref long remaining ) {
+		while ( remaining > 0 ) {
+			long totalWeight = 0;
+			for ( int index = 0; index < tracks.Length; index++ ) {
+				CursesTrack track = tracks[ index ];
+				if ( track.Kind == CursesTrackKind.Weighted && sizes[ index ] < ( track.Maximum ?? int.MaxValue ) ) {
+					totalWeight += track.Value;
+				}
+			}
+			if ( totalWeight == 0 ) {
+				return;
+			}
+
+			long awarded = 0;
+			bool saturated = false;
+			for ( int index = 0; index < tracks.Length; index++ ) {
+				CursesTrack track = tracks[ index ];
+				int headroom = ( track.Maximum ?? int.MaxValue ) - sizes[ index ];
+				if ( track.Kind != CursesTrackKind.Weighted || headroom <= 0 ) {
+					continue;
+				}
+				long quotient = remaining * track.Value / totalWeight;
+				int share = (int)Math.Min( quotient, headroom );
+				sizes[ index ] += share;
+				awarded += share;
+				saturated |= share == headroom;
+			}
+			remaining -= awarded;
+			if ( saturated ) {
+				continue;
+			}
+			for ( int index = 0; index < tracks.Length && remaining > 0; index++ ) {
+				CursesTrack track = tracks[ index ];
+				if ( track.Kind == CursesTrackKind.Weighted && sizes[ index ] < ( track.Maximum ?? int.MaxValue ) ) {
+					sizes[ index ]++;
+					remaining--;
+				}
+			}
+			return;
+		}
+	}
+
+	private static int[] DistributeSurplus( int count, long surplus, CursesTrackDistribution distribution ) {
+		int[] spaces = new int[ count + 1 ];
+		switch ( distribution ) {
+			case CursesTrackDistribution.Start:
+				spaces[ count ] = (int)surplus;
+				break;
+			case CursesTrackDistribution.Center:
+				spaces[ 0 ] = (int)( surplus / 2 );
+				spaces[ count ] = (int)( surplus - spaces[ 0 ] );
+				break;
+			case CursesTrackDistribution.End:
+				spaces[ 0 ] = (int)surplus;
+				break;
+			case CursesTrackDistribution.SpaceBetween:
+				if ( count < 2 ) {
+					spaces[ count ] = (int)surplus;
+					break;
+				}
+				for ( int slot = 1; slot < count; slot++ ) {
+					spaces[ slot ] = (int)( surplus / ( count - 1 ) + ( slot <= surplus % ( count - 1 ) ? 1 : 0 ) );
+				}
+				break;
+			case CursesTrackDistribution.SpaceAround:
+				long halfSpace = surplus / ( 2L * count );
+				long leftoverUnits = surplus % ( 2L * count );
+				for ( int slot = 0; slot <= count; slot++ ) {
+					int units = slot == 0 || slot == count ? 1 : 2;
+					spaces[ slot ] = (int)( halfSpace * units + Math.Min( leftoverUnits, units ) );
+					leftoverUnits = Math.Max( 0, leftoverUnits - units );
+				}
+				break;
+			case CursesTrackDistribution.SpaceEvenly:
+				for ( int slot = 0; slot <= count; slot++ ) {
+					spaces[ slot ] = (int)( surplus / ( count + 1 ) + ( slot < surplus % ( count + 1 ) ? 1 : 0 ) );
+				}
+				break;
+		}
+		return spaces;
 	}
 }
