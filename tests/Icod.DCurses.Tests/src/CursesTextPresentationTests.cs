@@ -46,4 +46,25 @@ public sealed class CursesTextPresentationTests {
 		Assert.Equal( "o", screen.VirtualScreen[ 2, 4 ].Content );
 		Assert.True( screen.VirtualScreen[ 1, 2 ].IsBlank );
 	}
+
+	[Fact]
+	public void RepeatingTheSameLayoutDoesNotDamageRetainedCells() {
+		CursesScreen screen = new( 5, 2 );
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"one",
+			new CursesTextLayoutOptions( 3 )
+		);
+		CursesWindow window = screen.StandardWindow;
+		window.PresentTextLayout( layout, 0, 1, 0, 1 );
+		screen.VirtualScreen.MarkClean();
+
+		window.PresentTextLayout( layout, 0, 1, 0, 1 );
+
+		Assert.Equal( 0, screen.VirtualScreen.DirtyCellCount );
+		Assert.Equal( "one", string.Concat(
+			screen.VirtualScreen[ 0, 1 ].Content,
+			screen.VirtualScreen[ 0, 2 ].Content,
+			screen.VirtualScreen[ 0, 3 ].Content
+		) );
+	}
 }
