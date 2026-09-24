@@ -30,6 +30,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Icod.DCurses.Interaction.Sa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Icod.DCurses.MixedMedia.Sample", "samples\Icod.DCurses.MixedMedia.Sample\Icod.DCurses.MixedMedia.Sample.csproj", "{E8127A55-FF43-4D65-9B5A-AC491A2C8F8D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Icod.DCurses.Roguelike.Sample", "samples\Icod.DCurses.Roguelike.Sample\Icod.DCurses.Roguelike.Sample.csproj", "{81E10C30-7A1A-47CD-B918-90241B475E20}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -109,6 +111,12 @@ Global
 		{E8127A55-FF43-4D65-9B5A-AC491A2C8F8D}.Staging|Any CPU.Build.0 = Staging|Any CPU
 		{E8127A55-FF43-4D65-9B5A-AC491A2C8F8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8127A55-FF43-4D65-9B5A-AC491A2C8F8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81E10C30-7A1A-47CD-B918-90241B475E20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81E10C30-7A1A-47CD-B918-90241B475E20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81E10C30-7A1A-47CD-B918-90241B475E20}.Staging|Any CPU.ActiveCfg = Staging|Any CPU
+		{81E10C30-7A1A-47CD-B918-90241B475E20}.Staging|Any CPU.Build.0 = Staging|Any CPU
+		{81E10C30-7A1A-47CD-B918-90241B475E20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81E10C30-7A1A-47CD-B918-90241B475E20}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -125,5 +133,6 @@ Global
 		{F7159ED7-C41C-4BE7-93FA-759B9174DD28} = {4A1B4462-96F7-4E95-95A4-059D416B73E7}
 		{B427973D-98EF-4F7E-BB0D-6AE640753A21} = {4A1B4462-96F7-4E95-95A4-059D416B73E7}
 		{E8127A55-FF43-4D65-9B5A-AC491A2C8F8D} = {4A1B4462-96F7-4E95-95A4-059D416B73E7}
+		{81E10C30-7A1A-47CD-B918-90241B475E20} = {4A1B4462-96F7-4E95-95A4-059D416B73E7}
 	EndGlobalSection
 EndGlobal

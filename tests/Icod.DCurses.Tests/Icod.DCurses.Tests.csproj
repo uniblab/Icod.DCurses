@@ -54,6 +54,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\samples\Icod.DCurses.Roguelike.Sample\RoguelikeSampleState.cs"
+             Link="RoguelikeSampleState.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\docs\Public-API-Fingerprint-0.9.json"
           Link="Public-API-Fingerprint-0.9.json"
           CopyToOutputDirectory="PreserveNewest" />

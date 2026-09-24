@@ -8,7 +8,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2108 accepted; T2109/T2110 application plans prepared\
+**Status:** T2108 accepted; T2109 roguelike implementation in progress\
 **Planning snapshot:** 2026-09-23
 
 **T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
@@ -397,6 +397,8 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 ### T2109 — roguelike application acceptance
 
 **Implementation plan:** [T2109 roguelike application](docs/superpowers/plans/2026-09-24-icod-dcurses-t2109-roguelike-application.md).
+
+**In progress:** the project, algorithmic world and bounded viewport, sparse movement, track regions, help overlay and headless tests are being qualified by the exact-head PR matrix. The T2109 gate remains pending.
 
 - Add `Icod.DCurses.Roguelike.Sample` using public APIs only.
 - Demonstrate a virtualized scrolling map, local updates, track layout, status/messages, resize and an overlay.

@@ -1,6 +1,6 @@
 # T2109 Roguelike Application Acceptance Plan
 
-**Status:** implementation pending  
+**Status:** implementation in progress
 **Authority:** `Icod.DCurses-2.1.0-Development-Roadmap.md`, T2109; accepted T2101–T2108 public API and gates.  
 **Branch:** `2.1.0-roadmap` in open PR #33. Do not merge, tag or publish.
 
