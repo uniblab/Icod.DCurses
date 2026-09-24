@@ -8,7 +8,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2105 accepted; T2106 implementation in progress\
+**Status:** T2106 accepted; T2107 implementation next\
 **Planning snapshot:** 2026-09-23
 
 **T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
@@ -372,6 +372,8 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Acceptance:** numeric-boundary tests and large-content allocation gates green; no retained content-provider callback or hidden full-content cache.
 
+**Acceptance:** immutable clamped viewport geometry, widened pan/page arithmetic, smallest ensure-visible movement, overscan and two-way translation, empty/zero-extent boundaries, and visible-slice materialization for a ten-million-row document and 2,048x2,048 world are covered by permanent tests. Exact executable head `5d8063bd6e3f0ef08e842de21d33fdbce469dd54` passed all 14 package/runtime jobs in workflow 35950838881. The [T2106 gate](docs/T2106-Viewport-Geometry-Gate.md) records red and green evidence.
+
 ### T2107 — track layout primitives
 
 - Add fixed/weighted/minimum/maximum track calculations and gaps.
@@ -445,4 +447,4 @@ These remain candidates for later releases or sibling packages. The intended seq
 
 ## 17. Immediate next step
 
-Begin T2106 against the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): implement terminal-independent two-dimensional viewport geometry and qualify visible-slice costs over large caller-owned content.
+Begin T2107 against the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): implement stateless fixed and weighted track layout with deterministic space distribution.

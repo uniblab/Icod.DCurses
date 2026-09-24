@@ -354,7 +354,7 @@ git commit -m "feat: add retained text and bulk cell presentation"
 
 **Exact public increment:** `CursesCellPosition`; immutable `CursesViewport` constructor/properties plus its 13 methods from design section 7.1.
 
-- [ ] **Step 1: Write the clamp/visibility RED**
+- [x] **Step 1: Write the clamp/visibility RED**
 
 ```csharp
 [Fact]
@@ -369,19 +369,19 @@ public void ConstructorClampsOriginAndReportsVisibleContent() {
 
 Observe missing types, then implement constructor validation, clamping, value equality, and `VisibleContent` only.
 
-- [ ] **Step 2: Add immutable resize/move/pan/page operations test-first**
+- [x] **Step 2: Add immutable resize/move/pan/page operations test-first**
 
 Cover content shrink, oversized/zero viewport, empty content, start/end, negative/extreme deltas, and page multiplication at numeric boundaries. Use widened intermediates and return new values; allocate no heap objects.
 
-- [ ] **Step 3: Add ensure-visible, overscan, and translations test-first**
+- [x] **Step 3: Add ensure-visible, overscan, and translations test-first**
 
 Cover point/rectangle validation, smallest movement, leading-edge rule for oversized rectangles, impossible zero axis, symmetric overscan clipping, translations at every visible edge, and default out value on false.
 
-- [ ] **Step 4: Prove virtualized application shape**
+- [x] **Step 4: Prove virtualized application shape**
 
 Drive a 10,000,000-row synthetic document and a 2,048x2,048 algorithmic world through viewport calculations while materializing only 80x40 or 80x24 cells plus explicit overscan. Assert viewport operations stay constant-time by deterministic operation counts and allocate zero after warmup.
 
-- [ ] **Step 5: Verify and commit T2106**
+- [x] **Step 5: Verify and commit T2106**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10.0 \
