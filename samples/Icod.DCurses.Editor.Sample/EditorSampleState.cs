@@ -148,12 +148,14 @@ internal sealed class EditorSampleState {
 			remaining = remaining[ consumed.. ];
 		}
 		string before = GetRecord( Row );
-		if ( before.Length + value.Length > MaximumRecordLength ) {
+		int start = selectionAnchor is int anchor ? Math.Min( anchor, Offset ) : Offset;
+		int end = selectionAnchor is int selected ? Math.Max( selected, Offset ) : Offset;
+		if ( before.Length - ( end - start ) + value.Length > MaximumRecordLength ) {
 			return false;
 		}
 		CursesTextLayout layout = LayoutRecord( Row );
 		_ = layout.GetVisualPosition( new CursesTextPosition( Offset ) );
-		string next = before.Insert( Offset, value );
+		string next = before.Remove( start, end - start ).Insert( start, value );
 		CursesTextLayout nextLayout;
 		try {
 			nextLayout = CursesTextLayout.Create( next, layout.Options );
@@ -164,12 +166,12 @@ internal sealed class EditorSampleState {
 				} ).IsTruncated ) {
 				return false;
 			}
-			_ = nextLayout.GetVisualPosition( new CursesTextPosition( Offset + value.Length ) );
+			_ = nextLayout.GetVisualPosition( new CursesTextPosition( start + value.Length ) );
 		} catch ( ArgumentException ) {
 			return false;
 		}
 		edits[ Row ] = next;
-		Offset += value.Length;
+		Offset = start + value.Length;
 		preferredColumn = nextLayout.GetVisualPosition( new CursesTextPosition( Offset ) ).Column;
 		selectionAnchor = null;
 		EnsureCaret();
@@ -179,6 +181,15 @@ internal sealed class EditorSampleState {
 	internal bool Delete( bool backwards ) {
 		string before = GetRecord( Row );
 		CursesTextLayout layout = LayoutRecord( Row );
+		if ( selectionAnchor is int anchor && anchor != Offset ) {
+			int first = Math.Min( anchor, Offset );
+			edits[ Row ] = before.Remove( first, Math.Abs( anchor - Offset ) );
+			Offset = first;
+			selectionAnchor = null;
+			preferredColumn = LayoutRecord( Row ).GetVisualPosition( new CursesTextPosition( Offset ) ).Column;
+			EnsureCaret();
+			return true;
+		}
 		int other = backwards
 			? layout.GetPreviousPosition( new CursesTextPosition( Offset ) ).Offset
 			: layout.GetNextPosition( new CursesTextPosition( Offset ) ).Offset;

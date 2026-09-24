@@ -8,7 +8,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2109 accepted; T2110 editor implementation next\
+**Status:** T2110 accepted; T2111 adversarial, package, documentation and API closure next\
 **Planning snapshot:** 2026-09-23
 
 **T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
@@ -410,6 +410,8 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Implementation plan:** [T2110 editor application](docs/superpowers/plans/2026-09-24-icod-dcurses-t2110-editor-application.md).
 
+**Acceptance:** the public-only fixed-record editor sample, sparse ten-million-record document, Unicode editing and geometry, wrap/no-wrap, selection, two-axis viewport, resize and status/prompt regions passed all 14 package/runtime jobs at executable head `035f78603740fbc22a41fbf1325f5c1f58938bc9` in workflow 36043351407. The [T2110 gate](docs/T2110-Editor-Application-Gate.md) records exact-head evidence and manual terminal-run limits. PR #33 remains open.
+
 - Add `Icod.DCurses.Editor.Sample` using public APIs only.
 - Demonstrate Unicode caret movement, insertion/deletion, selection, wrap/no-wrap, horizontal/vertical scrolling, status and prompt regions.
 - Exercise a large synthetic document without a document-sized pad.
@@ -417,6 +419,8 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 **Acceptance:** deterministic editing/navigation tests plus manual runnable sample; no reusable document engine hidden inside DCurses.
 
 ### T2111 — adversarial, package, documentation and API freeze
+
+**Implementation plan:** [T2111 release closure](docs/superpowers/plans/2026-09-24-icod-dcurses-t2111-release-closure.md).
 
 - Run capacity, overflow, allocation, cancellation, failure and resize qualification.
 - Update root/package README, sample index, changelog, XML documentation and package consumer.
@@ -457,4 +461,4 @@ These remain candidates for later releases or sibling packages. The intended seq
 
 ## 17. Immediate next step
 
-Begin T2110 against the separate editor application plan using the accepted T2101–T2109 surface. Retain the open PR through the application and release gates.
+Begin T2111 adversarial, package, documentation and API closure using the accepted T2101–T2110 surface. Retain the open PR through the release gates.

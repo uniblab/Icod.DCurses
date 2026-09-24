@@ -51,6 +51,29 @@ public sealed class EditorSampleStateTests {
 	}
 
 	[Fact]
+	public void SelectionReplacementAndDeletionRemainAtomicAtTextElementBoundaries() {
+		EditorSampleState state = new( 12, 40 );
+		Assert.True( state.Insert( "👩‍💻" ) );
+		state.MoveHorizontal( -1 );
+		state.ToggleSelection();
+		state.MoveHorizontal( 1 );
+		string before = state.GetRecord( state.Row );
+		Assert.False( state.Insert( "\uD800" ) );
+		Assert.Equal( before, state.GetRecord( state.Row ) );
+		Assert.True( state.Selecting );
+		Assert.True( state.Insert( "界" ) );
+		Assert.StartsWith( "界", state.GetRecord( state.Row ), StringComparison.Ordinal );
+		Assert.Equal( 1, state.Offset );
+		Assert.False( state.Selecting );
+		state.MoveHorizontal( -1 );
+		state.ToggleSelection();
+		state.MoveHorizontal( 1 );
+		Assert.True( state.Delete( false ) );
+		Assert.StartsWith( "0000000", state.GetRecord( state.Row ), StringComparison.Ordinal );
+		Assert.Equal( 0, state.Offset );
+	}
+
+	[Fact]
 	public void SelectionWrapHorizontalScrollAndResizePreserveLegalPositions() {
 		EditorSampleState state = new( 12, 30 );
 		state.ToggleSelection();

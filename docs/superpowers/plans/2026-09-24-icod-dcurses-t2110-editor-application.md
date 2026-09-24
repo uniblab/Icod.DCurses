@@ -1,6 +1,6 @@
 # T2110 Editor Application Acceptance Plan
 
-**Status:** implementation pending  
+**Status:** accepted at executable head `035f78603740fbc22a41fbf1325f5c1f58938bc9`, 14/14 jobs in workflow 36043351407; see [the T2110 gate](../../T2110-Editor-Application-Gate.md).
 **Authority:** `Icod.DCurses-2.1.0-Development-Roadmap.md`, T2110; accepted T2101–T2108 public API and gates.  
 **Branch:** `2.1.0-roadmap` in open PR #33. Do not merge, tag or publish.
 
