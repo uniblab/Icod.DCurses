@@ -90,4 +90,49 @@ public readonly record struct CursesViewport {
 		Math.Min( Rows, ContentRows - OriginRow ),
 		Math.Min( Columns, ContentColumns - OriginColumn )
 	);
+
+	/// <summary>Returns this viewport for a changed content extent, clamping the existing origin.</summary>
+	public CursesViewport WithContentExtent( int rows, int columns ) {
+		return new CursesViewport( rows, columns, Rows, Columns, OriginRow, OriginColumn );
+	}
+
+	/// <summary>Returns this viewport for a changed visible extent, clamping the existing origin.</summary>
+	public CursesViewport WithViewportExtent( int rows, int columns ) {
+		return new CursesViewport( ContentRows, ContentColumns, rows, columns, OriginRow, OriginColumn );
+	}
+
+	/// <summary>Moves the origin to nonnegative content coordinates, clamped to the valid range.</summary>
+	public CursesViewport MoveTo( int row, int column ) {
+		return new CursesViewport( ContentRows, ContentColumns, Rows, Columns, row, column );
+	}
+
+	/// <summary>Pans each axis by a signed number of cells without overflowing.</summary>
+	public CursesViewport PanBy( int rowDelta, int columnDelta ) {
+		return MoveTo(
+			ClampOrigin( (long)OriginRow + rowDelta, ContentRows, Rows ),
+			ClampOrigin( (long)OriginColumn + columnDelta, ContentColumns, Columns )
+		);
+	}
+
+	/// <summary>Pans each axis by a signed number of viewport extents without overflowing.</summary>
+	public CursesViewport PageBy( int rowPages, int columnPages ) {
+		return MoveTo(
+			ClampOrigin( OriginRow + (long)rowPages * Rows, ContentRows, Rows ),
+			ClampOrigin( OriginColumn + (long)columnPages * Columns, ContentColumns, Columns )
+		);
+	}
+
+	/// <summary>Moves to the beginning of both content axes.</summary>
+	public CursesViewport MoveToStart() {
+		return MoveTo( 0, 0 );
+	}
+
+	/// <summary>Moves to the last valid origin on both content axes.</summary>
+	public CursesViewport MoveToEnd() {
+		return MoveTo( Math.Max( 0, ContentRows - Rows ), Math.Max( 0, ContentColumns - Columns ) );
+	}
+
+	private static int ClampOrigin( long requested, int contentExtent, int viewportExtent ) {
+		return (int)Math.Clamp( requested, 0L, Math.Max( 0L, (long)contentExtent - viewportExtent ) );
+	}
 }
