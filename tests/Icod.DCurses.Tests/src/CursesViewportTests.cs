@@ -87,7 +87,7 @@ public sealed class CursesViewportTests {
 		Assert.Equal( viewport, viewport.EnsureVisible( new CursesCellPosition( 35, 50 ) ) );
 		Assert.Equal( new CursesViewport( 100, 200, 10, 20, 36, 41 ), viewport.EnsureVisible( new CursesCellPosition( 45, 60 ) ) );
 		Assert.Equal( new CursesViewport( 100, 200, 10, 20, 25, 38 ), viewport.EnsureVisible( new CursesRectangle( 25, 38, 5, 10 ) ) );
-		Assert.Equal( new CursesViewport( 100, 200, 10, 20, 34, 45 ), viewport.EnsureVisible( new CursesRectangle( 38, 50, 5, 15 ) ) );
+		Assert.Equal( new CursesViewport( 100, 200, 10, 20, 33, 45 ), viewport.EnsureVisible( new CursesRectangle( 38, 50, 5, 15 ) ) );
 		Assert.Equal( new CursesViewport( 100, 200, 10, 20, 25, 35 ), viewport.EnsureVisible( new CursesRectangle( 25, 35, 20, 30 ) ) );
 	}
 
