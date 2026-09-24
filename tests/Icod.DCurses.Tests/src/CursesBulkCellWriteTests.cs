@@ -108,13 +108,13 @@ public sealed class CursesBulkCellWriteTests {
 
 	[Fact]
 	public void EmptyWriteValidatesArgumentsWithoutMutation() {
-		CursesScreen screen = new( 3, 1 );
+		CursesScreen screen = new( 3, 2 );
 		CursesWindow window = screen.StandardWindow;
 		screen.VirtualScreen.MarkClean();
 
-		window.WriteCells( 1, 3, 0, 0, [], 0 );
+		window.WriteCells( 2, 3, 0, 0, [], 0 );
 		Assert.Throws<ArgumentOutOfRangeException>(
-			() => window.WriteCells( 2, 0, 0, 0, [], 0 )
+			() => window.WriteCells( 3, 0, 0, 0, [], 0 )
 		);
 		Assert.Throws<ArgumentException>(
 			() => window.WriteCells( 0, 0, 2, 2, [ new CursesCell( "a" ) ], 2 )
