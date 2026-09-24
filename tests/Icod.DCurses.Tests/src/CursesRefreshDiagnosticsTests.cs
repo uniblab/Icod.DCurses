@@ -63,6 +63,8 @@ public sealed class CursesRefreshDiagnosticsTests {
 		Assert.True( first.PreparedOutputItemCount > 0 );
 		Assert.True( first.ApplicationPayloadCount > 0 );
 		Assert.True( first.OperationKinds.HasFlag( CursesRefreshOperationKinds.Text ) );
+		Assert.True( first.OperationKinds.HasFlag( CursesRefreshOperationKinds.Cursor ) );
+		Assert.True( first.OperationKinds.HasFlag( CursesRefreshOperationKinds.Rendition ) );
 
 		await session.RefreshAsync();
 		CursesRefreshDiagnosticsSnapshot second = Assert.IsType<CursesRefreshDiagnosticsSnapshot>(
@@ -72,7 +74,8 @@ public sealed class CursesRefreshDiagnosticsTests {
 		Assert.False( second.IsFullRepaint );
 		Assert.True( second.LogicalStatePublished );
 		Assert.Equal( 0, second.PreparedOutputItemCount );
-		Assert.Equal( 1, first.Sequence );
+		Assert.Equal( CursesRefreshOperationKinds.None, second.OperationKinds );
+		Assert.NotSame( first, second );
 	}
 
 	[Fact]
@@ -237,6 +240,7 @@ public sealed class CursesRefreshDiagnosticsTests {
 			this.WrittenBytes += buffer.Length;
 			if ( this.Arm ) {
 				source.Cancel();
+				throw new OperationCanceledException( cancellationToken );
 			}
 			return ValueTask.CompletedTask;
 		}

@@ -267,7 +267,8 @@ internal sealed class CursesRefreshEngine {
 		);
 		if ( lineShift.HasValue ) {
 			CursesLineShiftPlan plan = lineShift.Value;
-			AddPlanSequence( preparation, plan.Sequence, CursesRefreshOperationKinds.LineShift );
+			AddPlanSequence( preparation, plan.Sequence,
+				CursesRefreshOperationKinds.LineShift, speculative.CurrentStyle );
 			if ( this.activeDiagnostics is not null ) {
 				this.activeDiagnostics.DamagedRows = (int)Math.Min( int.MaxValue,
 					(long)this.activeDiagnostics.DamagedRows + plan.BottomRow - plan.TopRow + 1 );
@@ -343,7 +344,8 @@ internal sealed class CursesRefreshEngine {
 				);
 			if ( characterShift.HasValue ) {
 				CursesCharacterShiftPlan plan = characterShift.Value;
-				AddPlanSequence( preparation, plan.Sequence, CursesRefreshOperationKinds.CharacterShift );
+				AddPlanSequence( preparation, plan.Sequence,
+					CursesRefreshOperationKinds.CharacterShift, speculative.CurrentStyle );
 				this.RecordRegion();
 				this.RecordDamagedRow();
 				CopyDesiredRange(
@@ -394,7 +396,8 @@ internal sealed class CursesRefreshEngine {
 				);
 				if ( erase.HasValue ) {
 					CursesErasePlan plan = erase.Value;
-					AddPlanSequence( preparation, plan.Sequence, CursesRefreshOperationKinds.Erase );
+					AddPlanSequence( preparation, plan.Sequence,
+						CursesRefreshOperationKinds.Erase, speculative.CurrentStyle );
 					this.RecordRegion();
 					switch ( plan.Kind ) {
 						case CursesEraseKind.ClearToEndOfLine:
@@ -611,12 +614,22 @@ internal sealed class CursesRefreshEngine {
 	private static void AddPlanSequence(
 		Preparation preparation,
 		CursesTerminalPlanSequence sequence,
-		CursesRefreshOperationKinds kind
+		CursesRefreshOperationKinds kind,
+		CursesStyle? previousStyle
 	) {
 		ArgumentNullException.ThrowIfNull( preparation );
 		ArgumentNullException.ThrowIfNull( sequence );
+		bool resetsRendition = !previousStyle.HasValue || !previousStyle.Value.IsDefault;
+		CursesRefreshOperationKinds preparedKinds = kind;
+		if ( resetsRendition ) {
+			preparedKinds |= CursesRefreshOperationKinds.Rendition;
+		}
+		if ( CursesRefreshOperationKinds.LineShift == kind
+			|| sequence.Plans.Count > ( resetsRendition ? 2 : 1 ) ) {
+			preparedKinds |= CursesRefreshOperationKinds.Cursor;
+		}
 		foreach ( TerminalScreenOperationPlan plan in sequence.Plans ) {
-			preparation.Prepared.AddPlan( plan, kind );
+			preparation.Prepared.AddPlan( plan, preparedKinds );
 			preparation.HasOutput = true;
 		}
 	}
