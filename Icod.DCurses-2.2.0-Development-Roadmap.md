@@ -9,7 +9,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** Planning and design review; T2201 pending\
+**Status:** T2201 baseline captured; discovery API design proposed; implementation pending\
 **Planning snapshot:** 2026-09-24
 
 **Design proposal:** [2.2 interaction and application conveniences](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The published [2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md), [interaction sample](samples/Icod.DCurses.Interaction.Sample/Program.cs), [editor](samples/Icod.DCurses.Editor.Sample/Program.cs) and [roguelike](samples/Icod.DCurses.Roguelike.Sample/Program.cs) are the baseline evidence.
@@ -22,7 +22,7 @@ The agreed order is core presentation and text (2.1), **interaction and applicat
 
 The editor should be able to present a bounded prompt and discover currently relevant commands without duplicating infrastructure. The roguelike should be able to express context-sensitive input and an overlay without a parallel command router. Both remain executable, public-API-only examples; they own their document/world state, application commands, game rules, rendering loop and event loop.
 
-This roadmap deliberately places the public API and workload decision at T2201. The candidate features below define what to evaluate, not a commitment to ship every candidate. Each optional tranche either passes its stated gate or closes with evidence explaining why it is deferred. The release must ship useful interaction work even if optional timing facilities are excluded.
+The [T2201 baseline and API questions](docs/T2201-Interaction-Baseline-and-API-Questions.md) and [2.2 interaction API design](docs/2.2-Interaction-API-Design.md) place effective-binding discovery before command sequences: discovery first proves precedence without changing `Route`. The candidate features below define what to evaluate, not a commitment to ship every candidate. Each optional tranche either passes its stated gate or closes with evidence explaining why it is deferred. The release must ship useful interaction work even if optional timing facilities are excluded.
 
 ## 2. Architecture and compatibility requirements
 
@@ -72,8 +72,8 @@ Both samples continue to call `screen.Clear()` and refresh during orderly exit. 
 | Tranche | Deliverable | Gate |
 |---|---|---|
 | **T2201** | Freeze baseline, inspect repeated input paths, compare API approaches, decide optional candidates and write public API/implementation plan | Existing 2.1 API fingerprint and behavior captured; focused red tests for selected new semantics; documented precedence, capacity, ownership, replay and lifecycle rules; review before public implementation |
-| **T2202** | Move `Version`/`PackageVersion` to `2.2.0-alpha.1`; implement bounded multi-key composition | Exact 2.1 single-key regression coverage; deterministic complete/prefix/mismatch/cancel behavior; focus/scope/disposal and capacity tests; all supported TFMs |
-| **T2203** | Implement effective-binding discovery | Routing/discovery parity, hidden-scope behavior, deterministic ordering, bounded snapshot allocations and disposal tests |
+| **T2202** | Move `Version`/`PackageVersion` to `2.2.0-alpha.1`; implement effective-binding discovery | Routing/discovery parity, hidden-scope behavior, deterministic ordering, bounded snapshot allocations and disposal tests |
+| **T2203** | Implement bounded multi-key composition | Exact 2.1 single-key regression coverage; deterministic complete/prefix/mismatch/cancel behavior; focus/scope/disposal and capacity tests; all supported TFMs |
 | **T2204** | Implement small prompt state only if T2201 accepts it; otherwise record deferral | Unicode element boundaries, length and overflow, cancellation, validation ownership, editor-shaped use case |
 | **T2205** | Implement caller-fed timed pointer or pure frame calculations only if T2201 accepts them; otherwise record deferral | Clock boundary and regression tests; no background work, implicit terminal I/O or application-owned payload captured |
 | **T2206** | Integrate selected mechanisms into public-only editor/roguelike samples and package-only consumers | Application-shaped tests, documented controls, live manual acceptance, no duplicated private command router, no direct TermInfo calls |
@@ -97,4 +97,4 @@ No callback dispatch tree, retained widget hierarchy, automatic focus policy, co
 
 ## 8. Immediate next step
 
-Review the [design proposal](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md), then begin T2201 from the merged 2.1 source. Freeze accepted public names and semantics and an executable task plan before changing package identity or production APIs. Keep the development PR open and unmerged during the release track.
+Complete the T2201 discovery RED witness and public API review from the merged 2.1 source. Then follow the [T2201–T2202 implementation plan](docs/superpowers/plans/2026-09-24-icod-dcurses-t2201-t2202-discovery.md) for the first additive public increment. Freeze the T2203 sequence amendment before writing sequence code. Keep the development PR open and unmerged during the release track.

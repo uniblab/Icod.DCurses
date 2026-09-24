@@ -11,7 +11,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.2.0` — interaction and application conveniences\
-**Status:** 2.1.0 merged and tagged; 2.2.0 planning PR, T2201 pending
+**Status:** 2.1.0 merged and tagged; 2.2.0 PR #34, T2201 baseline/design in progress
 
 **Planning snapshot:** 2026-09-24
 
@@ -309,8 +309,8 @@ The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candida
 | Tranche | Deliverable | Status |
 |---|---|---|
 | T2201 | 2.1 baseline, sample evidence, ownership and 2.2 public API design gate | Pending |
-| T2202 | Development identity and bounded multi-key command composition | Pending |
-| T2203 | Binding discovery and application-owned command presentation | Pending |
+| T2202 | Development identity and effective-binding discovery | Pending |
+| T2203 | Bounded multi-key command composition | Pending |
 | T2204 | Small prompt-input mechanism, if justified by T2201 | Pending |
 | T2205 | Clock-fed pointer or frame timing mechanisms, if justified by T2201 | Pending |
 | T2206 | Public-only editor and roguelike acceptance and package consumers | Pending |
@@ -355,6 +355,6 @@ For 2.2, the published 2.1 API artifacts remain immutable historical evidence. T
 
 ## Immediate next step
 
-Review the proposed 2.2 design and begin T2201: capture the stable 2.1 interaction baseline, measure repeated input logic in both acceptance applications, select the smallest coherent 2.2 API, and record an executable implementation plan. Keep version and package identity at `2.1.0` while planning. The PR is not a merge or publication request.
+Continue T2201 with the [2.1 interaction baseline](docs/T2201-Interaction-Baseline-and-API-Questions.md), [proposed additive API](docs/2.2-Interaction-API-Design.md), and [discovery implementation plan](docs/superpowers/plans/2026-09-24-icod-dcurses-t2201-t2202-discovery.md). Observe the RED witness before changing version, package identity or production APIs. The PR is not a merge or publication request.
 
 The direct production dependency remains `Icod.DCurses -> Icod.Terminal`; any newly discovered live-terminal gap remains work for the owning Terminal dependency.
