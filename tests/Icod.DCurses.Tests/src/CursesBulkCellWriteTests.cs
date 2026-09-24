@@ -121,4 +121,58 @@ public sealed class CursesBulkCellWriteTests {
 		);
 		Assert.Equal( 0, screen.VirtualScreen.DirtyCellCount );
 	}
+
+	[Fact]
+	public void WideSourceMustHaveMatchingContinuationWithinItsRow() {
+		CursesScreen screen = new( 4, 1 );
+		CursesWindow window = screen.StandardWindow;
+		CursesCell wide = new( "界", CursesStyle.Default, 2 );
+		CursesCell continuation = CursesCell.Continuation();
+
+		window.WriteCells( 0, 1, [ wide, continuation ] );
+		Assert.Equal( wide, screen.VirtualScreen[ 0, 1 ] );
+		Assert.Equal( continuation, screen.VirtualScreen[ 0, 2 ] );
+		Assert.Equal( "cells", Assert.Throws<ArgumentException>(
+			() => window.WriteCells( 0, 0, [ wide ] )
+		).ParamName );
+		Assert.Equal( "cells", Assert.Throws<ArgumentException>(
+			() => window.WriteCells( 0, 0, [ continuation ] )
+		).ParamName );
+	}
+
+	[Fact]
+	public void InvalidBlockPreservesExistingRasterAndValidBlockRemovesIt() {
+		CursesScreen screen = new( 4, 2 );
+		CursesWindow window = screen.StandardWindow;
+		CursesRasterCell raster =
+			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell();
+		window.SetRasterCell( 0, 1, raster );
+		screen.VirtualScreen.MarkClean();
+
+		Assert.Throws<ArgumentException>(
+			() => window.WriteCells( 0, 0, 1, 2,
+				[ new CursesCell( "a" ), CursesCell.Continuation() ], 2 )
+		);
+		Assert.True( window.GetRasterCell( 0, 1 ).HasValue );
+		Assert.Equal( 0, screen.VirtualScreen.DirtyCellCount );
+
+		window.WriteCells( 0, 0, 1, 2,
+			[ new CursesCell( "a" ), new CursesCell( "b" ) ], 2 );
+		Assert.Null( window.GetRasterCell( 0, 1 ) );
+	}
+
+	[Fact]
+	public void CompleteFrameIsOneCallAndIdenticalFrameProducesNoNewDamage() {
+		CursesScreen screen = new( 80, 24 );
+		CursesCell[] frame = new CursesCell[ 80 * 24 ];
+		Array.Fill( frame, new CursesCell( "." ) );
+		screen.VirtualScreen.MarkClean();
+
+		screen.StandardWindow.WriteCells( 0, 0, 24, 80, frame, 80 );
+		Assert.Equal( 80 * 24, screen.VirtualScreen.DirtyCellCount );
+		Assert.Equal( ".", screen.VirtualScreen[ 23, 79 ].Content );
+		screen.VirtualScreen.MarkClean();
+		screen.StandardWindow.WriteCells( 0, 0, 24, 80, frame, 80 );
+		Assert.Equal( 0, screen.VirtualScreen.DirtyCellCount );
+	}
 }

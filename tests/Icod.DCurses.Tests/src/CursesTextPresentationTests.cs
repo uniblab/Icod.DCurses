@@ -67,4 +67,87 @@ public sealed class CursesTextPresentationTests {
 			screen.VirtualScreen[ 0, 3 ].Content
 		) );
 	}
+
+	[Fact]
+	public void NegativeDestinationClipsWideElementAsOneFootprint() {
+		CursesScreen screen = new( 3, 1 );
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"界x",
+			new CursesTextLayoutOptions( 3 )
+		);
+
+		screen.StandardWindow.PresentTextLayout( layout, 0, 1, 0, -1 );
+
+		Assert.True( screen.VirtualScreen[ 0, 0 ].IsBlank );
+		Assert.Equal( "x", screen.VirtualScreen[ 0, 1 ].Content );
+	}
+
+	[Fact]
+	public void RepeatingMetadataLayoutPreservesMetadataWithoutDamage() {
+		CursesScreen screen = new( 2, 1 );
+		CursesCellMetadata metadata = new(
+			new CursesHyperlink( "https://example.org/" )
+		);
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"a",
+			new CursesTextLayoutOptions( 1 ),
+			[ new CursesTextSpan( new CursesTextPosition( 0 ), 1,
+				CursesStyle.Default, metadata ) ]
+		);
+		CursesWindow window = screen.StandardWindow;
+		window.PresentTextLayout( layout, 0, 1, 0, 0 );
+		screen.VirtualScreen.MarkClean();
+
+		window.PresentTextLayout( layout, 0, 1, 0, 0 );
+
+		Assert.Equal( metadata, window.GetMetadata( 0, 0 ) );
+		Assert.Equal( 0, screen.VirtualScreen.DirtyCellCount );
+	}
+
+	[Fact]
+	public void ProjectionRemovesReplacedRasterCell() {
+		CursesScreen screen = new( 2, 1 );
+		CursesWindow window = screen.StandardWindow;
+		window.SetRasterCell( 0, 0,
+			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell() );
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"a", new CursesTextLayoutOptions( 1 )
+		);
+
+		window.PresentTextLayout( layout, 0, 1, 0, 0 );
+
+		Assert.Equal( "a", screen.VirtualScreen[ 0, 0 ].Content );
+		Assert.Null( window.GetRasterCell( 0, 0 ) );
+	}
+
+	[Fact]
+	public void WidthProviderFailureOnLaterLineDoesNotPartiallyPresent() {
+		FailingPresentationWidthProvider provider = new();
+		CursesTextLayout layout = CursesTextLayout.Create(
+			"a\nb",
+			new CursesTextLayoutOptions( 1 ) { WidthProvider = provider }
+		);
+		CursesScreen screen = new( 2, 2 );
+		screen.VirtualScreen[ 0, 0 ] = new CursesCell( "old" );
+		screen.VirtualScreen.MarkClean();
+		provider.FailOnB = true;
+
+		Assert.Throws<InvalidOperationException>(
+			() => screen.StandardWindow.PresentTextLayout( layout, 0, 2, 0, 0 )
+		);
+
+		Assert.Equal( "old", screen.VirtualScreen[ 0, 0 ].Content );
+		Assert.Equal( 0, screen.VirtualScreen.DirtyCellCount );
+	}
+
+	private sealed class FailingPresentationWidthProvider : ICursesTextWidthProvider {
+		public bool FailOnB { get; set; }
+
+		public int GetWidth( string textElement ) {
+			if ( FailOnB && "b" == textElement ) {
+				throw new InvalidOperationException( "Width provider failure." );
+			}
+			return UnicodeCursesTextWidthProvider.Instance.GetWidth( textElement );
+		}
+	}
 }
