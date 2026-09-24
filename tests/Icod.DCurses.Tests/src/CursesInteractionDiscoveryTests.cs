@@ -62,6 +62,69 @@ public sealed class CursesInteractionDiscoveryTests {
 		Assert.Same( global, Assert.Single( router.GetEffectiveGestureBindings() ).Command );
 	}
 
+	[Fact]
+	public void ModalScopeDiscoveryAgreesWithCommandRouting() {
+		CursesScreen screen = new( 20, 10 );
+		using CursesInteractionRouter router = new( screen );
+		using CursesInteractionScope parent = router.RegisterScope();
+		using CursesInteractionScope child = router.RegisterScope(
+			new CursesInteractionScopeOptions { Parent = parent }
+		);
+		using CursesInteractionRegion region = router.RegisterRegion(
+			new CursesInteractionRegionOptions( new CursesRectangle( 0, 0, 2, 2 ) ) {
+				Scope = child,
+				IsFocusable = true
+			}
+		);
+		CursesCommand local = new( "local" );
+		CursesCommand scoped = new( "scoped" );
+		CursesCommand hidden = new( "hidden" );
+		CursesCommand global = new( "global" );
+		region.BindGesture( CursesKeyGesture.ForKey( CursesKey.Enter ), local );
+		child.BindGesture( CursesKeyGesture.ForKey( CursesKey.Escape ), scoped );
+		parent.BindGesture( CursesKeyGesture.ForKey( CursesKey.Tab ), hidden );
+		router.BindGlobalGesture( CursesKeyGesture.ForKey( CursesKey.Backspace ), global );
+		using CursesInteractionScopeLease lease = router.ActivateScope( child );
+		Assert.True( router.Focus( region ) );
+
+		IReadOnlyList<CursesCommandBinding> bindings = router.GetEffectiveGestureBindings();
+
+		Assert.Equal( new[] { local, scoped, global },
+			bindings.Select( static entry => entry.Command ) );
+		Assert.Null( router.Route( CursesInputEvent.FromKey( CursesKey.Tab ) ).Command );
+		Assert.Same( scoped, router.Route( CursesInputEvent.FromKey( CursesKey.Escape ) ).Command );
+		Assert.Same( global, router.Route( CursesInputEvent.FromKey( CursesKey.Backspace ) ).Command );
+		router.ClearFocus();
+		Assert.Equal( new[] { scoped, global },
+			router.GetEffectiveGestureBindings().Select( static entry => entry.Command ) );
+	}
+
+	[Fact]
+	public void DiscoveryIsReadOnlyAndRejectsDisposedRouter() {
+		CursesScreen screen = new( 20, 10 );
+		CursesInteractionRouter router = new( screen );
+		router.BindGlobalGesture( CursesKeyGesture.ForKey( CursesKey.Enter ),
+			new CursesCommand( "global" ) );
+		IReadOnlyList<CursesCommandBinding> bindings = router.GetEffectiveGestureBindings();
+		Assert.Throws<NotSupportedException>(
+			() => ((IList<CursesCommandBinding>)bindings).Clear()
+		);
+		router.Dispose();
+		Assert.Throws<ObjectDisposedException>(
+			() => router.GetEffectiveGestureBindings()
+		);
+	}
+
+	[Fact]
+	public void BindingRejectsDefaultGestureAndNullCommand() {
+		Assert.Throws<ArgumentException>(
+			() => new CursesCommandBinding( default, new CursesCommand( "any" ) )
+		);
+		Assert.Throws<ArgumentNullException>(
+			() => new CursesCommandBinding( CursesKeyGesture.ForKey( CursesKey.Enter ), null! )
+		);
+	}
+
 	private static CursesInteractionRegion RegisterFocusable(
 		CursesInteractionRouter router
 	) {

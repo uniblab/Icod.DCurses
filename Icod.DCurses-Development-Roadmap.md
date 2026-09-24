@@ -11,7 +11,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.2.0` — interaction and application conveniences\
-**Status:** 2.1.0 merged and tagged; 2.2.0 PR #34, T2201 baseline/design in progress
+**Status:** 2.1.0 merged and tagged; 2.2.0 PR #34, T2201 discovery RED accepted, T2202 in progress
 
 **Planning snapshot:** 2026-09-24
 
@@ -308,7 +308,7 @@ The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candida
 
 | Tranche | Deliverable | Status |
 |---|---|---|
-| T2201 | 2.1 baseline, sample evidence, ownership and 2.2 public API design gate | Pending |
+| T2201 | 2.1 baseline, sample evidence, ownership and 2.2 public API design gate | Discovery foundation accepted; sequence design due at T2203 |
 | T2202 | Development identity and effective-binding discovery | Pending |
 | T2203 | Bounded multi-key command composition | Pending |
 | T2204 | Small prompt-input mechanism, if justified by T2201 | Pending |

@@ -72,6 +72,8 @@ public sealed partial class CursesInteractionRegion {
 
 	internal int GestureBindingCount => this.gestureBindings.Count;
 
+	internal IEnumerable<KeyValuePair<CursesKeyGesture, CursesCommand>> GestureBindings => this.gestureBindings;
+
 	internal bool TryGetCommand(
 		CursesInputEvent input,
 		out CursesCommand? command

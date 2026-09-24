@@ -1,7 +1,7 @@
 # T2201 — 2.1 Interaction Baseline and API Questions
 
 **Date:** 2026-09-24\
-**Status:** Evidence captured; API design and executable RED witness pending\
+**Status:** Discovery baseline and RED witness accepted; sequence API amendment remains T2203\
 **Source:** merged `v2.1.0` plus PR #34 planning branch
 
 ## Published baseline
@@ -21,6 +21,6 @@ The 2.1 editor sample owns a numeric go-to-record prompt: it accepts at most eig
 5. **Discovery parity:** Effective bindings and their owner precedence must match normal route results. The snapshot is owned/immutable; its order and maximum size are explicit. Prompt labels/localization remain application-owned.
 6. **Deferred candidates:** There is one narrow prompt witness in the editor and no timed pointer/frame-loop witness in either sample. T2201 should defer these unless a separate concrete acceptance flow establishes reusable benefit. Do not add a private timer, widget or terminal service merely to complete the option menu.
 
-## Exit gate
+## Observed RED and exit gate
 
-Approve a separate `docs/2.2-Interaction-API-Design.md` with exact public types, method signatures, capacity limits and the above policies. Commit tests that fail for the missing opt-in path and explain the observed failure. Review the implementation plan against both sample loops. Only after that gate may T2202 change package identity or production code. CI evidence is required because this workspace currently has no .NET SDK.
+The [2.2 public API design](2.2-Interaction-API-Design.md) freezes the first additive discovery type and method, snapshots and limits. The [T2201–T2202 implementation plan](superpowers/plans/2026-09-24-icod-dcurses-t2201-t2202-discovery.md) follows the two sample loops. Tests-only executable head `d8532485be3726984603381a294041735171a1da` failed in [PR workflow 36074699970](https://github.com/uniblab/Icod.DCurses/actions/runs/36074699970): Linux x64 job `107883318336` reported `CS0246` for missing `CursesCommandBinding` and `CS1061` for missing `GetEffectiveGestureBindings` on .NET 8/9/10, exactly the intended RED. There were no production/API/identity changes on that head. This accepts the T2201 discovery foundation and permits T2202 implementation; T2203 sequences require their separate API amendment and RED test.

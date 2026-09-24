@@ -91,6 +91,9 @@
     <None Include="..\..\docs\Public-API-Fingerprint-2.1.json"
           Link="Public-API-Fingerprint-2.1.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\Public-API-Fingerprint-2.2.json"
+          Link="Public-API-Fingerprint-2.2.json"
+          CopyToOutputDirectory="PreserveNewest" />
     <!-- Preserve the historical development-time alias used through 1.6. -->
     <None Include="..\..\docs\Public-API-Fingerprint-1.6.json"
           Link="Public-API-Fingerprint-1.2.json"
