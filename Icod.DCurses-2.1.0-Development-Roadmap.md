@@ -8,7 +8,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2104 accepted; T2105 implementation in progress\
+**Status:** T2105 accepted; T2106 implementation next\
 **Planning snapshot:** 2026-09-23
 
 **T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
@@ -362,7 +362,7 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Acceptance:** equivalence with scalar retained writes, lower measured overhead in accepted workloads, and no physical output outside normal refresh.
 
-**Progress:** selected-line projection and the row/rectangular prepared-cell writes are implemented. The unchanged-layout damage regression and bulk validation/ownership tests passed the 14-job exact-head PR workflow 35944152100 at `6c9a98f3c968dd06f584ce8e9b930337e482acca`. Broader clipping/raster equivalence and application-shaped bulk cost qualification remain before T2105 acceptance.
+**Acceptance:** selected-line projection, clipping, metadata/raster replacement, wide-cell repair, failure atomicity, coherent bulk row/block input, exact damage, destination/stride/source arithmetic rejection, and the 80x24/nine-cell scalar equivalence and allocation gate are covered by permanent tests. Exact executable head `b26b5a12333319f60a6cfbf9f0954629e892088c` passed all 14 package/runtime jobs in workflow 35947857085 on .NET 8, 9, and 10. The [T2105 gate](docs/T2105-Retained-Presentation-and-Bulk-Cells-Gate.md) records the red and green evidence.
 
 ### T2106 — viewport and large-content virtualization foundation
 
@@ -445,4 +445,4 @@ These remain candidates for later releases or sibling packages. The intended seq
 
 ## 17. Immediate next step
 
-Finish T2105 against the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): qualify clipped and raster-bearing projection, wide prepared-cell footprints, rectangular bounds and ownership, and the accepted 80x24 versus nine-cell performance workloads before recording its acceptance gate.
+Begin T2106 against the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): implement terminal-independent two-dimensional viewport geometry and qualify visible-slice costs over large caller-owned content.

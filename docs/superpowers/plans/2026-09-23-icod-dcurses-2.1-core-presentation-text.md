@@ -261,6 +261,8 @@ git commit -m "feat: add text mapping and selection geometry"
 
 ### Task 4: T2105 retained layout presentation and evidence-backed bulk mutation
 
+**Accepted:** exact executable head `b26b5a12333319f60a6cfbf9f0954629e892088c`, workflow 35947857085 (14/14). The local environment lacked `dotnet`; the exact-head workflow supplied the full .NET 8/9/10 platform/configuration gate. See `docs/T2105-Retained-Presentation-and-Bulk-Cells-Gate.md`.
+
 **Files:**
 - Create: `src/CursesWindow.TextLayout.cs`
 - Create: `src/CursesWindow.BulkCells.cs`
@@ -274,7 +276,7 @@ git commit -m "feat: add text mapping and selection geometry"
 
 **Exact public increment:** `PresentTextLayout(CursesTextLayout, int, int, int, int)` and the row/rectangular `WriteCells` overloads from design section 6.1. No style-only, metadata-cell, raster-cell, or unified retained-value overload is authorized.
 
-- [ ] **Step 1: Write a retained-presentation RED**
+- [x] **Step 1: Write a retained-presentation RED**
 
 ```csharp
 [Fact]
@@ -295,11 +297,11 @@ public void PresentTextLayoutWritesOnlyTheSelectedVisualLines() {
 
 Observe the missing member failure before implementation.
 
-- [ ] **Step 2: Implement layout projection using shared retained mutation**
+- [x] **Step 2: Implement layout projection using shared retained mutation**
 
 Validate the complete visual-line range before mutation. Map `StartingColumn` to destination column, clip destination rows/columns, preserve the logical cursor, fill requested row width with blanks, write fragment cells/metadata, and remove replaced metadata/raster state through existing ownership helpers. Add failure-atomic, negative destination, clipping, wide-cell, metadata, raster, no-refresh, and exact-damage tests.
 
-- [ ] **Step 3: Write the row bulk RED and implement coherent input validation**
+- [x] **Step 3: Write the row bulk RED and implement coherent input validation**
 
 ```csharp
 [Fact]
@@ -318,15 +320,15 @@ public void WriteCellsWritesPreparedRowAndPreservesCursor() {
 
 Implement row validation first: complete in-bounds destination, self-contained wide footprints, no leading continuation, no retained caller span, validation before mutation, and exact changed-value damage.
 
-- [ ] **Step 4: Add rectangular stride, alias, boundary repair, and ownership cases**
+- [x] **Step 4: Add rectangular stride, alias, boundary repair, and ownership cases**
 
 Observe failures for insufficient/overflowing source length, `sourceStride < columns`, padding ignored, zero dimensions, out-of-bounds rejection, an existing wide footprint crossing the destination edge, metadata clearing, raster removal/ownership failure, and source alias behavior. Implement rectangular mutation through one private prepared-block helper. Do not route each cell through the scalar public API.
 
-- [ ] **Step 5: Demonstrate material benefit**
+- [x] **Step 5: Demonstrate material benefit**
 
 Compare the accepted 80x24 full-frame and nine-cell workloads against T2101. Assert 1 call versus 1,920 public calls for a full frame, zero new damage for an identical bulk frame, identical final retained cells, and materially lower allocation/work counters under a broad portable bound. Keep wall-clock numbers informational.
 
-- [ ] **Step 6: Verify and commit T2105**
+- [x] **Step 6: Verify and commit T2105**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10.0 \
