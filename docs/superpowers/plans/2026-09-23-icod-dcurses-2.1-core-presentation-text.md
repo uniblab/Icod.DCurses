@@ -427,17 +427,17 @@ public void ArrangeColumnsAssignsFixedThenWeightedSpace() {
 
 Observe missing track contracts. Make `CursesLayout` partial and implement factories/validation plus zero/fixed-only/simple weighted arrangements.
 
-- [ ] **Step 2: Freeze caps, minima, deterministic remainder, and distributions**
+- [x] **Step 2: Freeze caps, minima, deterministic remainder, and distributions**
 
 Add table-driven tests for minimum/maximum saturation, low-index weighted remainder, explicit gaps, all six distributions, zero/one track special cases, odd center remainder, infeasible minima, 4,096/4,097 tracks, and arithmetic overflow. Allocate the result only after validation and feasibility.
 
 Implement capped apportionment without iterating once per free cell; runtime must depend on track count, not rectangle extent. Use widened arithmetic for weights and spacing.
 
-- [ ] **Step 3: Prove row/column symmetry and application layouts**
+- [x] **Step 3: Prove row/column symmetry and application layouts**
 
 Transpose identical cases across axes. Add the editor document/status/prompt arrangement and roguelike map/sidebar/message arrangement over resize sequences. Assert complete non-overlap, bounds containment, deterministic remainder, and no retained tree/window mutation.
 
-- [ ] **Step 4: Qualify allocation and commit T2107**
+- [x] **Step 4: Qualify allocation and commit T2107**
 
 Assert one exact result-array allocation plus bounded scratch proportional to at most 4,096 tracks. Repeated existing `Dock`/split helpers retain their T2101 allocation behavior.
 

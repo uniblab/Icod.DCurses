@@ -8,7 +8,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2106 accepted; T2107 implementation in progress\
+**Status:** T2107 accepted; T2108 implementation next\
 **Planning snapshot:** 2026-09-23
 
 **T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
@@ -382,6 +382,8 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Acceptance:** pure geometry tests, allocation gate and application-layout scenarios green.
 
+**Acceptance:** fixed and weighted tracks, minimum reservation, capped proportional redistribution, low-index remainder, six surplus distributions, bounded input validation, numeric extremes, editor/roguelike resize shapes, row/column symmetry, and allocation costs proportional to track count are covered by permanent tests. Exact executable head `8c53b3e30a3780884c26ca609f6a1a255c56cf6d` passed all 14 package/runtime jobs in workflow 35954736073. The [T2107 gate](docs/T2107-Stateless-Track-Layout-Gate.md) records the red and green evidence.
+
 ### T2108 — bounded refresh diagnostics and performance qualification
 
 - Add the accepted opt-in diagnostic snapshot surface.
@@ -447,4 +449,4 @@ These remain candidates for later releases or sibling packages. The intended seq
 
 ## 17. Immediate next step
 
-Begin T2107 against the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): implement stateless fixed and weighted track layout with deterministic space distribution.
+Begin T2108 against the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): implement bounded opt-in refresh diagnostics and qualify disabled-path cost.
