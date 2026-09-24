@@ -25,6 +25,8 @@ using Icod.DCurses.Internal;
 
 public sealed partial class CursesTextLayout {
 	private readonly int[] legalOffsets;
+	private readonly ulong[] legalBoundaryBits;
+	private readonly int[] legalBoundaryRanks;
 	private readonly GeometryLine[] geometryLines;
 
 	/// <summary>Maps a legal source position to its visual caret position.</summary>
@@ -35,10 +37,7 @@ public sealed partial class CursesTextLayout {
 		CursesTextPosition position,
 		CursesTextAffinity affinity = CursesTextAffinity.Leading
 	) {
-		if ( 0 > Array.BinarySearch(
-			legalOffsets,
-			position.Offset
-		) ) {
+		if ( 0 > FindLegalOffsetIndex( position.Offset ) ) {
 			throw new ArgumentOutOfRangeException( nameof( position ) );
 		}
 		if ( !Enum.IsDefined( affinity ) ) {
@@ -90,24 +89,27 @@ public sealed partial class CursesTextLayout {
 				false
 			);
 		}
-		foreach ( GeometryElement element in geometry.Elements ) {
-			if ( 0 == element.Columns
-				|| column < element.Column
-				|| element.Column + element.Columns <= column ) {
-				continue;
-			}
-			if ( element.IsEllipsis || column == element.Column ) {
+		int elementIndex = FindColumnElementIndex(
+			geometry.Elements,
+			column
+		);
+		if ( 0 <= elementIndex ) {
+			GeometryElement element = geometry.Elements[ elementIndex ];
+			if ( 0 != element.Columns
+				&& column < element.Column + element.Columns ) {
+				if ( element.IsEllipsis || column == element.Column ) {
+					return new CursesTextHitTestResult(
+						new CursesTextPosition( element.SourceStart ),
+						CursesTextAffinity.Leading,
+						true
+					);
+				}
 				return new CursesTextHitTestResult(
-					new CursesTextPosition( element.SourceStart ),
-					CursesTextAffinity.Leading,
+					new CursesTextPosition( element.SourceEnd ),
+					CursesTextAffinity.Trailing,
 					true
 				);
 			}
-			return new CursesTextHitTestResult(
-				new CursesTextPosition( element.SourceEnd ),
-				CursesTextAffinity.Trailing,
-				true
-			);
 		}
 
 		return new CursesTextHitTestResult(
@@ -119,10 +121,7 @@ public sealed partial class CursesTextLayout {
 
 	/// <summary>Gets the previous legal source position, clamped at the source start.</summary>
 	public CursesTextPosition GetPreviousPosition( CursesTextPosition position ) {
-		int index = Array.BinarySearch(
-			legalOffsets,
-			position.Offset
-		);
+		int index = FindLegalOffsetIndex( position.Offset );
 		if ( 0 > index ) {
 			throw new ArgumentOutOfRangeException( nameof( position ) );
 		}
@@ -133,10 +132,7 @@ public sealed partial class CursesTextLayout {
 
 	/// <summary>Gets the next legal source position, clamped at the source end.</summary>
 	public CursesTextPosition GetNextPosition( CursesTextPosition position ) {
-		int index = Array.BinarySearch(
-			legalOffsets,
-			position.Offset
-		);
+		int index = FindLegalOffsetIndex( position.Offset );
 		if ( 0 > index ) {
 			throw new ArgumentOutOfRangeException( nameof( position ) );
 		}
@@ -196,13 +192,8 @@ public sealed partial class CursesTextLayout {
 		int firstLine,
 		int lineCount
 	) {
-		if ( 0 > Array.BinarySearch(
-			legalOffsets,
-			selection.Start.Offset
-		) || 0 > Array.BinarySearch(
-			legalOffsets,
-			selection.End.Offset
-		) ) {
+		if ( 0 > FindLegalOffsetIndex( selection.Start.Offset )
+			|| 0 > FindLegalOffsetIndex( selection.End.Offset ) ) {
 			throw new ArgumentOutOfRangeException( nameof( selection ) );
 		}
 		if ( 0 > firstLine || lines.Count < firstLine ) {
@@ -255,34 +246,117 @@ public sealed partial class CursesTextLayout {
 		int selectionEnd,
 		out CursesRectangle rectangle
 	) {
-		int firstColumn = int.MaxValue;
-		int endColumn = -1;
-		foreach ( GeometryElement element in line.Elements ) {
-			if ( element.IsEllipsis
-				|| 0 == element.Columns
-				|| element.SourceEnd <= selectionStart
-				|| selectionEnd <= element.SourceStart ) {
-				continue;
-			}
-
-			firstColumn = Math.Min( firstColumn, element.Column );
-			endColumn = Math.Max(
-				endColumn,
-				element.Column + element.Columns
-			);
-		}
-
-		if ( firstColumn >= endColumn ) {
+		int firstIndex = FindFirstSelectedCellIndex(
+			line,
+			selectionStart
+		);
+		if ( line.CellElementIndexes.Length <= firstIndex ) {
 			rectangle = default;
 			return false;
 		}
+		GeometryElement first = line.Elements[
+			line.CellElementIndexes[ firstIndex ]
+		];
+		if ( selectionEnd <= first.SourceStart ) {
+			rectangle = default;
+			return false;
+		}
+
+		int lastIndex = FindLastSelectedCellIndex(
+			line,
+			selectionEnd
+		);
+		if ( lastIndex < firstIndex ) {
+			rectangle = default;
+			return false;
+		}
+		GeometryElement last = line.Elements[
+			line.CellElementIndexes[ lastIndex ]
+		];
 		rectangle = new CursesRectangle(
 			lineIndex,
-			firstColumn,
+			first.Column,
 			1,
-			endColumn - firstColumn
+			last.Column + last.Columns - first.Column
 		);
 		return true;
+	}
+
+	private int FindLegalOffsetIndex( int offset ) {
+		if ( 0 > offset || legalOffsets[ ^1 ] < offset ) {
+			return -1;
+		}
+
+		int wordIndex = offset / 64;
+		int bitIndex = offset % 64;
+		ulong bit = 1UL << bitIndex;
+		ulong word = legalBoundaryBits[ wordIndex ];
+		if ( 0 == ( word & bit ) ) {
+			return -1;
+		}
+
+		ulong precedingMask = bit - 1UL;
+		return legalBoundaryRanks[ wordIndex ]
+			+ System.Numerics.BitOperations.PopCount(
+				word & precedingMask
+			);
+	}
+
+	private static int FindColumnElementIndex(
+		GeometryElement[] elements,
+		int column
+	) {
+		int lower = 0;
+		int upper = elements.Length;
+		while ( lower < upper ) {
+			int middle = lower + ( ( upper - lower ) / 2 );
+			if ( elements[ middle ].Column <= column ) {
+				lower = middle + 1;
+			} else {
+				upper = middle;
+			}
+		}
+		return lower - 1;
+	}
+
+	private static int FindFirstSelectedCellIndex(
+		GeometryLine line,
+		int selectionStart
+	) {
+		int lower = 0;
+		int upper = line.CellElementIndexes.Length;
+		while ( lower < upper ) {
+			int middle = lower + ( ( upper - lower ) / 2 );
+			GeometryElement element = line.Elements[
+				line.CellElementIndexes[ middle ]
+			];
+			if ( element.SourceEnd <= selectionStart ) {
+				lower = middle + 1;
+			} else {
+				upper = middle;
+			}
+		}
+		return lower;
+	}
+
+	private static int FindLastSelectedCellIndex(
+		GeometryLine line,
+		int selectionEnd
+	) {
+		int lower = 0;
+		int upper = line.CellElementIndexes.Length;
+		while ( lower < upper ) {
+			int middle = lower + ( ( upper - lower ) / 2 );
+			GeometryElement element = line.Elements[
+				line.CellElementIndexes[ middle ]
+			];
+			if ( element.SourceStart < selectionEnd ) {
+				lower = middle + 1;
+			} else {
+				upper = middle;
+			}
+		}
+		return lower - 1;
 	}
 
 	private int FindLeadingLine( int sourceOffset ) {
@@ -318,18 +392,33 @@ public sealed partial class CursesTextLayout {
 		int sourceOffset,
 		CursesTextAffinity affinity
 	) {
-		if ( CursesTextAffinity.Leading == affinity ) {
-			foreach ( GeometryElement element in line.Elements ) {
-				if ( element.SourceStart == sourceOffset ) {
-					return element.Column;
-				}
+		int lower = 0;
+		int upper = line.Elements.Length;
+		while ( lower < upper ) {
+			int middle = lower + ( ( upper - lower ) / 2 );
+			int edge = CursesTextAffinity.Leading == affinity
+				? line.Elements[ middle ].SourceStart
+				: line.Elements[ middle ].SourceEnd
+			;
+			if ( edge < sourceOffset ) {
+				lower = middle + 1;
+			} else {
+				upper = middle;
 			}
-		} else {
-			foreach ( GeometryElement element in line.Elements ) {
-				if ( !element.IsEllipsis
-					&& element.SourceEnd == sourceOffset ) {
-					return element.Column + element.Columns;
-				}
+		}
+		if ( lower < line.Elements.Length ) {
+			GeometryElement element = line.Elements[ lower ];
+			int edge = CursesTextAffinity.Leading == affinity
+				? element.SourceStart
+				: element.SourceEnd
+			;
+			if ( edge == sourceOffset
+				&& ( CursesTextAffinity.Leading == affinity
+					|| !element.IsEllipsis ) ) {
+				return CursesTextAffinity.Leading == affinity
+					? element.Column
+					: element.Column + element.Columns
+				;
 			}
 		}
 
@@ -342,7 +431,12 @@ public sealed partial class CursesTextLayout {
 		return -1;
 	}
 
-	private static ( int[] LegalOffsets, GeometryLine[] Lines ) CreateGeometryIndexes(
+	private static (
+		int[] LegalOffsets,
+		ulong[] LegalBoundaryBits,
+		int[] LegalBoundaryRanks,
+		GeometryLine[] Lines
+	) CreateGeometryIndexes(
 		CursesTextElement[] elements,
 		CursesTextVisualLine[] lines,
 		CursesTextLayoutOptions options
@@ -350,6 +444,19 @@ public sealed partial class CursesTextLayout {
 		int[] legal = new int[ elements.Length + 1 ];
 		for ( int index = 0; index < elements.Length; index++ ) {
 			legal[ index + 1 ] = elements[ index ].SourceEnd;
+		}
+		int boundaryWordCount = ( legal[ ^1 ] + 64 ) / 64;
+		ulong[] boundaryBits = new ulong[ boundaryWordCount ];
+		foreach ( int offset in legal ) {
+			boundaryBits[ offset / 64 ] |= 1UL << ( offset % 64 );
+		}
+		int[] boundaryRanks = new int[ boundaryWordCount ];
+		int boundaryCount = 0;
+		for ( int index = 0; index < boundaryBits.Length; index++ ) {
+			boundaryRanks[ index ] = boundaryCount;
+			boundaryCount += System.Numerics.BitOperations.PopCount(
+				boundaryBits[ index ]
+			);
 		}
 
 		GeometryLine[] geometry = new GeometryLine[ lines.Length ];
@@ -362,6 +469,7 @@ public sealed partial class CursesTextLayout {
 			}
 
 			List<GeometryElement> lineElements = [];
+			List<int> cellElementIndexes = [];
 			int currentColumn = line.Column;
 			int currentIndex = elementIndex;
 			while ( currentIndex < elements.Length ) {
@@ -374,15 +482,17 @@ public sealed partial class CursesTextLayout {
 					? options.TabInterval - ( currentColumn % options.TabInterval )
 					: element.Width
 				;
-				lineElements.Add(
-					new GeometryElement(
-						element.SourceStart,
-						element.SourceEnd,
-						currentColumn,
-						width,
-						false
-					)
+				GeometryElement geometryElement = new(
+					element.SourceStart,
+					element.SourceEnd,
+					currentColumn,
+					width,
+					false
 				);
+				if ( 0 != width ) {
+					cellElementIndexes.Add( lineElements.Count );
+				}
+				lineElements.Add( geometryElement );
 				currentColumn += width;
 				currentIndex++;
 			}
@@ -406,10 +516,16 @@ public sealed partial class CursesTextLayout {
 				line.SourceEnd.Offset,
 				line.Column,
 				line.Columns,
-				[ .. lineElements ]
+				[ .. lineElements ],
+				[ .. cellElementIndexes ]
 			);
 		}
-		return ( legal, geometry );
+		return (
+			legal,
+			boundaryBits,
+			boundaryRanks,
+			geometry
+		);
 	}
 
 	private readonly record struct GeometryElement(
@@ -425,6 +541,7 @@ public sealed partial class CursesTextLayout {
 		int SourceEnd,
 		int Column,
 		int Columns,
-		GeometryElement[] Elements
+		GeometryElement[] Elements,
+		int[] CellElementIndexes
 	);
 }
