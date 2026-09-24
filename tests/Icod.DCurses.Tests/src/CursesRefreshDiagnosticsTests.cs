@@ -97,8 +97,10 @@ public sealed class CursesRefreshDiagnosticsTests {
 		FailingOutput output = new();
 		await using CursesSession session = await OpenAsync( output );
 		session.StandardScreen.Write( "A" );
-		output.FailNextWrite = true;
+		output.WrittenBytes = 0;
+		output.FailAfterPrefix = true;
 		await Assert.ThrowsAsync<IOException>( () => session.RefreshAsync().AsTask() );
+		Assert.True( output.WrittenBytes > 0 );
 		CursesRefreshDiagnosticsSnapshot failed = Assert.IsType<CursesRefreshDiagnosticsSnapshot>(
 			session.LatestRefreshDiagnostics );
 		Assert.Equal( CursesRefreshOutcome.Failed, failed.Outcome );
@@ -113,6 +115,74 @@ public sealed class CursesRefreshDiagnosticsTests {
 		Assert.Equal( CursesRefreshOutcome.Succeeded, retry.Outcome );
 		Assert.True( retry.IsFullRepaint );
 		Assert.False( retry.PhysicalStateInvalidated );
+	}
+
+	[Fact]
+	public async Task FailureBeforeWriteAlsoFollowsExistingInvalidationRule() {
+		FailingOutput output = new();
+		await using CursesSession session = await OpenAsync( output );
+		session.StandardScreen.Write( "A" );
+		output.WrittenBytes = 0;
+		output.FailNextWrite = true;
+		await Assert.ThrowsAsync<IOException>( () => session.RefreshAsync().AsTask() );
+		Assert.Equal( 0, output.WrittenBytes );
+		CursesRefreshDiagnosticsSnapshot failed = Assert.IsType<CursesRefreshDiagnosticsSnapshot>(
+			session.LatestRefreshDiagnostics );
+		Assert.Equal( CursesRefreshOutcome.Failed, failed.Outcome );
+		Assert.True( failed.PhysicalStateInvalidated );
+		Assert.False( failed.LogicalStatePublished );
+	}
+
+	[Fact]
+	public async Task CancellationAfterFirstWriteInvalidatesAndDoesNotPublishLogicalState() {
+		using CancellationTokenSource source = new();
+		CancellingOutput output = new( source );
+		await using CursesSession session = await OpenAsync( output );
+		session.StandardScreen.Write( "A" );
+		output.WrittenBytes = 0;
+		output.Arm = true;
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(
+			() => session.RefreshAsync( source.Token ).AsTask() );
+		Assert.True( output.WrittenBytes > 0 );
+		CursesRefreshDiagnosticsSnapshot cancelled = Assert.IsType<CursesRefreshDiagnosticsSnapshot>(
+			session.LatestRefreshDiagnostics );
+		Assert.Equal( CursesRefreshOutcome.Cancelled, cancelled.Outcome );
+		Assert.True( cancelled.PhysicalStateInvalidated );
+		Assert.False( cancelled.LogicalStatePublished );
+		Assert.True( cancelled.PreparedOutputItemCount > 0 );
+	}
+
+	[Fact]
+	public async Task ExplicitInvalidationForcesRepaintWithoutChangingTheOutcome() {
+		RecordingTerminalOutput output = new();
+		await using CursesSession session = await OpenAsync( output );
+		await session.RefreshAsync();
+		output.Clear();
+		session.Invalidate();
+		await session.RefreshAsync();
+		CursesRefreshDiagnosticsSnapshot snapshot = Assert.IsType<CursesRefreshDiagnosticsSnapshot>(
+			session.LatestRefreshDiagnostics );
+		Assert.Equal( 2, snapshot.Sequence );
+		Assert.True( snapshot.IsFullRepaint );
+		Assert.Equal( CursesRefreshOutcome.Succeeded, snapshot.Outcome );
+		Assert.False( snapshot.PhysicalStateInvalidated );
+		Assert.True( snapshot.PreparedOutputItemCount > 0 );
+		Assert.NotEmpty( output.Text );
+	}
+
+	[Fact]
+	public void SnapshotSurfaceContainsOnlyBoundedScalarData() {
+		System.Reflection.PropertyInfo[] properties = typeof( CursesRefreshDiagnosticsSnapshot )
+			.GetProperties( System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public );
+		Assert.Equal( 13, properties.Length );
+		Assert.All( properties, property => {
+			Assert.Null( property.SetMethod );
+			Assert.True( property.PropertyType == typeof( int )
+				|| property.PropertyType == typeof( long )
+				|| property.PropertyType == typeof( bool )
+				|| property.PropertyType == typeof( CursesRefreshOutcome )
+				|| property.PropertyType == typeof( CursesRefreshOperationKinds ) );
+		} );
 	}
 
 	private static async ValueTask<CursesSession> OpenAsync( ITerminalOutput output ) {
@@ -132,6 +202,8 @@ public sealed class CursesRefreshDiagnosticsTests {
 
 	private sealed class FailingOutput : ITerminalOutput {
 		internal bool FailNextWrite;
+		internal bool FailAfterPrefix;
+		internal int WrittenBytes;
 
 		public ValueTask WriteAsync( ReadOnlyMemory<byte> buffer,
 			CancellationToken cancellationToken = default ) {
@@ -139,6 +211,32 @@ public sealed class CursesRefreshDiagnosticsTests {
 			if ( this.FailNextWrite ) {
 				this.FailNextWrite = false;
 				throw new IOException( "partial write" );
+			}
+			if ( this.FailAfterPrefix ) {
+				this.FailAfterPrefix = false;
+				this.WrittenBytes++;
+				throw new IOException( "partial write" );
+			}
+			this.WrittenBytes += buffer.Length;
+			return ValueTask.CompletedTask;
+		}
+
+		public ValueTask FlushAsync( CancellationToken cancellationToken = default ) {
+			cancellationToken.ThrowIfCancellationRequested();
+			return ValueTask.CompletedTask;
+		}
+	}
+
+	private sealed class CancellingOutput( CancellationTokenSource source ) : ITerminalOutput {
+		internal bool Arm;
+		internal int WrittenBytes;
+
+		public ValueTask WriteAsync( ReadOnlyMemory<byte> buffer,
+			CancellationToken cancellationToken = default ) {
+			cancellationToken.ThrowIfCancellationRequested();
+			this.WrittenBytes += buffer.Length;
+			if ( this.Arm ) {
+				source.Cancel();
 			}
 			return ValueTask.CompletedTask;
 		}
