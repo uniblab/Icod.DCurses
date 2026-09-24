@@ -392,6 +392,8 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Acceptance:** disabled-path allocation parity, bounded enabled state, truthful failure/cancellation results and workload benchmarks green.
 
+**In progress:** the opt-in public snapshot contract and disabled default passed all 14 package/runtime jobs at executable head `700521baeb267492ff6ee6e91218441c836709a4` in workflow 35955896130. Collection, publication, and performance qualification remain in T2108.
+
 ### T2109 — roguelike application acceptance
 
 - Add `Icod.DCurses.Roguelike.Sample` using public APIs only.

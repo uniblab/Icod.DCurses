@@ -470,7 +470,7 @@ git commit -m "feat: add stateless track layout"
 
 **Exact public increment:** `CursesRefreshOutcome`; flagged `CursesRefreshOperationKinds`; immutable `CursesRefreshDiagnosticsSnapshot`; `CursesSessionOptions.EnableRefreshDiagnostics`; `CursesSession.LatestRefreshDiagnostics` from design section 9.1.
 
-- [ ] **Step 1: Write the disabled/default RED**
+- [x] **Step 1: Write the disabled/default RED**
 
 ```csharp
 [Fact]
