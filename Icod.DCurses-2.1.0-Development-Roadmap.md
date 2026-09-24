@@ -8,7 +8,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2111 accepted; T2112 RC and stable-source qualification next\
+**Status:** T2112 RC and stable-source executable head qualified; final evidence-only PR head pending\
 **Planning snapshot:** 2026-09-23
 
 **T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
@@ -435,7 +435,9 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Implementation plan:** [T2112 RC and stable-source closure](docs/superpowers/plans/2026-09-24-icod-dcurses-t2112-rc-stable-source.md).
 
-**RC qualification:** `2.1.0-rc.1` passed all seven Staging PR jobs at exact validation head `451005f98fe957d5754017943e8d4ce66af47cf0` in workflow 36046581162. The [T2112 RC gate](docs/T2112-RC-Qualification.md) records the package hashes, source provenance, fresh consumers and 1,223 passing tests per TFM in a representative runtime job. The unpublished `2.1.0` stable-source candidate must pass its own seven-job PR matrix; Release validation belongs to a later push to `main`.
+**RC qualification:** `2.1.0-rc.1` passed all seven Staging PR jobs at exact validation head `451005f98fe957d5754017943e8d4ce66af47cf0` in workflow 36046581162. The [T2112 RC gate](docs/T2112-RC-Qualification.md) records the package hashes, source provenance, fresh consumers and 1,223 passing tests per TFM in a representative runtime job.
+
+**Stable-source qualification:** unpublished `2.1.0` passed all seven Staging PR jobs at executable head `5864231632f45410410d27c956f596c88147ca73` in workflow 36047805573. The [T2112 stable-source gate](docs/T2112-Stable-Source-Release-Gate.md) records exact package provenance, hashes and representative runtime tests. The final evidence-only PR head needs its own Staging matrix; Release validation belongs to a later push to `main`.
 
 - Promote the unchanged accepted source through RC and stable-source identities.
 - Run the PR Staging OS/architecture matrix; the `main` push workflow runs Release only after merge.
@@ -467,4 +469,4 @@ These remain candidates for later releases or sibling packages. The intended seq
 
 ## 17. Immediate next step
 
-Begin T2112 RC and stable-source qualification using the accepted T2101–T2111 surface. Retain the open PR through the release gates.
+Complete final exact-head Staging qualification of this evidence-only T2112 handoff. Keep PR #33 open and unmerged; Release validation is reserved for a future authorized push to `main`.
