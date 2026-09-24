@@ -8,7 +8,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2110 accepted; T2111 adversarial, package, documentation and API closure next\
+**Status:** T2111 accepted; T2112 RC and stable-source qualification next\
 **Planning snapshot:** 2026-09-23
 
 **T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
@@ -422,6 +422,8 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Implementation plan:** [T2111 release closure](docs/superpowers/plans/2026-09-24-icod-dcurses-t2111-release-closure.md).
 
+**Acceptance:** adversarial boundary inventory, selection-edit atomicity, development API baseline, root/sample/changelog/package documentation and direct dependency/consumer validation passed all 14 runtime/package jobs at executable head `f0b69470cace0bfe29cd3db311ac156a4a50deac` in workflow 36044565032. The [T2111 gate](docs/T2111-Adversarial-Package-Documentation-and-API-Gate.md) records 1,222 tests per TFM in a representative runtime job and package artifact digests. PR #33 remains open.
+
 - Run capacity, overflow, allocation, cancellation, failure and resize qualification.
 - Update root/package README, sample index, changelog, XML documentation and package consumer.
 - Freeze and review the 2.1 public API fingerprint and baseline.
@@ -430,6 +432,8 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 **Acceptance:** exact-source runtime/package/API/documentation gates green with no unresolved public API regret.
 
 ### T2112 — RC and stable-source closure
+
+**Implementation plan:** [T2112 RC and stable-source closure](docs/superpowers/plans/2026-09-24-icod-dcurses-t2112-rc-stable-source.md).
 
 - Promote the unchanged accepted source through RC and stable-source identities.
 - Run the full Staging/Release OS and architecture matrix.
@@ -461,4 +465,4 @@ These remain candidates for later releases or sibling packages. The intended seq
 
 ## 17. Immediate next step
 
-Begin T2111 adversarial, package, documentation and API closure using the accepted T2101–T2110 surface. Retain the open PR through the release gates.
+Begin T2112 RC and stable-source qualification using the accepted T2101–T2111 surface. Retain the open PR through the release gates.
