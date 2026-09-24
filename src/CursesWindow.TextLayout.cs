@@ -62,41 +62,104 @@ public sealed partial class CursesWindow {
 			nameof( destinationColumn )
 		);
 
-		CursesCell blank = CursesCell.Blank(
-			layout.Options.DefaultStyle
+		// Compose only the intersection with the logical window. Building all
+		// selected rows before mutation also keeps provider failures atomic.
+		int firstRow = (int)Math.Min(
+			visualLineCount,
+			Math.Max( 0L, -(long)destinationRow )
 		);
-		for ( int offset = 0; offset < visualLineCount; offset++ ) {
-			int row = destinationRow + offset;
-			for ( int column = 0; column < layout.Options.Columns; column++ ) {
-				SetCellIfVisible(
-					row,
-					destinationColumn + column,
-					blank
-				);
-			}
+		int endRow = (int)Math.Max(
+			firstRow,
+			Math.Min( (long)visualLineCount, (long)Rows - destinationRow )
+		);
+		int firstColumn = (int)Math.Min(
+			layout.Options.Columns,
+			Math.Max( 0L, -(long)destinationColumn )
+		);
+		int endColumn = (int)Math.Max(
+			firstColumn,
+			Math.Min(
+				(long)layout.Options.Columns,
+				(long)Columns - destinationColumn
+			)
+		);
+		if ( firstRow == endRow || firstColumn == endColumn ) {
+			return;
+		}
 
-			CursesTextVisualLine line = layout.Lines[
-				firstVisualLine + offset
-			];
+		int visibleRows = endRow - firstRow;
+		int visibleColumns = endColumn - firstColumn;
+		CursesCell[][] prepared = new CursesCell[ visibleRows ][];
+		CursesCellMetadata?[][] metadata = new CursesCellMetadata?[ visibleRows ][];
+		for ( int offset = firstRow; offset < endRow; offset++ ) {
+			int row = destinationRow + offset;
+			CursesCell[] cells = new CursesCell[ visibleColumns ];
+			Array.Fill( cells, CursesCell.Blank( layout.Options.DefaultStyle ) );
+			CursesCellMetadata?[] rowMetadata = new CursesCellMetadata?[ visibleColumns ];
+			CursesTextVisualLine line = layout.Lines[ firstVisualLine + offset ];
 			foreach ( CursesTextFragment fragment in line.Fragments ) {
-				PresentTextFragment(
+				PrepareTextFragment(
 					layout,
 					fragment,
 					row,
-					destinationColumn
+					destinationColumn,
+					firstColumn,
+					cells,
+					rowMetadata
 				);
+			}
+			prepared[ offset - firstRow ] = cells;
+			metadata[ offset - firstRow ] = rowMetadata;
+		}
+
+		for ( int offset = firstRow; offset < endRow; offset++ ) {
+			int row = destinationRow + offset;
+			CursesCell[] cells = prepared[ offset - firstRow ];
+			CursesCellMetadata?[] rowMetadata = metadata[ offset - firstRow ];
+			for ( int column = 0; column < visibleColumns; column++ ) {
+				int targetColumn = destinationColumn + firstColumn + column;
+				if ( !TryMapToScreen(
+					row,
+					targetColumn,
+					out int screenRow,
+					out int screenColumn
+				) ) {
+					continue;
+				}
+				CursesVirtualScreen surface = screen.VirtualScreen;
+				if ( surface[ screenRow, screenColumn ] == cells[ column ]
+					&& Equals(
+						surface.GetMetadata( screenRow, screenColumn ),
+						rowMetadata[ column ]
+					)
+					&& surface.GetRasterCell( screenRow, screenColumn ) is null ) {
+					continue;
+				}
+				surface[ screenRow, screenColumn ] = cells[ column ];
+			}
+			for ( int column = 0; column < visibleColumns; column++ ) {
+				if ( rowMetadata[ column ] is CursesCellMetadata value ) {
+					SetMetadataIfVisible(
+						row,
+						destinationColumn + firstColumn + column,
+						value
+					);
+				}
 			}
 		}
 	}
 
-	private void PresentTextFragment(
+	private void PrepareTextFragment(
 		CursesTextLayout layout,
 		CursesTextFragment fragment,
 		int row,
-		int destinationColumn
+		int destinationColumn,
+		int firstColumn,
+		CursesCell[] cells,
+		CursesCellMetadata?[] metadata
 	) {
 		int visualColumn = fragment.Column;
-		int? previousLeaderColumn = null;
+		int? previousLeaderIndex = null;
 		foreach ( string textElement in CursesUnicodeText.EnumerateTextElements(
 			fragment.Text
 		) ) {
@@ -115,22 +178,15 @@ public sealed partial class CursesWindow {
 			}
 
 			if ( 0 == width ) {
-				if ( previousLeaderColumn is int leaderColumn ) {
-					CursesCell leader = GetCellOrBackground(
-						row,
-						leaderColumn
-					);
+				if ( previousLeaderIndex is int leaderIndex ) {
+					CursesCell leader = cells[ leaderIndex ];
 					if ( !leader.IsBlank && !leader.IsContinuation ) {
-						SetProjectedCell(
-							row,
-							leaderColumn,
-							new CursesCell(
-								leader.Content + textElement,
-								leader.Style,
-								leader.DisplayWidth
-							),
-							fragment.Metadata
+						cells[ leaderIndex ] = new CursesCell(
+							leader.Content + textElement,
+							leader.Style,
+							leader.DisplayWidth
 						);
+						metadata[ leaderIndex ] = fragment.Metadata;
 					}
 				}
 				continue;
@@ -138,94 +194,60 @@ public sealed partial class CursesWindow {
 
 			int column = destinationColumn
 				+ ( visualColumn - layout.Options.StartingColumn );
+			int index = visualColumn - layout.Options.StartingColumn
+				- firstColumn;
 			if ( isTab ) {
 				for ( int tabColumn = 0; tabColumn < width; tabColumn++ ) {
 					int currentColumn = column + tabColumn;
-					bool visible = TryMapToScreen(
-						row,
-						currentColumn,
-						out _,
-						out _
-					);
-					SetProjectedCell(
-						row,
-						currentColumn,
-						new CursesCell( " ", fragment.Style ),
-						fragment.Metadata
-					);
-					previousLeaderColumn = visible
-						? currentColumn
-						: null
-					;
+					int currentIndex = index + tabColumn;
+					bool visible = 0 <= currentIndex
+						&& currentIndex < cells.Length
+						&& TryMapToScreen( row, currentColumn, out _, out _ );
+					if ( visible ) {
+						cells[ currentIndex ] = new CursesCell( " ", fragment.Style );
+						metadata[ currentIndex ] = fragment.Metadata;
+					}
+					previousLeaderIndex = visible ? currentIndex : null;
 				}
 			} else if ( 1 == width ) {
-				bool visible = TryMapToScreen(
-					row,
-					column,
-					out _,
-					out _
-				);
-				SetProjectedCell(
-					row,
-					column,
-					new CursesCell( textElement, fragment.Style ),
-					fragment.Metadata
-				);
-				previousLeaderColumn = visible ? column : null;
+				bool visible = 0 <= index
+					&& index < cells.Length
+					&& TryMapToScreen( row, column, out _, out _ );
+				if ( visible ) {
+					cells[ index ] = new CursesCell( textElement, fragment.Style );
+					metadata[ index ] = fragment.Metadata;
+				}
+				previousLeaderIndex = visible ? index : null;
 			} else {
-				bool leaderVisible = TryMapToScreen(
-					row,
-					column,
-					out _,
-					out _
-				);
-				bool continuationVisible = TryMapToScreen(
-					row,
-					column + 1,
-					out _,
-					out _
-				);
-				if ( leaderVisible && continuationVisible ) {
-					SetProjectedCell(
-						row,
-						column,
-						new CursesCell(
-							textElement,
-							fragment.Style,
-							2
-						),
-						fragment.Metadata
+				bool visible = 0 <= index
+					&& index + 1 < cells.Length
+					&& TryMapToScreen( row, column, out _, out _ )
+					&& TryMapToScreen( row, column + 1, out _, out _ );
+				if ( visible ) {
+					cells[ index ] = new CursesCell(
+						textElement,
+						fragment.Style,
+						2
 					);
-					SetProjectedCell(
-						row,
-						column + 1,
-						CursesCell.Continuation( fragment.Style ),
-						fragment.Metadata
-					);
-					previousLeaderColumn = column;
+					cells[ index + 1 ] = CursesCell.Continuation( fragment.Style );
+					metadata[ index ] = fragment.Metadata;
+					metadata[ index + 1 ] = fragment.Metadata;
+					previousLeaderIndex = index;
 				} else {
-					previousLeaderColumn = null;
+					previousLeaderIndex = null;
 				}
 			}
 			visualColumn += width;
 		}
 	}
 
-	private void SetProjectedCell(
+	private void SetMetadataIfVisible(
 		int row,
 		int column,
-		CursesCell cell,
-		CursesCellMetadata? metadata
+		CursesCellMetadata metadata
 	) {
-		if ( metadata is null ) {
-			SetCellIfVisible( row, column, cell );
-		} else {
-			SetCellAndMetadataIfVisible(
-				row,
-				column,
-				cell,
-				metadata
-			);
+		if ( TryMapToScreen( row, column, out int screenRow, out int screenColumn ) ) {
+			screen.VirtualScreen.SetMetadata( screenRow, screenColumn, metadata );
 		}
 	}
 
