@@ -43,7 +43,12 @@ public sealed partial class CursesTextLayout {
 		this.lines = Array.AsReadOnly( lines );
 		CellCount = cellCount;
 		IsTruncated = isTruncated;
-		( legalOffsets, geometryLines ) = CreateGeometryIndexes(
+		(
+			legalOffsets,
+			legalBoundaryBits,
+			legalBoundaryRanks,
+			geometryLines
+		) = CreateGeometryIndexes(
 			elements,
 			lines,
 			options
