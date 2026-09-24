@@ -362,6 +362,8 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Acceptance:** equivalence with scalar retained writes, lower measured overhead in accepted workloads, and no physical output outside normal refresh.
 
+**Progress:** selected-line projection and the row/rectangular prepared-cell writes are implemented. The unchanged-layout damage regression and bulk validation/ownership tests passed the 14-job exact-head PR workflow 35944152100 at `6c9a98f3c968dd06f584ce8e9b930337e482acca`. Broader clipping/raster equivalence and application-shaped bulk cost qualification remain before T2105 acceptance.
+
 ### T2106 — viewport and large-content virtualization foundation
 
 - Implement content/viewport/destination coordinate translation.
@@ -443,4 +445,4 @@ These remain candidates for later releases or sibling packages. The intended seq
 
 ## 17. Immediate next step
 
-Begin T2105 from the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): project selected immutable layout lines into retained windows, then add only the evidence-backed prepared-cell row and rectangular bulk writes with failure-atomic ownership and damage semantics.
+Finish T2105 against the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): qualify clipped and raster-bearing projection, wide prepared-cell footprints, rectangular bounds and ownership, and the accepted 80x24 versus nine-cell performance workloads before recording its acceptance gate.
