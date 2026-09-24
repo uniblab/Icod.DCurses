@@ -47,13 +47,15 @@ public sealed class CursesViewportPerformanceTests {
 		CursesViewport viewport = new CursesViewport( 2048, 2048, 80, 24, 100, 100 );
 		CursesRectangle requested = viewport.GetVisibleContent( 2, 2 );
 		Assert.Equal( new CursesRectangle( 98, 98, 84, 28 ), requested );
+		byte[] materialized = new byte[ requested.Rows * requested.Columns ];
 		int visited = 0;
 		for ( int row = requested.Row; row < requested.BottomExclusive; row++ ) {
 			for ( int column = requested.Column; column < requested.RightExclusive; column++ ) {
-				visited += ( row + column ) >= 0 ? 1 : 0;
+				materialized[ visited++ ] = (byte)( ( row * 31 + column * 17 ) & 3 );
 			}
 		}
 		Assert.Equal( 84 * 28, visited );
+		Assert.Equal( visited, materialized.Length );
 	}
 
 	[Fact]
