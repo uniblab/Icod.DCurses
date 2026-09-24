@@ -123,6 +123,29 @@ public sealed class CursesBulkCellWriteTests {
 	}
 
 	[Fact]
+	public void BoundsStrideAndSourceOverflowFailBeforeMutation() {
+		CursesScreen screen = new( 3, 2 );
+		CursesWindow window = screen.StandardWindow;
+		window.WriteCells( 0, 0, [ new CursesCell( "old" ) ] );
+		screen.VirtualScreen.MarkClean();
+
+		Assert.Equal( "column", Assert.Throws<ArgumentOutOfRangeException>(
+			() => window.WriteCells( 0, 2, 1, 2,
+				[ new CursesCell( "a" ), new CursesCell( "b" ) ], 2 )
+		).ParamName );
+		Assert.Equal( "sourceStride", Assert.Throws<ArgumentOutOfRangeException>(
+			() => window.WriteCells( 0, 0, 1, 2,
+				[ new CursesCell( "a" ), new CursesCell( "b" ) ], 1 )
+		).ParamName );
+		Assert.Equal( "cells", Assert.Throws<ArgumentException>(
+			() => window.WriteCells( 0, 0, 2, 1,
+				[ new CursesCell( "a" ) ], int.MaxValue )
+		).ParamName );
+		Assert.Equal( "old", screen.VirtualScreen[ 0, 0 ].Content );
+		Assert.Equal( 0, screen.VirtualScreen.DirtyCellCount );
+	}
+
+	[Fact]
 	public void WideSourceMustHaveMatchingContinuationWithinItsRow() {
 		CursesScreen screen = new( 4, 1 );
 		CursesWindow window = screen.StandardWindow;
