@@ -2,26 +2,28 @@
 
 **Project:** `Icod.DCurses`\
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
-**Published 1.x compatibility floor:** `1.0.0`\
-**Current published package:** `1.6.0`\
-**Current development source/package identity:** `2.0.0` (unpublished stable-source candidate)\
+**Published compatibility floor:** `1.0.0`\
+**Current published package:** `2.0.0`\
+**Current development source/package identity:** `2.1.0-alpha.1`\
 **Current development assembly version:** `2.0.0.0`\
 **Current development runtime dependency:** direct `Icod.Terminal 1.18.0` only; TermInfo remains transitive\
-**Planned 2.0 direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
+**Planned 2.1 direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Active development target:** `2.0.0` — Terminal-only terminal integration\
-**Status:** T2001-T2010 accepted; T2011 stable source qualified on executable head, evidence-head qualification pending
+**Active development target:** `2.1.0` — core presentation and text foundations\
+**Status:** 2.0.0 published; 2.1.0 T2103 accepted; T2104 implementation pending
 
-**Planning snapshot:** 2026-09-18
+**Planning snapshot:** 2026-09-23
 
 ---
 
 ## Current authorities
 
-The active 2.0 plan is [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md). The accepted T2007 evidence is [docs/T2007-TermInfo-Dependency-Removal-Gate.md](docs/T2007-TermInfo-Dependency-Removal-Gate.md), and the current [2.0 migration guide](docs/2.0-Migration-Guide.md) addresses consumers. These documents define the public API break, source/dependency boundary, Terminal readiness checks, ordered tranches T2001-T2011, and release gates. Approval of planning documentation does not mean an implementation tranche has passed.
+The active plan is [Icod.DCurses-2.1.0-Development-Roadmap.md](Icod.DCurses-2.1.0-Development-Roadmap.md). T2101 produced the [2.0 presentation baseline](docs/T2101-2.0-Core-Presentation-Baseline.md), [accepted public API design](docs/2.1-Core-Presentation-and-Text-API-Design.md), [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md), and accepted [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md). T2102 established the 2.1 development identity and text-coordinate foundation; T2103 added immutable rich-text layout. T2104 is the next implementation tranche.
 
-The published [Terminal 1.18.0 contract](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.18.0) supplies the semantic profile, dimensions, screen planner, session-bound output transaction, and safe unknown-rendition baseline required by DCurses 2.0. Any later integration gap must be fixed and released in the owning dependency before the affected DCurses gate advances; it must not be bypassed with TermInfo calls or raw terminal strings.
+The published 2.0 contract and migration history remain governed by [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md), [docs/T2011-Stable-Source-Release-Gate.md](docs/T2011-Stable-Source-Release-Gate.md), [docs/Public-API-Fingerprint-2.0.json](docs/Public-API-Fingerprint-2.0.json), [docs/Public-API-Baseline-2.0.md](docs/Public-API-Baseline-2.0.md), and the [2.0 migration guide](docs/2.0-Migration-Guide.md).
+
+The published [Terminal 1.18.0 contract](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.18.0) supplies the semantic profile, dimensions, screen planner, session-bound output transaction, and safe unknown-rendition baseline used by DCurses 2.x. Any later integration gap must be fixed and released in the owning dependency before the affected DCurses gate advances; it must not be bypassed with TermInfo calls or raw terminal strings.
 
 The published [DCurses 1.6.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v1.6.0) is the behavioral migration baseline. Its implementation and release closure are governed by:
 
@@ -54,10 +56,11 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.3.0` | Geometry, layout, panel resize, and explicit resize recomputation | Published |
 | `1.4.0` | Interaction regions, hit testing, focus, gestures, commands, pointer semantics | Published |
 | `1.5.0` | Advanced interaction control: scopes, capture, spatial focus, pointer gestures, scoped commands | Published |
-| `1.6.0` | Retained mixed-media presentation | **Current published release; 1.x feature endpoint** |
+| `1.6.0` | Retained mixed-media presentation | Published; 1.x feature endpoint |
 | `1.6.x` | Necessary maintenance only | As needed; no new feature track |
-| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **In development; T2001-T2010 accepted, T2011 next** |
-| `2.1+` | New features built on the completed Terminal boundary | Deferred until 2.0 acceptance |
+| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **Current published release** |
+| `2.1.0` | Core presentation and text foundations for editor and roguelike applications | **T2103 accepted; T2104 pending** |
+| `2.2+` | Interaction conveniences, higher-level packages and later graphics work | Deferred until 2.1 evidence identifies the next boundary |
 
 The post-1.0 progression is intentionally cumulative:
 
@@ -69,6 +72,7 @@ The post-1.0 progression is intentionally cumulative:
 1.5  interaction can be scoped, captured, spatially navigated, gesture-normalized, and scope-command aware
 1.6  terminal-resident raster placeholder content participates in retained cell-grid composition and refresh
 2.0  all terminal-facing work goes through Terminal; DCurses retains presentation and interaction policy
+2.1  rich text, coordinate mapping, virtual viewports, bulk mutation, track layout and diagnostics support application-scale presentation
 ```
 
 ---
@@ -266,36 +270,62 @@ No T2003 or T2004 package is published. T2004 closes the temporary ordinary-rewr
 
 T2007 retains final direct `Icod.TermInfo` package/reference removal; obsolete raw-output and capability-writer shims are deleted in T2005.
 
-T2001-T2010 are accepted. T2001 froze the dependency inventory and approved break manifest, qualified published Terminal 1.18.0 recovery/transaction/planner behavior, and captured the DCurses 1.6 behavioral baseline. T2002 established the 2.0 development identity and moved the public profile/dimensions boundary to Terminal-owned types. T2003-T2005 migrated semantic refresh, restored editing optimizations, and hardened transaction behavior. T2006-T2008 qualified failure recovery, removed the direct TermInfo dependency, and verified samples, package-only consumers, and a live packaged refresh. T2009 accepted parity and bounded-workload measurements; T2010 froze the API, package, and documentation. T2011 release-source qualification is in progress. See the [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) and its linked gates for evidence and acceptance criteria.
+T2001-T2011 are accepted and version 2.0.0 is published. T2001 froze the dependency inventory and approved break manifest, qualified Terminal recovery/transaction/planner behavior, and captured the DCurses 1.6 behavioral baseline. T2002 established the 2.0 development identity and moved the public profile/dimensions boundary to Terminal-owned types. T2003-T2005 migrated semantic refresh, restored editing optimizations, and hardened transaction behavior. T2006-T2008 qualified failure recovery, removed the direct TermInfo dependency, and verified samples, package-only consumers, and a live packaged refresh. T2009 accepted parity and bounded-workload measurements; T2010 froze the API, package, and documentation; T2011 qualified the unchanged release source and artifacts. See the [2.0 roadmap](Icod.DCurses-2.0.0-Development-Roadmap.md) and its linked gates for evidence.
 
 ---
 
-## Post-2.0 development options
+## 2.1 objective — core presentation and text foundations
 
-### Option A — `Icod.DCurses.Widgets`
+Version 2.1 supplies the shared presentation mechanisms needed by a terminal-native roguelike and a screen editor in the style of `pico` or DOS `edit.exe`. Those two applications are acceptance witnesses, not new application frameworks inside DCurses.
 
-A separate higher-level package could build controls over the stable DCurses mechanisms:
+The release covers:
 
-```text
-panels + geometry/layout
-interaction regions/scopes
-focus + spatial focus
-pointer capture + gestures
-semantic commands
-retained mixed-media presentation
-```
+- rich styled text layout with deterministic wrapping, alignment, tabs, clipping and ellipsis;
+- bidirectional source-position, visual-position, caret, hit-testing and selection geometry;
+- large-content viewport calculations that do not require a pad proportional to the document or map;
+- benchmark-justified bulk retained-cell operations with explicit metadata, raster, clipping and damage semantics;
+- additional stateless fixed/weighted/minimum/maximum track layout primitives;
+- bounded opt-in refresh diagnostics and evidence-driven optimization;
+- public-only roguelike and editor acceptance samples.
 
-Keeping widgets in a sibling package would preserve DCurses core as a mechanism/presentation library rather than an opinionated application framework.
+The shared coordinate contract is the center of the release: Unicode text elements, source positions, terminal columns, visual lines, cell rectangles, content coordinates and viewport coordinates must map deterministically. Text layout and geometry remain pure; Terminal continues to own all live terminal interaction and output.
 
-### Option B — richer physical raster placement/scene coordination
+The complete architecture, semantics, non-goals, tranche sequence and acceptance requirements are defined in [Icod.DCurses-2.1.0-Development-Roadmap.md](Icod.DCurses-2.1.0-Development-Roadmap.md).
 
-If real applications require capabilities that Unicode-placeholder cells cannot express, a later track may evaluate higher-level coordination of Terminal physical placements, relative placement graphs, source cropping, and signed z-order.
+### 2.1 tranche sequence
 
-Such a track must remain distinct from the 2.0 decoupling release and must justify its scene/lifecycle model rather than retrofitting one accidentally into the placeholder integration.
+| Tranche | Deliverable | Status |
+|---|---|---|
+| T2101 | Architecture, 2.0 baseline, workload measurements, public API and regret gate | Accepted on exact head `4bff3bf`; 14/14 jobs green |
+| T2102 | 2.1 development identity and text-coordinate/rich-span foundation | Accepted on exact head `efa04a6`; 14/14 jobs green |
+| T2103 | Rich text visual-line and fragment layout | Accepted on exact head `ef6ab4f`; 14/14 jobs green |
+| T2104 | Caret, hit-testing and selection geometry | Pending |
+| T2105 | Retained layout presentation and benchmark-justified bulk mutation | Pending |
+| T2106 | Large-content viewport and virtualization foundation | Pending |
+| T2107 | Stateless track layout primitives | Pending |
+| T2108 | Bounded refresh diagnostics and performance qualification | Pending |
+| T2109 | Roguelike application acceptance sample | Pending |
+| T2110 | Editor application acceptance sample | Pending |
+| T2111 | Adversarial/package/documentation/public API freeze | Pending |
+| T2112 | RC and stable-source exact-head release closure | Pending |
 
-### Option C — higher-level layout/application framework facilities
+T2102 advanced `Version` and `PackageVersion` together to `2.1.0-alpha.1`; `AssemblyVersion` remains `2.0.0.0`. Later tranches keep that development identity until the release-candidate gate explicitly advances it.
 
-Retained layout trees, flex/grid/constraint systems, event capture/bubble, timed multi-click, drag/drop payloads, automatic focus policy, and navigation frameworks remain possible future work but are lower priority than stabilizing the presentation and widget substrate first.
+---
+
+## Later development sequence
+
+### Interaction and application conveniences
+
+After 2.1, the editor and roguelike evidence may justify contextual or multi-key command composition, command discovery, prompt helpers, timed pointer gestures, drag/drop payloads, frame-loop helpers or other repeated application mechanisms. DCurses must continue to expose mechanism without taking ownership of application commands or the event loop.
+
+### Higher-level packages
+
+A later `Icod.DCurses.Widgets` sibling package may build labels, buttons, text entry, lists, scrollbars and dialogs over the stable DCurses presentation and interaction mechanisms. Editor-specific document storage/undo/search facilities and game-specific world/entity systems belong in separate higher layers rather than DCurses core.
+
+### Richer physical raster coordination
+
+Terminal already owns persistent raster placements, cropping, relative placement, z-order and animation. A later DCurses track may evaluate retained physical placement coordination or tile/sprite helpers if application evidence requires capabilities beyond Unicode-placeholder cells. That work must define its scene and lifecycle model explicitly and preserve Terminal ownership.
 
 ---
 
@@ -317,12 +347,12 @@ Every development tranche preserves the established process:
 - explicit API/package/documentation regret gate before RC;
 - merge, post-merge Release validation, tagging, and publication remain separate maintainer actions.
 
-For 2.0, the 1.6 API artifacts remain immutable historical evidence. New 2.0 snapshots and a reviewed break manifest replace blanket 1.x binary-compatibility assertions. Behavior unrelated to the declared breaks remains a parity requirement. T2002 advanced `Version` and `PackageVersion` together to `2.0.0-alpha.1` and established assembly identity `2.0.0.0`.
+For 2.1, the published 2.0 API artifacts remain immutable historical evidence. The 2.1 public contract is additive unless a separate compatibility decision explicitly approves otherwise. T2101 must capture the baseline and freeze capacity/coordinate semantics before public implementation; T2111 must freeze and review the final 2.1 API and package delta. `Version` and `PackageVersion` advance together only when T2102 begins, while `AssemblyVersion` remains `2.0.0.0`.
 
 ---
 
 ## Immediate next step
 
-Plan and execute T2006 lifecycle, failure, output-uncertainty, cleanup, disposal-race, and recovery qualification while preserving T2005's one-transaction prepare/commit/publish boundary. Keep any newly discovered Terminal gap in the owning dependency.
+Begin T2104 from the accepted implementation plan. T2104 adds bidirectional source/visual mapping, caret affinity and movement, hit testing, and selection geometry over the immutable T2103 layout without rescanning caller-owned documents.
 
-T2005 is accepted on exact executable head `262f4ff8aedabd703c03f5f5f5cdcf2bce9e0417`, qualified by workflow `35814067829`; see `docs/T2005-Transactional-Refresh-Hardening-Gate.md`. The direct TermInfo package reference remains intentional migration debt; final direct dependency removal remains T2007. No 2.0 package has been published, and no merge, release tag, or publication is authorized by this checkpoint. The published 1.6 release remains available for consumers that need the old API.
+The direct production dependency remains `Icod.DCurses -> Icod.Terminal`; any newly discovered live-terminal gap remains work for the owning Terminal dependency.

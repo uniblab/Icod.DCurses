@@ -42,6 +42,7 @@ internal sealed class CursesRefreshEngine {
 	private CursesRefreshPhysicalState? physicalState;
 	private int invalidationRequested = 1;
 	private bool scrollRegionResetRequired;
+	private CursesRefreshDiagnosticsAccumulator? activeDiagnostics;
 
 	/// <summary>Initializes a physical refresh engine for one Terminal session.</summary>
 	internal CursesRefreshEngine(
@@ -170,7 +171,8 @@ internal sealed class CursesRefreshEngine {
 		CursesScreen screen,
 		int requestedCursorRow,
 		int requestedCursorColumn,
-		CancellationToken cancellationToken = default
+		CancellationToken cancellationToken = default,
+		CursesRefreshDiagnosticsAccumulator? diagnostics = null
 	) {
 		ArgumentNullException.ThrowIfNull( screen );
 		ValidateCursor(
@@ -181,6 +183,7 @@ internal sealed class CursesRefreshEngine {
 		cancellationToken.ThrowIfCancellationRequested();
 
 		await this.refreshGate.WaitAsync( cancellationToken ).ConfigureAwait( false );
+		this.activeDiagnostics = diagnostics;
 		try {
 			await this.RefreshCoreAsync(
 				screen,
@@ -190,8 +193,12 @@ internal sealed class CursesRefreshEngine {
 			).ConfigureAwait( false );
 		} catch {
 			this.InvalidateKnownState();
+			if ( diagnostics is not null ) {
+				diagnostics.PhysicalStateInvalidated = true;
+			}
 			throw;
 		} finally {
+			this.activeDiagnostics = null;
 			this.refreshGate.Release();
 		}
 	}
@@ -207,6 +214,9 @@ internal sealed class CursesRefreshEngine {
 		this.EnsurePhysicalState( desired );
 		if ( 0 != Interlocked.Exchange( ref this.invalidationRequested, 0 ) ) {
 			this.physicalState!.Invalidate();
+			if ( this.activeDiagnostics is not null ) {
+				this.activeDiagnostics.IsFullRepaint = true;
+			}
 		}
 
 		ulong capturedRevision = desired.ChangeRevision;
@@ -223,7 +233,8 @@ internal sealed class CursesRefreshEngine {
 		Preparation preparation = new(
 			new CursesPreparedRefresh(
 				this.terminalSession,
-				this.useSynchronizedOutput
+				this.useSynchronizedOutput,
+				this.activeDiagnostics
 			)
 		);
 
@@ -238,7 +249,7 @@ internal sealed class CursesRefreshEngine {
 					$"Terminal '{this.planner.Profile.Name}' cannot restore the full-screen scroll region."
 				);
 			}
-			preparation.Prepared.AddPlan( recovery.Value );
+			preparation.Prepared.AddPlan( recovery.Value, CursesRefreshOperationKinds.LineShift );
 			preparation.HasOutput = true;
 			preparation.RestoresFullScrollRegion = true;
 			speculative.CursorRow = null;
@@ -256,7 +267,14 @@ internal sealed class CursesRefreshEngine {
 		);
 		if ( lineShift.HasValue ) {
 			CursesLineShiftPlan plan = lineShift.Value;
-			AddPlanSequence( preparation, plan.Sequence );
+			AddPlanSequence( preparation, plan.Sequence,
+				CursesRefreshOperationKinds.LineShift, speculative.CurrentStyle );
+			if ( this.activeDiagnostics is not null ) {
+				this.activeDiagnostics.DamagedRows = (int)Math.Min( int.MaxValue,
+					(long)this.activeDiagnostics.DamagedRows + plan.BottomRow - plan.TopRow + 1 );
+				this.activeDiagnostics.DamagedRegions = CursesRefreshDiagnosticsAccumulator.Increment(
+					this.activeDiagnostics.DamagedRegions );
+			}
 			CopyDesiredRange(
 				desired,
 				speculative.Screen,
@@ -295,6 +313,9 @@ internal sealed class CursesRefreshEngine {
 		if ( preparation.UsesTemporaryScrollRegion ) {
 			this.scrollRegionResetRequired = true;
 		}
+		if ( this.activeDiagnostics is not null && this.useSynchronizedOutput ) {
+			this.activeDiagnostics.OperationKinds |= CursesRefreshOperationKinds.Synchronization;
+		}
 		await preparation.Prepared.CommitAsync( cancellationToken ).ConfigureAwait( false );
 		if ( preparation.RestoresFullScrollRegion ) {
 			this.scrollRegionResetRequired = false;
@@ -311,6 +332,7 @@ internal sealed class CursesRefreshEngine {
 	) {
 		bool screenComplete = false;
 		for ( int row = 0; row < desired.Rows; row++ ) {
+			int regionsBeforeRow = this.activeDiagnostics?.DamagedRegions ?? 0;
 			CursesCharacterShiftPlan? characterShift =
 				this.characterShiftResolver.Resolve(
 					desired,
@@ -322,7 +344,10 @@ internal sealed class CursesRefreshEngine {
 				);
 			if ( characterShift.HasValue ) {
 				CursesCharacterShiftPlan plan = characterShift.Value;
-				AddPlanSequence( preparation, plan.Sequence );
+				AddPlanSequence( preparation, plan.Sequence,
+					CursesRefreshOperationKinds.CharacterShift, speculative.CurrentStyle );
+				this.RecordRegion();
+				this.RecordDamagedRow();
 				CopyDesiredRange(
 					desired,
 					speculative.Screen,
@@ -371,7 +396,9 @@ internal sealed class CursesRefreshEngine {
 				);
 				if ( erase.HasValue ) {
 					CursesErasePlan plan = erase.Value;
-					AddPlanSequence( preparation, plan.Sequence );
+					AddPlanSequence( preparation, plan.Sequence,
+						CursesRefreshOperationKinds.Erase, speculative.CurrentStyle );
+					this.RecordRegion();
 					switch ( plan.Kind ) {
 						case CursesEraseKind.ClearToEndOfLine:
 							CopyDesiredRange(
@@ -434,7 +461,11 @@ internal sealed class CursesRefreshEngine {
 					end,
 					textWidthProvider
 				);
+				this.RecordRegion();
 				column = end + 1;
+			}
+			if ( this.activeDiagnostics is not null && this.activeDiagnostics.DamagedRegions != regionsBeforeRow ) {
+				this.RecordDamagedRow();
 			}
 			if ( screenComplete ) {
 				break;
@@ -487,11 +518,26 @@ internal sealed class CursesRefreshEngine {
 		);
 	}
 
-	private static bool NeedsUpdate(
+	private bool NeedsUpdate(
 		CursesVirtualScreen desired,
 		CursesPhysicalScreenState physical,
 		int row,
 		int column
+	) {
+		if ( this.activeDiagnostics is not null ) {
+			this.activeDiagnostics.LogicalCellsExamined = CursesRefreshDiagnosticsAccumulator.Increment(
+				this.activeDiagnostics.LogicalCellsExamined );
+		}
+		bool needsUpdate = NeedsUpdateCore( desired, physical, row, column );
+		if ( needsUpdate && this.activeDiagnostics is not null ) {
+			this.activeDiagnostics.LogicalCellsChanged = CursesRefreshDiagnosticsAccumulator.Increment(
+				this.activeDiagnostics.LogicalCellsChanged );
+		}
+		return needsUpdate;
+	}
+
+	private static bool NeedsUpdateCore(
+		CursesVirtualScreen desired, CursesPhysicalScreenState physical, int row, int column
 	) {
 		CursesRasterCell? desiredRasterCell = desired.GetRasterCell(
 			row,
@@ -542,7 +588,7 @@ internal sealed class CursesRefreshEngine {
 		return start;
 	}
 
-	private static int FindSpanEnd(
+	private int FindSpanEnd(
 		CursesVirtualScreen desired,
 		CursesPhysicalScreenState physical,
 		int row,
@@ -567,12 +613,23 @@ internal sealed class CursesRefreshEngine {
 
 	private static void AddPlanSequence(
 		Preparation preparation,
-		CursesTerminalPlanSequence sequence
+		CursesTerminalPlanSequence sequence,
+		CursesRefreshOperationKinds kind,
+		CursesStyle? previousStyle
 	) {
 		ArgumentNullException.ThrowIfNull( preparation );
 		ArgumentNullException.ThrowIfNull( sequence );
+		bool resetsRendition = !previousStyle.HasValue || !previousStyle.Value.IsDefault;
+		CursesRefreshOperationKinds preparedKinds = kind;
+		if ( resetsRendition ) {
+			preparedKinds |= CursesRefreshOperationKinds.Rendition;
+		}
+		if ( CursesRefreshOperationKinds.LineShift == kind
+			|| sequence.Plans.Count > ( resetsRendition ? 2 : 1 ) ) {
+			preparedKinds |= CursesRefreshOperationKinds.Cursor;
+		}
 		foreach ( TerminalScreenOperationPlan plan in sequence.Plans ) {
-			preparation.Prepared.AddPlan( plan );
+			preparation.Prepared.AddPlan( plan, preparedKinds );
 			preparation.HasOutput = true;
 		}
 	}
@@ -802,7 +859,7 @@ internal sealed class CursesRefreshEngine {
 					) ?? throw new NotSupportedException(
 						$"Terminal '{this.planner.Profile.Name}' does not provide a safe alternate-character-set transition."
 					);
-				preparation.Prepared.AddPlan( plan );
+				preparation.Prepared.AddPlan( plan, CursesRefreshOperationKinds.Rendition );
 				preparation.HasOutput = true;
 				alternateCharacterSetActive = useAlternateCharacterSet;
 			}
@@ -821,7 +878,7 @@ internal sealed class CursesRefreshEngine {
 				) ?? throw new NotSupportedException(
 					$"Terminal '{this.planner.Profile.Name}' does not provide a safe alternate-character-set exit."
 				);
-			preparation.Prepared.AddPlan( exit );
+			preparation.Prepared.AddPlan( exit, CursesRefreshOperationKinds.Rendition );
 			preparation.HasOutput = true;
 		}
 	}
@@ -867,7 +924,7 @@ internal sealed class CursesRefreshEngine {
 			row,
 			column
 		);
-		preparation.Prepared.AddPlan( motion );
+		preparation.Prepared.AddPlan( motion, CursesRefreshOperationKinds.Cursor );
 		preparation.HasOutput = true;
 		state.CursorRow = row;
 		state.CursorColumn = column;
@@ -890,7 +947,7 @@ internal sealed class CursesRefreshEngine {
 				?? throw new NotSupportedException(
 					$"Terminal '{this.planner.Profile.Name}' does not provide a safe rendition baseline for the requested refresh."
 				);
-			preparation.Prepared.AddPlan( baseline );
+			preparation.Prepared.AddPlan( baseline, CursesRefreshOperationKinds.Rendition );
 			preparation.HasOutput = true;
 			state.CurrentStyle = CursesStyle.Default;
 		}
@@ -903,7 +960,7 @@ internal sealed class CursesRefreshEngine {
 				) ?? throw new NotSupportedException(
 					$"Terminal '{this.planner.Profile.Name}' does not provide a safe rendition transition for the requested refresh."
 				);
-			preparation.Prepared.AddPlan( transition );
+			preparation.Prepared.AddPlan( transition, CursesRefreshOperationKinds.Rendition );
 			preparation.HasOutput = true;
 		}
 		state.CurrentStyle = normalized;
@@ -924,6 +981,20 @@ internal sealed class CursesRefreshEngine {
 	private void InvalidateKnownState() {
 		this.physicalState?.Invalidate();
 		Interlocked.Exchange( ref this.invalidationRequested, 1 );
+	}
+
+	private void RecordRegion() {
+		if ( this.activeDiagnostics is not null ) {
+			this.activeDiagnostics.DamagedRegions = CursesRefreshDiagnosticsAccumulator.Increment(
+				this.activeDiagnostics.DamagedRegions );
+		}
+	}
+
+	private void RecordDamagedRow() {
+		if ( this.activeDiagnostics is not null ) {
+			this.activeDiagnostics.DamagedRows = CursesRefreshDiagnosticsAccumulator.Increment(
+				this.activeDiagnostics.DamagedRows );
+		}
 	}
 
 	private static void ValidateCursor(

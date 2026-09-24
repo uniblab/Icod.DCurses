@@ -26,10 +26,12 @@ using Icod.Terminal;
 /// <summary>Builds one ordered Terminal-owned semantic screen-output transaction.</summary>
 internal sealed class CursesPreparedRefresh {
 	private readonly TerminalScreenOutputTransaction transaction;
+	private readonly CursesRefreshDiagnosticsAccumulator? diagnostics;
 
 	internal CursesPreparedRefresh(
 		TerminalSession session,
-		bool useSynchronizedOutput
+		bool useSynchronizedOutput,
+		CursesRefreshDiagnosticsAccumulator? diagnostics = null
 	) {
 		ArgumentNullException.ThrowIfNull( session );
 		this.transaction = session.CreateScreenOutputTransaction(
@@ -37,14 +39,18 @@ internal sealed class CursesPreparedRefresh {
 				UseSynchronizedOutput = useSynchronizedOutput
 			}
 		);
+		this.diagnostics = diagnostics;
 	}
 
-	internal void AddPlan( TerminalScreenOperationPlan plan ) {
+	internal void AddPlan( TerminalScreenOperationPlan plan,
+		CursesRefreshOperationKinds kind = CursesRefreshOperationKinds.None ) {
 		this.transaction.Add( plan );
+		this.diagnostics?.RecordItem( kind );
 	}
 
 	internal void WriteText( string value ) {
 		this.transaction.WriteText( value );
+		this.diagnostics?.RecordPayload( CursesRefreshOperationKinds.Text );
 	}
 
 	internal void WriteHyperlink(
@@ -57,12 +63,14 @@ internal sealed class CursesPreparedRefresh {
 			hyperlink.Uri,
 			hyperlink.Identifier
 		);
+		this.diagnostics?.RecordPayload( CursesRefreshOperationKinds.Text | CursesRefreshOperationKinds.Hyperlink );
 	}
 
 	internal void WriteRasterPlaceholderCell(
 		CursesRasterCell cell
 	) {
 		this.transaction.WriteRasterPlaceholderCell( cell.TerminalCell );
+		this.diagnostics?.RecordRasterCells( 1 );
 	}
 
 	internal void WriteRasterPlaceholderCells(
@@ -75,6 +83,7 @@ internal sealed class CursesPreparedRefresh {
 			terminalCells[ index ] = source[ index ].TerminalCell;
 		}
 		this.transaction.WriteRasterPlaceholderCells( terminalCells );
+		this.diagnostics?.RecordRasterCells( cells.Length );
 	}
 
 	internal ValueTask CommitAsync(

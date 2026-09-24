@@ -22,7 +22,7 @@
 namespace Icod.DCurses;
 
 /// <summary>Provides pure deterministic terminal-cell layout operations.</summary>
-public static class CursesLayout {
+public static partial class CursesLayout {
 	/// <summary>Allocates rows from the top of a rectangle and returns the remainder below them.</summary>
 	/// <param name="bounds">The source rectangle.</param>
 	/// <param name="rows">The non-negative requested row count.</param>

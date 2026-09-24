@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icod.DCurses 2.1 public-API editor acceptance sample. -->
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+		<AssemblyName>Icod.DCurses.Editor.Sample</AssemblyName>
+		<RootNamespace>Icod.DCurses.Editor.Sample</RootNamespace>
+		<IsPackable>false</IsPackable>
+		<Configurations>Debug;Staging;Release</Configurations>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\Icod.DCurses.csproj" />
+	</ItemGroup>
+</Project>

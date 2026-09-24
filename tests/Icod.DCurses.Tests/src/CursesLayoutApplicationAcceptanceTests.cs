@@ -26,6 +26,7 @@ using Xunit;
 namespace Icod.DCurses.Tests;
 
 /// <summary>Exercises representative 1.3 layouts and freezes steady-state allocation ceilings.</summary>
+[Collection( AllocationMeasurementCollection.Name )]
 public sealed class CursesLayoutApplicationAcceptanceTests {
 	[Fact]
 	public void RepresentativeApplicationLayoutChainsAndAppliesDeterministically() {

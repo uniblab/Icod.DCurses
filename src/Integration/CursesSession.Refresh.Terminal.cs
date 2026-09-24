@@ -29,6 +29,12 @@ public sealed partial class CursesSession {
 	private readonly object refreshSync = new();
 	private CursesRefreshEngine? refreshEngine;
 	private CursesScreen? panelRefreshProjection;
+	private CursesRefreshDiagnosticsSnapshot? latestRefreshDiagnostics = null;
+	private long refreshDiagnosticsSequence;
+
+	/// <summary>Gets the latest opt-in refresh snapshot, or null when no snapshot has been published.</summary>
+	public CursesRefreshDiagnosticsSnapshot? LatestRefreshDiagnostics =>
+		Volatile.Read( ref this.latestRefreshDiagnostics );
 
 	/// <summary>
 	/// Synchronizes the desired logical screen with the terminal and leaves the physical cursor
@@ -37,14 +43,43 @@ public sealed partial class CursesSession {
 	public async ValueTask RefreshAsync(
 		CancellationToken cancellationToken = default
 	) {
-		cancellationToken.ThrowIfCancellationRequested();
-		using IDisposable activity = await this.AcquireTerminalActivityAsync(
-			cancellationToken
-		).ConfigureAwait( false );
+		CursesRefreshDiagnosticsAccumulator? diagnostics = this.Options.EnableRefreshDiagnostics
+			? new CursesRefreshDiagnosticsAccumulator() : null;
+		CursesRefreshOutcome outcome = CursesRefreshOutcome.Failed;
+		try {
+			cancellationToken.ThrowIfCancellationRequested();
+			using IDisposable activity = await this.AcquireTerminalActivityAsync(
+				cancellationToken
+			).ConfigureAwait( false );
+			await this.RefreshCoreAsync( cancellationToken, diagnostics ).ConfigureAwait( false );
+			if ( diagnostics is not null ) {
+				diagnostics.LogicalStatePublished = true;
+			}
+			outcome = CursesRefreshOutcome.Succeeded;
+		} catch ( OperationCanceledException ) when ( cancellationToken.IsCancellationRequested ) {
+			outcome = CursesRefreshOutcome.Cancelled;
+			throw;
+		} finally {
+			if ( diagnostics is not null ) {
+				long sequence = this.NextRefreshDiagnosticsSequence();
+				Volatile.Write( ref this.latestRefreshDiagnostics,
+					diagnostics.Snapshot( sequence, outcome ) );
+			}
+		}
+	}
 
-		await this.RefreshCoreAsync(
-			cancellationToken
-		).ConfigureAwait( false );
+	private long NextRefreshDiagnosticsSequence() {
+		while ( true ) {
+			long current = Volatile.Read( ref this.refreshDiagnosticsSequence );
+			if ( current == long.MaxValue ) {
+				return current;
+			}
+			long next = current + 1;
+			if ( current == Interlocked.CompareExchange(
+				ref this.refreshDiagnosticsSequence, next, current ) ) {
+				return next;
+			}
+		}
 	}
 
 	/// <summary>Invalidates all physical-screen knowledge for the next refresh.</summary>
@@ -60,7 +95,8 @@ public sealed partial class CursesSession {
 	}
 
 	private async ValueTask RefreshCoreAsync(
-		CancellationToken cancellationToken
+		CancellationToken cancellationToken,
+		CursesRefreshDiagnosticsAccumulator? diagnostics
 	) {
 		cancellationToken.ThrowIfCancellationRequested();
 		_ = this.SynchronizeDimensions();
@@ -70,7 +106,8 @@ public sealed partial class CursesSession {
 				currentScreen,
 				currentScreen.StandardWindow.CursorRow,
 				currentScreen.StandardWindow.CursorColumn,
-				cancellationToken
+				cancellationToken,
+				diagnostics
 			).ConfigureAwait( false );
 			return;
 		}
@@ -84,7 +121,8 @@ public sealed partial class CursesSession {
 			projection,
 			currentScreen.StandardWindow.CursorRow,
 			currentScreen.StandardWindow.CursorColumn,
-			cancellationToken
+			cancellationToken,
+			diagnostics
 		).ConfigureAwait( false );
 		composed.MarkClean();
 	}

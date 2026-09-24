@@ -28,6 +28,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <TestTfmsInParallel>false</TestTfmsInParallel>
     <AssemblyName>Icod.DCurses.Tests</AssemblyName>
     <RootNamespace>Icod.DCurses.Tests</RootNamespace>
     <Configurations>Debug;Staging;Release</Configurations>
@@ -50,6 +51,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Icod.DCurses.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\samples\Icod.DCurses.Roguelike.Sample\RoguelikeSampleState.cs"
+             Link="RoguelikeSampleState.cs" />
+    <Compile Include="..\..\samples\Icod.DCurses.Editor.Sample\EditorSampleState.cs"
+             Link="EditorSampleState.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -79,6 +87,9 @@
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\docs\Public-API-Fingerprint-2.0.json"
           Link="Public-API-Fingerprint-2.0.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\Public-API-Fingerprint-2.1.json"
+          Link="Public-API-Fingerprint-2.1.json"
           CopyToOutputDirectory="PreserveNewest" />
     <!-- Preserve the historical development-time alias used through 1.6. -->
     <None Include="..\..\docs\Public-API-Fingerprint-1.6.json"

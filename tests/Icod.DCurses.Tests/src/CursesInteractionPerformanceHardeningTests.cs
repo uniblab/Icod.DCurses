@@ -25,6 +25,7 @@ using Xunit;
 namespace Icod.DCurses.Tests;
 
 /// <summary>Freezes representative 1.4 interaction-routing allocation and throughput ceilings.</summary>
+[Collection( AllocationMeasurementCollection.Name )]
 public sealed class CursesInteractionPerformanceHardeningTests {
 	private const int AllocationIterations = 10000;
 	private const long AllocationMeasurementNoiseAllowance = 64L * 1024L;
