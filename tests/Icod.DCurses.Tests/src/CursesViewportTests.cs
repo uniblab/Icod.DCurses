@@ -79,4 +79,42 @@ public sealed class CursesViewportTests {
 		Assert.Equal( "rows", Assert.Throws<ArgumentOutOfRangeException>( () => viewport.WithViewportExtent( -1, 1 ) ).ParamName );
 		Assert.Equal( "column", Assert.Throws<ArgumentOutOfRangeException>( () => viewport.MoveTo( 0, -1 ) ).ParamName );
 	}
+
+	[Fact]
+	public void EnsureVisibleMovesOnlyAsFarAsNeeded() {
+		CursesViewport viewport = new CursesViewport( 100, 200, 10, 20, 30, 40 );
+
+		Assert.Equal( viewport, viewport.EnsureVisible( new CursesCellPosition( 35, 50 ) ) );
+		Assert.Equal( new CursesViewport( 100, 200, 10, 20, 36, 41 ), viewport.EnsureVisible( new CursesCellPosition( 45, 60 ) ) );
+		Assert.Equal( new CursesViewport( 100, 200, 10, 20, 25, 38 ), viewport.EnsureVisible( new CursesRectangle( 25, 38, 5, 10 ) ) );
+		Assert.Equal( new CursesViewport( 100, 200, 10, 20, 34, 45 ), viewport.EnsureVisible( new CursesRectangle( 38, 50, 5, 15 ) ) );
+		Assert.Equal( new CursesViewport( 100, 200, 10, 20, 25, 35 ), viewport.EnsureVisible( new CursesRectangle( 25, 35, 20, 30 ) ) );
+	}
+
+	[Fact]
+	public void OverscanClipsToContentWithoutChangingViewport() {
+		CursesViewport viewport = new CursesViewport( 100, 200, 10, 20, 5, 7 );
+
+		Assert.Equal( viewport.VisibleContent, viewport.GetVisibleContent() );
+		Assert.Equal( new CursesRectangle( 0, 0, 20, 34 ), viewport.GetVisibleContent( 5, 7 ) );
+		Assert.Equal( new CursesRectangle( 0, 0, 100, 200 ), viewport.GetVisibleContent( int.MaxValue, int.MaxValue ) );
+		Assert.Equal( new CursesViewport( 100, 200, 10, 20, 5, 7 ), viewport );
+		Assert.Equal( "overscanRows", Assert.Throws<ArgumentOutOfRangeException>( () => viewport.GetVisibleContent( -1 ) ).ParamName );
+	}
+
+	[Fact]
+	public void CoordinateTranslationsSucceedOnlyWithinVisibleCells() {
+		CursesViewport viewport = new CursesViewport( 100, 200, 10, 20, 30, 40 );
+
+		Assert.True( viewport.TryContentToViewport( new CursesCellPosition( 30, 40 ), out CursesCellPosition topLeft ) );
+		Assert.Equal( new CursesCellPosition( 0, 0 ), topLeft );
+		Assert.True( viewport.TryContentToViewport( new CursesCellPosition( 39, 59 ), out CursesCellPosition bottomRight ) );
+		Assert.Equal( new CursesCellPosition( 9, 19 ), bottomRight );
+		Assert.True( viewport.TryViewportToContent( bottomRight, out CursesCellPosition content ) );
+		Assert.Equal( new CursesCellPosition( 39, 59 ), content );
+		Assert.False( viewport.TryContentToViewport( new CursesCellPosition( 40, 59 ), out CursesCellPosition outside ) );
+		Assert.Equal( default, outside );
+		Assert.False( viewport.TryViewportToContent( new CursesCellPosition( 0, 20 ), out outside ) );
+		Assert.Equal( default, outside );
+	}
 }

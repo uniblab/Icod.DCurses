@@ -93,6 +93,12 @@ public readonly record struct CursesViewport {
 
 	/// <summary>Returns this viewport for a changed content extent, clamping the existing origin.</summary>
 	public CursesViewport WithContentExtent( int rows, int columns ) {
+		if ( rows < 0 ) {
+			throw new ArgumentOutOfRangeException( nameof( rows ) );
+		}
+		if ( columns < 0 ) {
+			throw new ArgumentOutOfRangeException( nameof( columns ) );
+		}
 		return new CursesViewport( rows, columns, Rows, Columns, OriginRow, OriginColumn );
 	}
 
@@ -103,6 +109,12 @@ public readonly record struct CursesViewport {
 
 	/// <summary>Moves the origin to nonnegative content coordinates, clamped to the valid range.</summary>
 	public CursesViewport MoveTo( int row, int column ) {
+		if ( row < 0 ) {
+			throw new ArgumentOutOfRangeException( nameof( row ) );
+		}
+		if ( column < 0 ) {
+			throw new ArgumentOutOfRangeException( nameof( column ) );
+		}
 		return new CursesViewport( ContentRows, ContentColumns, Rows, Columns, row, column );
 	}
 
