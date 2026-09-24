@@ -27,6 +27,36 @@ namespace Icod.DCurses.Tests;
 
 public sealed class RoguelikeSampleStateTests {
 	[Fact]
+	public void CoordinateGeneratedRoomsHaveWallsDoorsAndConnectedCorridors() {
+		RoguelikeSampleState state = new( 12, 24 );
+		Assert.Equal( new CursesCell( "-" ), state.TerrainCellAt( 1, 10 ) );
+		Assert.Equal( new CursesCell( "|" ), state.TerrainCellAt( 4, 2 ) );
+		Assert.Equal( new CursesCell( "+" ), state.TerrainCellAt( 1, 11 ) );
+		Assert.Equal( new CursesCell( "+" ), state.TerrainCellAt( 5, 2 ) );
+		Assert.Equal( new CursesCell( "." ), state.TerrainCellAt( 4, 4 ) );
+		Assert.Equal( new CursesCell( "~" ), state.TerrainCellAt( 3, 15 ) );
+		Assert.Equal( new CursesCell( "#" ), state.TerrainCellAt( 0, 11 ) );
+		Assert.Equal( new CursesCell( "#" ), state.TerrainCellAt( 5, 23 ) );
+		Assert.Equal( new CursesCell( "#" ), state.TerrainCellAt( 5, 24 ) );
+	}
+
+	[Fact]
+	public void MovementRejectsWallsWaterAndVoidButAllowsDoorsAndCorridors() {
+		RoguelikeSampleState state = new( 12, 24 );
+		Assert.False( state.Move( 0, -2 ) ); // vertical wall at (100, 98)
+		Assert.False( state.Move( -1, 11 ) ); // water at (99, 111)
+		Assert.False( state.Move( -4, 0 ) ); // void at (96, 100)
+		Assert.Equal( 100, state.PlayerRow );
+		Assert.Equal( 100, state.PlayerColumn );
+		Assert.True( state.Move( 1, 0 ) );
+		Assert.True( state.Move( 0, -1 ) );
+		Assert.True( state.Move( 0, -1 ) ); // door at (101, 98)
+		Assert.True( state.Move( 0, -1 ) ); // corridor at (101, 97)
+		Assert.Equal( 101, state.PlayerRow );
+		Assert.Equal( 97, state.PlayerColumn );
+	}
+
+	[Fact]
 	public void PlayerMovesAcrossAViewportWithoutAllocatingTheWorld() {
 		RoguelikeSampleState state = new( 12, 20 );
 		Assert.Equal( 10_000_000, state.Viewport.ContentRows );
