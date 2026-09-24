@@ -201,7 +201,7 @@ git commit -m "feat: add immutable rich text layout"
 
 **Exact public increment:** `CursesTextAffinity`; `CursesTextVisualPosition`; `CursesTextHitTestResult`; `CursesTextSelection`; and the eight `CursesTextLayout` geometry methods from design section 5.1.
 
-- [ ] **Step 1: Write the soft-wrap affinity RED**
+- [x] **Step 1: Write the soft-wrap affinity RED**
 
 ```csharp
 [Fact]
@@ -229,23 +229,23 @@ public void SoftWrapBoundaryHonorsAffinity() {
 
 Run the focused test and observe missing geometry types/methods.
 
-- [ ] **Step 2: Build indexes during layout, then map both directions**
+- [x] **Step 2: Build indexes during layout, then map both directions**
 
 Extend the layout builder with compact legal-boundary and per-line fragment indexes. Implement source-to-visual by binary-searching lines/local fragments and hit testing by binary-searching the requested line. Cover ordinary edges, outside-line clamping, hard breaks, clipped/ellipsis mapping, and validation. Do not rescan the source string.
 
-- [ ] **Step 3: Implement navigation and Unicode edge behavior**
+- [x] **Step 3: Implement navigation and Unicode edge behavior**
 
 Add failing cases for previous/next legal position, line start/end, saturating vertical delta, stable preferred column, width-two leader/continuation, attached zero-width, leading zero-width, and CRLF interior rejection. Implement exact affinity from the design.
 
-- [ ] **Step 4: Implement half-open selection rectangles**
+- [x] **Step 4: Implement half-open selection rectangles**
 
 Start with reversed anchor/active across three wrapped lines. Assert normalized `Start`/`End`, clipping to requested line range, no rectangle for an empty selection, and no cells for hidden source. Return a newly owned array sized to exact output.
 
-- [ ] **Step 5: Prove mapping complexity**
+- [x] **Step 5: Prove mapping complexity**
 
 Use a large accepted layout and repeated local caret movement. Freeze operation counts where instrumentable and a portable allocation ceiling. `GetPreviousPosition`/`GetNextPosition` allocate zero; point mapping allocates zero; selection allocates only its returned array.
 
-- [ ] **Step 6: Verify and commit T2104**
+- [x] **Step 6: Verify and commit T2104**
 
 ```sh
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10.0 \
