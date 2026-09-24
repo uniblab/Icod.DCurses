@@ -144,6 +144,77 @@ public readonly record struct CursesViewport {
 		return MoveTo( Math.Max( 0, ContentRows - Rows ), Math.Max( 0, ContentColumns - Columns ) );
 	}
 
+	/// <summary>Moves each origin by the smallest amount needed to reveal a content cell.</summary>
+	public CursesViewport EnsureVisible( CursesCellPosition position ) {
+		if ( position.Row >= ContentRows || position.Column >= ContentColumns ) {
+			throw new ArgumentOutOfRangeException( nameof( position ) );
+		}
+		return MoveTo(
+			EnsureAxisVisible( OriginRow, Rows, position.Row, 1 ),
+			EnsureAxisVisible( OriginColumn, Columns, position.Column, 1 )
+		);
+	}
+
+	/// <summary>Moves each origin by the smallest amount needed to reveal a content rectangle.</summary>
+	/// <remarks>When a rectangle exceeds a viewport axis, its leading edge takes precedence.</remarks>
+	public CursesViewport EnsureVisible( CursesRectangle rectangle ) {
+		if ( rectangle.BottomExclusive > ContentRows || rectangle.RightExclusive > ContentColumns ) {
+			throw new ArgumentOutOfRangeException( nameof( rectangle ) );
+		}
+		return MoveTo(
+			EnsureAxisVisible( OriginRow, Rows, rectangle.Row, rectangle.Rows ),
+			EnsureAxisVisible( OriginColumn, Columns, rectangle.Column, rectangle.Columns )
+		);
+	}
+
+	/// <summary>Returns the visible content rectangle extended by nonnegative overscan and clipped to content.</summary>
+	public CursesRectangle GetVisibleContent( int overscanRows = 0, int overscanColumns = 0 ) {
+		if ( overscanRows < 0 ) {
+			throw new ArgumentOutOfRangeException( nameof( overscanRows ) );
+		}
+		if ( overscanColumns < 0 ) {
+			throw new ArgumentOutOfRangeException( nameof( overscanColumns ) );
+		}
+		CursesRectangle visible = VisibleContent;
+		int row = (int)Math.Max( 0L, (long)visible.Row - overscanRows );
+		int column = (int)Math.Max( 0L, (long)visible.Column - overscanColumns );
+		int bottom = (int)Math.Min( ContentRows, (long)visible.BottomExclusive + overscanRows );
+		int right = (int)Math.Min( ContentColumns, (long)visible.RightExclusive + overscanColumns );
+		return new CursesRectangle( row, column, bottom - row, right - column );
+	}
+
+	/// <summary>Translates a visible content position to viewport coordinates.</summary>
+	public bool TryContentToViewport( CursesCellPosition content, out CursesCellPosition viewport ) {
+		if ( !VisibleContent.Contains( content.Row, content.Column ) ) {
+			viewport = default;
+			return false;
+		}
+		viewport = new CursesCellPosition( content.Row - OriginRow, content.Column - OriginColumn );
+		return true;
+	}
+
+	/// <summary>Translates a visible viewport position to content coordinates.</summary>
+	public bool TryViewportToContent( CursesCellPosition viewport, out CursesCellPosition content ) {
+		CursesRectangle visible = VisibleContent;
+		if ( viewport.Row >= visible.Rows || viewport.Column >= visible.Columns || visible.IsEmpty ) {
+			content = default;
+			return false;
+		}
+		content = new CursesCellPosition( OriginRow + viewport.Row, OriginColumn + viewport.Column );
+		return true;
+	}
+
+	private static int EnsureAxisVisible( int origin, int extent, int leading, int length ) {
+		if ( extent == 0 ) {
+			return origin;
+		}
+		if ( length > extent || leading < origin ) {
+			return leading;
+		}
+		long trailing = (long)leading + length;
+		return trailing > (long)origin + extent ? (int)( trailing - extent ) : origin;
+	}
+
 	private static int ClampOrigin( long requested, int contentExtent, int viewportExtent ) {
 		return (int)Math.Clamp( requested, 0L, Math.Max( 0L, (long)contentExtent - viewportExtent ) );
 	}
