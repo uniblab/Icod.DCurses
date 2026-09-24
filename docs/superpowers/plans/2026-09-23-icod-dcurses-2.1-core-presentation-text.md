@@ -420,8 +420,8 @@ public void ArrangeColumnsAssignsFixedThenWeightedSpace() {
 	);
 
 	Assert.Equal( 4, result[ 0 ].Columns );
-	Assert.Equal( 4, result[ 1 ].Columns );
-	Assert.Equal( 10, result[ 2 ].Columns );
+	Assert.Equal( 5, result[ 1 ].Columns );
+	Assert.Equal( 9, result[ 2 ].Columns );
 }
 ```
 
