@@ -436,11 +436,11 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 **Implementation plan:** [T2112 RC and stable-source closure](docs/superpowers/plans/2026-09-24-icod-dcurses-t2112-rc-stable-source.md).
 
 - Promote the unchanged accepted source through RC and stable-source identities.
-- Run the full Staging/Release OS and architecture matrix.
+- Run the PR Staging OS/architecture matrix; the `main` push workflow runs Release only after merge.
 - Validate fresh package-only consumers and artifact provenance.
 - Record exact-head evidence and maintainer handoff.
 
-**Acceptance:** exact-head release matrix and artifacts green. Merge, post-merge validation, tagging, GitHub Release creation and NuGet publication remain separate maintainer actions.
+**Acceptance:** exact-head PR Staging matrix and artifacts green; Release validation remains a `main` push gate after a separately authorized merge. Merge, post-merge validation, tagging, GitHub Release creation and NuGet publication remain separate maintainer actions.
 
 ---
 
