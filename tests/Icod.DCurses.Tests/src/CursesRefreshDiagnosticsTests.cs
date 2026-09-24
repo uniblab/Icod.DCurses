@@ -42,4 +42,110 @@ public sealed class CursesRefreshDiagnosticsTests {
 		await using CursesSession session = await CursesSession.OpenAsync( terminal, options );
 		Assert.Null( session.LatestRefreshDiagnostics );
 	}
+
+	[Fact]
+	public async Task EnabledRefreshPublishesOneBoundedSnapshotForEachAttempt() {
+		RecordingTerminalOutput output = new();
+		await using CursesSession session = await OpenAsync( output );
+		session.StandardScreen.Write( "A" );
+		await session.RefreshAsync();
+		CursesRefreshDiagnosticsSnapshot first = Assert.IsType<CursesRefreshDiagnosticsSnapshot>(
+			session.LatestRefreshDiagnostics );
+		Assert.Equal( 1, first.Sequence );
+		Assert.Equal( CursesRefreshOutcome.Succeeded, first.Outcome );
+		Assert.True( first.IsFullRepaint );
+		Assert.False( first.PhysicalStateInvalidated );
+		Assert.True( first.LogicalStatePublished );
+		Assert.True( first.LogicalCellsExamined > 0 );
+		Assert.True( first.LogicalCellsChanged > 0 );
+		Assert.True( first.DamagedRows > 0 );
+		Assert.True( first.DamagedRegions > 0 );
+		Assert.True( first.PreparedOutputItemCount > 0 );
+		Assert.True( first.ApplicationPayloadCount > 0 );
+		Assert.True( first.OperationKinds.HasFlag( CursesRefreshOperationKinds.Text ) );
+
+		await session.RefreshAsync();
+		CursesRefreshDiagnosticsSnapshot second = Assert.IsType<CursesRefreshDiagnosticsSnapshot>(
+			session.LatestRefreshDiagnostics );
+		Assert.Equal( 2, second.Sequence );
+		Assert.Equal( CursesRefreshOutcome.Succeeded, second.Outcome );
+		Assert.False( second.IsFullRepaint );
+		Assert.True( second.LogicalStatePublished );
+		Assert.Equal( 0, second.PreparedOutputItemCount );
+		Assert.Equal( 1, first.Sequence );
+	}
+
+	[Fact]
+	public async Task CancellationBeforeOutputRetainsPhysicalCertaintyAndPublishesNoWork() {
+		await using CursesSession session = await OpenAsync( new RecordingTerminalOutput() );
+		await session.RefreshAsync();
+		using CancellationTokenSource source = new();
+		source.Cancel();
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(
+			() => session.RefreshAsync( source.Token ).AsTask() );
+		CursesRefreshDiagnosticsSnapshot cancelled = Assert.IsType<CursesRefreshDiagnosticsSnapshot>(
+			session.LatestRefreshDiagnostics );
+		Assert.Equal( 2, cancelled.Sequence );
+		Assert.Equal( CursesRefreshOutcome.Cancelled, cancelled.Outcome );
+		Assert.False( cancelled.PhysicalStateInvalidated );
+		Assert.False( cancelled.LogicalStatePublished );
+		Assert.Equal( 0, cancelled.PreparedOutputItemCount );
+	}
+
+	[Fact]
+	public async Task PartialWriteFailureInvalidatesThenRetriesAsFullRepaint() {
+		FailingOutput output = new();
+		await using CursesSession session = await OpenAsync( output );
+		session.StandardScreen.Write( "A" );
+		output.FailNextWrite = true;
+		await Assert.ThrowsAsync<IOException>( () => session.RefreshAsync().AsTask() );
+		CursesRefreshDiagnosticsSnapshot failed = Assert.IsType<CursesRefreshDiagnosticsSnapshot>(
+			session.LatestRefreshDiagnostics );
+		Assert.Equal( CursesRefreshOutcome.Failed, failed.Outcome );
+		Assert.True( failed.PhysicalStateInvalidated );
+		Assert.False( failed.LogicalStatePublished );
+		Assert.True( failed.PreparedOutputItemCount > 0 );
+
+		await session.RefreshAsync();
+		CursesRefreshDiagnosticsSnapshot retry = Assert.IsType<CursesRefreshDiagnosticsSnapshot>(
+			session.LatestRefreshDiagnostics );
+		Assert.Equal( 2, retry.Sequence );
+		Assert.Equal( CursesRefreshOutcome.Succeeded, retry.Outcome );
+		Assert.True( retry.IsFullRepaint );
+		Assert.False( retry.PhysicalStateInvalidated );
+	}
+
+	private static async ValueTask<CursesSession> OpenAsync( ITerminalOutput output ) {
+		TerminalDescription profile = new TerminalDescriptionBuilder( "refresh-diagnostics" )
+			.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
+			.SetString( StringCapability.ExitAttributeMode, "<sgr0>" )
+			.SetString( StringCapability.OriginalColorPair, "<op>" )
+			.Build();
+		TerminalSession terminal = await TerminalScreenTestSession.OpenAsync( profile, output );
+		return await CursesSession.OpenAsync( terminal, new CursesSessionOptions {
+			UseAlternateScreen = false,
+			EnableKeypad = false,
+			HideCursor = false,
+			EnableRefreshDiagnostics = true
+		} );
+	}
+
+	private sealed class FailingOutput : ITerminalOutput {
+		internal bool FailNextWrite;
+
+		public ValueTask WriteAsync( ReadOnlyMemory<byte> buffer,
+			CancellationToken cancellationToken = default ) {
+			cancellationToken.ThrowIfCancellationRequested();
+			if ( this.FailNextWrite ) {
+				this.FailNextWrite = false;
+				throw new IOException( "partial write" );
+			}
+			return ValueTask.CompletedTask;
+		}
+
+		public ValueTask FlushAsync( CancellationToken cancellationToken = default ) {
+			cancellationToken.ThrowIfCancellationRequested();
+			return ValueTask.CompletedTask;
+		}
+	}
 }

@@ -26,10 +26,12 @@ using Icod.Terminal;
 /// <summary>Builds one ordered Terminal-owned semantic screen-output transaction.</summary>
 internal sealed class CursesPreparedRefresh {
 	private readonly TerminalScreenOutputTransaction transaction;
+	private readonly CursesRefreshDiagnosticsAccumulator? diagnostics;
 
 	internal CursesPreparedRefresh(
 		TerminalSession session,
-		bool useSynchronizedOutput
+		bool useSynchronizedOutput,
+		CursesRefreshDiagnosticsAccumulator? diagnostics = null
 	) {
 		ArgumentNullException.ThrowIfNull( session );
 		this.transaction = session.CreateScreenOutputTransaction(
@@ -37,14 +39,18 @@ internal sealed class CursesPreparedRefresh {
 				UseSynchronizedOutput = useSynchronizedOutput
 			}
 		);
+		this.diagnostics = diagnostics;
 	}
 
-	internal void AddPlan( TerminalScreenOperationPlan plan ) {
+	internal void AddPlan( TerminalScreenOperationPlan plan,
+		CursesRefreshOperationKinds kind = CursesRefreshOperationKinds.None ) {
 		this.transaction.Add( plan );
+		this.RecordItem( kind );
 	}
 
 	internal void WriteText( string value ) {
 		this.transaction.WriteText( value );
+		this.RecordPayload( CursesRefreshOperationKinds.Text );
 	}
 
 	internal void WriteHyperlink(
@@ -57,12 +63,14 @@ internal sealed class CursesPreparedRefresh {
 			hyperlink.Uri,
 			hyperlink.Identifier
 		);
+		this.RecordPayload( CursesRefreshOperationKinds.Text | CursesRefreshOperationKinds.Hyperlink );
 	}
 
 	internal void WriteRasterPlaceholderCell(
 		CursesRasterCell cell
 	) {
 		this.transaction.WriteRasterPlaceholderCell( cell.TerminalCell );
+		this.RecordRasterCells( 1 );
 	}
 
 	internal void WriteRasterPlaceholderCells(
@@ -75,6 +83,31 @@ internal sealed class CursesPreparedRefresh {
 			terminalCells[ index ] = source[ index ].TerminalCell;
 		}
 		this.transaction.WriteRasterPlaceholderCells( terminalCells );
+		this.RecordRasterCells( cells.Length );
+	}
+
+	private void RecordItem( CursesRefreshOperationKinds kind ) {
+		if ( this.diagnostics is not null ) {
+			this.diagnostics.PreparedOutputItemCount = CursesRefreshDiagnosticsAccumulator.Increment(
+				this.diagnostics.PreparedOutputItemCount );
+			this.diagnostics.OperationKinds |= kind;
+		}
+	}
+
+	private void RecordPayload( CursesRefreshOperationKinds kind ) {
+		this.RecordItem( kind );
+		if ( this.diagnostics is not null ) {
+			this.diagnostics.ApplicationPayloadCount = CursesRefreshDiagnosticsAccumulator.Increment(
+				this.diagnostics.ApplicationPayloadCount );
+		}
+	}
+
+	private void RecordRasterCells( int count ) {
+		this.RecordItem( CursesRefreshOperationKinds.Raster );
+		if ( this.diagnostics is not null ) {
+			this.diagnostics.RasterPlaceholderCellCount = (int)Math.Min( int.MaxValue,
+				(long)this.diagnostics.RasterPlaceholderCellCount + count );
+		}
 	}
 
 	internal ValueTask CommitAsync(
