@@ -8,7 +8,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2103 accepted; T2104 implementation pending\
+**Status:** T2104 accepted; T2105 implementation pending\
 **Planning snapshot:** 2026-09-23
 
 **T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
@@ -346,13 +346,13 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Acceptance:** immutable visual lines and styled fragments now cover validated options and spans, hard lines, no-wrap/text-element/word wrapping, per-line alignment, absolute tab stops, malformed UTF-16 with stable offsets, zero-width and width-two elements, clipping, width and row-limit ellipsis, and explicit source/span/fragment/cell capacities. The 80x40 editor qualification reads only 40 lines from a caller-owned 10,000-line document, observes linear width-provider calls, and remains below its portable minimum-of-eight allocation ceiling. Exact executable head `ef6ab4f3d428c8b648f1022b50b8b3b07bfba953` passed all 14 package/runtime jobs in workflow 35928677166 across .NET 8, 9, and 10.
 
-### T2104 — caret, hit-testing and selection geometry
+### T2104 — caret, hit-testing and selection geometry — accepted
 
 - Implement bidirectional source/visual mapping.
 - Implement caret affinity and preferred-column vertical movement.
 - Implement normalized selections and clipped visual rectangles.
 
-**Acceptance:** mapping invariants and editor-shaped navigation sequences green, including wrap boundaries and width-two text.
+**Acceptance:** bidirectional source/visual mapping, wrap affinity, hit clamping, saturating preferred-column movement, line edges, legal Unicode navigation, and half-open selection rectangles now cover hard breaks, clipped and ellipsized source, width-two and zero-width elements, and reversed selections. Legal-boundary rank indexes provide O(1) previous/next navigation; line and local-element searches are indexed without rescanning source text. A 65,536-element qualification proves repeated point mapping and local navigation allocate nothing, while selection allocates only exact owned result arrays. Exact executable head `7cb7f87b86675094fcabc2097c7235e82237cece` passed all 14 package/runtime jobs in workflow 35940297901 across .NET 8, 9, and 10.
 
 ### T2105 — retained presentation and bulk mutation
 
@@ -443,4 +443,4 @@ These remain candidates for later releases or sibling packages. The intended seq
 
 ## 17. Immediate next step
 
-Begin T2103 from the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): implement immutable rich-text layout test-first over the accepted T2102 source-position, span, and Unicode text-element foundation.
+Begin T2105 from the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): project selected immutable layout lines into retained windows, then add only the evidence-backed prepared-cell row and rectangular bulk writes with failure-atomic ownership and damage semantics.
