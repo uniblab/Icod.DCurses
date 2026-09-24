@@ -3,23 +3,23 @@
 **Project:** `Icod.DCurses`\
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
 **Published compatibility floor:** `1.0.0`\
-**Current published package:** `2.0.0`\
-**Current development source/package identity:** `2.1.0-alpha.1`\
+**Latest tagged stable release:** `2.1.0`\
+**Current source/package identity:** `2.1.0`; advance together at T2202\
 **Current development assembly version:** `2.0.0.0`\
 **Current development runtime dependency:** direct `Icod.Terminal 1.18.0` only; TermInfo remains transitive\
-**Planned 2.1 direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
+**Planned 2.2 direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Active development target:** `2.1.0` — core presentation and text foundations\
-**Status:** 2.0.0 published; 2.1.0 T2103 accepted; T2104 implementation pending
+**Active development target:** `2.2.0` — interaction and application conveniences\
+**Status:** 2.1.0 merged and tagged; 2.2.0 planning PR, T2201 pending
 
-**Planning snapshot:** 2026-09-23
+**Planning snapshot:** 2026-09-24
 
 ---
 
 ## Current authorities
 
-The active plan is [Icod.DCurses-2.1.0-Development-Roadmap.md](Icod.DCurses-2.1.0-Development-Roadmap.md). T2101 produced the [2.0 presentation baseline](docs/T2101-2.0-Core-Presentation-Baseline.md), [accepted public API design](docs/2.1-Core-Presentation-and-Text-API-Design.md), [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md), and accepted [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md). T2102 established the 2.1 development identity and text-coordinate foundation; T2103 added immutable rich-text layout. T2104 is the next implementation tranche.
+The active plan is [Icod.DCurses-2.2.0-Development-Roadmap.md](Icod.DCurses-2.2.0-Development-Roadmap.md), with its [interaction design](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The 2.1 architecture, API, tests and release evidence remain recorded in [the 2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md) and [the v2.1.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v2.1.0). T2201 reviews the published interaction contract and both 2.1 acceptance applications before public 2.2 API work begins.
 
 The published 2.0 contract and migration history remain governed by [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md), [docs/T2011-Stable-Source-Release-Gate.md](docs/T2011-Stable-Source-Release-Gate.md), [docs/Public-API-Fingerprint-2.0.json](docs/Public-API-Fingerprint-2.0.json), [docs/Public-API-Baseline-2.0.md](docs/Public-API-Baseline-2.0.md), and the [2.0 migration guide](docs/2.0-Migration-Guide.md).
 
@@ -58,9 +58,10 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.5.0` | Advanced interaction control: scopes, capture, spatial focus, pointer gestures, scoped commands | Published |
 | `1.6.0` | Retained mixed-media presentation | Published; 1.x feature endpoint |
 | `1.6.x` | Necessary maintenance only | As needed; no new feature track |
-| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | **Current published release** |
-| `2.1.0` | Core presentation and text foundations for editor and roguelike applications | **T2103 accepted; T2104 pending** |
-| `2.2+` | Interaction conveniences, higher-level packages and later graphics work | Deferred until 2.1 evidence identifies the next boundary |
+| `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | Published |
+| `2.1.0` | Core presentation and text foundations for editor and roguelike applications | Merged, tagged and released |
+| `2.2.0` | Interaction and application conveniences for editor and roguelike applications | Selected next; planning PR, T2201 pending |
+| `2.3+` | Higher-level packages, including a possible `Icod.DCurses.Widgets`, and later graphics work | Deferred; scope depends on application evidence |
 
 The post-1.0 progression is intentionally cumulative:
 
@@ -73,6 +74,7 @@ The post-1.0 progression is intentionally cumulative:
 1.6  terminal-resident raster placeholder content participates in retained cell-grid composition and refresh
 2.0  all terminal-facing work goes through Terminal; DCurses retains presentation and interaction policy
 2.1  rich text, coordinate mapping, virtual viewports, bulk mutation, track layout and diagnostics support application-scale presentation
+2.2  caller-driven interaction mechanisms reduce repeated application input and command plumbing
 ```
 
 ---
@@ -292,32 +294,32 @@ The shared coordinate contract is the center of the release: Unicode text elemen
 
 The complete architecture, semantics, non-goals, tranche sequence and acceptance requirements are defined in [Icod.DCurses-2.1.0-Development-Roadmap.md](Icod.DCurses-2.1.0-Development-Roadmap.md).
 
-### 2.1 tranche sequence
+T2101–T2112 are complete. PR [#33](https://github.com/uniblab/Icod.DCurses/pull/33) merged to `main` as `5451c9ef08cbc5f91ba628a370de364a6b97dd10`; the v2.1.0 release contains the accepted samples and package artifacts. The [2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md) remains historical release evidence; its pre-merge status text is not a live work queue.
+
+---
+
+## 2.2 objective — interaction and application conveniences
+
+The agreed release order was 2.1 core text and presentation, **then Option 3: interaction and application conveniences**, then a possible higher-level package. Version 2.2 builds on the published 1.4/1.5 interaction router and the 2.1 editor and roguelike witnesses. It targets repeated interaction mechanisms such as contextual or multi-key command composition, discoverable bindings and bounded prompt input, with pointer timing or frame timing admitted only when a concrete application case and ownership boundary justify them.
+
+The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candidate capabilities, evidence gates, tests and release sequence. T2201 must first freeze the public API design and decide which candidate mechanisms have demonstrated value. DCurses continues to expose mechanism without owning command execution or an application event loop. `Version` and `PackageVersion` stay at stable `2.1.0` in the planning PR; T2202 advances both to a 2.2 prerelease identity after the design gate.
+
+### 2.2 tranche sequence
 
 | Tranche | Deliverable | Status |
 |---|---|---|
-| T2101 | Architecture, 2.0 baseline, workload measurements, public API and regret gate | Accepted on exact head `4bff3bf`; 14/14 jobs green |
-| T2102 | 2.1 development identity and text-coordinate/rich-span foundation | Accepted on exact head `efa04a6`; 14/14 jobs green |
-| T2103 | Rich text visual-line and fragment layout | Accepted on exact head `ef6ab4f`; 14/14 jobs green |
-| T2104 | Caret, hit-testing and selection geometry | Pending |
-| T2105 | Retained layout presentation and benchmark-justified bulk mutation | Pending |
-| T2106 | Large-content viewport and virtualization foundation | Pending |
-| T2107 | Stateless track layout primitives | Pending |
-| T2108 | Bounded refresh diagnostics and performance qualification | Pending |
-| T2109 | Roguelike application acceptance sample | Pending |
-| T2110 | Editor application acceptance sample | Pending |
-| T2111 | Adversarial/package/documentation/public API freeze | Pending |
-| T2112 | RC and stable-source exact-head release closure | Pending |
-
-T2102 advanced `Version` and `PackageVersion` together to `2.1.0-alpha.1`; `AssemblyVersion` remains `2.0.0.0`. Later tranches keep that development identity until the release-candidate gate explicitly advances it.
+| T2201 | 2.1 baseline, sample evidence, ownership and 2.2 public API design gate | Pending |
+| T2202 | Development identity and bounded multi-key command composition | Pending |
+| T2203 | Binding discovery and application-owned command presentation | Pending |
+| T2204 | Small prompt-input mechanism, if justified by T2201 | Pending |
+| T2205 | Clock-fed pointer or frame timing mechanisms, if justified by T2201 | Pending |
+| T2206 | Public-only editor and roguelike acceptance and package consumers | Pending |
+| T2207 | Adversarial, performance, API, documentation and dependency freeze | Pending |
+| T2208 | RC and stable-source exact-head release closure | Pending |
 
 ---
 
 ## Later development sequence
-
-### Interaction and application conveniences
-
-After 2.1, the editor and roguelike evidence may justify contextual or multi-key command composition, command discovery, prompt helpers, timed pointer gestures, drag/drop payloads, frame-loop helpers or other repeated application mechanisms. DCurses must continue to expose mechanism without taking ownership of application commands or the event loop.
 
 ### Higher-level packages
 
@@ -347,12 +349,12 @@ Every development tranche preserves the established process:
 - explicit API/package/documentation regret gate before RC;
 - merge, post-merge Release validation, tagging, and publication remain separate maintainer actions.
 
-For 2.1, the published 2.0 API artifacts remain immutable historical evidence. The 2.1 public contract is additive unless a separate compatibility decision explicitly approves otherwise. T2101 must capture the baseline and freeze capacity/coordinate semantics before public implementation; T2111 must freeze and review the final 2.1 API and package delta. `Version` and `PackageVersion` advance together only when T2102 begins, while `AssemblyVersion` remains `2.0.0.0`.
+For 2.2, the published 2.1 API artifacts remain immutable historical evidence. The 2.2 public contract is additive unless a separate compatibility decision explicitly approves otherwise. T2201 freezes the interaction baseline and candidate APIs before public implementation; T2207 freezes the final API/package delta. `Version` and `PackageVersion` advance together at T2202; `AssemblyVersion` remains `2.0.0.0`.
 
 ---
 
 ## Immediate next step
 
-Begin T2104 from the accepted implementation plan. T2104 adds bidirectional source/visual mapping, caret affinity and movement, hit testing, and selection geometry over the immutable T2103 layout without rescanning caller-owned documents.
+Review the proposed 2.2 design and begin T2201: capture the stable 2.1 interaction baseline, measure repeated input logic in both acceptance applications, select the smallest coherent 2.2 API, and record an executable implementation plan. Keep version and package identity at `2.1.0` while planning. The PR is not a merge or publication request.
 
 The direct production dependency remains `Icod.DCurses -> Icod.Terminal`; any newly discovered live-terminal gap remains work for the owning Terminal dependency.
