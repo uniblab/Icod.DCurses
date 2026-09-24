@@ -408,7 +408,7 @@ git commit -m "feat: add large-content viewport geometry"
 
 **Exact public increment:** `CursesTrackKind`, `CursesTrackDistribution`, `CursesTrack.Fixed`, `CursesTrack.Weighted`, their four properties, and `CursesLayout.ArrangeRows`/`ArrangeColumns` from design section 8.1.
 
-- [ ] **Step 1: Write the fixed/weighted RED**
+- [x] **Step 1: Write the fixed/weighted RED**
 
 ```csharp
 [Fact]
