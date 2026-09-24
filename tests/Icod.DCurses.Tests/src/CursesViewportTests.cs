@@ -36,4 +36,47 @@ public sealed class CursesViewportTests {
 			viewport.VisibleContent
 		);
 	}
+
+	[Fact]
+	public void ResizingPreservesTheValidOriginAndClampsWhenNecessary() {
+		CursesViewport viewport = new CursesViewport( 100, 200, 20, 40, 50, 60 );
+
+		Assert.Equal( new CursesViewport( 60, 80, 20, 40, 40, 40 ), viewport.WithContentExtent( 60, 80 ) );
+		Assert.Equal( new CursesViewport( 100, 200, 80, 160, 20, 40 ), viewport.WithViewportExtent( 80, 160 ) );
+		Assert.Equal( new CursesViewport( 0, 0, 20, 40 ), viewport.WithContentExtent( 0, 0 ) );
+		Assert.Equal( new CursesRectangle( 0, 0, 0, 0 ), viewport.WithContentExtent( 0, 0 ).VisibleContent );
+		Assert.Equal( new CursesViewport( 100, 200, 200, 300 ), viewport.WithViewportExtent( 200, 300 ) );
+	}
+
+	[Fact]
+	public void MovementAndPagesClampIndependentlyOnBothAxes() {
+		CursesViewport viewport = new CursesViewport( 100, 200, 20, 40, 50, 60 );
+
+		Assert.Equal( new CursesViewport( 100, 200, 20, 40, 0, 160 ), viewport.MoveTo( 0, int.MaxValue ) );
+		Assert.Equal( new CursesViewport( 100, 200, 20, 40, 0, 0 ), viewport.MoveToStart() );
+		Assert.Equal( new CursesViewport( 100, 200, 20, 40, 80, 160 ), viewport.MoveToEnd() );
+		Assert.Equal( new CursesViewport( 100, 200, 20, 40, 48, 63 ), viewport.PanBy( -2, 3 ) );
+		Assert.Equal( new CursesViewport( 100, 200, 20, 40, 70, 20 ), viewport.PageBy( 1, -1 ) );
+	}
+
+	[Fact]
+	public void ZeroSizedViewportAndExtremeMovementNeverWrap() {
+		CursesViewport viewport = new CursesViewport( int.MaxValue, int.MaxValue, 0, 0, 100, 100 );
+
+		Assert.Equal( new CursesRectangle( 100, 100, 0, 0 ), viewport.VisibleContent );
+		Assert.Equal( viewport, viewport.PageBy( int.MaxValue, int.MinValue ) );
+		Assert.Equal( int.MaxValue, viewport.PanBy( int.MaxValue, int.MaxValue ).OriginRow );
+		Assert.Equal( 0, viewport.PanBy( int.MinValue, int.MinValue ).OriginColumn );
+		CursesViewport paged = new CursesViewport( int.MaxValue, int.MaxValue, int.MaxValue - 1, int.MaxValue - 1 );
+		Assert.Equal( new CursesViewport( int.MaxValue, int.MaxValue, int.MaxValue - 1, int.MaxValue - 1, 1, 0 ), paged.PageBy( int.MaxValue, int.MinValue ) );
+	}
+
+	[Fact]
+	public void InvalidExtentsAndNegativeMoveCoordinatesAreRejected() {
+		Assert.Equal( "contentRows", Assert.Throws<ArgumentOutOfRangeException>( () => new CursesViewport( -1, 2, 1, 1 ) ).ParamName );
+		Assert.Equal( "originColumn", Assert.Throws<ArgumentOutOfRangeException>( () => new CursesViewport( 2, 2, 1, 1, 0, -1 ) ).ParamName );
+		CursesViewport viewport = new CursesViewport( 2, 2, 1, 1 );
+		Assert.Equal( "rows", Assert.Throws<ArgumentOutOfRangeException>( () => viewport.WithViewportExtent( -1, 1 ) ).ParamName );
+		Assert.Equal( "column", Assert.Throws<ArgumentOutOfRangeException>( () => viewport.MoveTo( 0, -1 ) ).ParamName );
+	}
 }
