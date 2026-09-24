@@ -45,12 +45,12 @@ internal sealed class CursesPreparedRefresh {
 	internal void AddPlan( TerminalScreenOperationPlan plan,
 		CursesRefreshOperationKinds kind = CursesRefreshOperationKinds.None ) {
 		this.transaction.Add( plan );
-		this.RecordItem( kind );
+		this.diagnostics?.RecordItem( kind );
 	}
 
 	internal void WriteText( string value ) {
 		this.transaction.WriteText( value );
-		this.RecordPayload( CursesRefreshOperationKinds.Text );
+		this.diagnostics?.RecordPayload( CursesRefreshOperationKinds.Text );
 	}
 
 	internal void WriteHyperlink(
@@ -63,14 +63,14 @@ internal sealed class CursesPreparedRefresh {
 			hyperlink.Uri,
 			hyperlink.Identifier
 		);
-		this.RecordPayload( CursesRefreshOperationKinds.Text | CursesRefreshOperationKinds.Hyperlink );
+		this.diagnostics?.RecordPayload( CursesRefreshOperationKinds.Text | CursesRefreshOperationKinds.Hyperlink );
 	}
 
 	internal void WriteRasterPlaceholderCell(
 		CursesRasterCell cell
 	) {
 		this.transaction.WriteRasterPlaceholderCell( cell.TerminalCell );
-		this.RecordRasterCells( 1 );
+		this.diagnostics?.RecordRasterCells( 1 );
 	}
 
 	internal void WriteRasterPlaceholderCells(
@@ -83,31 +83,7 @@ internal sealed class CursesPreparedRefresh {
 			terminalCells[ index ] = source[ index ].TerminalCell;
 		}
 		this.transaction.WriteRasterPlaceholderCells( terminalCells );
-		this.RecordRasterCells( cells.Length );
-	}
-
-	private void RecordItem( CursesRefreshOperationKinds kind ) {
-		if ( this.diagnostics is not null ) {
-			this.diagnostics.PreparedOutputItemCount = CursesRefreshDiagnosticsAccumulator.Increment(
-				this.diagnostics.PreparedOutputItemCount );
-			this.diagnostics.OperationKinds |= kind;
-		}
-	}
-
-	private void RecordPayload( CursesRefreshOperationKinds kind ) {
-		this.RecordItem( kind );
-		if ( this.diagnostics is not null ) {
-			this.diagnostics.ApplicationPayloadCount = CursesRefreshDiagnosticsAccumulator.Increment(
-				this.diagnostics.ApplicationPayloadCount );
-		}
-	}
-
-	private void RecordRasterCells( int count ) {
-		this.RecordItem( CursesRefreshOperationKinds.Raster );
-		if ( this.diagnostics is not null ) {
-			this.diagnostics.RasterPlaceholderCellCount = (int)Math.Min( int.MaxValue,
-				(long)this.diagnostics.RasterPlaceholderCellCount + count );
-		}
+		this.diagnostics?.RecordRasterCells( cells.Length );
 	}
 
 	internal ValueTask CommitAsync(

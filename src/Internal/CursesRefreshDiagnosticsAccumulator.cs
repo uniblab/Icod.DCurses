@@ -16,6 +16,22 @@ internal sealed class CursesRefreshDiagnosticsAccumulator {
 
 	internal static int Increment( int value ) => value == int.MaxValue ? value : value + 1;
 
+	internal void RecordItem( CursesRefreshOperationKinds kind ) {
+		PreparedOutputItemCount = Increment( PreparedOutputItemCount );
+		OperationKinds |= kind;
+	}
+
+	internal void RecordPayload( CursesRefreshOperationKinds kind ) {
+		this.RecordItem( kind );
+		ApplicationPayloadCount = Increment( ApplicationPayloadCount );
+	}
+
+	internal void RecordRasterCells( int count ) {
+		this.RecordItem( CursesRefreshOperationKinds.Raster );
+		RasterPlaceholderCellCount = (int)Math.Min( int.MaxValue,
+			(long)RasterPlaceholderCellCount + count );
+	}
+
 	internal CursesRefreshDiagnosticsSnapshot Snapshot( long sequence, CursesRefreshOutcome outcome ) =>
 		new( sequence, outcome, IsFullRepaint, PhysicalStateInvalidated,
 			LogicalStatePublished, LogicalCellsExamined, LogicalCellsChanged,
