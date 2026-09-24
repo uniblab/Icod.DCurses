@@ -37,12 +37,12 @@ public sealed class CursesRefreshDiagnosticsPerformanceTests {
 		await disabled.RefreshAsync();
 		await enabled.RefreshAsync();
 		for ( int index = 0; index < 8; index++ ) {
-			disabled.RefreshAsync().GetAwaiter().GetResult();
-			enabled.RefreshAsync().GetAwaiter().GetResult();
+			await disabled.RefreshAsync();
+			await enabled.RefreshAsync();
 		}
 
-		long disabledBytes = MeasureMinimumAllocatedBytes( disabled );
-		long enabledBytes = MeasureMinimumAllocatedBytes( enabled );
+		long disabledBytes = await MeasureMinimumAllocatedBytes( disabled );
+		long enabledBytes = await MeasureMinimumAllocatedBytes( enabled );
 		Assert.Null( disabled.LatestRefreshDiagnostics );
 		Assert.NotNull( enabled.LatestRefreshDiagnostics );
 		Assert.True( disabledBytes <= enabledBytes,
@@ -50,13 +50,13 @@ public sealed class CursesRefreshDiagnosticsPerformanceTests {
 		Assert.InRange( enabledBytes - disabledBytes, 1, 1_024L * RefreshesPerSample );
 	}
 
-	private static long MeasureMinimumAllocatedBytes( CursesSession session ) {
+	private static async Task<long> MeasureMinimumAllocatedBytes( CursesSession session ) {
 		long minimum = long.MaxValue;
 		for ( int sample = 0; sample < 4; sample++ ) {
 			int thread = Environment.CurrentManagedThreadId;
 			long before = GC.GetAllocatedBytesForCurrentThread();
 			for ( int index = 0; index < RefreshesPerSample; index++ ) {
-				session.RefreshAsync().GetAwaiter().GetResult();
+				await session.RefreshAsync();
 			}
 			if ( thread == Environment.CurrentManagedThreadId ) {
 				minimum = Math.Min( minimum, GC.GetAllocatedBytesForCurrentThread() - before );
