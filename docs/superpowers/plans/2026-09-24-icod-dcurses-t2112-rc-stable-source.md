@@ -1,6 +1,6 @@
 # T2112 RC and Stable-Source Closure Plan
 
-**Status:** in progress; T2111 exact-head gate accepted.\
+**Status:** RC qualified at `451005f98fe957d5754017943e8d4ce66af47cf0` in workflow 36046581162; stable-source qualification in progress.\
 **Authority:** `Icod.DCurses-2.1.0-Development-Roadmap.md`, T2112.\
 **Branch:** `2.1.0-roadmap` in open PR #33. Do not merge, tag, create a release or publish to NuGet.
 

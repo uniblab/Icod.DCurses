@@ -2,13 +2,13 @@
 
 All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/` and the versioned roadmap files.
 
-## 2.1.0 — Release candidate, unpublished
+## 2.1.0 — Stable-source candidate, unpublished
 
 - Added Unicode text-element layout, spans and bounded visual lines with source/visual caret, hit-test, vertical-movement and selection geometry.
 - Added retained window layout projection and prepared bulk cell writes, plus application-owned large-content viewport and stateless fixed/weighted track geometry.
 - Added bounded, opt-in refresh diagnostics with explicit outcome publication and disabled-path allocation qualification.
 - Added public-only roguelike and editor acceptance samples with synthetic large content, visible-slice rendering, documented controls and headless tests.
-- Preserved `AssemblyVersion` `2.0.0.0`, .NET 8/9/10 targets, and the sole direct `Icod.Terminal 1.18.0` production dependency. RC qualification and publication are still pending.
+- Preserved `AssemblyVersion` `2.0.0.0`, .NET 8/9/10 targets, and the sole direct `Icod.Terminal 1.18.0` production dependency. Stable-source qualification and publication are still pending.
 
 ## 2.0.0 — Terminal Integration
 

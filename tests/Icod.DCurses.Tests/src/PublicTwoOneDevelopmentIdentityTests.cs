@@ -25,18 +25,18 @@ using Xunit;
 
 namespace Icod.DCurses.Tests;
 
-/// <summary>Guards the 2.1 release-candidate identity and production boundary.</summary>
+/// <summary>Guards the 2.1 stable-source identity and production boundary.</summary>
 public sealed class PublicTwoOneDevelopmentIdentityTests {
 	[Fact]
-	public void ProjectCarriesTheApprovedTwoOneReleaseCandidateIdentity() {
+	public void ProjectCarriesTheApprovedTwoOneStableSourceIdentity() {
 		XDocument project = LoadProductionProject();
 
 		Assert.Equal(
-			"2.1.0-rc.1",
+			"2.1.0",
 			GetSingleValue( project, "Version" )
 		);
 		Assert.Equal(
-			"2.1.0-rc.1",
+			"2.1.0",
 			GetSingleValue( project, "PackageVersion" )
 		);
 		Assert.Equal(
@@ -50,12 +50,12 @@ public sealed class PublicTwoOneDevelopmentIdentityTests {
 	}
 
 	[Fact]
-	public void CandidateFingerprintAndPackageNotesIdentifyTheSameRelease() {
+	public void StableSourceFingerprintAndPackageNotesIdentifyTheSameRelease() {
 		using JsonDocument fingerprint = JsonDocument.Parse( File.ReadAllText( Path.Combine(
 			FindRepositoryRoot(), "docs", "Public-API-Fingerprint-2.1.json" ) ) );
-		Assert.Equal( "2.1.0-rc.1", fingerprint.RootElement.GetProperty( "release" ).GetString() );
-		Assert.Equal( "release-candidate", fingerprint.RootElement.GetProperty( "status" ).GetString() );
-		Assert.Contains( "2.1.0-rc.1", GetSingleValue( LoadProductionProject(), "PackageReleaseNotes" ),
+		Assert.Equal( "2.1.0", fingerprint.RootElement.GetProperty( "release" ).GetString() );
+		Assert.Equal( "stable-source", fingerprint.RootElement.GetProperty( "status" ).GetString() );
+		Assert.Contains( "2.1.0", GetSingleValue( LoadProductionProject(), "PackageReleaseNotes" ),
 			StringComparison.Ordinal );
 	}
 

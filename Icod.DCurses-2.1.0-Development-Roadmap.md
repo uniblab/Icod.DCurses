@@ -435,6 +435,8 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Implementation plan:** [T2112 RC and stable-source closure](docs/superpowers/plans/2026-09-24-icod-dcurses-t2112-rc-stable-source.md).
 
+**RC qualification:** `2.1.0-rc.1` passed all seven Staging PR jobs at exact validation head `451005f98fe957d5754017943e8d4ce66af47cf0` in workflow 36046581162. The [T2112 RC gate](docs/T2112-RC-Qualification.md) records the package hashes, source provenance, fresh consumers and 1,223 passing tests per TFM in a representative runtime job. The unpublished `2.1.0` stable-source candidate must pass its own seven-job PR matrix; Release validation belongs to a later push to `main`.
+
 - Promote the unchanged accepted source through RC and stable-source identities.
 - Run the PR Staging OS/architecture matrix; the `main` push workflow runs Release only after merge.
 - Validate fresh package-only consumers and artifact provenance.

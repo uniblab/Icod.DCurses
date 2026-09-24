@@ -34,16 +34,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>2.1.0-rc.1</Version>
+		<Version>2.1.0</Version>
 		<AssemblyVersion>2.0.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>2.1.0-rc.1</PackageVersion>
+		<PackageVersion>2.1.0</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-style terminal UI for .NET with retained text and mixed-media presentation, Unicode layout and selection geometry, viewport and track layout, panels, and deterministic interaction routing.</Description>
-		<PackageReleaseNotes>2.1.0-rc.1 is an unpublished release candidate with validated source positions and styled spans, Unicode text-element analysis, immutable rich-text layout, caret and selection geometry, retained text presentation, prepared-cell bulk writes, large-content viewport geometry, and stateless fixed/weighted track layout with capped distribution. Bounded opt-in refresh diagnostics record explicit outcomes. Public-only roguelike and editor samples exercise large synthetic content and application-owned navigation. The package preserves the 2.0 assembly version and its sole direct Icod.Terminal 1.18.0 dependency.</PackageReleaseNotes>
+		<PackageReleaseNotes>2.1.0 is an unpublished stable-source candidate with validated source positions and styled spans, Unicode text-element analysis, immutable rich-text layout, caret and selection geometry, retained text presentation, prepared-cell bulk writes, large-content viewport geometry, and stateless fixed/weighted track layout with capped distribution. Bounded opt-in refresh diagnostics record explicit outcomes. Public-only roguelike and editor samples exercise large synthetic content and application-owned navigation. The package preserves the 2.0 assembly version and its sole direct Icod.Terminal 1.18.0 dependency.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
