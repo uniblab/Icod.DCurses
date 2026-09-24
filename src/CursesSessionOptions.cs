@@ -45,7 +45,7 @@ public enum CursesInputMode
 /// <summary>
 /// Configures terminal state entered by a <see cref="CursesSession"/>.
 /// </summary>
-public sealed class CursesSessionOptions
+public sealed partial class CursesSessionOptions
 {
 	/// <summary>
 	/// Gets or initializes the input discipline.
@@ -109,6 +109,9 @@ public sealed class CursesSessionOptions
 		get;
 		init;
 	}
+
+	/// <summary>Gets or initializes whether to publish bounded refresh diagnostics.</summary>
+	public bool EnableRefreshDiagnostics { get; init; }
 
 	/// <summary>Validates the configured session options.</summary>
 	internal void Validate()

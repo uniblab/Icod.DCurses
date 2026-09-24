@@ -29,6 +29,11 @@ public sealed partial class CursesSession {
 	private readonly object refreshSync = new();
 	private CursesRefreshEngine? refreshEngine;
 	private CursesScreen? panelRefreshProjection;
+	private CursesRefreshDiagnosticsSnapshot? latestRefreshDiagnostics = null;
+
+	/// <summary>Gets the latest opt-in refresh snapshot, or null when no snapshot has been published.</summary>
+	public CursesRefreshDiagnosticsSnapshot? LatestRefreshDiagnostics =>
+		Volatile.Read( ref this.latestRefreshDiagnostics );
 
 	/// <summary>
 	/// Synchronizes the desired logical screen with the terminal and leaves the physical cursor
