@@ -8,7 +8,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2108 accepted; T2109 roguelike implementation in progress\
+**Status:** T2109 accepted; T2110 editor implementation next\
 **Planning snapshot:** 2026-09-23
 
 **T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
@@ -398,7 +398,7 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Implementation plan:** [T2109 roguelike application](docs/superpowers/plans/2026-09-24-icod-dcurses-t2109-roguelike-application.md).
 
-**In progress:** the project, algorithmic world and bounded viewport, sparse movement, track regions, help overlay and headless tests are being qualified by the exact-head PR matrix. The T2109 gate remains pending.
+**Acceptance:** the public-only executable, deterministic coordinate-generated large world, bounded visible frame and message state, clamped movement, track regions and resize geometry, two-cell local updates, retained help overlay, documented controls and headless tests passed all 14 package/runtime jobs at executable head `0297270695ce1ffc6b8bb42a99fbb18d2ac3a219` in workflow 36040652864. The [T2109 gate](docs/T2109-Roguelike-Application-Gate.md) records red and green evidence and the manual terminal-run limitation. PR #33 remains open.
 
 - Add `Icod.DCurses.Roguelike.Sample` using public APIs only.
 - Demonstrate a virtualized scrolling map, local updates, track layout, status/messages, resize and an overlay.
@@ -457,4 +457,4 @@ These remain candidates for later releases or sibling packages. The intended seq
 
 ## 17. Immediate next step
 
-Begin T2109 against a separate roguelike application plan using the accepted T2101–T2108 public surface. Retain the open PR through the application and release gates.
+Begin T2110 against the separate editor application plan using the accepted T2101–T2109 surface. Retain the open PR through the application and release gates.
