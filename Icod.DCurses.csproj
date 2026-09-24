@@ -43,7 +43,7 @@
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-style terminal UI library for .NET with retained text and mixed-media presentation, panels, layout, and deterministic interaction routing.</Description>
-		<PackageReleaseNotes>2.1.0-alpha.1 is a development package with validated source positions and styled spans, Unicode text-element analysis, immutable rich-text layout, caret and selection geometry, retained text presentation, prepared-cell bulk writes, large-content viewport geometry, and stateless fixed/weighted track layout with capped distribution. The opt-in refresh diagnostics contract is declared; collection and publication remain in progress. The package preserves the 2.0 assembly version and its sole direct Icod.Terminal 1.18.0 dependency.</PackageReleaseNotes>
+		<PackageReleaseNotes>2.1.0-alpha.1 is a development package with validated source positions and styled spans, Unicode text-element analysis, immutable rich-text layout, caret and selection geometry, retained text presentation, prepared-cell bulk writes, large-content viewport geometry, and stateless fixed/weighted track layout with capped distribution. Opt-in refresh diagnostics collect and publish bounded outcome snapshots; application workload qualification is in progress. The package preserves the 2.0 assembly version and its sole direct Icod.Terminal 1.18.0 dependency.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
