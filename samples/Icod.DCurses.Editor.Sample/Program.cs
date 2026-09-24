@@ -31,17 +31,26 @@ while ( running ) {
 					[ new CursesTextSpan( new CursesTextPosition( Math.Min( anchor, state.Offset ) ),
 						Math.Abs( anchor - state.Offset ),
 						CursesStyle.Default.WithAttributes( CursesTextAttributes.Reverse ) ) ] );
+			} else if ( row == state.Row ) {
+				int next = layout.GetNextPosition( new CursesTextPosition( state.Offset ) ).Offset;
+				if ( next > state.Offset ) {
+					// Styling the complete source element keeps wide-glyph continuation cells intact.
+					layout = CursesTextLayout.Create( layout.Text, layout.Options,
+						[ new CursesTextSpan( new CursesTextPosition( state.Offset ),
+							next - state.Offset,
+							CursesStyle.Default.WithAttributes( CursesTextAttributes.Reverse ) ) ] );
+				}
 			}
 			int visualRow = row * EditorSampleState.RecordVisualRows - state.Viewport.OriginRow;
 			document.PresentTextLayout( layout, 0, layout.Lines.Count, visualRow,
 				state.Wrap ? 0 : -state.Viewport.OriginColumn );
 		}
-		if ( state.TryCaret( out CursesCellPosition caret ) ) {
-			// Draw a one-cell marker below the caret when it is available; never overwrite a wide glyph.
-			if ( caret.Row + 1 < document.Rows ) {
-				document.Move( caret.Row + 1, caret.Column );
-				document.Write( "^" );
-			}
+		if ( state.Offset == state.GetRecord( state.Row ).Length
+			&& state.TryCaret( out CursesCellPosition caret )
+			&& screen.VirtualScreen.GetCell( regions.Document.Row + caret.Row,
+				regions.Document.Column + caret.Column ).IsBlank ) {
+			document.Move( caret.Row, caret.Column );
+			document.Write( "|" );
 		}
 		status.Clear();
 		WriteLine( status, $"Record {state.Row + 1}/{EditorSampleState.DocumentRows}  offset {state.Offset}  "
