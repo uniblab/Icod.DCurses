@@ -29,7 +29,14 @@ public sealed partial class CursesWindow {
 		int column,
 		ReadOnlySpan<CursesCell> cells
 	) {
-		throw new NotImplementedException();
+		WriteCells(
+			row,
+			column,
+			1,
+			cells.Length,
+			cells,
+			cells.Length
+		);
 	}
 
 	/// <summary>Writes one complete in-bounds rectangular prepared-cell block without changing the cursor.</summary>
@@ -41,6 +48,74 @@ public sealed partial class CursesWindow {
 		ReadOnlySpan<CursesCell> cells,
 		int sourceStride
 	) {
-		throw new NotImplementedException();
+		if ( 0 > row || (long)row + rows > Rows ) {
+			throw new ArgumentOutOfRangeException( nameof( row ) );
+		}
+		if ( 0 > column || (long)column + columns > Columns ) {
+			throw new ArgumentOutOfRangeException( nameof( column ) );
+		}
+		if ( 0 > rows ) {
+			throw new ArgumentOutOfRangeException( nameof( rows ) );
+		}
+		if ( 0 > columns ) {
+			throw new ArgumentOutOfRangeException( nameof( columns ) );
+		}
+		if ( sourceStride < columns ) {
+			throw new ArgumentOutOfRangeException( nameof( sourceStride ) );
+		}
+
+		long requiredLength = 0 == rows || 0 == columns
+			? 0
+			: (long)( rows - 1 ) * sourceStride + columns
+		;
+		if ( requiredLength > int.MaxValue
+			|| requiredLength > cells.Length ) {
+			throw new ArgumentException(
+				"The source span does not contain the complete prepared-cell block.",
+				nameof( cells )
+			);
+		}
+
+		// Validate every footprint before changing any retained value.
+		for ( int sourceRow = 0; sourceRow < rows && 0 < columns; sourceRow++ ) {
+			ReadOnlySpan<CursesCell> source = cells.Slice(
+				sourceRow * sourceStride,
+				columns
+			);
+			for ( int sourceColumn = 0; sourceColumn < columns; sourceColumn++ ) {
+				CursesCell cell = source[ sourceColumn ];
+				if ( cell.IsContinuation ) {
+					throw new ArgumentException(
+						"A source row cannot contain an orphan continuation cell.",
+						nameof( cells )
+					);
+				}
+				if ( 2 == cell.DisplayWidth ) {
+					if ( sourceColumn + 1 >= columns
+						|| !source[ sourceColumn + 1 ].IsContinuation
+						|| source[ sourceColumn + 1 ].Style != cell.Style ) {
+						throw new ArgumentException(
+							"A wide source cell requires a matching continuation within its row.",
+							nameof( cells )
+						);
+					}
+					sourceColumn++;
+				}
+			}
+		}
+
+		for ( int targetRow = 0; targetRow < rows && 0 < columns; targetRow++ ) {
+			ReadOnlySpan<CursesCell> source = cells.Slice(
+				targetRow * sourceStride,
+				columns
+			);
+			for ( int targetColumn = 0; targetColumn < columns; targetColumn++ ) {
+				SetCellIfVisible(
+					row + targetRow,
+					column + targetColumn,
+					source[ targetColumn ]
+				);
+			}
+		}
 	}
 }
