@@ -23,17 +23,25 @@ namespace Icod.DCurses;
 
 /// <summary>Distinguishes a fixed-size track from one assigned proportional remaining space.</summary>
 public enum CursesTrackKind {
+	/// <summary>Uses a preferred fixed size subject to limits.</summary>
 	Fixed,
+	/// <summary>Receives a proportional share of remaining space.</summary>
 	Weighted
 }
 
 /// <summary>Specifies how surplus space outside tracks is placed.</summary>
 public enum CursesTrackDistribution {
+	/// <summary>Places surplus after the final track.</summary>
 	Start,
+	/// <summary>Places surplus evenly outside both ends, with the odd cell after the last track.</summary>
 	Center,
+	/// <summary>Places surplus before the first track.</summary>
 	End,
+	/// <summary>Places surplus between tracks.</summary>
 	SpaceBetween,
+	/// <summary>Places half-spaces around every track.</summary>
 	SpaceAround,
+	/// <summary>Places surplus in equal slots before, between, and after tracks.</summary>
 	SpaceEvenly
 }
 
