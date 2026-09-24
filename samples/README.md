@@ -2,7 +2,7 @@
 
 The repository contains twelve executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
-All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project. Icod.DCurses 2.0 declares only `Icod.Terminal 1.18.0` directly. Terminal may restore TermInfo transitively. The previous 1.6 package keeps its historical direct dependency set. To migrate external applications, see [the 2.0 migration guide](../docs/2.0-Migration-Guide.md).
+All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project. The unpublished 2.1 source candidate and published 2.0 package both declare only `Icod.Terminal 1.18.0` directly; Terminal may restore TermInfo transitively. The previous 1.6 package keeps its historical direct dependency set. To migrate external applications, see [the 2.0 migration guide](../docs/2.0-Migration-Guide.md). The editor and roguelike samples exercise 2.1 APIs from this repository branch and cannot run against the currently published 2.0 NuGet package.
 
 ## Which sample should I run?
 

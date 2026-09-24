@@ -11,7 +11,7 @@
 
 Current release: **`Icod.DCurses 2.0.0`**.
 
-Version **2.1.0 is an unpublished stable-source candidate** on [PR #33](https://github.com/uniblab/Icod.DCurses/pull/33). It adds immutable Unicode text layout, source-position and selection geometry, retained layout projection, prepared bulk cell writes, large-content viewport coordinates, stateless track layout, and bounded opt-in refresh diagnostics. The [roguelike and editor samples](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md) demonstrate the public APIs with application-owned state. The 2.1 [API baseline](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/docs/Public-API-Baseline-2.1.md) and [roadmap](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/Icod.DCurses-2.1.0-Development-Roadmap.md) describe the pending release gates. The current install command below remains the published 2.0 release until a maintainer publishes 2.1.
+Version **2.1.0 is an unpublished stable-source candidate** on [PR #33](https://github.com/uniblab/Icod.DCurses/pull/33). It adds immutable Unicode text layout, source-position and selection geometry, retained layout projection, prepared bulk cell writes, large-content viewport coordinates, stateless track layout, and bounded opt-in refresh diagnostics. The [roguelike and editor samples](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md) demonstrate the public APIs with application-owned state. The 2.1 [API baseline](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/docs/Public-API-Baseline-2.1.md) and [stable-source qualification](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/docs/T2112-Stable-Source-Release-Gate.md) describe the candidate and its Staging evidence. Release validation still awaits a separately authorized push to `main`. The current install command below remains the published 2.0 release until a maintainer publishes 2.1.
 
 Version `2.0.0` completes the direct dependency cutover: production DCurses depends only on `Icod.Terminal 1.18.0`, which may restore `Icod.TermInfo` transitively. Version 2.0 changes the public profile and dimensions types and the assembly identity. See the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md) and [2.0 roadmap](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/Icod.DCurses-2.0.0-Development-Roadmap.md).
 
@@ -108,6 +108,29 @@ await session.RefreshAsync();
 CursesEvent terminalEvent = await session.ReadEventAsync();
 ```
 
+## 2.1 Text Layout Example
+
+On the 2.1 source branch, the session and `screen` from the quick start above can present an immutable layout. Source positions use UTF-16 offsets at legal text-element boundaries; visual positions use rows and terminal columns. DCurses computes the layout and projects the selected lines into retained cells, while the application decides what text to show and when to refresh.
+
+```csharp
+CursesTextLayout layout = CursesTextLayout.Create(
+	"Hello 👩‍💻 world",
+	new CursesTextLayoutOptions( 20 ) {
+		WrapMode = CursesTextWrapMode.TextElement
+	}
+);
+CursesTextPosition afterEmoji = layout.GetNextPosition( new CursesTextPosition( 6 ) );
+CursesTextVisualPosition caret = layout.GetVisualPosition( afterEmoji );
+
+screen.PresentTextLayout( layout, 0, layout.Lines.Count, 0, 0 );
+if ( caret.Line < screen.Rows && caret.Column < screen.Columns ) {
+	screen.Move( caret.Line, caret.Column );
+}
+await session.RefreshAsync();
+```
+
+The application chooses the cursor position and can call `HitTest` and `GetSelectionRectangles` for editing and selection. See the [editor sample](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md#icoddcurseseditorsample) for a complete event loop and the [roguelike sample](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md#icoddcursesroguelikesample) for viewport geometry, track layout, and sparse updates. These APIs are in the unpublished 2.1 candidate; the 2.0 NuGet package does not contain them.
+
 ## Retained Raster Presentation
 
 Applications supply a backend-neutral `TerminalRasterImage`, create the live resource/placeholder through `CursesSession`, and retain opaque placeholder cells in ordinary DCurses surfaces:
@@ -161,6 +184,9 @@ CursesSession
 - **Geometry and layout** — immutable rectangles/insets plus stateless split, dock, and clip helpers.
 - **Lifecycle and refresh** — physical-state invalidation after terminal uncertainty, sparse/full redraw, synchronized output, and stale raster rejection before output.
 - **Interaction routing** — bounded regions/scopes, logical and spatial focus, explicit pointer capture, clock-free gestures, semantic commands, and pointer-shape preferences.
+- **2.1 text layout** — immutable styled Unicode layout, legal source positions, caret/hit/selection geometry, and retained window projection.
+- **2.1 large-content presentation** — application-owned viewport coordinates, fixed/weighted tracks, and prepared bulk cell writes for visible slices.
+- **2.1 refresh diagnostics** — bounded opt-in snapshots of refresh outcomes and prepared work; observation is disabled by default.
 
 ## Design Boundaries
 
