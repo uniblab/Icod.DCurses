@@ -8,7 +8,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2107 accepted; T2108 implementation in progress\
+**Status:** T2108 accepted; T2109 application development next\
 **Planning snapshot:** 2026-09-23
 
 **T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
@@ -392,7 +392,7 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Acceptance:** disabled-path allocation parity, bounded enabled state, truthful failure/cancellation results and workload benchmarks green.
 
-**In progress:** the opt-in public snapshot contract and disabled default passed all 14 package/runtime jobs at executable head `700521baeb267492ff6ee6e91218441c836709a4` in workflow 35955896130. Collection, publication, and performance qualification remain in T2108.
+**Acceptance:** the opt-in public snapshot contract, bounded accumulation, truthful success/cancellation/failure publication, physical invalidation and repaint, scalar-only public boundary, warmed disabled/enabled allocation comparison, and visible-world full-frame versus nine-cell update qualification are covered by permanent tests. Exact executable head `878fcdd8630f97556ee2791509d805ed4a35ece7` passed all 14 package/runtime jobs in workflow 36035524413. The [T2108 gate](docs/T2108-Bounded-Refresh-Diagnostics-Gate.md) records the failure and correction evidence. PR #33 remains open for T2109–T2112.
 
 ### T2109 — roguelike application acceptance
 
@@ -451,4 +451,4 @@ These remain candidates for later releases or sibling packages. The intended seq
 
 ## 17. Immediate next step
 
-Begin T2108 against the accepted [implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md): implement bounded opt-in refresh diagnostics and qualify disabled-path cost.
+Begin T2109 against a separate roguelike application plan using the accepted T2101–T2108 public surface. Retain the open PR through the application and release gates.

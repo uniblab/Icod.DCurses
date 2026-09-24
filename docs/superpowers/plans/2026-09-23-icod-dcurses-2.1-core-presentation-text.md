@@ -485,19 +485,19 @@ public void RefreshDiagnosticsAreDisabledAndEmptyByDefault() {
 
 Adapt fixture construction to the existing async lifetime pattern. Observe missing properties, then add declarations/default only. Do not collect counters yet.
 
-- [ ] **Step 2: Add an internal value accumulator without disabled-path allocation**
+- [x] **Step 2: Add an internal value accumulator without disabled-path allocation**
 
 Pass a nullable/by-ref internal accumulator through existing refresh planning and commit code. When diagnostics are disabled, retain the exact 2.0/T2107 call path and allocate nothing attributable to diagnostics. When enabled, count examined/changed cells, damaged rows/regions, prepared items, application payloads, raster cells, full repaint, and operation-kind union. Saturate public counters as specified.
 
-- [ ] **Step 3: Publish one truthful immutable snapshot after each outcome**
+- [x] **Step 3: Publish one truthful immutable snapshot after each outcome**
 
 Add failing integration tests for success, cancellation before output, cancellation after output may begin, output failure before/after write, physical invalidation, logical publication, and forced repaint retry. Construct at most one snapshot after the attempt and publish it atomically. Retain only the latest snapshot. Preserve existing exception/cancellation propagation exactly.
 
-- [ ] **Step 4: Prove semantic boundary and bounded state**
+- [x] **Step 4: Prove semantic boundary and bounded state**
 
 Reflection/public-contract tests must show no Terminal or TermInfo types and no serialized byte/string payloads in the snapshot. Repeated refresh retains one snapshot only. Operation categories report semantic work actually prepared, not claimed physical support.
 
-- [ ] **Step 5: Run final application-shaped performance qualification**
+- [x] **Step 5: Run final application-shaped performance qualification**
 
 In `CorePresentationTextPerformanceQualificationTests`, rerun and compare:
 
@@ -510,7 +510,7 @@ In `CorePresentationTextPerformanceQualificationTests`, rerun and compare:
 
 Require the frozen complexity properties, zero attributable disabled-path allocation after warmup, at most one enabled snapshot per refresh, visible-slice memory independence from total content, and the accepted bulk improvement. Use deterministic counts and broad portable byte ceilings; elapsed values are informational.
 
-- [ ] **Step 6: Verify the production-plan gate and commit T2108**
+- [x] **Step 6: Verify the production-plan gate and commit T2108**
 
 ```sh
 dotnet restore Icod.DCurses.sln
