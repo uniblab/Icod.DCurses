@@ -9,8 +9,8 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2202 effective-binding discovery accepted; T2203 implementation plan pending review\
-**Planning snapshot:** 2026-09-24
+**Status:** T2203 bounded command sequences accepted; T2204/T2205 deferred; T2206 planning next\
+**Planning snapshot:** 2026-09-25
 
 **Design proposal:** [2.2 interaction and application conveniences](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The published [2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md), [interaction sample](samples/Icod.DCurses.Interaction.Sample/Program.cs), [editor](samples/Icod.DCurses.Editor.Sample/Program.cs) and [roguelike](samples/Icod.DCurses.Roguelike.Sample/Program.cs) are the baseline evidence.
 
@@ -37,23 +37,29 @@ The [T2201 baseline and API questions](docs/T2201-Interaction-Baseline-and-API-Q
 
 ## 3. Candidate interaction facilities
 
-### 3.1 Contextual and multi-key commands — primary candidate
+### 3.1 Contextual and multi-key commands — accepted
 
 Evaluate a bounded, deterministic command-sequence mechanism that consumes normalized `CursesInputEvent` key/text gestures using the existing binding ownership and scope precedence. Prefix, completion, mismatch and cancellation must be explicit. The accepted T2203 design has no timeout: applications choose when to cancel. A mismatch routes its mismatching event through ordinary single-key routing exactly once without treating it as a new sequence prefix. Maximum sequence length, total registered bindings and live pending state have explicit limits in the written specification.
 
 Do not let a prefix hide or change an existing complete binding silently. A scope activation, focus transfer, region/scope disposal or router disposal must invalidate or re-evaluate pending context according to one written rule. The application chooses when to wait for more input and whether to execute the returned `CursesCommand`.
 
-### 3.2 Command discovery — primary candidate
+### 3.2 Command discovery — accepted
 
 Evaluate bounded immutable snapshots of effective bindings at the current focus and scope. Results must have deterministic precedence and ordering, identify incomplete prefixes, and never expose commands hidden by a modal scope. Display labels/descriptions and enabling remain caller-owned; no command catalog, callbacks or auto-execution. Prove that discovery agrees with normal routing for the same eligible context, including scope changes and disposal.
 
-### 3.3 Prompt input — evidence-gated candidate
+### 3.3 Prompt input — deferred
 
-The 2.1 editor owns a small numeric prompt. Assess whether a general small prompt state (text-element-safe insertion/deletion, caret movement, completion/cancel signals and a bounded length) removes repeated application code without becoming a document buffer. Its API should be usable without opening a session; applications own validation, history, completion providers, persistence, layout and styling. If its only convincing use case is the existing editor's few lines, close T2204 as deferred.
+The 2.1 editor owns a small numeric prompt, but no second application-shaped
+witness justifies freezing a general prompt state into DCurses core. T2204 is
+deferred. Applications retain validation, history, completion, persistence,
+layout and styling; new evidence may reopen a separate proposal later.
 
-### 3.4 Timed pointer and frame calculations — evidence-gated candidate
+### 3.4 Timed pointer and frame calculations — deferred
 
-Existing 1.5 pointer gestures intentionally require no clock. Consider opt-in elapsed-time recognition (double-click, dwell, drag threshold) only if editor/roguelike acceptance demonstrates a real case. Caller-fed monotonic timestamps, bounded state and explicit cancel/reset are required; ordinary 1.5 gesture semantics remain unchanged. Drag/drop payload ownership stays with the application. A frame pacing calculation is only admitted if it can be pure and caller-driven; DCurses will not schedule refreshes or take ownership of the event loop. Live Terminal services must be added to Terminal first, if needed, rather than smuggled into DCurses.
+Existing 1.5 pointer gestures intentionally require no clock, and the current
+editor/roguelike flows do not justify timed pointer or frame APIs. T2205 is
+deferred. Any future proposal still requires caller-fed monotonic time, bounded
+state, explicit reset and no background scheduling or hidden terminal I/O.
 
 ## 4. Application acceptance
 
@@ -73,9 +79,9 @@ Both samples continue to call `screen.Clear()` and refresh during orderly exit. 
 |---|---|---|
 | **T2201** | Freeze baseline, inspect repeated input paths, compare API approaches, decide optional candidates and write public API/implementation plan | Discovery foundation accepted: tests-only head `d853248` observed expected missing-API RED in workflow 36074699970; sequence contract remains a separate T2203 amendment |
 | **T2202** | Move `Version`/`PackageVersion` to `2.2.0-alpha.1`; implement effective-binding discovery | Accepted at exact head `1d6097d`; [workflow 36076001958](https://github.com/uniblab/Icod.DCurses/actions/runs/36076001958) green 7/7; see [T2202 gate](docs/T2202-Effective-Binding-Discovery-Gate.md) |
-| **T2203** | Implement bounded multi-key composition | [Written specification](docs/superpowers/specs/2026-09-25-icod-dcurses-t2203-command-sequences-design.md) approved; [test-first implementation plan](docs/superpowers/plans/2026-09-25-icod-dcurses-t2203-command-sequences.md) pending review |
-| **T2204** | Implement small prompt state only if T2201 accepts it; otherwise record deferral | Unicode element boundaries, length and overflow, cancellation, validation ownership, editor-shaped use case |
-| **T2205** | Implement caller-fed timed pointer or pure frame calculations only if T2201 accepts them; otherwise record deferral | Clock boundary and regression tests; no background work, implicit terminal I/O or application-owned payload captured |
+| **T2203** | Implement bounded multi-key composition | Accepted at exact head `2cdb89f`; [workflow 36084559207](https://github.com/uniblab/Icod.DCurses/actions/runs/36084559207) green 7/7; see [T2203 gate](docs/T2203-Bounded-Command-Sequences-Gate.md) |
+| **T2204** | Implement small prompt state only if justified | Deferred: only the editor's narrow numeric prompt is evidenced |
+| **T2205** | Implement caller-fed timed pointer or pure frame calculations only if justified | Deferred: no current application-shaped timing witness |
 | **T2206** | Integrate selected mechanisms into public-only editor/roguelike samples and package-only consumers | Application-shaped tests, documented controls, live manual acceptance, no duplicated private command router, no direct TermInfo calls |
 | **T2207** | Adversarial, allocation, dependency, public API, XML and documentation gate | Existing API/fingerprint parity, published package checks, platform matrix and exact-head evidence; reject APIs that belong in Widgets or Terminal |
 | **T2208** | RC followed by stable-source qualification | PR runs Staging jobs only; exact source/package provenance and fresh consumers; Release validation only after a separately authorized merge to `main` |
@@ -97,4 +103,7 @@ No callback dispatch tree, retained widget hierarchy, automatic focus policy, co
 
 ## 8. Immediate next step
 
-Review the [T2203 test-first implementation plan](docs/superpowers/plans/2026-09-25-icod-dcurses-t2203-command-sequences.md), then execute it inline after approval. The approved specification freezes prefix conflicts, mismatches, limits and context invalidation before production code. Keep the development PR open and unmerged during the release track.
+Plan T2206 public-only editor and roguelike integration of the accepted binding
+discovery and bounded command-sequence mechanisms. Preserve application-owned
+execution and event loops, and keep the development PR open and unmerged during
+the release track.

@@ -740,19 +740,26 @@ git commit -m "feat: complete bounded command sequence discovery"
 
 Expected: no direct production TermInfo match and no change to the published 2.1 fingerprint.
 
-- [ ] **Step 7: Push and qualify the exact executable head.**
+- [x] **Step 7: Push and qualify the exact executable head.** Exact head
+  `2cdb89f`; workflow 36084559207 passed all seven Staging jobs. Representative
+  Windows, Linux and intentionally sequential macOS x64 jobs each passed 1,268
+  tests on .NET 8/9/10 with zero failures or skips.
 
 Require all seven Staging jobs green. Record per-TFM test counts from representative Windows, Linux and macOS jobs, confirm macOS x64 remains sequential, and record the exact commit/workflow.
 
-- [ ] **Step 8: Qualify the package artifact.**
+- [x] **Step 8: Qualify the package artifact.** Artifact `10843144268`, digest
+  `sha256:6dc68baa4095dacb069e4d350c8999b1dde9ada496e5aba491e70354c55ed7e2`.
+  Both NuGet archives, fresh net8/net9/net10 package-only consumers and the
+  live Linux pseudo-terminal refresh passed; direct nuspec inspection found
+  only `Icod.Terminal 1.18.0`.
 
 Record artifact ID and digest. Confirm the candidate contains `Icod.DCurses.2.2.0-alpha.1.nupkg` and symbols, fresh package-only consumers build/run on .NET 8/9/10, the live Linux pseudo-terminal refresh passes, and the nuspec has only direct `Icod.Terminal 1.18.0`.
 
-- [ ] **Step 9: Record the accepted T2203 gate.**
+- [x] **Step 9: Record the accepted T2203 gate.**
 
 Write `docs/T2203-Bounded-Command-Sequences-Gate.md` with RED heads, GREEN exact head, workflows, fingerprint delta, package provenance, residual T2204/T2205 deferrals and no-merge/no-publication status. Update both roadmaps and the PR body. This documentation-only checkpoint does not require waiting for a redundant workflow before continuing to the next approved tranche.
 
-- [ ] **Step 10: Commit and push the gate documentation.**
+- [x] **Step 10: Commit and push the gate documentation.**
 
 ```sh
 git diff --check

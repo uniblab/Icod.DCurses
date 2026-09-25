@@ -1,7 +1,7 @@
 # Icod.DCurses T2203 Bounded Command Sequences Design
 
 **Date:** 2026-09-25\
-**Status:** Written specification approved; implementation plan pending review\
+**Status:** Accepted at exact executable head `2cdb89f`; T2203 gate complete\
 **Release:** Icod.DCurses 2.2.0\
 **Baseline:** accepted T2202 effective-binding discovery at executable head `1d6097d`
 
