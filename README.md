@@ -9,7 +9,9 @@
 
 ## Status
 
-This source tree targets **`Icod.DCurses 2.1.0`**. Check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published package versions.
+This source tree develops **`Icod.DCurses 2.2.0-alpha.1`**. The latest published stable release is **`2.1.0`**; check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published package versions.
+
+Version 2.2 adds immutable discovery of the effective single-key and multi-key command bindings in current routing precedence, plus bounded command sequences with explicit pending, completed, mismatch, fallback, and cancellation results. It keeps command execution, labels, localization, timeouts, and the event loop application-owned. The [editor and roguelike samples](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/samples/README.md) exercise these facilities through public APIs; the [2.2 API baseline](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/docs/Public-API-Baseline-2.2.md) records the additive contract over 2.1.
 
 Version 2.1.0 adds immutable Unicode text layout, source-position and selection geometry, retained layout projection, prepared bulk cell writes, large-content viewport coordinates, stateless track layout, and bounded opt-in refresh diagnostics. The [roguelike and editor samples](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md) demonstrate the public APIs with application-owned state. The 2.1 [API baseline](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/docs/Public-API-Baseline-2.1.md) and [stable-source qualification](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/docs/T2112-Stable-Source-Release-Gate.md) describe the source contract and Staging evidence. The `main` push workflow validates Release configuration before publication.
 
@@ -63,17 +65,17 @@ higher-level terminal applications / future widgets
 - `Icod.DCurses` owns retained terminal-cell presentation and deterministic interaction mechanisms.
 - Applications own their event loop, command execution, source-image durability, widget/application semantics, navigation, and high-level layout policy.
 
-The direct 2.0 runtime dependency is:
+The direct 2.x runtime dependency is:
 
 ```text
 Icod.Terminal 1.18.0
 ```
 
-`Icod.TermInfo` is not a direct dependency of DCurses 2.0; NuGet may restore it transitively through Terminal. This major version requires a consumer rebuild; follow the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md). The previous 1.6 package retains its historical direct dependencies on `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`.
+`Icod.TermInfo` is not a direct dependency of DCurses 2.x; NuGet may restore it transitively through Terminal. The 2.0 major-version boundary requires a consumer rebuild from 1.6; follow the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md). The previous 1.6 package retains its historical direct dependencies on `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`.
 
 ## Install
 
-When version 2.1.0 is available on NuGet:
+Install the latest stable release from NuGet:
 
 ```text
 dotnet add package Icod.DCurses --version 2.1.0
@@ -115,6 +117,28 @@ screen.Write(
 await session.RefreshAsync();
 CursesEvent terminalEvent = await session.ReadEventAsync();
 ```
+
+## 2.2 Interaction Convenience Example
+
+Applications can register semantic command sequences, inspect the currently effective bindings for help text, and route one normalized input event at a time. A pending prefix has no hidden timer; the application decides when to call `CancelPendingCommandSequence()`.
+
+```csharp
+CursesKeyGesture g = CursesKeyGesture.ForCharacter( new Rune( 'g' ) );
+CursesCommand goTop = new( "document.go-top" );
+router.BindGlobalGestureSequence( [ g, g ], goTop );
+
+IReadOnlyList<CursesCommandSequenceBinding> helpBindings =
+	router.GetEffectiveGestureSequenceBindings();
+
+CursesCommandSequenceResult result = router.ProcessCommandSequence( input );
+if ( result.Kind is CursesCommandSequenceResultKind.Completed ) {
+	ExecuteApplicationCommand( result.Command! );
+} else if ( result.Fallback is not null ) {
+	HandleOrdinaryRoutingResult( result.Fallback );
+}
+```
+
+Focused-region, active-scope, and router-global precedence matches ordinary routing. Sequence length and registration counts have public limits, and focus/scope/binding lifecycle changes invalidate pending state deterministically.
 
 ## 2.1 Text Layout Example
 
@@ -192,6 +216,7 @@ CursesSession
 - **Geometry and layout** — immutable rectangles/insets plus stateless split, dock, and clip helpers.
 - **Lifecycle and refresh** — physical-state invalidation after terminal uncertainty, sparse/full redraw, synchronized output, and stale raster rejection before output.
 - **Interaction routing** — bounded regions/scopes, logical and spatial focus, explicit pointer capture, clock-free gestures, semantic commands, and pointer-shape preferences.
+- **2.2 interaction conveniences** — detached effective-binding discovery and bounded, explicitly cancellable multi-key command composition without application callback or event-loop ownership.
 - **2.1 text layout** — immutable styled Unicode layout, legal source positions, caret/hit/selection geometry, and retained window projection.
 - **2.1 large-content presentation** — application-owned viewport coordinates, fixed/weighted tracks, and prepared bulk cell writes for visible slices.
 - **2.1 refresh diagnostics** — bounded opt-in snapshots of refresh outcomes and prepared work; observation is disabled by default.
@@ -211,9 +236,11 @@ CursesSession
 
 Recommended documentation entry points:
 
-- [`CHANGELOG.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/CHANGELOG.md)
+- [`CHANGELOG.md`](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/CHANGELOG.md)
+- [`docs/Public-API-Baseline-2.2.md`](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/docs/Public-API-Baseline-2.2.md)
+- [`Icod.DCurses-2.2.0-Development-Roadmap.md`](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/Icod.DCurses-2.2.0-Development-Roadmap.md)
+- [`samples/README.md`](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/samples/README.md) for runnable 2.2 editor and roguelike consumers
 - [`docs/2.0-Migration-Guide.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md) for upgrading 1.6 applications
-- [`samples/README.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/samples/README.md) for runnable consumer examples
 - [`docs/Public-API-Fingerprint-2.0.json`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/Public-API-Fingerprint-2.0.json)
 - [`docs/Public-API-Baseline-2.0.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/Public-API-Baseline-2.0.md)
 - [`docs/1.0-Stable-Compatibility-and-Migration-Guide.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/1.0-Stable-Compatibility-and-Migration-Guide.md)

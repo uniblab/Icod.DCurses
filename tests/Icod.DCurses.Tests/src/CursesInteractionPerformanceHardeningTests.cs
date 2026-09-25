@@ -20,6 +20,7 @@
 */
 
 using System.Diagnostics;
+using System.Text;
 using Xunit;
 
 namespace Icod.DCurses.Tests;
@@ -32,7 +33,10 @@ public sealed class CursesInteractionPerformanceHardeningTests {
 	private const long AllocationMeasurementNoiseFloor = 1024L;
 	private const int AllocationSamples = 8;
 	private const int BindingCount = 64;
+	private const int DiscoveryAllocationIterations = 128;
 	private const int RegionCount = 256;
+	private const int SequenceAllocationIterations = 512;
+	private const int SequenceWarmupIterations = 256;
 	private const int ThroughputIterations = 10000;
 	private const int WarmupIterations = 4096;
 
@@ -202,6 +206,129 @@ public sealed class CursesInteractionPerformanceHardeningTests {
 	}
 
 	[Fact]
+	public void RegisteredCommandSequencesDoNotIncreaseOrdinaryRouteAllocationCeiling() {
+		using CursesInteractionRouter router = CreateRepresentativeRouter(
+			out CursesInteractionRegion winningRegion,
+			out CursesInputEvent localInput,
+			out _,
+			out _,
+			out CursesCommand localCommand,
+			out _
+		);
+		BindMaximumRegionSequences( winningRegion );
+
+		Action operation = () => {
+			CursesInteractionResult result = router.Route( localInput );
+			if ( CursesInteractionResultKind.Command != result.Kind
+				|| !ReferenceEquals(
+					result.Region,
+					winningRegion
+				)
+				|| result.Command != localCommand ) {
+				throw new InvalidOperationException( "Ordinary routing changed after sequence registration." );
+			}
+		};
+
+		Assert.InRange(
+			MeasureMinimumAllocatedBytes( operation ),
+			0,
+			96L * AllocationIterations
+		);
+	}
+
+	[Fact]
+	public void StartingAndCancellingMaximumSharedPrefixStaysWithinBoundedAllocationCeiling() {
+		using CursesInteractionRouter router = CreateSequenceRouter(
+			out CursesInteractionRegion region
+		);
+		BindMaximumRegionSequences( region );
+		CursesInputEvent prefix = CursesInputEvent.FromText( new Rune( 'g' ) );
+
+		Action operation = () => {
+			CursesCommandSequenceResult result = router.ProcessCommandSequence( prefix );
+			if ( CursesCommandSequenceResultKind.Pending != result.Kind
+				|| 1 != result.MatchedGestures.Count
+				|| !router.CancelPendingCommandSequence() ) {
+				throw new InvalidOperationException( "Maximum shared-prefix sequence state changed." );
+			}
+		};
+
+		Assert.InRange(
+			MeasureMinimumAllocatedBytes(
+				operation,
+				SequenceWarmupIterations,
+				SequenceAllocationIterations
+			),
+			0,
+			( 16L * 1024L * SequenceAllocationIterations )
+				+ AllocationMeasurementNoiseAllowance
+		);
+	}
+
+	[Fact]
+	public void EffectiveBindingDiscoveryAtRegionCapacityStaysWithinSnapshotAllocationCeiling() {
+		using CursesInteractionRouter router = CreateSequenceRouter(
+			out CursesInteractionRegion region
+		);
+		for ( int index = 0;
+			index < CursesInteractionRouter.MaximumRegionGestureBindings;
+			++index ) {
+			region.BindGesture(
+				CursesKeyGesture.ForCharacter( new Rune( 0x2000 + index ) ),
+				new CursesCommand( $"binding-{index}" )
+			);
+		}
+
+		Action operation = () => {
+			IReadOnlyList<CursesCommandBinding> bindings =
+				router.GetEffectiveGestureBindings();
+			if ( CursesInteractionRouter.MaximumRegionGestureBindings
+				!= bindings.Count ) {
+				throw new InvalidOperationException( "Effective binding discovery count changed." );
+			}
+		};
+
+		Assert.InRange(
+			MeasureMinimumAllocatedBytes(
+				operation,
+				SequenceWarmupIterations,
+				DiscoveryAllocationIterations
+			),
+			0,
+			( 128L * 1024L * DiscoveryAllocationIterations )
+				+ AllocationMeasurementNoiseAllowance
+		);
+	}
+
+	[Fact]
+	public void EffectiveSequenceDiscoveryAtRegionCapacityStaysWithinSnapshotAllocationCeiling() {
+		using CursesInteractionRouter router = CreateSequenceRouter(
+			out CursesInteractionRegion region
+		);
+		BindMaximumRegionSequences( region );
+
+		Action operation = () => {
+			IReadOnlyList<CursesCommandSequenceBinding> bindings =
+				router.GetEffectiveGestureSequenceBindings();
+			if ( CursesInteractionRouter.MaximumRegionCommandSequenceBindings
+				!= bindings.Count ) {
+				throw new InvalidOperationException( "Effective sequence discovery count changed." );
+			}
+		};
+
+		Assert.InRange(
+			MeasureMinimumAllocatedBytes(
+				operation,
+				SequenceWarmupIterations,
+				DiscoveryAllocationIterations
+			),
+			0,
+			( 128L * 1024L * DiscoveryAllocationIterations )
+				+ AllocationMeasurementNoiseAllowance
+		);
+	}
+
+	[Fact]
 	public void RepresentativeInteractionLoopStaysWithinBroadElapsedTimeGate() {
 		using CursesInteractionRouter router = CreateRepresentativeRouter(
 			out CursesInteractionRegion winningRegion,
@@ -341,18 +468,66 @@ public sealed class CursesInteractionPerformanceHardeningTests {
 		return router;
 	}
 
+	private static CursesInteractionRouter CreateSequenceRouter(
+		out CursesInteractionRegion region
+	) {
+		CursesScreen screen = new( 20, 10 );
+		CursesInteractionRouter router = new( screen );
+		region = router.RegisterRegion(
+			new CursesInteractionRegionOptions(
+				new CursesRectangle( 0, 0, 4, 4 )
+			) {
+				IsFocusable = true
+			}
+		);
+		if ( !router.Focus( region ) ) {
+			throw new InvalidOperationException( "Representative router could not establish sequence focus." );
+		}
+		return router;
+	}
+
+	private static void BindMaximumRegionSequences(
+		CursesInteractionRegion region
+	) {
+		ArgumentNullException.ThrowIfNull( region );
+		CursesKeyGesture prefix = CursesKeyGesture.ForCharacter( new Rune( 'g' ) );
+		for ( int index = 0;
+			index < CursesInteractionRouter.MaximumRegionCommandSequenceBindings;
+			++index ) {
+			region.BindGestureSequence(
+				[
+					prefix,
+					CursesKeyGesture.ForCharacter( new Rune( 0x1000 + index ) )
+				],
+				new CursesCommand( $"sequence-{index}" )
+			);
+		}
+	}
+
 	private static long MeasureMinimumAllocatedBytes(
 		Action operation
 	) {
+		return MeasureMinimumAllocatedBytes(
+			operation,
+			WarmupIterations,
+			AllocationIterations
+		);
+	}
+
+	private static long MeasureMinimumAllocatedBytes(
+		Action operation,
+		int warmupIterations,
+		int allocationIterations
+	) {
 		ArgumentNullException.ThrowIfNull( operation );
-		for ( int index = 0; index < WarmupIterations; index++ ) {
+		for ( int index = 0; index < warmupIterations; index++ ) {
 			operation();
 		}
 
 		long minimum = long.MaxValue;
 		for ( int sample = 0; sample < AllocationSamples; sample++ ) {
 			long before = GC.GetAllocatedBytesForCurrentThread();
-			for ( int index = 0; index < AllocationIterations; index++ ) {
+			for ( int index = 0; index < allocationIterations; index++ ) {
 				operation();
 			}
 			long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
