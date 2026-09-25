@@ -88,6 +88,7 @@ public sealed partial class CursesInteractionRouter {
 	) {
 		ArgumentNullException.ThrowIfNull( input );
 		this.ThrowIfDisposed();
+		this.RepairFocusIfNeeded();
 
 		if ( this.pendingCommandSequenceOwner is not null ) {
 			return this.ContinuePendingCommandSequence( input );
@@ -100,7 +101,6 @@ public sealed partial class CursesInteractionRouter {
 			);
 		}
 
-		this.RepairFocusIfNeeded();
 		CursesInteractionScope? activeScope = this.ActiveScope;
 		CursesInteractionRegion? focused = this.focusedRegion;
 		if ( focused is not null ) {

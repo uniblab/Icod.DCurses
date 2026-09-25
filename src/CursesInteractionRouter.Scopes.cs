@@ -97,6 +97,7 @@ public sealed partial class CursesInteractionRouter {
 			this.focusedRegion
 		);
 		this.activeScopeLeases.Add( lease );
+		this.ClearPendingCommandSequence();
 		this.RepairFocusIfNeeded();
 		this.RepairPointerCaptureIfNeeded();
 		this.RepairPointerGestureStateIfNeeded();
@@ -126,6 +127,7 @@ public sealed partial class CursesInteractionRouter {
 
 		this.activeScopeLeases.RemoveAt( this.activeScopeLeases.Count - 1 );
 		lease.MarkReleased();
+		this.ClearPendingCommandSequence();
 		this.RepairPointerGestureStateIfNeeded();
 
 		CursesInteractionRegion? savedFocus = lease.SavedFocus;
@@ -189,6 +191,7 @@ public sealed partial class CursesInteractionRouter {
 				"The interaction scope is not registered with this router."
 			);
 		}
+		this.ClearPendingCommandSequence();
 	}
 
 	internal void ValidateRegionScope(

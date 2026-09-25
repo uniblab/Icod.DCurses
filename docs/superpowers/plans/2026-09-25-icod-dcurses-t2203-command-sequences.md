@@ -594,11 +594,16 @@ Add focused cases for `ClearFocus`, `MoveFocus`, scope activation/deactivation, 
 
 `LazyFocusRepairClearsPendingBeforeProcessing` makes the focused region ineligible without an explicit focus call, then verifies `ProcessCommandSequence` cannot complete the old prefix. `DisposedRouterRejectsSequenceMembers` verifies the property, process, cancel, global bind/unbind and discovery query throw `ObjectDisposedException`.
 
-- [ ] **Step 3: Push the context RED checkpoint.**
+- [x] **Step 3: Push the context RED checkpoint.** Exact remote head
+  `d278a40`; workflow 36083364014 compiled cleanly and failed the intended
+  eight context tests on .NET 8/9/10: explicit/sequential/spatial focus,
+  scope activation, owned eligibility/bounds, panel eligibility, resize/region
+  disposal and lazy focus repair. Binding-mutation and disposed-router tests
+  already passed; the deferred API fingerprint was the only unrelated failure.
 
 Expected: at least focus/scope/eligibility mutation tests fail because Task 3 retains pending state. Record exact failed tests and head.
 
-- [ ] **Step 4: Centralize idempotent invalidation.**
+- [x] **Step 4: Centralize idempotent invalidation.**
 
 ```csharp
 internal void ClearPendingCommandSequence() {
@@ -610,11 +615,11 @@ internal void ClearPendingCommandSequence() {
 
 Call it only after successful binding mutations, before or immediately after successful focus/scope context mutations, on eligibility notifications and resize, and at the beginning of router disposal. Failed validation, duplicate binds and missing unbinds must not clear pending state.
 
-- [ ] **Step 5: Make lazy focus repair observable to invalidation.**
+- [x] **Step 5: Make lazy focus repair observable to invalidation.**
 
 In `RepairFocusIfNeeded`, retain the original focused-region reference. Clear pending state only when repair actually changes that reference. Preserve current traversal selection exactly.
 
-- [ ] **Step 6: Verify and commit invalidation.**
+- [x] **Step 6: Verify and commit invalidation.**
 
 ```sh
 git diff --check
