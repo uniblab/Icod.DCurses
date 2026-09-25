@@ -82,7 +82,7 @@
 - Consumes: the approved T2203 specification and existing `CursesKeyGesture`, `CursesCommand`, `CursesInteractionRegion`, `CursesInteractionScope`, `CursesInteractionRouter`.
 - Produces: compile-time use of every frozen public type, constant, property and method for Tasks 2–5.
 
-- [ ] **Step 1: Add the GPL test header, `using System.Text;`, `using Xunit;`, namespace and helpers.**
+- [x] **Step 1: Add the GPL test header, `using System.Text;`, `using Xunit;`, namespace and helpers.**
 
 ```csharp
 private static CursesKeyGesture Character( char value ) {
@@ -102,7 +102,7 @@ private static CursesInteractionRegion RegisterFocusable(
 }
 ```
 
-- [ ] **Step 2: Add one test that references the complete frozen surface.**
+- [x] **Step 2: Add one test that references the complete frozen surface.**
 
 ```csharp
 [Fact]
@@ -145,7 +145,7 @@ public void FrozenSequenceSurfaceIsAvailable() {
 }
 ```
 
-- [ ] **Step 3: Perform local static verification.**
+- [x] **Step 3: Perform local static verification.** `git diff --check` passed and the targeted `rg` inventory found every frozen type/limit family. The workspace still has no `dotnet` executable.
 
 Run:
 
