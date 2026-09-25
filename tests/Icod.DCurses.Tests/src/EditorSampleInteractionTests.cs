@@ -14,6 +14,10 @@ public sealed class EditorSampleInteractionTests {
 			StringComparison.Ordinal );
 		Assert.Contains( "Ctrl+K Ctrl+G go", interaction.GetShortcutSummary(),
 			StringComparison.Ordinal );
+		Assert.Contains( "Ctrl+T select", interaction.GetShortcutSummary(),
+			StringComparison.Ordinal );
+		Assert.DoesNotContain( "Ctrl+V", interaction.GetShortcutSummary(),
+			StringComparison.Ordinal );
 
 		CursesCommandSequenceResult direct = interaction.Process( Control( 'g' ) );
 		Assert.Equal( CursesCommandSequenceResultKind.Fallback, direct.Kind );
@@ -27,6 +31,65 @@ public sealed class EditorSampleInteractionTests {
 		Assert.Equal( CursesCommandSequenceResultKind.Completed, completed.Kind );
 		Assert.Equal( EditorSampleInteraction.OpenPromptCommandName,
 			completed.Command?.Name );
+	}
+
+	[Theory]
+	[InlineData( 'G', EditorSampleInteraction.OpenPromptCommandName )]
+	[InlineData( 'T', EditorSampleInteraction.ToggleSelectionCommandName )]
+	[InlineData( 'W', EditorSampleInteraction.ToggleWrapCommandName )]
+	public void TraditionalControlKeysRouteDocumentCommands(
+		char character,
+		string commandName
+	) {
+		CursesScreen screen = new( 80, 24 );
+		using EditorSampleInteraction interaction = CreateInteraction( screen );
+
+		CursesCommandSequenceResult result = interaction.Process(
+			Control( character )
+		);
+
+		Assert.Equal( CursesCommandSequenceResultKind.Fallback, result.Kind );
+		Assert.Equal( commandName, result.Fallback?.Command?.Name );
+	}
+
+	[Fact]
+	public void TraditionalControlKThenGRoutesPromptCommand() {
+		CursesScreen screen = new( 80, 24 );
+		using EditorSampleInteraction interaction = CreateInteraction( screen );
+
+		CursesCommandSequenceResult pending = interaction.Process( Control( 'K' ) );
+		CursesCommandSequenceResult completed = interaction.Process( Control( 'G' ) );
+
+		Assert.Equal( CursesCommandSequenceResultKind.Pending, pending.Kind );
+		Assert.Equal( CursesCommandSequenceResultKind.Completed, completed.Kind );
+		Assert.Equal( EditorSampleInteraction.OpenPromptCommandName,
+			completed.Command?.Name );
+	}
+
+	[Fact]
+	public void TraditionalControlKThenCCancelsPrompt() {
+		CursesScreen screen = new( 80, 24 );
+		using EditorSampleInteraction interaction = CreateInteraction( screen );
+		interaction.OpenPrompt();
+
+		CursesCommandSequenceResult pending = interaction.Process( Control( 'K' ) );
+		CursesCommandSequenceResult completed = interaction.Process( Control( 'C' ) );
+
+		Assert.Equal( CursesCommandSequenceResultKind.Pending, pending.Kind );
+		Assert.Equal( CursesCommandSequenceResultKind.Completed, completed.Kind );
+		Assert.Equal( EditorSampleInteraction.CancelPromptCommandName,
+			completed.Command?.Name );
+	}
+
+	[Fact]
+	public void ControlVIsNotClaimedByEditor() {
+		CursesScreen screen = new( 80, 24 );
+		using EditorSampleInteraction interaction = CreateInteraction( screen );
+
+		CursesCommandSequenceResult result = interaction.Process( Control( 'V' ) );
+
+		Assert.Equal( CursesCommandSequenceResultKind.Fallback, result.Kind );
+		Assert.Null( result.Fallback?.Command );
 	}
 
 	[Fact]
