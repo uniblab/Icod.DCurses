@@ -1,6 +1,6 @@
 # T2202 — Effective-Binding Discovery Gate
 
-**Status:** GREEN qualification pending\
+**Status:** Accepted on exact executable head `1d6097d2d08c73bf403fa52d9cef017aef447633`\
 **Source:** PR #34 against merged `v2.1.0`
 
 ## Recorded RED results
@@ -13,6 +13,8 @@
 
 `CursesInteractionRouter.GetEffectiveGestureBindings()` returns a detached read-only snapshot of current region, eligible scope and global bindings. First owner wins on a duplicate gesture. Each owner is ordered by semantic key, scalar, modifiers, phase and function-key number. The path is opt-in and does not change ordinary `Route` or add terminal I/O. The source and package development version is `2.2.0-alpha.1`, assembly version remains `2.0.0.0`, and the only direct production dependency remains `Icod.Terminal 1.18.0`. The published 2.1 fingerprint is unchanged.
 
-## Remaining acceptance
+## Accepted GREEN and package qualification
 
-Wait for one exact implementation head to pass the seven PR Staging jobs (six platform/architecture runtime jobs and one package candidate) with zero test failures on .NET 8/9/10. Verify source commit and package artifact provenance, then record the run, counts and additive API delta in this gate and `docs/Public-API-Baseline-2.2.md`. Do not mark T2202 accepted from a pending or partially passed matrix.
+[PR Staging workflow 36076001958](https://github.com/uniblab/Icod.DCurses/actions/runs/36076001958) passed all seven jobs: six runtime OS/architecture jobs and the package candidate. The Linux x64, Windows x64/ARM64 and macOS x64 runtime logs each report 1,233 passed, zero failed and zero skipped on .NET 8, 9 and 10. The macOS x64 test matrix remained sequential as agreed. The package job built `Icod.DCurses.2.2.0-alpha.1.nupkg` and `.snupkg`, ran fresh package-only consumers for all three TFMs and executed a live Linux pseudo-terminal refresh. Staging artifact `10839514617` has ZIP digest `sha256:3e8b7f45059468d77372af22e102385dbff126d50942a61e5eca9dcc30edff41` and records this exact source head.
+
+The [2.2 development API baseline](Public-API-Baseline-2.2.md) records the additive type/member delta and measured fingerprint. No stable 2.2 release was produced; future T2203 work extends this development branch. The final 2.2 API freeze, RC and stable-source gates remain outstanding.

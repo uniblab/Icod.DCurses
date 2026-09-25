@@ -4,14 +4,14 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
 **Published compatibility floor:** `1.0.0`\
 **Latest tagged stable release:** `2.1.0`\
-**Current source/package identity:** `2.1.0`; advance together at T2202\
+**Current source/package identity:** `2.2.0-alpha.1`\
 **Current development assembly version:** `2.0.0.0`\
 **Current development runtime dependency:** direct `Icod.Terminal 1.18.0` only; TermInfo remains transitive\
 **Planned 2.2 direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.2.0` — interaction and application conveniences\
-**Status:** 2.1.0 merged and tagged; 2.2.0 PR #34, T2201 discovery RED accepted, T2202 in progress
+**Status:** 2.1.0 merged and tagged; 2.2.0 PR #34, T2202 discovery accepted, T2203 next
 
 **Planning snapshot:** 2026-09-24
 
@@ -19,7 +19,7 @@
 
 ## Current authorities
 
-The active plan is [Icod.DCurses-2.2.0-Development-Roadmap.md](Icod.DCurses-2.2.0-Development-Roadmap.md), with its [interaction design](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The 2.1 architecture, API, tests and release evidence remain recorded in [the 2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md) and [the v2.1.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v2.1.0). T2201 reviews the published interaction contract and both 2.1 acceptance applications before public 2.2 API work begins.
+The active plan is [Icod.DCurses-2.2.0-Development-Roadmap.md](Icod.DCurses-2.2.0-Development-Roadmap.md), with its [interaction design](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The 2.1 architecture, API, tests and release evidence remain recorded in [the 2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md) and [the v2.1.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v2.1.0). T2201 accepted the published interaction baseline and T2202 added binding discovery; T2203 must freeze its sequence API before implementation.
 
 The published 2.0 contract and migration history remain governed by [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md), [docs/T2011-Stable-Source-Release-Gate.md](docs/T2011-Stable-Source-Release-Gate.md), [docs/Public-API-Fingerprint-2.0.json](docs/Public-API-Fingerprint-2.0.json), [docs/Public-API-Baseline-2.0.md](docs/Public-API-Baseline-2.0.md), and the [2.0 migration guide](docs/2.0-Migration-Guide.md).
 
@@ -60,7 +60,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.6.x` | Necessary maintenance only | As needed; no new feature track |
 | `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | Published |
 | `2.1.0` | Core presentation and text foundations for editor and roguelike applications | Merged, tagged and released |
-| `2.2.0` | Interaction and application conveniences for editor and roguelike applications | Selected next; planning PR, T2201 pending |
+| `2.2.0` | Interaction and application conveniences for editor and roguelike applications | PR #34 in development; T2202 accepted, T2203 next |
 | `2.3+` | Higher-level packages, including a possible `Icod.DCurses.Widgets`, and later graphics work | Deferred; scope depends on application evidence |
 
 The post-1.0 progression is intentionally cumulative:
@@ -302,14 +302,14 @@ T2101–T2112 are complete. PR [#33](https://github.com/uniblab/Icod.DCurses/pul
 
 The agreed release order was 2.1 core text and presentation, **then Option 3: interaction and application conveniences**, then a possible higher-level package. Version 2.2 builds on the published 1.4/1.5 interaction router and the 2.1 editor and roguelike witnesses. It targets repeated interaction mechanisms such as contextual or multi-key command composition, discoverable bindings and bounded prompt input, with pointer timing or frame timing admitted only when a concrete application case and ownership boundary justify them.
 
-The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candidate capabilities, evidence gates, tests and release sequence. T2201 must first freeze the public API design and decide which candidate mechanisms have demonstrated value. DCurses continues to expose mechanism without owning command execution or an application event loop. `Version` and `PackageVersion` stay at stable `2.1.0` in the planning PR; T2202 advances both to a 2.2 prerelease identity after the design gate.
+The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candidate capabilities, evidence gates, tests and release sequence. T2201 froze the first discovery API; T2202 accepted its implementation. DCurses continues to expose mechanism without owning command execution or an application event loop. T2202 advanced `Version` and `PackageVersion` together to `2.2.0-alpha.1` after the design and RED gates.
 
 ### 2.2 tranche sequence
 
 | Tranche | Deliverable | Status |
 |---|---|---|
 | T2201 | 2.1 baseline, sample evidence, ownership and 2.2 public API design gate | Discovery foundation accepted; sequence design due at T2203 |
-| T2202 | Development identity and effective-binding discovery | Pending |
+| T2202 | Development identity and effective-binding discovery | Accepted on exact head `1d6097d`; 7/7 PR Staging jobs green |
 | T2203 | Bounded multi-key command composition | Pending |
 | T2204 | Small prompt-input mechanism, if justified by T2201 | Pending |
 | T2205 | Clock-fed pointer or frame timing mechanisms, if justified by T2201 | Pending |
@@ -355,6 +355,6 @@ For 2.2, the published 2.1 API artifacts remain immutable historical evidence. T
 
 ## Immediate next step
 
-Continue T2201 with the [2.1 interaction baseline](docs/T2201-Interaction-Baseline-and-API-Questions.md), [proposed additive API](docs/2.2-Interaction-API-Design.md), and [discovery implementation plan](docs/superpowers/plans/2026-09-24-icod-dcurses-t2201-t2202-discovery.md). Observe the RED witness before changing version, package identity or production APIs. The PR is not a merge or publication request.
+Begin the T2203 command-sequence design amendment from the [accepted T2202 gate](docs/T2202-Effective-Binding-Discovery-Gate.md), preserving the 2.1 single-key `Route` contract and T2202 discovery semantics. The PR is not a merge or publication request.
 
 The direct production dependency remains `Icod.DCurses -> Icod.Terminal`; any newly discovered live-terminal gap remains work for the owning Terminal dependency.

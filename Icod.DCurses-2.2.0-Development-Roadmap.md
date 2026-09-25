@@ -4,12 +4,12 @@
 **Release:** `2.2.0`\
 **Theme:** Interaction and application conveniences (the selected Option 3)\
 **Baseline:** merged and tagged `v2.1.0`, PR #33\
-**Current source and package version:** `2.1.0` during planning\
+**Current source and package version:** `2.2.0-alpha.1`\
 **Assembly version:** `2.0.0.0`\
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2201 discovery baseline and RED accepted; T2202 implementation in progress\
+**Status:** T2202 effective-binding discovery accepted; T2203 sequence design next\
 **Planning snapshot:** 2026-09-24
 
 **Design proposal:** [2.2 interaction and application conveniences](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The published [2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md), [interaction sample](samples/Icod.DCurses.Interaction.Sample/Program.cs), [editor](samples/Icod.DCurses.Editor.Sample/Program.cs) and [roguelike](samples/Icod.DCurses.Roguelike.Sample/Program.cs) are the baseline evidence.
@@ -72,7 +72,7 @@ Both samples continue to call `screen.Clear()` and refresh during orderly exit. 
 | Tranche | Deliverable | Gate |
 |---|---|---|
 | **T2201** | Freeze baseline, inspect repeated input paths, compare API approaches, decide optional candidates and write public API/implementation plan | Discovery foundation accepted: tests-only head `d853248` observed expected missing-API RED in workflow 36074699970; sequence contract remains a separate T2203 amendment |
-| **T2202** | Move `Version`/`PackageVersion` to `2.2.0-alpha.1`; implement effective-binding discovery | Routing/discovery parity, hidden-scope behavior, deterministic ordering, bounded snapshot allocations and disposal tests |
+| **T2202** | Move `Version`/`PackageVersion` to `2.2.0-alpha.1`; implement effective-binding discovery | Accepted at exact head `1d6097d`; [workflow 36076001958](https://github.com/uniblab/Icod.DCurses/actions/runs/36076001958) green 7/7; see [T2202 gate](docs/T2202-Effective-Binding-Discovery-Gate.md) |
 | **T2203** | Implement bounded multi-key composition | Exact 2.1 single-key regression coverage; deterministic complete/prefix/mismatch/cancel behavior; focus/scope/disposal and capacity tests; all supported TFMs |
 | **T2204** | Implement small prompt state only if T2201 accepts it; otherwise record deferral | Unicode element boundaries, length and overflow, cancellation, validation ownership, editor-shaped use case |
 | **T2205** | Implement caller-fed timed pointer or pure frame calculations only if T2201 accepts them; otherwise record deferral | Clock boundary and regression tests; no background work, implicit terminal I/O or application-owned payload captured |
@@ -97,4 +97,4 @@ No callback dispatch tree, retained widget hierarchy, automatic focus policy, co
 
 ## 8. Immediate next step
 
-Continue T2202 from the observed RED via the [discovery implementation plan](docs/superpowers/plans/2026-09-24-icod-dcurses-t2201-t2202-discovery.md). Collect the compiled 2.2 public fingerprint from CI, qualify the changed package identity and keep the published 2.1 fingerprint immutable. Freeze the T2203 sequence amendment before writing sequence code. Keep the development PR open and unmerged during the release track.
+Draft the T2203 command-sequence API amendment and its implementation plan using the accepted T2202 binding precedence and snapshot contract. Freeze prefix conflicts, mismatches, limits and context invalidation before adding production code. Keep the development PR open and unmerged during the release track.
