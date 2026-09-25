@@ -4,12 +4,12 @@
 **Release:** `2.2.0`\
 **Theme:** Interaction and application conveniences (the selected Option 3)\
 **Baseline:** merged and tagged `v2.1.0`, PR #33\
-**Current source and package version:** `2.2.0-rc.1`\
+**Current source and package version:** `2.2.0`\
 **Assembly version:** `2.0.0.0`\
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2207 accepted; T2208 RC qualification in progress\
+**Status:** T2207 and T2208 RC gate accepted; T2208 stable-source qualification in progress\
 **Planning snapshot:** 2026-09-25
 
 **Design proposal:** [2.2 interaction and application conveniences](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The published [2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md), [interaction sample](samples/Icod.DCurses.Interaction.Sample/Program.cs), [editor](samples/Icod.DCurses.Editor.Sample/Program.cs) and [roguelike](samples/Icod.DCurses.Roguelike.Sample/Program.cs) are the baseline evidence.
@@ -84,7 +84,7 @@ Both samples continue to call `screen.Clear()` and refresh during orderly exit. 
 | **T2205** | Implement caller-fed timed pointer or pure frame calculations only if justified | Deferred: no current application-shaped timing witness |
 | **T2206** | Integrate selected mechanisms into public-only editor/roguelike samples and package-only consumers | Accepted at executable head `ff6e446`; [workflow 36096617375](https://github.com/uniblab/Icod.DCurses/actions/runs/36096617375) green 7/7; [both live samples confirmed](docs/T2206-Application-Interaction-Acceptance-Gate.md) |
 | **T2207** | Adversarial, allocation, dependency, public API, XML and documentation gate | Accepted at exact executable head `e5c5917`; [workflow 36098389089](https://github.com/uniblab/Icod.DCurses/actions/runs/36098389089) green 7/7; see [T2207 gate](docs/T2207-Adversarial-Package-Documentation-and-API-Gate.md) |
-| **T2208** | RC followed by stable-source qualification | PR runs Staging jobs only; exact source/package provenance and fresh consumers; Release validation only after a separately authorized merge to `main` |
+| **T2208** | RC followed by stable-source qualification | RC accepted at exact head `74f10d0`; [workflow 36100234859](https://github.com/uniblab/Icod.DCurses/actions/runs/36100234859) green 7/7; [RC gate](docs/T2208-RC-Qualification.md); stable-source qualification in progress |
 
 Do not advance a tranche solely because CI is green: its stated semantic and package gates must also hold. Work on this PR may advance tranche by tranche. Record an accepted or deferred result and exact commit for every gate in this roadmap or a linked gate document.
 
@@ -103,7 +103,7 @@ No callback dispatch tree, retained widget hierarchy, automatic focus policy, co
 
 ## 8. Immediate next step
 
-Execute T2208's RC and stable-source exact-head closure without adding features
-or changing the frozen T2207 public surface. Keep the development PR open and
-unmerged; Release validation remains reserved for a separately authorized push
-to `main`.
+Qualify T2208's unchanged `2.2.0` stable-source identity at an exact head
+without adding features or changing the frozen T2207 public surface. Keep the
+development PR open and unmerged; Release validation remains reserved for a
+separately authorized push to `main`.

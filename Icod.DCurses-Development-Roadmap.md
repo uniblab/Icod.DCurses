@@ -4,14 +4,14 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
 **Published compatibility floor:** `1.0.0`\
 **Latest tagged stable release:** `2.1.0`\
-**Current source/package identity:** `2.2.0-rc.1`\
+**Current source/package identity:** `2.2.0`\
 **Current development assembly version:** `2.0.0.0`\
 **Current development runtime dependency:** direct `Icod.Terminal 1.18.0` only; TermInfo remains transitive\
 **Planned 2.2 direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.2.0` — interaction and application conveniences\
-**Status:** 2.1.0 merged and tagged; 2.2.0 PR #34, T2208 RC qualification in progress
+**Status:** 2.1.0 merged and tagged; 2.2.0 PR #34, T2208 RC accepted and stable-source qualification in progress
 
 **Planning snapshot:** 2026-09-25
 
@@ -60,7 +60,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.6.x` | Necessary maintenance only | As needed; no new feature track |
 | `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | Published |
 | `2.1.0` | Core presentation and text foundations for editor and roguelike applications | Merged, tagged and released |
-| `2.2.0` | Interaction and application conveniences for editor and roguelike applications | PR #34 at unpublished RC identity; T2208 in progress |
+| `2.2.0` | Interaction and application conveniences for editor and roguelike applications | PR #34 at unpublished stable-source identity; T2208 qualification in progress |
 | `2.3+` | Higher-level packages, including a possible `Icod.DCurses.Widgets`, and later graphics work | Deferred; scope depends on application evidence |
 
 The post-1.0 progression is intentionally cumulative:
@@ -302,7 +302,7 @@ T2101–T2112 are complete. PR [#33](https://github.com/uniblab/Icod.DCurses/pul
 
 The agreed release order was 2.1 core text and presentation, **then Option 3: interaction and application conveniences**, then a possible higher-level package. Version 2.2 builds on the published 1.4/1.5 interaction router and the 2.1 editor and roguelike witnesses. It targets repeated interaction mechanisms such as contextual or multi-key command composition, discoverable bindings and bounded prompt input, with pointer timing or frame timing admitted only when a concrete application case and ownership boundary justify them.
 
-The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candidate capabilities, evidence gates, tests and release sequence. T2201 froze the first discovery API, T2202 accepted its implementation, and T2203 accepted bounded command sequences. DCurses continues to expose mechanism without owning command execution or an application event loop. T2202 advanced `Version` and `PackageVersion` together to `2.2.0-alpha.1`; T2203 retained that identity.
+The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candidate capabilities, evidence gates, tests and release sequence. T2201 froze the first discovery API, T2202 accepted its implementation, and T2203 accepted bounded command sequences. DCurses continues to expose mechanism without owning command execution or an application event loop. T2202 advanced `Version` and `PackageVersion` together to `2.2.0-alpha.1`; T2203 retained that identity. The [T2208 RC gate](docs/T2208-RC-Qualification.md) accepted `2.2.0-rc.1`; the unchanged source is now qualifying as an unpublished `2.2.0` stable-source candidate.
 
 ### 2.2 tranche sequence
 
@@ -315,7 +315,7 @@ The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candida
 | T2205 | Clock-fed pointer or frame timing mechanisms, if justified by T2201 | Deferred pending a concrete timing witness |
 | T2206 | Public-only editor and roguelike acceptance and package consumers | Accepted at `ff6e446`; automated matrix and both live samples confirmed |
 | T2207 | Adversarial, performance, API, documentation and dependency freeze | Accepted at `e5c5917`; 7/7 PR Staging jobs green |
-| T2208 | RC and stable-source exact-head release closure | Pending |
+| T2208 | RC and stable-source exact-head release closure | RC accepted at `74f10d0`; stable-source qualification in progress |
 
 ---
 
@@ -355,9 +355,9 @@ For 2.2, the published 2.1 API artifacts remain immutable historical evidence. T
 
 ## Immediate next step
 
-Execute T2208's RC and stable-source exact-head closure without changing the
-frozen T2207 surface. The PR remains draft; this is not authorization to merge,
-tag or publish. Release validation remains reserved for a separately authorized
-push to `main`.
+Qualify T2208's unchanged `2.2.0` stable-source identity at an exact head
+without changing the frozen T2207 surface. The PR remains draft; this is not
+authorization to merge, tag or publish. Release validation remains reserved
+for a separately authorized push to `main`.
 
 The direct production dependency remains `Icod.DCurses -> Icod.Terminal`; any newly discovered live-terminal gap remains work for the owning Terminal dependency.

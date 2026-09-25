@@ -27,7 +27,7 @@ namespace Icod.DCurses.Tests;
 
 public sealed class PublicTwoTwoDevelopmentIdentityTests {
 	[Fact]
-	public void ProjectCarriesTheApprovedTwoTwoReleaseCandidateIdentity() {
+	public void ProjectCarriesTheApprovedTwoTwoStableSourceIdentity() {
 		DirectoryInfo? root = new( AppContext.BaseDirectory );
 		while ( root is not null && !File.Exists( Path.Combine( root.FullName, "Icod.DCurses.sln" ) ) ) {
 			root = root.Parent;
@@ -37,8 +37,8 @@ public sealed class PublicTwoTwoDevelopmentIdentityTests {
 		string GetValue( string name ) => project.Descendants()
 			.Single( element => name == element.Name.LocalName ).Value;
 
-		Assert.Equal( "2.2.0-rc.1", GetValue( "Version" ) );
-		Assert.Equal( "2.2.0-rc.1", GetValue( "PackageVersion" ) );
+		Assert.Equal( "2.2.0", GetValue( "Version" ) );
+		Assert.Equal( "2.2.0", GetValue( "PackageVersion" ) );
 		Assert.Equal( "2.0.0.0", GetValue( "AssemblyVersion" ) );
 		Assert.Contains( "binding discovery", GetValue( "PackageReleaseNotes" ),
 			StringComparison.OrdinalIgnoreCase );
@@ -65,10 +65,12 @@ public sealed class PublicTwoTwoDevelopmentIdentityTests {
 			"Public-API-Fingerprint-2.2.json"
 		) ) );
 
-		Assert.Equal( "2.2.0-rc.1",
+		Assert.Equal( "2.2.0",
 			fingerprint.RootElement.GetProperty( "release" ).GetString() );
-		Assert.Equal( "release-candidate",
+		Assert.Equal( "stable-source",
 			fingerprint.RootElement.GetProperty( "status" ).GetString() );
-		Assert.Contains( "2.2.0-rc.1", releaseNotes, StringComparison.Ordinal );
+		Assert.Contains( "2.2.0", releaseNotes, StringComparison.Ordinal );
+		Assert.Contains( "stable-source", releaseNotes, StringComparison.Ordinal );
+		Assert.DoesNotContain( "2.2.0-", releaseNotes, StringComparison.Ordinal );
 	}
 }
