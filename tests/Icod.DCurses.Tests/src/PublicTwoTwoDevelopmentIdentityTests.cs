@@ -19,6 +19,7 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+using System.Text.Json;
 using System.Xml.Linq;
 using Xunit;
 
@@ -26,7 +27,7 @@ namespace Icod.DCurses.Tests;
 
 public sealed class PublicTwoTwoDevelopmentIdentityTests {
 	[Fact]
-	public void DevelopmentIdentityAndNotesDescribeImplementedDiscovery() {
+	public void ProjectCarriesTheApprovedTwoTwoReleaseCandidateIdentity() {
 		DirectoryInfo? root = new( AppContext.BaseDirectory );
 		while ( root is not null && !File.Exists( Path.Combine( root.FullName, "Icod.DCurses.sln" ) ) ) {
 			root = root.Parent;
@@ -36,8 +37,8 @@ public sealed class PublicTwoTwoDevelopmentIdentityTests {
 		string GetValue( string name ) => project.Descendants()
 			.Single( element => name == element.Name.LocalName ).Value;
 
-		Assert.Equal( "2.2.0-alpha.1", GetValue( "Version" ) );
-		Assert.Equal( "2.2.0-alpha.1", GetValue( "PackageVersion" ) );
+		Assert.Equal( "2.2.0-rc.1", GetValue( "Version" ) );
+		Assert.Equal( "2.2.0-rc.1", GetValue( "PackageVersion" ) );
 		Assert.Equal( "2.0.0.0", GetValue( "AssemblyVersion" ) );
 		Assert.Contains( "binding discovery", GetValue( "PackageReleaseNotes" ),
 			StringComparison.OrdinalIgnoreCase );
@@ -46,5 +47,28 @@ public sealed class PublicTwoTwoDevelopmentIdentityTests {
 		Assert.Equal( "1.18.0", project.Descendants()
 			.Single( element => "PackageReference" == element.Name.LocalName )
 			.Attribute( "Version" )?.Value );
+	}
+
+	[Fact]
+	public void CandidateFingerprintAndPackageNotesIdentifyTheSameRelease() {
+		DirectoryInfo? root = new( AppContext.BaseDirectory );
+		while ( root is not null && !File.Exists( Path.Combine( root.FullName, "Icod.DCurses.sln" ) ) ) {
+			root = root.Parent;
+		}
+		Assert.NotNull( root );
+		XDocument project = XDocument.Load( Path.Combine( root.FullName, "Icod.DCurses.csproj" ) );
+		string releaseNotes = project.Descendants()
+			.Single( element => "PackageReleaseNotes" == element.Name.LocalName ).Value;
+		using JsonDocument fingerprint = JsonDocument.Parse( File.ReadAllText( Path.Combine(
+			root.FullName,
+			"docs",
+			"Public-API-Fingerprint-2.2.json"
+		) ) );
+
+		Assert.Equal( "2.2.0-rc.1",
+			fingerprint.RootElement.GetProperty( "release" ).GetString() );
+		Assert.Equal( "release-candidate",
+			fingerprint.RootElement.GetProperty( "status" ).GetString() );
+		Assert.Contains( "2.2.0-rc.1", releaseNotes, StringComparison.Ordinal );
 	}
 }

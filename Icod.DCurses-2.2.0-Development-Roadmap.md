@@ -4,12 +4,12 @@
 **Release:** `2.2.0`\
 **Theme:** Interaction and application conveniences (the selected Option 3)\
 **Baseline:** merged and tagged `v2.1.0`, PR #33\
-**Current source and package version:** `2.2.0-alpha.1`\
+**Current source and package version:** `2.2.0-rc.1`\
 **Assembly version:** `2.0.0.0`\
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2207 accepted; T2208 RC and stable-source closure pending\
+**Status:** T2207 accepted; T2208 RC qualification in progress\
 **Planning snapshot:** 2026-09-25
 
 **Design proposal:** [2.2 interaction and application conveniences](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The published [2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md), [interaction sample](samples/Icod.DCurses.Interaction.Sample/Program.cs), [editor](samples/Icod.DCurses.Editor.Sample/Program.cs) and [roguelike](samples/Icod.DCurses.Roguelike.Sample/Program.cs) are the baseline evidence.

@@ -9,7 +9,7 @@
 
 ## Status
 
-This source tree develops **`Icod.DCurses 2.2.0-alpha.1`**. The latest published stable release is **`2.1.0`**; check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published package versions.
+This source tree is the unpublished **`Icod.DCurses 2.2.0-rc.1`** release candidate. The latest published stable release is **`2.1.0`**; check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published package versions.
 
 Version 2.2 adds immutable discovery of the effective single-key and multi-key command bindings in current routing precedence, plus bounded command sequences with explicit pending, completed, mismatch, fallback, and cancellation results. It keeps command execution, labels, localization, timeouts, and the event loop application-owned. The [editor and roguelike samples](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/samples/README.md) exercise these facilities through public APIs; the [2.2 API baseline](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/docs/Public-API-Baseline-2.2.md) records the additive contract over 2.1.
 

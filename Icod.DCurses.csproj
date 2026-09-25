@@ -34,16 +34,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>2.2.0-alpha.1</Version>
+		<Version>2.2.0-rc.1</Version>
 		<AssemblyVersion>2.0.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>2.2.0-alpha.1</PackageVersion>
+		<PackageVersion>2.2.0-rc.1</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-style terminal UI for .NET with retained text and mixed-media presentation, Unicode layout and selection geometry, viewport and track layout, panels, and deterministic interaction routing.</Description>
-		<PackageReleaseNotes>2.2.0-alpha.1 adds opt-in immutable binding discovery for effective single-key commands and opt-in bounded command sequences with explicit pending, completion, mismatch and cancellation results. Command execution and labels remain application-owned. This prerelease retains the 2.0 assembly version and its sole direct Icod.Terminal 1.18.0 dependency.</PackageReleaseNotes>
+		<PackageReleaseNotes>2.2.0-rc.1 is an unpublished release candidate adding opt-in immutable binding discovery for effective single-key commands and opt-in bounded command sequences with explicit pending, completion, mismatch and cancellation results. Command execution and labels remain application-owned. This candidate retains the 2.0 assembly version and its sole direct Icod.Terminal 1.18.0 dependency.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
