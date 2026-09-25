@@ -518,7 +518,11 @@ git add src tests/Icod.DCurses.Tests/src/CursesCommandSequenceRoutingTests.cs
 git commit -m "feat: process bounded command sequences"
 ```
 
-- [ ] **Step 7: Push and observe GREEN on routing.**
+- [x] **Step 7: Push and observe GREEN on routing.** Exact remote head
+  `7f67327`; workflow 36082901547 compiled all targets, package validation
+  passed, and .NET 8/9/10 each passed all 1,250 functional tests. The sole
+  failure remained the intentionally deferred stable API fingerprint. No test
+  uses a timer or invokes an application callback.
 
 Require all new routing tests and the complete existing direct-routing suite to pass on all three TFMs. Record exact head/workflow and confirm no test relies on a timer or callback.
 
@@ -540,9 +544,9 @@ Require all new routing tests and the complete existing direct-routing suite to 
 - Consumes: `ClearPendingCommandSequence()` from Task 3 and all existing routing-context mutation points.
 - Produces: immediate invalidation on every spec-listed context mutation without synthesizing results.
 
-- [ ] **Step 0: Create the test file with the GPL header, `using System.Text;`, `using Xunit;`, and a local `Character(char)` helper.**
+- [x] **Step 0: Create the test file with the GPL header, `using System.Text;`, `using Xunit;`, and a local `Character(char)` helper.**
 
-- [ ] **Step 1: Add a failing focus/scope invalidation theory.**
+- [x] **Step 1: Add a failing focus/scope invalidation theory.**
 
 ```csharp
 [Fact]
@@ -586,7 +590,7 @@ public void RoutingContextChangesInvalidatePendingSequence() {
 
 Add focused cases for `ClearFocus`, `MoveFocus`, scope activation/deactivation, region disable, panel eligibility change, screen resize, single bind/unbind, sequence bind/unbind and region disposal.
 
-- [ ] **Step 2: Add lazy repair and disposal tests.**
+- [x] **Step 2: Add lazy repair and disposal tests.**
 
 `LazyFocusRepairClearsPendingBeforeProcessing` makes the focused region ineligible without an explicit focus call, then verifies `ProcessCommandSequence` cannot complete the old prefix. `DisposedRouterRejectsSequenceMembers` verifies the property, process, cancel, global bind/unbind and discovery query throw `ObjectDisposedException`.
 
