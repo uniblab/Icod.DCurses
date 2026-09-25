@@ -55,7 +55,12 @@ public sealed partial class CursesInteractionRouter {
 		HashSet<CursesKeyGesture> seen,
 		List<CursesCommandBinding> entries
 	) {
-		foreach ( KeyValuePair<CursesKeyGesture, CursesCommand> binding in bindings ) {
+		foreach ( KeyValuePair<CursesKeyGesture, CursesCommand> binding in bindings
+			.OrderBy( static current => current.Key.Key )
+			.ThenBy( static current => current.Key.Character?.Value ?? -1 )
+			.ThenBy( static current => current.Key.Modifiers )
+			.ThenBy( static current => current.Key.Phase )
+			.ThenBy( static current => current.Key.FunctionKeyNumber ?? -1 ) ) {
 			if ( seen.Add( binding.Key ) ) {
 				entries.Add( new CursesCommandBinding( binding.Key, binding.Value ) );
 			}
