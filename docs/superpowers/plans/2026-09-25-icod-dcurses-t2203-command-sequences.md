@@ -709,19 +709,25 @@ Track claimed first gestures while enumerating owners. For each owner, first cla
 
 Use sequence length only after all shared gesture positions compare equal. Construct a new `CursesCommandSequenceBinding` for every emitted entry and return `Array.AsReadOnly(entries.ToArray())`.
 
-- [ ] **Step 3: Push the discovery implementation with the old fingerprint intact.**
+- [x] **Step 3: Push the discovery implementation with the old fingerprint intact.**
+  Exact remote head `5849f94`; workflow 36084187210 compiled discovery and
+  passed all 1,267 functional tests per TFM. Only the old development
+  fingerprint failed.
 
 Expected: functional sequence tests pass; `PublicApiMatchesCurrentDevelopmentFingerprint` fails and prints the compiler-derived SHA-256, exported type count, contract line count and exact exported types on every TFM. Treat any other failure as a product defect.
 
-- [ ] **Step 4: Update the 2.2 development fingerprint only from matching CI evidence.**
+- [x] **Step 4: Update the 2.2 development fingerprint only from matching CI evidence.**
+  .NET 8/9/10 each reported SHA-256
+  `7c9866abaeeacc7f64631d2a800b91333cee72ad1a53872896e8f4d8c7ccb097`,
+  100 exported types and 783 contract lines.
 
 Require .NET 8/9/10 to report identical fingerprint values. Update `docs/Public-API-Fingerprint-2.2.json` with those measured values. Keep `docs/Public-API-Fingerprint-2.1.json` byte-for-byte unchanged and retain `PublishedTwoOneExportedTypesRemainPresent`.
 
-- [ ] **Step 5: Update identity and package notes without version churn.**
+- [x] **Step 5: Update identity and package notes without version churn.**
 
 Keep `Version`/`PackageVersion` `2.2.0-alpha.1`, `AssemblyVersion` `2.0.0.0` and `Icod.Terminal 1.18.0`. Expand `PackageReleaseNotes` to mention both implemented binding discovery and bounded opt-in command sequences, and update `DevelopmentIdentityAndNotesDescribeImplementedDiscovery` so it requires both phrases.
 
-- [ ] **Step 6: Run static and repository-boundary checks, then commit.**
+- [x] **Step 6: Run static and repository-boundary checks, then commit.**
 
 ```sh
 git diff --check

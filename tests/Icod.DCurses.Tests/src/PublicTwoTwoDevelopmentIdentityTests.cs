@@ -41,6 +41,8 @@ public sealed class PublicTwoTwoDevelopmentIdentityTests {
 		Assert.Equal( "2.0.0.0", GetValue( "AssemblyVersion" ) );
 		Assert.Contains( "binding discovery", GetValue( "PackageReleaseNotes" ),
 			StringComparison.OrdinalIgnoreCase );
+		Assert.Contains( "bounded command sequences", GetValue( "PackageReleaseNotes" ),
+			StringComparison.OrdinalIgnoreCase );
 		Assert.Equal( "1.18.0", project.Descendants()
 			.Single( element => "PackageReference" == element.Name.LocalName )
 			.Attribute( "Version" )?.Value );
