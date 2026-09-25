@@ -333,7 +333,7 @@ registered global sequences so Task 2 copy/conflict tests are observable. Task
 discovery. This is the smallest resolution of the provisional Task 2 text
 against the already-approved and tests-only-RED frozen contract.
 
-- [ ] **Step 7: Run local static verification and commit.**
+- [x] **Step 7: Run local static verification and commit.**
 
 ```sh
 git diff --check
@@ -343,7 +343,12 @@ git add src tests/Icod.DCurses.Tests/src/CursesCommandSequenceContractTests.cs
 git commit -m "feat: add bounded command sequence registrations"
 ```
 
-- [ ] **Step 8: Push and observe GREEN on the registration batch.**
+- [x] **Step 8: Push and observe GREEN on the registration batch.** Exact remote
+  head `bb91074`; workflow 36082017765 compiled the full solution for .NET
+  8/9/10 and passed all 1,241 functional tests per target. The sole failing
+  test is the intentionally deferred additive public-API fingerprint, measured
+  consistently as `7c9866abaeeacc7f64631d2a800b91333cee72ad1a53872896e8f4d8c7ccb097`
+  with 100 exported types and 783 contract lines. Package validation passed.
 
 All Staging jobs must compile on .NET 8/9/10 and pass the new copy, validation, prefix-conflict and capacity tests. Record the exact head and workflow. The direct `Route` regression suite must remain green.
 
@@ -362,9 +367,9 @@ All Staging jobs must compile on .NET 8/9/10 and pass the new copy, validation, 
 - Consumes: copied registrations from Task 2, existing owner order, `CursesKeyGesture.Matches(CursesInputEvent)`, `Route(CursesInputEvent)`.
 - Produces: real `ProcessCommandSequence`, bounded pending candidates, exactly-once mismatch fallback and explicit cancellation.
 
-- [ ] **Step 0: Create the test file with the GPL header, `using System.Text;`, `using Xunit;`, and the exact `Character`/`RegisterFocusable` helpers from Task 1.**
+- [x] **Step 0: Create the test file with the GPL header, `using System.Text;`, `using Xunit;`, and the exact `Character`/`RegisterFocusable` helpers from Task 1.**
 
-- [ ] **Step 1: Add failing pending/completion and precedence tests.**
+- [x] **Step 1: Add failing pending/completion and precedence tests.**
 
 ```csharp
 [Fact]
@@ -423,7 +428,7 @@ public void MismatchFallsBackOnceWithoutRestart() {
 
 Add `HigherSingleBindingPreventsLowerSequenceStart`, `SharedPrefixSelectsTheCompletedCommand`, `NonKeyboardInputFallsBackOrMismatches`, and `CancelIsExplicitAndIdempotent`.
 
-- [ ] **Step 2: Add failing semantic-gesture coverage.**
+- [x] **Step 2: Add failing semantic-gesture coverage.**
 
 `SequenceMatchingUsesSemanticGestures` registers and completes separate sequences that cover:
 
