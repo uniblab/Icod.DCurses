@@ -628,7 +628,10 @@ git add src tests/Icod.DCurses.Tests/src/CursesCommandSequenceContextTests.cs
 git commit -m "fix: invalidate command prefixes with routing context"
 ```
 
-- [ ] **Step 7: Push and observe GREEN on context behavior.**
+- [x] **Step 7: Push and observe GREEN on context behavior.** Exact remote head
+  `5393d09`; workflow 36083674428 compiled all targets, package validation
+  passed, and .NET 8/9/10 each passed all 1,261 functional tests. The sole
+  failure remained the intentionally deferred stable API fingerprint.
 
 Require all context tests plus existing focus, scope, panel, resize and disposal suites to pass on .NET 8/9/10.
 
@@ -654,9 +657,9 @@ Require all context tests plus existing focus, scope, panel, resize and disposal
 - Consumes: all owner registrations, union first-gesture precedence and semantic gesture ordering from Tasks 2–4.
 - Produces: complete `GetEffectiveGestureSequenceBindings()`, measured additive API baseline, package notes and exact-head acceptance evidence.
 
-- [ ] **Step 0: Create the discovery test file with the GPL header, `using System.Text;`, `using Xunit;`, and the exact `Character`/`RegisterFocusable` helpers from Task 1.**
+- [x] **Step 0: Create the discovery test file with the GPL header, `using System.Text;`, `using Xunit;`, and the exact `Character`/`RegisterFocusable` helpers from Task 1.**
 
-- [ ] **Step 1: Add failing precedence, ordering and detachment tests.**
+- [x] **Step 1: Add failing precedence, ordering and detachment tests.**
 
 ```csharp
 [Fact]
@@ -692,7 +695,7 @@ Also add:
 - `SnapshotAndNestedGestureListsAreReadOnlyAndDetached`;
 - `DiscoveryIsEmptyWithoutSequencesAndThrowsAfterDispose`.
 
-- [ ] **Step 2: Implement precedence-aware deterministic discovery.**
+- [x] **Step 2: Implement precedence-aware deterministic discovery.**
 
 Track claimed first gestures while enumerating owners. For each owner, first claim all of its matching single-key gestures, then emit and claim its sequence first gestures. When multiple sequences in the same owner share a first gesture, emit all of them. Sort that owner's registrations lexicographically using the same key tuple as T2202 for each gesture:
 

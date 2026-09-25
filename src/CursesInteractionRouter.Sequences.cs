@@ -170,24 +170,6 @@ public sealed partial class CursesInteractionRouter {
 		return true;
 	}
 
-	/// <summary>Gets a detached snapshot of effective command-sequence bindings.</summary>
-	/// <returns>A detached read-only binding snapshot.</returns>
-	public IReadOnlyList<CursesCommandSequenceBinding>
-		GetEffectiveGestureSequenceBindings() {
-		this.ThrowIfDisposed();
-		List<CursesCommandSequenceBinding> bindings = [];
-		foreach ( CursesCommandSequenceRegistration registration
-			in this.globalCommandSequences ) {
-			bindings.Add(
-				new CursesCommandSequenceBinding(
-					registration.Gestures,
-					registration.Command
-				)
-			);
-		}
-		return bindings.AsReadOnly();
-	}
-
 	internal void EnsureCommandSequenceCapacity() {
 		int count = this.globalCommandSequences.Count;
 		foreach ( CursesInteractionRegion region in this.regions ) {
