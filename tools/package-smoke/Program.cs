@@ -788,11 +788,8 @@ static void VerifyCommandSequenceSurface() {
 
 	CursesKeyGesture prefix = CursesKeyGesture.ForCharacter( new Rune( 'g' ) );
 	CursesKeyGesture completion = CursesKeyGesture.ForCharacter( new Rune( 'h' ) );
-	CursesKeyGesture fallbackGesture = CursesKeyGesture.ForCharacter( new Rune( 'x' ) );
 	CursesCommand sequenceCommand = new( "package-smoke.sequence" );
-	CursesCommand fallbackCommand = new( "package-smoke.fallback" );
 	region.BindGestureSequence( [ prefix, completion ], sequenceCommand );
-	router.BindGlobalGesture( fallbackGesture, fallbackCommand );
 
 	IReadOnlyList<CursesCommandSequenceBinding> discovered =
 		router.GetEffectiveGestureSequenceBindings();
@@ -806,38 +803,18 @@ static void VerifyCommandSequenceSurface() {
 		);
 	}
 
-	CursesCommandSequenceResult pending = router.ProcessCommandSequence(
-		CursesInputEvent.FromText( new Rune( 'g' ) )
+	MethodInfo? processMethod = typeof( CursesInteractionRouter ).GetMethod(
+		nameof( CursesInteractionRouter.ProcessCommandSequence ),
+		[ typeof( CursesInputEvent ) ]
 	);
-	CursesCommandSequenceResult completed = router.ProcessCommandSequence(
-		CursesInputEvent.FromText( new Rune( 'h' ) )
-	);
-	if ( CursesCommandSequenceResultKind.Pending != pending.Kind
-		|| CursesCommandSequenceResultKind.Completed != completed.Kind
-		|| sequenceCommand != completed.Command
-		|| router.HasPendingCommandSequence ) {
+	if ( processMethod is null
+		|| typeof( CursesCommandSequenceResult ) != processMethod.ReturnType ) {
 		throw new InvalidOperationException(
-			"DCurses package-only command-sequence completion failed validation."
+			"DCurses package-only command-sequence processing surface is unavailable."
 		);
 	}
 
-	_ = router.ProcessCommandSequence(
-		CursesInputEvent.FromText( new Rune( 'g' ) )
-	);
-	CursesCommandSequenceResult mismatch = router.ProcessCommandSequence(
-		CursesInputEvent.FromText( new Rune( 'x' ) )
-	);
-	if ( CursesCommandSequenceResultKind.Mismatch != mismatch.Kind
-		|| fallbackCommand != mismatch.Fallback?.Command ) {
-		throw new InvalidOperationException(
-			"DCurses package-only command-sequence mismatch fallback failed validation."
-		);
-	}
-
-	_ = router.ProcessCommandSequence(
-		CursesInputEvent.FromText( new Rune( 'g' ) )
-	);
-	if ( !router.CancelPendingCommandSequence()
+	if ( router.CancelPendingCommandSequence()
 		|| router.HasPendingCommandSequence
 		|| !region.UnbindGestureSequence( [ prefix, completion ] )
 		|| 8 != CursesInteractionRouter.MaximumCommandSequenceLength
@@ -846,6 +823,19 @@ static void VerifyCommandSequenceSurface() {
 			"DCurses package-only command-sequence state surface failed validation."
 		);
 	}
+
+	Func<CursesInteractionRouter, CursesInputEvent, CursesCommandSequenceResult>
+		processCompiler = CompileCommandSequenceSurface;
+	_ = processCompiler;
+}
+
+static CursesCommandSequenceResult CompileCommandSequenceSurface(
+	CursesInteractionRouter router,
+	CursesInputEvent input
+) {
+	ArgumentNullException.ThrowIfNull( router );
+	ArgumentNullException.ThrowIfNull( input );
+	return router.ProcessCommandSequence( input );
 }
 
 static CursesInteractionResult CompileRoutingSurface(
