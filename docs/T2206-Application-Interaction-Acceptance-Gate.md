@@ -1,7 +1,7 @@
 # T2206 Application Interaction Acceptance Gate
 
 **Date:** 2026-09-25\
-**Status:** Automated qualification complete; focused editor recheck pending\
+**Status:** Accepted — automated qualification and live manual acceptance complete\
 **Executable head:** `ff6e44606dedca3ec3bf95fdbe740de80bf4a169`\
 **Workflow:** [36096617375](https://github.com/uniblab/Icod.DCurses/actions/runs/36096617375)
 
@@ -129,9 +129,10 @@ digest
 
 CI cannot validate terminal appearance or the feel of an interactive event
 loop. The initial local run accepted the roguelike behavior and exposed the
-editor Control-key issue described above. The correction does not touch the
-roguelike. Before accepting T2206, repeat the focused editor checks below in a
-real terminal.
+editor Control-key issues described above. After both corrections, the
+maintainer reran both samples in a real terminal on 2026-09-25 and confirmed
+that both samples were good, including the corrected editor shortcuts and
+orderly terminal cleanup.
 
 ### Editor recheck
 
@@ -155,5 +156,7 @@ real terminal.
 - resize down below the minimum and back up recovers cleanly;
 - Q or Escape exits and clears the terminal screen.
 
-T2206 remains pending until the corrected editor shortcuts are confirmed. T2207
-must not treat green CI alone as live application acceptance.
+T2206 is accepted at executable head
+`ff6e44606dedca3ec3bf95fdbe740de80bf4a169`. T2207 may now freeze and
+adversarially qualify the 2.2 contract; this acceptance does not authorize a
+merge, tag or publication.
