@@ -42,7 +42,11 @@ public sealed class RoguelikeSampleProjectContractTests {
 		string solution = File.ReadAllText( Path.Combine( root, "Icod.DCurses.sln" ) );
 		Assert.Contains( @"samples\Icod.DCurses.Roguelike.Sample\Icod.DCurses.Roguelike.Sample.csproj",
 			solution, StringComparison.Ordinal );
-		foreach ( string name in new[] { "Program.cs", "RoguelikeSampleState.cs" } ) {
+		foreach ( string name in new[] {
+			"Program.cs",
+			"RoguelikeSampleState.cs",
+			"RoguelikeSampleInteraction.cs"
+		} ) {
 			string source = File.ReadAllText( Path.Combine( folder, name ) );
 			Assert.DoesNotContain( "Icod.DCurses.Internal", source, StringComparison.Ordinal );
 			Assert.DoesNotContain( "Icod.Terminal", source, StringComparison.Ordinal );

@@ -37,6 +37,21 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 	/// <summary>Gets the maximum total number of live gesture bindings owned by one router.</summary>
 	public const int MaximumGestureBindings = 16384;
 
+	/// <summary>Gets the maximum number of gestures in one command sequence.</summary>
+	public const int MaximumCommandSequenceLength = 8;
+
+	/// <summary>Gets the maximum number of command sequence bindings owned by one region.</summary>
+	public const int MaximumRegionCommandSequenceBindings = 128;
+
+	/// <summary>Gets the maximum number of command sequence bindings owned by one scope.</summary>
+	public const int MaximumScopeCommandSequenceBindings = 128;
+
+	/// <summary>Gets the maximum number of router-global command sequence bindings.</summary>
+	public const int MaximumGlobalCommandSequenceBindings = 512;
+
+	/// <summary>Gets the maximum total number of live command sequence bindings owned by one router.</summary>
+	public const int MaximumCommandSequenceBindings = 4096;
+
 	private readonly List<CursesInteractionRegion> regions = [];
 	private CursesInteractionRegion? focusedRegion;
 	private long nextRegistrationOrdinal;
@@ -147,14 +162,25 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 			return false;
 		}
 
+		if ( ReferenceEquals(
+			this.focusedRegion,
+			region
+		) ) {
+			return true;
+		}
 		this.focusedRegion = region;
+		this.ClearPendingCommandSequence();
 		return true;
 	}
 
 	/// <summary>Clears application logical focus without changing terminal focus state.</summary>
 	public void ClearFocus() {
 		this.ThrowIfDisposed();
+		if ( this.focusedRegion is null ) {
+			return;
+		}
 		this.focusedRegion = null;
+		this.ClearPendingCommandSequence();
 	}
 
 	/// <summary>Moves logical focus using sequential or deterministic spatial navigation.</summary>
@@ -168,12 +194,20 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 		}
 		this.ThrowIfDisposed();
 		this.RepairFocusIfNeeded();
+		CursesInteractionRegion? original = this.focusedRegion;
 
 		if ( CursesFocusDirection.Up == direction
 			|| CursesFocusDirection.Down == direction
 			|| CursesFocusDirection.Left == direction
 			|| CursesFocusDirection.Right == direction ) {
-			return this.MoveSpatialFocus( direction );
+			CursesInteractionRegion? spatial = this.MoveSpatialFocus( direction );
+			if ( !ReferenceEquals(
+				original,
+				this.focusedRegion
+			) ) {
+				this.ClearPendingCommandSequence();
+			}
+			return spatial;
 		}
 
 		CursesInteractionRegion? next;
@@ -195,6 +229,12 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 		}
 
 		this.focusedRegion = next;
+		if ( !ReferenceEquals(
+			original,
+			next
+		) ) {
+			this.ClearPendingCommandSequence();
+		}
 		return next;
 	}
 
@@ -265,6 +305,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 			return;
 		}
 
+		this.ClearPendingCommandSequence();
 		this.Screen.Resized -= this.HandleScreenResized;
 		this.disposed = true;
 		this.focusedRegion = null;
@@ -289,6 +330,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 				nameof( region )
 			);
 		}
+		this.ClearPendingCommandSequence();
 
 		if ( ReferenceEquals(
 			this.focusedRegion,
@@ -326,6 +368,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 				"The interaction region is not registered with this router."
 			);
 		}
+		this.ClearPendingCommandSequence();
 
 		if ( wasFocused ) {
 			this.focusedRegion = this.FindNextEligibleRegion(
@@ -508,10 +551,17 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 
 		int traversalOrder = this.focusedRegion.TraversalOrder;
 		long registrationOrdinal = this.focusedRegion.RegistrationOrdinal;
+		CursesInteractionRegion original = this.focusedRegion;
 		this.focusedRegion = this.FindNextEligibleRegion(
 			traversalOrder,
 			registrationOrdinal
 		);
+		if ( !ReferenceEquals(
+			original,
+			this.focusedRegion
+		) ) {
+			this.ClearPendingCommandSequence();
+		}
 	}
 
 	private void HandleScreenResized(
@@ -522,6 +572,7 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 			return;
 		}
 
+		this.ClearPendingCommandSequence();
 		this.RepairPointerCaptureIfNeeded();
 		this.RepairPointerGestureStateIfNeeded();
 	}

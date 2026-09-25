@@ -37,7 +37,7 @@ public sealed class PublicApiFingerprintTests {
 		);
 		string baselinePath = Path.Combine(
 			AppContext.BaseDirectory,
-			"Public-API-Fingerprint-2.1.json"
+			"Public-API-Fingerprint-2.2.json"
 		);
 		using JsonDocument document = JsonDocument.Parse(
 			File.ReadAllText( baselinePath )
@@ -62,6 +62,25 @@ public sealed class PublicApiFingerprintTests {
 		Assert.Equal( expectedExportedTypeCount, actual.ExportedTypes.Length );
 		Assert.Equal( expectedContractLineCount, actual.ContractLines.Length );
 		Assert.Equal( expectedTypes, actual.ExportedTypes );
+	}
+
+	[Fact]
+	public void PublishedTwoOneExportedTypesRemainPresent() {
+		PublicApiFingerprint actual = PublicApiFingerprint.Create(
+			typeof( CursesSession ).Assembly
+		);
+		string baselinePath = Path.Combine(
+			AppContext.BaseDirectory,
+			"Public-API-Fingerprint-2.1.json"
+		);
+		using JsonDocument document = JsonDocument.Parse( File.ReadAllText( baselinePath ) );
+		string[] stableTypes = document.RootElement.GetProperty( "exportedTypes" )
+			.EnumerateArray()
+			.Select( static current => current.GetString()! )
+			.ToArray();
+		foreach ( string stableType in stableTypes ) {
+			Assert.Contains( stableType, actual.ExportedTypes );
+		}
 	}
 
 	[Fact]

@@ -28,17 +28,9 @@ namespace Icod.DCurses.Tests;
 /// <summary>Guards the 2.1 stable-source identity and production boundary.</summary>
 public sealed class PublicTwoOneDevelopmentIdentityTests {
 	[Fact]
-	public void ProjectCarriesTheApprovedTwoOneStableSourceIdentity() {
+	public void ProjectRetainsPublishedAssemblyAndTargetFrameworks() {
 		XDocument project = LoadProductionProject();
 
-		Assert.Equal(
-			"2.1.0",
-			GetSingleValue( project, "Version" )
-		);
-		Assert.Equal(
-			"2.1.0",
-			GetSingleValue( project, "PackageVersion" )
-		);
 		Assert.Equal(
 			"2.0.0.0",
 			GetSingleValue( project, "AssemblyVersion" )
@@ -50,13 +42,13 @@ public sealed class PublicTwoOneDevelopmentIdentityTests {
 	}
 
 	[Fact]
-	public void StableSourceFingerprintAndPackageNotesIdentifyTheSameRelease() {
+	public void PublishedTwoOneFingerprintKeepsItsStableIdentity() {
 		using JsonDocument fingerprint = JsonDocument.Parse( File.ReadAllText( Path.Combine(
 			FindRepositoryRoot(), "docs", "Public-API-Fingerprint-2.1.json" ) ) );
 		Assert.Equal( "2.1.0", fingerprint.RootElement.GetProperty( "release" ).GetString() );
 		Assert.Equal( "stable-source", fingerprint.RootElement.GetProperty( "status" ).GetString() );
-		Assert.Contains( "2.1.0", GetSingleValue( LoadProductionProject(), "PackageReleaseNotes" ),
-			StringComparison.Ordinal );
+		Assert.Equal( "c988806ddc19834c01ea7bd75630b257f4c55026feb73bfbbf7ebfd8978bbb79",
+			fingerprint.RootElement.GetProperty( "sha256" ).GetString() );
 	}
 
 	[Fact]

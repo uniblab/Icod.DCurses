@@ -56,8 +56,12 @@
   <ItemGroup>
     <Compile Include="..\..\samples\Icod.DCurses.Roguelike.Sample\RoguelikeSampleState.cs"
              Link="RoguelikeSampleState.cs" />
+    <Compile Include="..\..\samples\Icod.DCurses.Roguelike.Sample\RoguelikeSampleInteraction.cs"
+             Link="RoguelikeSampleInteraction.cs" />
     <Compile Include="..\..\samples\Icod.DCurses.Editor.Sample\EditorSampleState.cs"
              Link="EditorSampleState.cs" />
+    <Compile Include="..\..\samples\Icod.DCurses.Editor.Sample\EditorSampleInteraction.cs"
+             Link="EditorSampleInteraction.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -90,6 +94,9 @@
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\docs\Public-API-Fingerprint-2.1.json"
           Link="Public-API-Fingerprint-2.1.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\Public-API-Fingerprint-2.2.json"
+          Link="Public-API-Fingerprint-2.2.json"
           CopyToOutputDirectory="PreserveNewest" />
     <!-- Preserve the historical development-time alias used through 1.6. -->
     <None Include="..\..\docs\Public-API-Fingerprint-1.6.json"

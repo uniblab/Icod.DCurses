@@ -2,6 +2,15 @@
 
 All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/` and the versioned roadmap files.
 
+## 2.2.0 — Stable-source candidate, unpublished
+
+- Added detached, read-only discovery of effective single-key and command-sequence bindings in focused-region, active-scope, then router-global precedence.
+- Added bounded two-through-eight-gesture command sequences with explicit pending, completed, mismatch, fallback, and application-driven cancellation results.
+- Kept ordinary single-key routing unchanged; sequence state is invalidated by relevant focus, scope, binding, region, resize, and disposal transitions.
+- Updated the public-only editor and roguelike samples to generate shortcut help from effective binding discovery and exercise contextual sequences without transferring command execution or event-loop ownership to DCurses.
+- Added package-only consumer coverage and adversarial, lifecycle, precedence, capacity, allocation, dependency, API-fingerprint, XML-documentation, and cross-platform Staging gates.
+- Preserved the published 2.1 source surface additively, `AssemblyVersion` `2.0.0.0`, .NET 8/9/10 targets, and the sole direct `Icod.Terminal 1.18.0` production dependency. RC and stable-source qualification are accepted; publication remains pending.
+
 ## 2.1.0 — Core Presentation and Text
 
 - Added Unicode text-element layout, spans and bounded visual lines with source/visual caret, hit-test, vertical-movement and selection geometry.

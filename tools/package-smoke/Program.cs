@@ -62,6 +62,7 @@ VerifyWindowEditingSurface();
 VerifyPadSurface();
 VerifyInteractionSurface();
 VerifyAdvancedInteractionSurface();
+VerifyCommandSequenceSurface();
 
 if ( string.Equals(
 	Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_INTERACTIVE" ),
@@ -767,6 +768,74 @@ static void VerifyAdvancedInteractionSurface() {
 			"DCurses package-only explicit pointer-capture surface is unavailable."
 		);
 	}
+}
+
+static void VerifyCommandSequenceSurface() {
+	CursesScreen logical = new( 30, 10 );
+	using CursesInteractionRouter router = new( logical );
+	using CursesInteractionRegion region = router.RegisterRegion(
+		new CursesInteractionRegionOptions(
+			new CursesRectangle( 0, 0, 8, 30 )
+		) {
+			IsFocusable = true
+		}
+	);
+	if ( !router.Focus( region ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only command-sequence focus setup failed."
+		);
+	}
+
+	CursesKeyGesture prefix = CursesKeyGesture.ForCharacter( new Rune( 'g' ) );
+	CursesKeyGesture completion = CursesKeyGesture.ForCharacter( new Rune( 'h' ) );
+	CursesCommand sequenceCommand = new( "package-smoke.sequence" );
+	region.BindGestureSequence( [ prefix, completion ], sequenceCommand );
+
+	IReadOnlyList<CursesCommandSequenceBinding> discovered =
+		router.GetEffectiveGestureSequenceBindings();
+	if ( 1 != discovered.Count
+		|| sequenceCommand != discovered[0].Command
+		|| !discovered[0].Gestures.SequenceEqual(
+			new[] { prefix, completion }
+		) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only command-sequence discovery failed validation."
+		);
+	}
+
+	MethodInfo? processMethod = typeof( CursesInteractionRouter ).GetMethod(
+		nameof( CursesInteractionRouter.ProcessCommandSequence ),
+		[ typeof( CursesInputEvent ) ]
+	);
+	if ( processMethod is null
+		|| typeof( CursesCommandSequenceResult ) != processMethod.ReturnType ) {
+		throw new InvalidOperationException(
+			"DCurses package-only command-sequence processing surface is unavailable."
+		);
+	}
+
+	if ( router.CancelPendingCommandSequence()
+		|| router.HasPendingCommandSequence
+		|| !region.UnbindGestureSequence( [ prefix, completion ] )
+		|| 8 != CursesInteractionRouter.MaximumCommandSequenceLength
+		|| 4096 != CursesInteractionRouter.MaximumCommandSequenceBindings ) {
+		throw new InvalidOperationException(
+			"DCurses package-only command-sequence state surface failed validation."
+		);
+	}
+
+	Func<CursesInteractionRouter, CursesInputEvent, CursesCommandSequenceResult>
+		processCompiler = CompileCommandSequenceSurface;
+	_ = processCompiler;
+}
+
+static CursesCommandSequenceResult CompileCommandSequenceSurface(
+	CursesInteractionRouter router,
+	CursesInputEvent input
+) {
+	ArgumentNullException.ThrowIfNull( router );
+	ArgumentNullException.ThrowIfNull( input );
+	return router.ProcessCommandSequence( input );
 }
 
 static CursesInteractionResult CompileRoutingSurface(
