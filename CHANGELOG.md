@@ -9,7 +9,7 @@ All notable `Icod.DCurses` release-line changes are summarized here. Detailed tr
 - Kept ordinary single-key routing unchanged; sequence state is invalidated by relevant focus, scope, binding, region, resize, and disposal transitions.
 - Updated the public-only editor and roguelike samples to generate shortcut help from effective binding discovery and exercise contextual sequences without transferring command execution or event-loop ownership to DCurses.
 - Added package-only consumer coverage and adversarial, lifecycle, precedence, capacity, allocation, dependency, API-fingerprint, XML-documentation, and cross-platform Staging gates.
-- Preserved the published 2.1 source surface additively, `AssemblyVersion` `2.0.0.0`, .NET 8/9/10 targets, and the sole direct `Icod.Terminal 1.18.0` production dependency. RC qualification is accepted; stable-source qualification and publication remain pending.
+- Preserved the published 2.1 source surface additively, `AssemblyVersion` `2.0.0.0`, .NET 8/9/10 targets, and the sole direct `Icod.Terminal 1.18.0` production dependency. RC and stable-source qualification are accepted; publication remains pending.
 
 ## 2.1.0 — Core Presentation and Text
 

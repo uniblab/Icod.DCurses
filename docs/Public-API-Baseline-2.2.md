@@ -1,7 +1,7 @@
 # Icod.DCurses 2.2 Stable-Source Public API Baseline
 
 **Candidate identity:** `2.2.0`\
-**Status:** T2208 stable-source qualification in progress\
+**Status:** T2208 stable-source gate accepted at executable head `42d08b7`\
 **AssemblyVersion:** `2.0.0.0`\
 **Direct production dependency:** `Icod.Terminal 1.18.0`
 
