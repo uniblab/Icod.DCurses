@@ -43,6 +43,11 @@ public sealed partial class CursesInteractionScope {
 				"The interaction scope already has a binding for this gesture."
 			);
 		}
+		if ( this.HasCommandSequenceStartingWith( gesture ) ) {
+			throw new InvalidOperationException(
+				"The interaction scope already has a command sequence beginning with this gesture."
+			);
+		}
 		if ( CursesInteractionRouter.MaximumScopeGestureBindings <= this.gestureBindings.Count ) {
 			throw new InvalidOperationException(
 				$"An interaction scope cannot own more than {CursesInteractionRouter.MaximumScopeGestureBindings} gesture bindings."
@@ -54,6 +59,7 @@ public sealed partial class CursesInteractionScope {
 			gesture,
 			command
 		);
+		this.owner.ClearPendingCommandSequence();
 	}
 
 	/// <summary>Removes one gesture binding from this interaction scope when present.</summary>
@@ -67,7 +73,11 @@ public sealed partial class CursesInteractionScope {
 			nameof( gesture )
 		);
 		this.ThrowIfDisposed();
-		return this.gestureBindings.Remove( gesture );
+		if ( !this.gestureBindings.Remove( gesture ) ) {
+			return false;
+		}
+		this.owner.ClearPendingCommandSequence();
+		return true;
 	}
 
 	internal int GestureBindingCount => this.gestureBindings.Count;

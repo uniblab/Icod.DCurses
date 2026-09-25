@@ -156,7 +156,7 @@ rg -n "CursesCommandSequence|Maximum.*CommandSequence" tests/Icod.DCurses.Tests/
 
 Expected: no whitespace errors; every frozen public name appears.
 
-- [ ] **Step 4: Commit and push the tests-only RED checkpoint.**
+- [x] **Step 4: Commit and push the tests-only RED checkpoint.** Exact remote head `082985e`.
 
 ```sh
 git add tests/Icod.DCurses.Tests/src/CursesCommandSequenceContractTests.cs docs/superpowers/plans/2026-09-25-icod-dcurses-t2203-command-sequences.md
@@ -165,7 +165,7 @@ git commit -m "test: freeze T2203 command sequence contract"
 
 Push the exact tree to `2.2.0-roadmap` using the configured repository connector.
 
-- [ ] **Step 5: Observe the expected Staging failure and record exact evidence.**
+- [x] **Step 5: Observe the expected Staging failure and record exact evidence.** Workflow 36081223791, Linux ARM64 job 107903402756, failed compilation on .NET 8/9/10 with the intended missing-surface identifiers: `CS0246`, `CS0117`, `CS0103` and `CS1061`. Restore and production-library compilation succeeded; no unrelated failure preceded the contract RED.
 
 Expected: compile failure on .NET 8/9/10 for missing `CursesCommandSequenceBinding`, `CursesCommandSequenceResultKind`, sequence constants and owner/router methods. Record workflow, job, exact head and compiler identifiers in this plan and the PR body. A failure for any unrelated reason blocks Task 2 and is diagnosed first.
 
@@ -191,7 +191,7 @@ Expected: compile failure on .NET 8/9/10 for missing `CursesCommandSequenceBindi
 - Consumes: `CursesKeyGesture.IsBindable`, `CursesKeyGesture.Matches`, existing owner disposal checks and total-binding validation pattern.
 - Produces: copied internal `CursesCommandSequenceRegistration` values; all frozen public members; minimal correct fallback processing for non-prefix input; owner enumeration used by Tasks 3 and 5.
 
-- [ ] **Step 1: Add failing validation, copy and conflict tests.**
+- [x] **Step 1: Add failing validation, copy and conflict tests.**
 
 ```csharp
 [Fact]
@@ -244,7 +244,7 @@ Also add:
 
 Use 32 regions × 128 registrations to reach the 4,096 total boundary; reuse gesture sequences across different owners and generate distinct two-rune sequences within each owner.
 
-- [ ] **Step 2: Confirm the registration tests are part of the observed Task 1 RED before production changes.**
+- [x] **Step 2: Confirm the registration tests are part of the observed Task 1 RED before production changes.**
 
 Add these tests to the tests-only head before beginning Step 3. The expected
 compiler failures remain the missing sequence constructors and registration
@@ -252,7 +252,7 @@ members. Do not start a redundant workflow solely to distinguish each missing
 member after the exact-head contract RED has established that no production
 surface exists.
 
-- [ ] **Step 3: Implement copied public values and internal registration helpers.**
+- [x] **Step 3: Implement copied public values and internal registration helpers.**
 
 ```csharp
 internal sealed class CursesCommandSequenceRegistration {
@@ -293,7 +293,7 @@ internal sealed class CursesCommandSequenceRegistration {
 
 `CursesCommandSequenceBinding` copies through the same validation rule and exposes `Array.AsReadOnly(copy)`. `CursesCommandSequenceResult` uses private construction plus internal `FallbackResult`, `PendingResult`, `CompletedResult` and `MismatchResult` factories that enforce the property-nullability matrix.
 
-- [ ] **Step 4: Implement per-owner storage and registration-order-independent checks.**
+- [x] **Step 4: Implement per-owner storage and registration-order-independent checks.**
 
 Each owner stores:
 
@@ -306,28 +306,32 @@ internal IReadOnlyList<CursesCommandSequenceRegistration> CommandSequences =>
 
 Before mutation, compare exact sequences, proper prefixes in both directions and the first gesture against the owner's single-key dictionary. Call `owner.EnsureCommandSequenceCapacity()` only after argument/conflict validation and before insertion. After successful bind or unbind, call `owner.ClearPendingCommandSequence()`.
 
-- [ ] **Step 5: Add the five public limits and total-capacity calculation.**
+- [x] **Step 5: Add the five public limits and total-capacity calculation.**
 
 `EnsureCommandSequenceCapacity()` sums global, live region and live scope counts using checked bounded addition and rejects when the existing count is already 4,096. It does not share counters with `MaximumGestureBindings`.
 
-- [ ] **Step 6: Supply minimal correct router behavior required by the frozen surface.**
+- [x] **Step 6: Supply minimal correct router behavior required by the frozen surface.**
 
-Until Task 3 adds sequence matching:
+The frozen Task 1 contract requires the first registered global prefix to enter
+pending state. Supply only that narrow slice here: global prefix detection,
+observable pending state and explicit cancellation. Until Task 3 adds owner
+precedence and continuation, a second event clears the provisional prefix and
+falls back through `Route` exactly once.
 
 ```csharp
 public CursesCommandSequenceResult ProcessCommandSequence(
 	CursesInputEvent input
 ) {
-	ArgumentNullException.ThrowIfNull( input );
-	this.ThrowIfDisposed();
-	return CursesCommandSequenceResult.FallbackResult(
-		input,
-		this.Route( input )
-	);
+	// Task 2 recognizes only registered global first gestures.
 }
 ```
 
-`HasPendingCommandSequence` is false, `CancelPendingCommandSequence()` returns false, and the initial discovery implementation returns detached registered global sequences so Task 2 copy/conflict tests are observable. Task 3 replaces the minimal processing behavior; Task 5 completes precedence-aware discovery.
+`HasPendingCommandSequence` and `CancelPendingCommandSequence()` reflect that
+provisional state. The initial discovery implementation returns detached
+registered global sequences so Task 2 copy/conflict tests are observable. Task
+3 replaces the minimal processing behavior; Task 5 completes precedence-aware
+discovery. This is the smallest resolution of the provisional Task 2 text
+against the already-approved and tests-only-RED frozen contract.
 
 - [ ] **Step 7: Run local static verification and commit.**
 

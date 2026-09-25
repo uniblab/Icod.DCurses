@@ -43,6 +43,11 @@ public sealed partial class CursesInteractionRouter {
 				"The interaction router already has a global binding for this gesture."
 			);
 		}
+		if ( this.HasGlobalCommandSequenceStartingWith( gesture ) ) {
+			throw new InvalidOperationException(
+				"The interaction router already has a global command sequence beginning with this gesture."
+			);
+		}
 		if ( MaximumGlobalGestureBindings <= this.globalGestureBindings.Count ) {
 			throw new InvalidOperationException(
 				$"An interaction router cannot own more than {MaximumGlobalGestureBindings} global gesture bindings."
@@ -54,6 +59,7 @@ public sealed partial class CursesInteractionRouter {
 			gesture,
 			command
 		);
+		this.ClearPendingCommandSequence();
 	}
 
 	/// <summary>Removes one router-global gesture binding when present.</summary>
@@ -67,7 +73,11 @@ public sealed partial class CursesInteractionRouter {
 			nameof( gesture )
 		);
 		this.ThrowIfDisposed();
-		return this.globalGestureBindings.Remove( gesture );
+		if ( !this.globalGestureBindings.Remove( gesture ) ) {
+			return false;
+		}
+		this.ClearPendingCommandSequence();
+		return true;
 	}
 
 	/// <summary>Routes one normalized input event without invoking application callbacks.</summary>

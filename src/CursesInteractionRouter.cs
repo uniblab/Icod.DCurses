@@ -37,6 +37,21 @@ public sealed partial class CursesInteractionRouter : IDisposable {
 	/// <summary>Gets the maximum total number of live gesture bindings owned by one router.</summary>
 	public const int MaximumGestureBindings = 16384;
 
+	/// <summary>Gets the maximum number of gestures in one command sequence.</summary>
+	public const int MaximumCommandSequenceLength = 8;
+
+	/// <summary>Gets the maximum number of command sequence bindings owned by one region.</summary>
+	public const int MaximumRegionCommandSequenceBindings = 128;
+
+	/// <summary>Gets the maximum number of command sequence bindings owned by one scope.</summary>
+	public const int MaximumScopeCommandSequenceBindings = 128;
+
+	/// <summary>Gets the maximum number of router-global command sequence bindings.</summary>
+	public const int MaximumGlobalCommandSequenceBindings = 512;
+
+	/// <summary>Gets the maximum total number of live command sequence bindings owned by one router.</summary>
+	public const int MaximumCommandSequenceBindings = 4096;
+
 	private readonly List<CursesInteractionRegion> regions = [];
 	private CursesInteractionRegion? focusedRegion;
 	private long nextRegistrationOrdinal;
