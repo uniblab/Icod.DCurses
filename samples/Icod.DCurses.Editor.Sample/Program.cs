@@ -3,6 +3,7 @@ using Icod.DCurses.Editor.Sample;
 
 await using CursesSession session = await CursesSession.OpenAsync();
 CursesScreen screen = session.Screen;
+using EditorSampleInteraction interaction = new( screen );
 CursesWindow document = screen.CreateWindow( 0, 0, 1, 1 );
 CursesWindow status = screen.CreateWindow( 0, 0, 1, 1 );
 CursesWindow prompt = screen.CreateWindow( 0, 0, 1, 1 );
@@ -11,7 +12,6 @@ foreach ( CursesWindow window in new[] { document, status, prompt } ) {
 }
 EditorSampleState state = new( 1, 1 );
 bool running = true;
-bool goToPrompt = false;
 string digits = string.Empty;
 
 while ( running ) {
@@ -19,6 +19,7 @@ while ( running ) {
 		document.SetBounds( regions.Document );
 		status.SetBounds( regions.Status );
 		prompt.SetBounds( regions.Prompt );
+		interaction.SetBounds( regions.Document, regions.Prompt );
 		state.Resize( document.Rows, document.Columns );
 		document.Clear();
 		(int first, int count) = state.VisibleRecords();
@@ -57,9 +58,14 @@ while ( running ) {
 			+ $"{( state.Wrap ? "wrap" : "no-wrap" )}  edits {state.EditedRecordCount}  "
 			+ $"view {state.Viewport.OriginRow},{state.Viewport.OriginColumn}" );
 		prompt.Clear();
-		WriteLine( prompt, goToPrompt ? $"Go to record (1-based): {digits}" :
-			"Type to edit | Ctrl+W wrap | Ctrl+V select | Ctrl+G go to | Esc quit" );
+		string shortcutSummary = interaction.HasPendingCommandSequence
+			? "Prefix Ctrl+K ..."
+			: interaction.GetShortcutSummary();
+		WriteLine( prompt, interaction.IsPromptActive
+			? $"Go to record (1-based): {digits} | {shortcutSummary}"
+			: $"Type to edit | {shortcutSummary}" );
 	} else {
+		interaction.SetBounds( default, default );
 		session.StandardScreen.Clear();
 		WriteLine( session.StandardScreen, "Resize to at least 30 columns x 6 rows; Esc quits." );
 	}
@@ -81,50 +87,63 @@ while ( running ) {
 	if ( input.Kind == CursesInputEventKind.EndOfInput ) {
 		break;
 	}
-	if ( goToPrompt ) {
-		if ( input.Kind == CursesInputEventKind.Key ) {
-			switch ( input.Key ) {
-				case CursesKey.Escape: goToPrompt = false; break;
-				case CursesKey.Backspace: if ( digits.Length > 0 ) digits = digits[ ..^1 ]; break;
-				case CursesKey.Enter:
-					if ( int.TryParse( digits, out int requested ) ) {
-						state.GoToRow( requested - 1 );
-					}
-					goToPrompt = false;
-					break;
-			}
-		} else if ( input.Kind == CursesInputEventKind.Text && input.Character.HasValue
-			&& input.Character.Value.Value is >= '0' and <= '9' && digits.Length < 8 ) {
-			digits += input.Character.Value.ToString();
+	CursesCommandSequenceResult sequenceResult = interaction.Process( input );
+	if ( CursesCommandSequenceResultKind.Pending == sequenceResult.Kind ) {
+		continue;
+	}
+	CursesCommand? command = sequenceResult.Command
+		?? sequenceResult.Fallback?.Command;
+	if ( command is not null ) {
+		switch ( command.Name ) {
+			case EditorSampleInteraction.MoveLeftCommandName: state.MoveHorizontal( -1 ); break;
+			case EditorSampleInteraction.MoveRightCommandName: state.MoveHorizontal( 1 ); break;
+			case EditorSampleInteraction.MoveUpCommandName: state.MoveVertical( -1 ); break;
+			case EditorSampleInteraction.MoveDownCommandName: state.MoveVertical( 1 ); break;
+			case EditorSampleInteraction.PageUpCommandName: state.MovePage( -1 ); break;
+			case EditorSampleInteraction.PageDownCommandName: state.MovePage( 1 ); break;
+			case EditorSampleInteraction.LineStartCommandName: state.MoveLineBoundary( false ); break;
+			case EditorSampleInteraction.LineEndCommandName: state.MoveLineBoundary( true ); break;
+			case EditorSampleInteraction.DeleteBackCommandName: _ = state.Delete( true ); break;
+			case EditorSampleInteraction.DeleteForwardCommandName: _ = state.Delete( false ); break;
+			case EditorSampleInteraction.InsertNewLineCommandName: _ = state.Insert( "\n" ); break;
+			case EditorSampleInteraction.InsertTabCommandName: _ = state.Insert( "\t" ); break;
+			case EditorSampleInteraction.ToggleWrapCommandName: state.ToggleWrap(); break;
+			case EditorSampleInteraction.ToggleSelectionCommandName: state.ToggleSelection(); break;
+			case EditorSampleInteraction.OpenPromptCommandName:
+				digits = string.Empty;
+				interaction.OpenPrompt();
+				break;
+			case EditorSampleInteraction.CancelPromptCommandName:
+				digits = string.Empty;
+				interaction.ClosePrompt();
+				break;
+			case EditorSampleInteraction.AcceptPromptCommandName:
+				if ( int.TryParse( digits, out int requested ) ) {
+					state.GoToRow( requested - 1 );
+				}
+				digits = string.Empty;
+				interaction.ClosePrompt();
+				break;
+			case EditorSampleInteraction.PromptBackspaceCommandName:
+				if ( digits.Length > 0 ) {
+					digits = digits[ ..^1 ];
+				}
+				break;
+			case EditorSampleInteraction.QuitCommandName: running = false; break;
 		}
 		continue;
 	}
-	if ( input.Kind == CursesInputEventKind.Key ) {
-		switch ( input.Key ) {
-			case CursesKey.Escape: running = false; break;
-			case CursesKey.Left: state.MoveHorizontal( -1 ); break;
-			case CursesKey.Right: state.MoveHorizontal( 1 ); break;
-			case CursesKey.Up: state.MoveVertical( -1 ); break;
-			case CursesKey.Down: state.MoveVertical( 1 ); break;
-			case CursesKey.PageUp: state.MovePage( -1 ); break;
-			case CursesKey.PageDown: state.MovePage( 1 ); break;
-			case CursesKey.Home: state.MoveLineBoundary( false ); break;
-			case CursesKey.End: state.MoveLineBoundary( true ); break;
-			case CursesKey.Backspace: state.Delete( true ); break;
-			case CursesKey.Delete: state.Delete( false ); break;
-			case CursesKey.Enter: state.Insert( "\n" ); break;
-			case CursesKey.Tab: state.Insert( "\t" ); break;
-		}
-	} else if ( input.Kind == CursesInputEventKind.Text && input.Character.HasValue ) {
-		int character = input.Character.Value.Value;
-		if ( 0 != ( input.Modifiers & CursesKeyModifiers.Control ) ) {
-			switch ( character ) {
-				case 'w': case 'W': case 23: state.ToggleWrap(); break;
-				case 'v': case 'V': case 22: state.ToggleSelection(); break;
-				case 'g': case 'G': case 7: goToPrompt = true; digits = string.Empty; break;
+
+	CursesInputEvent? routedInput = sequenceResult.Fallback?.Input;
+	if ( routedInput?.Kind == CursesInputEventKind.Text
+		&& routedInput.Character.HasValue ) {
+		if ( interaction.IsPromptActive ) {
+			int character = routedInput.Character.Value.Value;
+			if ( character is >= '0' and <= '9' && digits.Length < 8 ) {
+				digits += routedInput.Character.Value.ToString();
 			}
 		} else {
-			state.Insert( input.Character.Value.ToString() );
+			_ = state.Insert( routedInput.Character.Value.ToString() );
 		}
 	}
 }

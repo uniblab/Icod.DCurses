@@ -31,14 +31,13 @@ CursesWindow sidebar = screen.CreateWindow( 0, 0, 1, 1 );
 CursesWindow messages = screen.CreateWindow( 0, 0, 1, 1 );
 CursesWindow status = screen.CreateWindow( 0, 0, 1, 1 );
 using CursesPanel help = screen.CreatePanel( 0, 0, 1, 1 );
+using RoguelikeSampleInteraction interaction = new( screen, help );
 foreach ( CursesWindow window in new[] { standard, map, sidebar, messages, status, help.ContentWindow } ) {
 	window.WrapMode = CursesWrapMode.Clip;
 }
-help.Hide();
 RoguelikeSampleState state = new( 1, 1 );
 state.AddMessage( "Arrows/WASD move, ? help, Q quits." );
 bool running = true;
-bool showHelp = false;
 bool fullMap = true;
 
 while ( running ) {
@@ -47,25 +46,33 @@ while ( running ) {
 		sidebar.SetBounds( regions.Sidebar );
 		messages.SetBounds( regions.Messages );
 		status.SetBounds( regions.Status );
+		if ( help.Bounds != regions.Overlay ) {
+			help.SetBounds( regions.Overlay );
+		}
+		interaction.SetBounds(
+			regions.Map,
+			new CursesRectangle( 0, 0, help.Rows, help.Columns )
+		);
 		CursesViewport oldViewport = state.Viewport;
 		state.ResizeViewport( map.Rows, map.Columns );
 		if ( fullMap || oldViewport != state.Viewport ) {
 			CursesCell[] frame = state.CreateVisibleFrame();
 			map.WriteCells( 0, 0, map.Rows, map.Columns, frame, map.Columns );
 		}
-		DrawSidebar( sidebar, state );
+		DrawSidebar( sidebar, state, interaction.GetShortcutSummary() );
 		DrawMessages( messages, state );
 		status.Clear();
-		WriteLine( status, 0,
-			$"World {state.PlayerRow},{state.PlayerColumn}  View {state.Viewport.OriginRow},{state.Viewport.OriginColumn}  Prepared {session.LatestRefreshDiagnostics?.PreparedOutputItemCount ?? 0}" );
-		if ( showHelp ) {
-			help.SetBounds( regions.Overlay );
-			DrawHelp( help.ContentWindow );
+		WriteLine( status, 0, interaction.HasPendingCommandSequence
+			? "Prefix g ..."
+			: $"World {state.PlayerRow},{state.PlayerColumn}  View {state.Viewport.OriginRow},{state.Viewport.OriginColumn}  Prepared {session.LatestRefreshDiagnostics?.PreparedOutputItemCount ?? 0}" );
+		if ( interaction.IsHelpActive ) {
+			DrawHelp( help.ContentWindow, interaction.GetShortcutSummary() );
 			help.Show();
 		} else {
 			help.Hide();
 		}
 	} else {
+		interaction.SetBounds( default, default );
 		help.Hide();
 		standard.Clear();
 		WriteLine( standard, 0, "Resize to at least 30 columns x 6 rows; Q exits." );
@@ -92,27 +99,31 @@ while ( running ) {
 	if ( CursesInputEventKind.EndOfInput == input.Kind ) {
 		break;
 	}
-	if ( CursesInputEventKind.Key == input.Kind && CursesKey.Escape == input.Key ) {
-		break;
+	CursesCommandSequenceResult sequenceResult = interaction.Process( input );
+	if ( CursesCommandSequenceResultKind.Pending == sequenceResult.Kind ) {
+		continue;
+	}
+	CursesCommand? command = sequenceResult.Command
+		?? sequenceResult.Fallback?.Command;
+	if ( command is null ) {
+		continue;
 	}
 	int rowDelta = 0;
 	int columnDelta = 0;
-	if ( CursesInputEventKind.Key == input.Kind ) {
-		switch ( input.Key ) {
-			case CursesKey.Up: rowDelta = -1; break;
-			case CursesKey.Down: rowDelta = 1; break;
-			case CursesKey.Left: columnDelta = -1; break;
-			case CursesKey.Right: columnDelta = 1; break;
-		}
-	} else if ( CursesInputEventKind.Text == input.Kind && input.Character.HasValue ) {
-		switch ( input.Character.Value.Value ) {
-			case 'w': case 'W': rowDelta = -1; break;
-			case 's': case 'S': rowDelta = 1; break;
-			case 'a': case 'A': columnDelta = -1; break;
-			case 'd': case 'D': columnDelta = 1; break;
-			case '?': showHelp = !showHelp; break;
-			case 'q': case 'Q': running = false; break;
-		}
+	switch ( command.Name ) {
+		case RoguelikeSampleInteraction.MoveUpCommandName: rowDelta = -1; break;
+		case RoguelikeSampleInteraction.MoveDownCommandName: rowDelta = 1; break;
+		case RoguelikeSampleInteraction.MoveLeftCommandName: columnDelta = -1; break;
+		case RoguelikeSampleInteraction.MoveRightCommandName: columnDelta = 1; break;
+		case RoguelikeSampleInteraction.OpenHelpCommandName:
+			interaction.OpenHelp();
+			break;
+		case RoguelikeSampleInteraction.CloseHelpCommandName:
+			interaction.CloseHelp();
+			break;
+		case RoguelikeSampleInteraction.QuitCommandName:
+			running = false;
+			break;
 	}
 	if ( !running || ( rowDelta == 0 && columnDelta == 0 ) ) {
 		continue;
@@ -140,12 +151,17 @@ while ( running ) {
 	}
 }
 
+interaction.CloseHelp();
 help.Hide();
 standard.Clear();
 await session.RefreshAsync();
 return 0;
 
-static void DrawSidebar( CursesWindow window, RoguelikeSampleState state ) {
+static void DrawSidebar(
+	CursesWindow window,
+	RoguelikeSampleState state,
+	string shortcuts
+) {
 	window.Clear();
 	WriteLine( window, 0, "WORLD" );
 	WriteLine( window, 1, $"Row {state.PlayerRow}" );
@@ -153,7 +169,7 @@ static void DrawSidebar( CursesWindow window, RoguelikeSampleState state ) {
 	WriteLine( window, 4, "@ you  + door" );
 	WriteLine( window, 5, ". room # corridor" );
 	WriteLine( window, 6, "-| wall ~ water" );
-	WriteLine( window, 7, "? help" );
+	WriteLine( window, 7, shortcuts );
 }
 
 static void DrawMessages( CursesWindow window, RoguelikeSampleState state ) {
@@ -164,13 +180,13 @@ static void DrawMessages( CursesWindow window, RoguelikeSampleState state ) {
 	}
 }
 
-static void DrawHelp( CursesWindow window ) {
+static void DrawHelp( CursesWindow window, string shortcuts ) {
 	window.Clear();
 	WriteLine( window, 0, " ROGUELIKE HELP" );
 	WriteLine( window, 2, " Arrows or WASD: move through the world" );
 	WriteLine( window, 3, " + doors and # corridors connect rooms." );
 	WriteLine( window, 4, " -| walls, ~ water, and void block movement." );
-	WriteLine( window, 5, " ?: close overlay   Q / Escape: quit" );
+	WriteLine( window, 5, $" {shortcuts}" );
 }
 
 static void WriteLine( CursesWindow window, int row, string text ) {
