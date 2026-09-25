@@ -1,8 +1,8 @@
 # T2206 Application Interaction Acceptance Gate
 
-**Date:** 2026-09-25  
-**Status:** Automated qualification complete; live manual acceptance pending  
-**Executable head:** `19d0fba977e9d1272ea82f1cab705a64130fad64`  
+**Date:** 2026-09-25\
+**Status:** Automated qualification complete; live manual acceptance pending\
+**Executable head:** `19d0fba977e9d1272ea82f1cab705a64130fad64`\
 **Workflow:** [36090193035](https://github.com/uniblab/Icod.DCurses/actions/runs/36090193035)
 
 ## Scope
