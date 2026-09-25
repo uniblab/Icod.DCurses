@@ -125,6 +125,19 @@ public sealed class CursesInteractionDiscoveryTests {
 		);
 	}
 
+	[Fact]
+	public void DiscoveryOrderIsIndependentOfBindingRegistrationOrder() {
+		CursesScreen screen = new( 20, 10 );
+		using CursesInteractionRouter router = new( screen );
+		CursesKeyGesture escape = CursesKeyGesture.ForKey( CursesKey.Escape );
+		CursesKeyGesture enter = CursesKeyGesture.ForKey( CursesKey.Enter );
+		router.BindGlobalGesture( escape, new CursesCommand( "escape" ) );
+		router.BindGlobalGesture( enter, new CursesCommand( "enter" ) );
+
+		Assert.Equal( new[] { enter, escape }, router.GetEffectiveGestureBindings()
+			.Select( static binding => binding.Gesture ) );
+	}
+
 	private static CursesInteractionRegion RegisterFocusable(
 		CursesInteractionRouter router
 	) {

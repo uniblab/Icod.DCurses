@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "release": "2.2.0-alpha.1",
-  "status": "development-provisional",
-  "sha256": "c988806ddc19834c01ea7bd75630b257f4c55026feb73bfbbf7ebfd8978bbb79",
-  "exportedTypeCount": 96,
-  "contractLineCount": 751,
+  "status": "development",
+  "sha256": "06b8e57805004a8a7edc3ce787af86ca7e3d96c7ea7beecbd1ab541e744e1f2c",
+  "exportedTypeCount": 97,
+  "contractLineCount": 756,
   "exportedTypes": [
     "Icod.DCurses.CursesAlertKind",
     "Icod.DCurses.CursesAmbiguousWidthPolicy",
@@ -14,6 +14,7 @@
     "Icod.DCurses.CursesColor",
     "Icod.DCurses.CursesColorKind",
     "Icod.DCurses.CursesCommand",
+    "Icod.DCurses.CursesCommandBinding",
     "Icod.DCurses.CursesCursorVisibility",
     "Icod.DCurses.CursesDockEdge",
     "Icod.DCurses.CursesEvent",
