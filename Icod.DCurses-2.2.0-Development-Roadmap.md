@@ -9,7 +9,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2206 accepted; T2207 adversarial and contract-freeze gate in progress\
+**Status:** T2207 accepted; T2208 RC and stable-source closure pending\
 **Planning snapshot:** 2026-09-25
 
 **Design proposal:** [2.2 interaction and application conveniences](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The published [2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md), [interaction sample](samples/Icod.DCurses.Interaction.Sample/Program.cs), [editor](samples/Icod.DCurses.Editor.Sample/Program.cs) and [roguelike](samples/Icod.DCurses.Roguelike.Sample/Program.cs) are the baseline evidence.
@@ -83,7 +83,7 @@ Both samples continue to call `screen.Clear()` and refresh during orderly exit. 
 | **T2204** | Implement small prompt state only if justified | Deferred: only the editor's narrow numeric prompt is evidenced |
 | **T2205** | Implement caller-fed timed pointer or pure frame calculations only if justified | Deferred: no current application-shaped timing witness |
 | **T2206** | Integrate selected mechanisms into public-only editor/roguelike samples and package-only consumers | Accepted at executable head `ff6e446`; [workflow 36096617375](https://github.com/uniblab/Icod.DCurses/actions/runs/36096617375) green 7/7; [both live samples confirmed](docs/T2206-Application-Interaction-Acceptance-Gate.md) |
-| **T2207** | Adversarial, allocation, dependency, public API, XML and documentation gate | Existing API/fingerprint parity, published package checks, platform matrix and exact-head evidence; reject APIs that belong in Widgets or Terminal |
+| **T2207** | Adversarial, allocation, dependency, public API, XML and documentation gate | Accepted at exact executable head `e5c5917`; [workflow 36098389089](https://github.com/uniblab/Icod.DCurses/actions/runs/36098389089) green 7/7; see [T2207 gate](docs/T2207-Adversarial-Package-Documentation-and-API-Gate.md) |
 | **T2208** | RC followed by stable-source qualification | PR runs Staging jobs only; exact source/package provenance and fresh consumers; Release validation only after a separately authorized merge to `main` |
 
 Do not advance a tranche solely because CI is green: its stated semantic and package gates must also hold. Work on this PR may advance tranche by tranche. Record an accepted or deferred result and exact commit for every gate in this roadmap or a linked gate document.
@@ -103,6 +103,7 @@ No callback dispatch tree, retained widget hierarchy, automatic focus policy, co
 
 ## 8. Immediate next step
 
-Execute T2207's adversarial, performance, public-API, documentation, package and
-dependency freeze without adding features. Keep the development PR open and
-unmerged throughout this work.
+Execute T2208's RC and stable-source exact-head closure without adding features
+or changing the frozen T2207 public surface. Keep the development PR open and
+unmerged; Release validation remains reserved for a separately authorized push
+to `main`.
