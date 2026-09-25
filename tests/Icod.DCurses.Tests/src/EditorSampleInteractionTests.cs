@@ -6,6 +6,13 @@ namespace Icod.DCurses.Tests;
 
 public sealed class EditorSampleInteractionTests {
 	[Fact]
+	public void EditorSessionUsesRawInputSoControlCReachesSequenceRouter() {
+		CursesSessionOptions options = EditorSampleInteraction.CreateSessionOptions();
+
+		Assert.Equal( CursesInputMode.Raw, options.InputMode );
+	}
+
+	[Fact]
 	public void DocumentContextRoutesDirectAndSequencePromptCommands() {
 		CursesScreen screen = new( 80, 24 );
 		using EditorSampleInteraction interaction = CreateInteraction( screen );
