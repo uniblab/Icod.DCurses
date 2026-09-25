@@ -13,7 +13,7 @@
 **Active development target:** `2.2.0` — interaction and application conveniences\
 **Status:** 2.1.0 merged and tagged; 2.2.0 PR #34, T2203 accepted, T2204/T2205 deferred, T2206 next
 
-**Planning snapshot:** 2026-09-24
+**Planning snapshot:** 2026-09-25
 
 ---
 
