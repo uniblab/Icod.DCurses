@@ -1,9 +1,9 @@
 # T2206 Application Interaction Acceptance Gate
 
 **Date:** 2026-09-25\
-**Status:** Automated qualification complete; live manual acceptance pending\
-**Executable head:** `19d0fba977e9d1272ea82f1cab705a64130fad64`\
-**Workflow:** [36090193035](https://github.com/uniblab/Icod.DCurses/actions/runs/36090193035)
+**Status:** Automated qualification complete; focused editor recheck pending\
+**Executable head:** `df28e111ab01ff2a1c5888826681acf2ca1c1f86`\
+**Workflow:** [36095160547](https://github.com/uniblab/Icod.DCurses/actions/runs/36095160547)
 
 ## Scope
 
@@ -60,6 +60,24 @@ derived from effective discovery.
 
 Both samples retain orderly `screen.Clear()` plus refresh on exit.
 
+## Live editor correction
+
+The first live editor run found that `Ctrl+G` and `Ctrl+K Ctrl+G` appeared to
+do nothing, while `Ctrl+V` was already used by the terminal for clipboard
+paste. This was not intended sample behavior. Terminal 1.18 reports traditional
+C0 control bytes with an uppercase semantic character (for example, `G`) and
+the Control modifier, while the sample had registered only the lowercase
+modern-keyboard form. Gesture character identity is intentionally exact.
+
+Tests-only head `1471c8d953a5d7e8ad0e4c4ea94e833211da2701` established the regression in
+[workflow 36094762901](https://github.com/uniblab/Icod.DCurses/actions/runs/36094762901):
+the six new live-terminal cases failed on .NET 8, 9 and 10 while package
+validation remained green. The correction registers both lowercase modern and
+uppercase traditional forms for each editor Control shortcut, moves selection
+to `Ctrl+T`, and deliberately leaves `Ctrl+V` unclaimed for terminal clipboard
+paste. It adds no public API and does not make matching generally
+case-insensitive.
+
 ## Exact-head automated qualification
 
 The first package-consumer attempt at `2c4619acc614895d660bebed1ce5eb31d7daba43`
@@ -70,11 +88,14 @@ and unbinding, and compile-checks the public processing signature. Source-level
 tests continue to cover pending, completion and mismatch processing with
 synthetic events.
 
-Exact executable head `19d0fba977e9d1272ea82f1cab705a64130fad64`
-passed all seven Staging jobs in workflow 36090193035:
+Initial executable head `19d0fba977e9d1272ea82f1cab705a64130fad64`
+passed all seven Staging jobs in workflow 36090193035 before the live issue was
+found. Corrected exact executable head
+`df28e111ab01ff2a1c5888826681acf2ca1c1f86` passed all seven Staging jobs in
+workflow 36095160547:
 
 - six Windows, Linux and macOS x64/ARM64 runtime jobs built successfully;
-- every runtime job passed 1,274 tests on each of .NET 8, 9 and 10, with zero
+- every runtime job passed 1,280 tests on each of .NET 8, 9 and 10, with zero
   failures and zero skips;
 - the macOS x64 target-framework tests remained sequential as agreed;
 - the package job built and validated `Icod.DCurses.2.2.0-alpha.1.nupkg` and
@@ -83,26 +104,31 @@ passed all seven Staging jobs in workflow 36090193035:
 - package structure, metadata, dependency closure, assembly identity, XML
   documentation and portable symbols passed validation.
 
-Staging artifact `10844849549` records the exact executable head and has ZIP
+Staging artifact `10847501911` records the corrected exact executable head and has ZIP
 digest
-`sha256:9a50b9d829b416a70a6f25439d9ce9ac7e34c28ca8542a5dc33634d6edb07111`.
+`sha256:c803eba8951b5b1c09283408dbb5e22905a1fd540bb270885b80ac675249a856`.
 
-## Required live manual acceptance
+## Live manual acceptance
 
 CI cannot validate terminal appearance or the feel of an interactive event
-loop. Before accepting T2206, run both samples in a real terminal and confirm:
+loop. The initial local run accepted the roguelike behavior and exposed the
+editor Control-key issue described above. The correction does not touch the
+roguelike. Before accepting T2206, repeat the focused editor checks below in a
+real terminal.
 
-### Editor
+### Editor recheck
 
 - ordinary ASCII and Unicode typing, arrows, Home/End, Page Up/Down, deletion,
   Enter, Tab, wrap and selection behave as before;
+- `Ctrl+T` starts/stops selection, and `Ctrl+V` remains available for terminal
+  clipboard paste;
 - `Ctrl+G` and `Ctrl+K Ctrl+G` open the numeric prompt;
 - Enter accepts a valid row, Escape cancels, and `Ctrl+K Ctrl+C` cancels;
 - a mismatching typed digit after `Ctrl+K` is retained once in the prompt;
 - resize down below the minimum and back up recovers cleanly;
 - exiting clears the terminal screen.
 
-### Roguelike
+### Roguelike (previously confirmed)
 
 - rooms, walls, doors and corridors render with the accepted viewport wrapping;
 - arrows/WASD move while walls, water and void remain impassable;
@@ -112,5 +138,5 @@ loop. Before accepting T2206, run both samples in a real terminal and confirm:
 - resize down below the minimum and back up recovers cleanly;
 - Q or Escape exits and clears the terminal screen.
 
-T2206 remains pending until this checklist is confirmed. T2207 must not treat
-green CI alone as live application acceptance.
+T2206 remains pending until the corrected editor shortcuts are confirmed. T2207
+must not treat green CI alone as live application acceptance.

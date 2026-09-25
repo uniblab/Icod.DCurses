@@ -9,7 +9,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Status:** T2206 automated qualification complete; live manual acceptance pending\
+**Status:** T2206 automated qualification complete; focused editor recheck pending\
 **Planning snapshot:** 2026-09-25
 
 **Design proposal:** [2.2 interaction and application conveniences](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The published [2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md), [interaction sample](samples/Icod.DCurses.Interaction.Sample/Program.cs), [editor](samples/Icod.DCurses.Editor.Sample/Program.cs) and [roguelike](samples/Icod.DCurses.Roguelike.Sample/Program.cs) are the baseline evidence.
@@ -82,7 +82,7 @@ Both samples continue to call `screen.Clear()` and refresh during orderly exit. 
 | **T2203** | Implement bounded multi-key composition | Accepted at exact head `2cdb89f`; [workflow 36084559207](https://github.com/uniblab/Icod.DCurses/actions/runs/36084559207) green 7/7; see [T2203 gate](docs/T2203-Bounded-Command-Sequences-Gate.md) |
 | **T2204** | Implement small prompt state only if justified | Deferred: only the editor's narrow numeric prompt is evidenced |
 | **T2205** | Implement caller-fed timed pointer or pure frame calculations only if justified | Deferred: no current application-shaped timing witness |
-| **T2206** | Integrate selected mechanisms into public-only editor/roguelike samples and package-only consumers | Automated candidate qualified at executable head `19d0fba`; [workflow 36090193035](https://github.com/uniblab/Icod.DCurses/actions/runs/36090193035) green 7/7; [live manual checklist remains pending](docs/T2206-Application-Interaction-Acceptance-Gate.md) |
+| **T2206** | Integrate selected mechanisms into public-only editor/roguelike samples and package-only consumers | Live editor correction qualified at executable head `df28e11`; [workflow 36095160547](https://github.com/uniblab/Icod.DCurses/actions/runs/36095160547) green 7/7; [focused live manual recheck remains pending](docs/T2206-Application-Interaction-Acceptance-Gate.md) |
 | **T2207** | Adversarial, allocation, dependency, public API, XML and documentation gate | Existing API/fingerprint parity, published package checks, platform matrix and exact-head evidence; reject APIs that belong in Widgets or Terminal |
 | **T2208** | RC followed by stable-source qualification | PR runs Staging jobs only; exact source/package provenance and fresh consumers; Release validation only after a separately authorized merge to `main` |
 
@@ -103,7 +103,8 @@ No callback dispatch tree, retained widget hierarchy, automatic focus policy, co
 
 ## 8. Immediate next step
 
-Run the [T2206 live editor and roguelike checklist](docs/T2206-Application-Interaction-Acceptance-Gate.md).
+Run the focused editor recheck in the [T2206 live checklist](docs/T2206-Application-Interaction-Acceptance-Gate.md),
+including `Ctrl+T`, terminal `Ctrl+V`, `Ctrl+G`, and `Ctrl+K Ctrl+G`.
 After that human terminal evidence is accepted, close T2206 and begin the T2207
 adversarial, performance, API, documentation and dependency freeze. Keep the
 development PR open and unmerged throughout this work.
