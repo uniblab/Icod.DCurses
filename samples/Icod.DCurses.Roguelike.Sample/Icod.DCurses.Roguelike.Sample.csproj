@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Icod.DCurses 2.1 application-owned roguelike acceptance sample. -->
+<!-- Icod.DCurses 2.2 application-owned roguelike acceptance sample. -->
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>

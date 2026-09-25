@@ -62,6 +62,7 @@ VerifyWindowEditingSurface();
 VerifyPadSurface();
 VerifyInteractionSurface();
 VerifyAdvancedInteractionSurface();
+VerifyCommandSequenceSurface();
 
 if ( string.Equals(
 	Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_INTERACTIVE" ),
@@ -765,6 +766,84 @@ static void VerifyAdvancedInteractionSurface() {
 		|| typeof( CursesPointerCaptureLease ) != captureMethod.ReturnType ) {
 		throw new InvalidOperationException(
 			"DCurses package-only explicit pointer-capture surface is unavailable."
+		);
+	}
+}
+
+static void VerifyCommandSequenceSurface() {
+	CursesScreen logical = new( 30, 10 );
+	using CursesInteractionRouter router = new( logical );
+	using CursesInteractionRegion region = router.RegisterRegion(
+		new CursesInteractionRegionOptions(
+			new CursesRectangle( 0, 0, 8, 30 )
+		) {
+			IsFocusable = true
+		}
+	);
+	if ( !router.Focus( region ) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only command-sequence focus setup failed."
+		);
+	}
+
+	CursesKeyGesture prefix = CursesKeyGesture.ForCharacter( new Rune( 'g' ) );
+	CursesKeyGesture completion = CursesKeyGesture.ForCharacter( new Rune( 'h' ) );
+	CursesKeyGesture fallbackGesture = CursesKeyGesture.ForCharacter( new Rune( 'x' ) );
+	CursesCommand sequenceCommand = new( "package-smoke.sequence" );
+	CursesCommand fallbackCommand = new( "package-smoke.fallback" );
+	region.BindGestureSequence( [ prefix, completion ], sequenceCommand );
+	router.BindGlobalGesture( fallbackGesture, fallbackCommand );
+
+	IReadOnlyList<CursesCommandSequenceBinding> discovered =
+		router.GetEffectiveGestureSequenceBindings();
+	if ( 1 != discovered.Count
+		|| sequenceCommand != discovered[0].Command
+		|| !discovered[0].Gestures.SequenceEqual(
+			new[] { prefix, completion }
+		) ) {
+		throw new InvalidOperationException(
+			"DCurses package-only command-sequence discovery failed validation."
+		);
+	}
+
+	CursesCommandSequenceResult pending = router.ProcessCommandSequence(
+		CursesInputEvent.FromText( new Rune( 'g' ) )
+	);
+	CursesCommandSequenceResult completed = router.ProcessCommandSequence(
+		CursesInputEvent.FromText( new Rune( 'h' ) )
+	);
+	if ( CursesCommandSequenceResultKind.Pending != pending.Kind
+		|| CursesCommandSequenceResultKind.Completed != completed.Kind
+		|| sequenceCommand != completed.Command
+		|| router.HasPendingCommandSequence ) {
+		throw new InvalidOperationException(
+			"DCurses package-only command-sequence completion failed validation."
+		);
+	}
+
+	_ = router.ProcessCommandSequence(
+		CursesInputEvent.FromText( new Rune( 'g' ) )
+	);
+	CursesCommandSequenceResult mismatch = router.ProcessCommandSequence(
+		CursesInputEvent.FromText( new Rune( 'x' ) )
+	);
+	if ( CursesCommandSequenceResultKind.Mismatch != mismatch.Kind
+		|| fallbackCommand != mismatch.Fallback?.Command ) {
+		throw new InvalidOperationException(
+			"DCurses package-only command-sequence mismatch fallback failed validation."
+		);
+	}
+
+	_ = router.ProcessCommandSequence(
+		CursesInputEvent.FromText( new Rune( 'g' ) )
+	);
+	if ( !router.CancelPendingCommandSequence()
+		|| router.HasPendingCommandSequence
+		|| !region.UnbindGestureSequence( [ prefix, completion ] )
+		|| 8 != CursesInteractionRouter.MaximumCommandSequenceLength
+		|| 4096 != CursesInteractionRouter.MaximumCommandSequenceBindings ) {
+		throw new InvalidOperationException(
+			"DCurses package-only command-sequence state surface failed validation."
 		);
 	}
 }

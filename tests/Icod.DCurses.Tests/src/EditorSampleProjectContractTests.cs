@@ -23,7 +23,11 @@ public sealed class EditorSampleProjectContractTests {
 			project.Descendants( "ProjectReference" ).Single().Attribute( "Include" )?.Value );
 		Assert.Contains( @"samples\Icod.DCurses.Editor.Sample\Icod.DCurses.Editor.Sample.csproj",
 			File.ReadAllText( Path.Combine( current.FullName, "Icod.DCurses.sln" ) ), StringComparison.Ordinal );
-		foreach ( string name in new[] { "Program.cs", "EditorSampleState.cs" } ) {
+		foreach ( string name in new[] {
+			"Program.cs",
+			"EditorSampleState.cs",
+			"EditorSampleInteraction.cs"
+		} ) {
 			string source = File.ReadAllText( Path.Combine( folder, name ) );
 			Assert.DoesNotContain( "Icod.DCurses.Internal", source, StringComparison.Ordinal );
 			Assert.DoesNotContain( "Icod.Terminal", source, StringComparison.Ordinal );
