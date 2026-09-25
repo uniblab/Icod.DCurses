@@ -110,7 +110,7 @@ internal sealed class EditorSampleInteraction : IDisposable {
 			labels.Add( "Ctrl+W wrap" );
 		}
 		if ( singles.Contains( ToggleSelectionCommandName ) ) {
-			labels.Add( "Ctrl+V select" );
+			labels.Add( "Ctrl+T select" );
 		}
 		if ( singles.Contains( OpenPromptCommandName ) ) {
 			labels.Add( "Ctrl+G go" );
@@ -155,15 +155,14 @@ internal sealed class EditorSampleInteraction : IDisposable {
 		BindDocumentKey( CursesKey.Enter, InsertNewLineCommandName );
 		BindDocumentKey( CursesKey.Tab, InsertTabCommandName );
 		BindDocumentKey( CursesKey.Escape, QuitCommandName );
-		documentRegion.BindGesture( ControlGesture( 'w' ),
-			new CursesCommand( ToggleWrapCommandName ) );
-		documentRegion.BindGesture( ControlGesture( 'v' ),
-			new CursesCommand( ToggleSelectionCommandName ) );
-		documentRegion.BindGesture( ControlGesture( 'g' ),
-			new CursesCommand( OpenPromptCommandName ) );
-		documentRegion.BindGestureSequence(
-			[ ControlGesture( 'k' ), ControlGesture( 'g' ) ],
-			new CursesCommand( OpenPromptCommandName )
+		BindControlGesture( documentRegion, 'w', ToggleWrapCommandName );
+		BindControlGesture( documentRegion, 't', ToggleSelectionCommandName );
+		BindControlGesture( documentRegion, 'g', OpenPromptCommandName );
+		BindControlGestureSequence(
+			documentRegion,
+			'k',
+			'g',
+			OpenPromptCommandName
 		);
 	}
 
@@ -174,9 +173,11 @@ internal sealed class EditorSampleInteraction : IDisposable {
 			new CursesCommand( AcceptPromptCommandName ) );
 		promptRegion.BindGesture( CursesKeyGesture.ForKey( CursesKey.Backspace ),
 			new CursesCommand( PromptBackspaceCommandName ) );
-		promptRegion.BindGestureSequence(
-			[ ControlGesture( 'k' ), ControlGesture( 'c' ) ],
-			new CursesCommand( CancelPromptCommandName )
+		BindControlGestureSequence(
+			promptRegion,
+			'k',
+			'c',
+			CancelPromptCommandName
 		);
 	}
 
@@ -196,6 +197,39 @@ internal sealed class EditorSampleInteraction : IDisposable {
 		return CursesKeyGesture.ForCharacter(
 			new Rune( character ),
 			CursesKeyModifiers.Control
+		);
+	}
+
+	private static void BindControlGesture(
+		CursesInteractionRegion region,
+		char character,
+		string commandName
+	) {
+		CursesCommand command = new( commandName );
+		region.BindGesture( ControlGesture( character ), command );
+		region.BindGesture(
+			ControlGesture( char.ToUpperInvariant( character ) ),
+			command
+		);
+	}
+
+	private static void BindControlGestureSequence(
+		CursesInteractionRegion region,
+		char prefix,
+		char completion,
+		string commandName
+	) {
+		CursesCommand command = new( commandName );
+		region.BindGestureSequence(
+			[ ControlGesture( prefix ), ControlGesture( completion ) ],
+			command
+		);
+		region.BindGestureSequence(
+			[
+				ControlGesture( char.ToUpperInvariant( prefix ) ),
+				ControlGesture( char.ToUpperInvariant( completion ) )
+			],
+			command
 		);
 	}
 
