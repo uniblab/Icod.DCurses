@@ -58,6 +58,12 @@ internal sealed class EditorSampleInteraction : IDisposable {
 
 	internal bool HasPendingCommandSequence => router.HasPendingCommandSequence;
 
+	internal static CursesSessionOptions CreateSessionOptions() {
+		return new CursesSessionOptions {
+			InputMode = CursesInputMode.Raw
+		};
+	}
+
 	internal void SetBounds(
 		CursesRectangle documentBounds,
 		CursesRectangle promptBounds

@@ -1,7 +1,9 @@
 using Icod.DCurses;
 using Icod.DCurses.Editor.Sample;
 
-await using CursesSession session = await CursesSession.OpenAsync();
+await using CursesSession session = await CursesSession.OpenAsync(
+	EditorSampleInteraction.CreateSessionOptions()
+);
 CursesScreen screen = session.Screen;
 using EditorSampleInteraction interaction = new( screen );
 CursesWindow document = screen.CreateWindow( 0, 0, 1, 1 );
