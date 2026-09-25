@@ -11,7 +11,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.2.0` — interaction and application conveniences\
-**Status:** 2.1.0 merged and tagged; 2.2.0 PR #34, T2203 accepted, T2204/T2205 deferred, T2206 next
+**Status:** 2.1.0 merged and tagged; 2.2.0 PR #34, T2206 automated qualification complete, live manual acceptance pending
 
 **Planning snapshot:** 2026-09-25
 
@@ -19,7 +19,7 @@
 
 ## Current authorities
 
-The active plan is [Icod.DCurses-2.2.0-Development-Roadmap.md](Icod.DCurses-2.2.0-Development-Roadmap.md), with its [interaction design](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The 2.1 architecture, API, tests and release evidence remain recorded in [the 2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md) and [the v2.1.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v2.1.0). T2201 accepted the published interaction baseline, T2202 added binding discovery, and T2203 accepted bounded command sequences with exact evidence in the [T2203 gate](docs/T2203-Bounded-Command-Sequences-Gate.md). T2204 prompt state and T2205 timing helpers remain deferred pending new application evidence.
+The active plan is [Icod.DCurses-2.2.0-Development-Roadmap.md](Icod.DCurses-2.2.0-Development-Roadmap.md), with its [interaction design](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The 2.1 architecture, API, tests and release evidence remain recorded in [the 2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md) and [the v2.1.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v2.1.0). T2201 accepted the published interaction baseline, T2202 added binding discovery, and T2203 accepted bounded command sequences with exact evidence in the [T2203 gate](docs/T2203-Bounded-Command-Sequences-Gate.md). T2204 prompt state and T2205 timing helpers remain deferred pending new application evidence. T2206 has exact-head automated evidence; its [live editor and roguelike checklist](docs/T2206-Application-Interaction-Acceptance-Gate.md) remains pending.
 
 The published 2.0 contract and migration history remain governed by [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md), [docs/T2011-Stable-Source-Release-Gate.md](docs/T2011-Stable-Source-Release-Gate.md), [docs/Public-API-Fingerprint-2.0.json](docs/Public-API-Fingerprint-2.0.json), [docs/Public-API-Baseline-2.0.md](docs/Public-API-Baseline-2.0.md), and the [2.0 migration guide](docs/2.0-Migration-Guide.md).
 
@@ -60,7 +60,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.6.x` | Necessary maintenance only | As needed; no new feature track |
 | `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | Published |
 | `2.1.0` | Core presentation and text foundations for editor and roguelike applications | Merged, tagged and released |
-| `2.2.0` | Interaction and application conveniences for editor and roguelike applications | PR #34 in development; T2203 accepted, T2206 integration planning next |
+| `2.2.0` | Interaction and application conveniences for editor and roguelike applications | PR #34 in development; T2206 automated candidate qualified, live acceptance pending |
 | `2.3+` | Higher-level packages, including a possible `Icod.DCurses.Widgets`, and later graphics work | Deferred; scope depends on application evidence |
 
 The post-1.0 progression is intentionally cumulative:
@@ -313,7 +313,7 @@ The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candida
 | T2203 | Bounded multi-key command composition | Accepted on exact head `2cdb89f`; 7/7 PR Staging jobs green |
 | T2204 | Small prompt-input mechanism, if justified by T2201 | Deferred pending a second application witness |
 | T2205 | Clock-fed pointer or frame timing mechanisms, if justified by T2201 | Deferred pending a concrete timing witness |
-| T2206 | Public-only editor and roguelike acceptance and package consumers | Pending |
+| T2206 | Public-only editor and roguelike acceptance and package consumers | Automated candidate qualified at `19d0fba`; live checklist pending |
 | T2207 | Adversarial, performance, API, documentation and dependency freeze | Pending |
 | T2208 | RC and stable-source exact-head release closure | Pending |
 
@@ -355,8 +355,8 @@ For 2.2, the published 2.1 API artifacts remain immutable historical evidence. T
 
 ## Immediate next step
 
-Plan T2206 public-only editor and roguelike integration of the accepted T2202
-discovery and T2203 command-sequence mechanisms. The PR remains draft; this is
-not a merge or publication request.
+Run the [T2206 live editor and roguelike checklist](docs/T2206-Application-Interaction-Acceptance-Gate.md),
+then begin T2207 only after that human terminal evidence is accepted. The PR
+remains draft; this is not authorization to merge, tag or publish.
 
 The direct production dependency remains `Icod.DCurses -> Icod.Terminal`; any newly discovered live-terminal gap remains work for the owning Terminal dependency.
