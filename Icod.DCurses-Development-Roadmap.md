@@ -313,7 +313,7 @@ The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candida
 | T2203 | Bounded multi-key command composition | Accepted on exact head `2cdb89f`; 7/7 PR Staging jobs green |
 | T2204 | Small prompt-input mechanism, if justified by T2201 | Deferred pending a second application witness |
 | T2205 | Clock-fed pointer or frame timing mechanisms, if justified by T2201 | Deferred pending a concrete timing witness |
-| T2206 | Public-only editor and roguelike acceptance and package consumers | Live editor correction qualified at `df28e11`; focused manual recheck pending |
+| T2206 | Public-only editor and roguelike acceptance and package consumers | Raw-input editor correction qualified at `ff6e446`; focused manual recheck pending |
 | T2207 | Adversarial, performance, API, documentation and dependency freeze | Pending |
 | T2208 | RC and stable-source exact-head release closure | Pending |
 
@@ -356,6 +356,7 @@ For 2.2, the published 2.1 API artifacts remain immutable historical evidence. T
 ## Immediate next step
 
 Run the focused editor recheck in the [T2206 live editor and roguelike checklist](docs/T2206-Application-Interaction-Acceptance-Gate.md),
+including confirmation that `Ctrl+K Ctrl+C` cancels without closing the editor,
 then begin T2207 only after that human terminal evidence is accepted. The PR
 remains draft; this is not authorization to merge, tag or publish.
 

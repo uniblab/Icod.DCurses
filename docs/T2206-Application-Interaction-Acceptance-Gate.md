@@ -2,8 +2,8 @@
 
 **Date:** 2026-09-25\
 **Status:** Automated qualification complete; focused editor recheck pending\
-**Executable head:** `df28e111ab01ff2a1c5888826681acf2ca1c1f86`\
-**Workflow:** [36095160547](https://github.com/uniblab/Icod.DCurses/actions/runs/36095160547)
+**Executable head:** `ff6e44606dedca3ec3bf95fdbe740de80bf4a169`\
+**Workflow:** [36096617375](https://github.com/uniblab/Icod.DCurses/actions/runs/36096617375)
 
 ## Scope
 
@@ -60,7 +60,7 @@ derived from effective discovery.
 
 Both samples retain orderly `screen.Clear()` plus refresh on exit.
 
-## Live editor correction
+## Live editor corrections
 
 The first live editor run found that `Ctrl+G` and `Ctrl+K Ctrl+G` appeared to
 do nothing, while `Ctrl+V` was already used by the terminal for clipboard
@@ -78,6 +78,22 @@ to `Ctrl+T`, and deliberately leaves `Ctrl+V` unclaimed for terminal clipboard
 paste. It adds no public API and does not make matching generally
 case-insensitive.
 
+The follow-up live run then found that `Ctrl+K Ctrl+C` closed the program
+instead of cancelling the prompt. The sequence router was not at fault: the
+editor had opened its session in the default CBreak input mode, which retains
+host signal processing. The host converted `Ctrl+C` into an Interrupt
+lifecycle event, and the sample exited before the event could reach command
+routing.
+
+Tests-only head `1d760d9f8ec208b293f41934f349ab0f90f5534b` established the missing
+application input policy in
+[workflow 36096460955](https://github.com/uniblab/Icod.DCurses/actions/runs/36096460955):
+all three target frameworks reported only the absent editor session-options
+factory. The sample-local correction opens the editor in Raw input mode so
+`Ctrl+C` is delivered to the registered command sequence. The DCurses default,
+the roguelike and the public API remain unchanged; `Escape` remains the
+editor's orderly-exit command.
+
 ## Exact-head automated qualification
 
 The first package-consumer attempt at `2c4619acc614895d660bebed1ce5eb31d7daba43`
@@ -89,13 +105,14 @@ tests continue to cover pending, completion and mismatch processing with
 synthetic events.
 
 Initial executable head `19d0fba977e9d1272ea82f1cab705a64130fad64`
-passed all seven Staging jobs in workflow 36090193035 before the live issue was
-found. Corrected exact executable head
-`df28e111ab01ff2a1c5888826681acf2ca1c1f86` passed all seven Staging jobs in
-workflow 36095160547:
+and first corrected head `df28e111ab01ff2a1c5888826681acf2ca1c1f86`
+each passed all seven Staging jobs before the successive live issues were
+found. Final corrected exact executable head
+`ff6e44606dedca3ec3bf95fdbe740de80bf4a169` passed all seven Staging jobs in
+workflow 36096617375:
 
 - six Windows, Linux and macOS x64/ARM64 runtime jobs built successfully;
-- every runtime job passed 1,280 tests on each of .NET 8, 9 and 10, with zero
+- every runtime job passed 1,281 tests on each of .NET 8, 9 and 10, with zero
   failures and zero skips;
 - the macOS x64 target-framework tests remained sequential as agreed;
 - the package job built and validated `Icod.DCurses.2.2.0-alpha.1.nupkg` and
@@ -104,9 +121,9 @@ workflow 36095160547:
 - package structure, metadata, dependency closure, assembly identity, XML
   documentation and portable symbols passed validation.
 
-Staging artifact `10847501911` records the corrected exact executable head and has ZIP
+Staging artifact `10847707913` records the final corrected exact executable head and has ZIP
 digest
-`sha256:c803eba8951b5b1c09283408dbb5e22905a1fd540bb270885b80ac675249a856`.
+`sha256:25196ec09c8c0448d72725227572ab584bf74192c066ae388ac89f0c47eafb68`.
 
 ## Live manual acceptance
 
