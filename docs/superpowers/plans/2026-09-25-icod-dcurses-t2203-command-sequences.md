@@ -440,11 +440,17 @@ Add `HigherSingleBindingPreventsLowerSequenceStart`, `SharedPrefixSelectsTheComp
 
 Use the internal test-accessible `CursesInputEvent.FromText` and `FromKey` factories already used by routing tests.
 
-- [ ] **Step 3: Push the routing RED checkpoint.**
+- [x] **Step 3: Push the routing RED checkpoint.** Exact remote head
+  `c8c32df`; workflow 36082465377 compiled the test suite and the first
+  complete runner failed the seven intended provisional-behavior tests on all
+  three TFMs: region precedence, nearest scope precedence, higher single-key
+  shadowing, shared-prefix completion, mismatch replay, non-keyboard mismatch
+  and semantic matching. Cancellation already passed. The deferred fingerprint
+  remained the only unrelated failure.
 
 Expected: assertions fail because Task 2 always returns `Fallback`; compilation remains green. Record the exact failed test names and head.
 
-- [ ] **Step 4: Implement owner classification and pending state.**
+- [x] **Step 4: Implement owner classification and pending state.**
 
 Store only bounded state:
 
@@ -456,7 +462,7 @@ private CursesCommandSequenceRegistration[] pendingCommandSequenceCandidates = [
 
 At the first keyboard event, enumerate focused region, eligible scope chain and global owner. For each owner, check its single-key bindings and sequences before advancing to the next owner. Use `gesture.Matches(input)`, never reconstruct a gesture from the event. When a sequence owner wins, copy its matching candidate references and the first registered gesture into pending state.
 
-- [ ] **Step 5: Implement extension, completion and mismatch.**
+- [x] **Step 5: Implement extension, completion and mismatch.**
 
 ```csharp
 private CursesCommandSequenceResult ContinuePendingCommandSequence(
@@ -503,7 +509,7 @@ private CursesCommandSequenceResult ContinuePendingCommandSequence(
 
 `MismatchResult` calls `Route(input)` once and never feeds `input` back into sequence-start classification.
 
-- [ ] **Step 6: Verify and commit the state machine.**
+- [x] **Step 6: Verify and commit the state machine.**
 
 ```sh
 git diff --check

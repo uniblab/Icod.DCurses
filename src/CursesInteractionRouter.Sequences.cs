@@ -90,11 +90,7 @@ public sealed partial class CursesInteractionRouter {
 		this.ThrowIfDisposed();
 
 		if ( this.pendingCommandSequenceOwner is not null ) {
-			this.ClearPendingCommandSequence();
-			return CursesCommandSequenceResult.FallbackResult(
-				input,
-				this.Route( input )
-			);
+			return this.ContinuePendingCommandSequence( input );
 		}
 		if ( input.Kind is not CursesInputEventKind.Text
 			and not CursesInputEventKind.Key ) {
@@ -104,26 +100,61 @@ public sealed partial class CursesInteractionRouter {
 			);
 		}
 
-		List<CursesCommandSequenceRegistration> candidates = [];
-		foreach ( CursesCommandSequenceRegistration registration
-			in this.globalCommandSequences ) {
-			if ( registration.MatchesFirst( input ) ) {
-				candidates.Add( registration );
+		this.RepairFocusIfNeeded();
+		CursesInteractionScope? activeScope = this.ActiveScope;
+		CursesInteractionRegion? focused = this.focusedRegion;
+		if ( focused is not null ) {
+			CursesCommandSequenceResult? regionResult = this.TryStartCommandSequence(
+				input,
+				focused,
+				focused.CommandSequences,
+				focused.TryGetCommand( input, out _ )
+			);
+			if ( regionResult is not null ) {
+				return regionResult;
+			}
+
+			CursesInteractionScope? scope = focused.Scope;
+			while ( scope is not null ) {
+				CursesCommandSequenceResult? scopeResult = this.TryStartCommandSequence(
+					input,
+					scope,
+					scope.CommandSequences,
+					scope.TryGetCommand( input, out _ )
+				);
+				if ( scopeResult is not null ) {
+					return scopeResult;
+				}
+				if ( ReferenceEquals( scope, activeScope ) ) {
+					break;
+				}
+				scope = scope.Parent;
+			}
+		} else if ( activeScope is not null ) {
+			CursesCommandSequenceResult? scopeResult = this.TryStartCommandSequence(
+				input,
+				activeScope,
+				activeScope.CommandSequences,
+				activeScope.TryGetCommand( input, out _ )
+			);
+			if ( scopeResult is not null ) {
+				return scopeResult;
 			}
 		}
-		if ( candidates.Count is 0 ) {
-			return CursesCommandSequenceResult.FallbackResult(
-				input,
-				this.Route( input )
-			);
+
+		CursesCommandSequenceResult? globalResult = this.TryStartCommandSequence(
+			input,
+			this,
+			this.globalCommandSequences,
+			this.TryGetGlobalCommand( input, out _ )
+		);
+		if ( globalResult is not null ) {
+			return globalResult;
 		}
 
-		this.pendingCommandSequenceOwner = this;
-		this.pendingCommandSequenceGestures = [ candidates[0].Gestures[0] ];
-		this.pendingCommandSequenceCandidates = candidates.ToArray();
-		return CursesCommandSequenceResult.PendingResult(
+		return CursesCommandSequenceResult.FallbackResult(
 			input,
-			this.pendingCommandSequenceGestures
+			this.Route( input )
 		);
 	}
 
@@ -187,6 +218,102 @@ public sealed partial class CursesInteractionRouter {
 		this.pendingCommandSequenceOwner = null;
 		this.pendingCommandSequenceGestures = [];
 		this.pendingCommandSequenceCandidates = [];
+	}
+
+	private CursesCommandSequenceResult? TryStartCommandSequence(
+		CursesInputEvent input,
+		object owner,
+		IReadOnlyList<CursesCommandSequenceRegistration> registrations,
+		bool hasMatchingSingleBinding
+	) {
+		ArgumentNullException.ThrowIfNull( input );
+		ArgumentNullException.ThrowIfNull( owner );
+		ArgumentNullException.ThrowIfNull( registrations );
+		if ( hasMatchingSingleBinding ) {
+			return CursesCommandSequenceResult.FallbackResult(
+				input,
+				this.Route( input )
+			);
+		}
+
+		List<CursesCommandSequenceRegistration> candidates = [];
+		foreach ( CursesCommandSequenceRegistration registration in registrations ) {
+			if ( registration.MatchesFirst( input ) ) {
+				candidates.Add( registration );
+			}
+		}
+		if ( candidates.Count is 0 ) {
+			return null;
+		}
+
+		CursesKeyGesture[] matched = [ candidates[0].Gestures[0] ];
+		this.SetPendingCommandSequence(
+			owner,
+			matched,
+			candidates.ToArray()
+		);
+		return CursesCommandSequenceResult.PendingResult( input, matched );
+	}
+
+	private CursesCommandSequenceResult ContinuePendingCommandSequence(
+		CursesInputEvent input
+	) {
+		ArgumentNullException.ThrowIfNull( input );
+		CursesKeyGesture[] abandoned = this.pendingCommandSequenceGestures;
+		List<CursesCommandSequenceRegistration> matches = [];
+		CursesCommandSequenceRegistration? completed = null;
+		foreach ( CursesCommandSequenceRegistration candidate
+			in this.pendingCommandSequenceCandidates ) {
+			if ( candidate.Gestures.Length <= abandoned.Length
+				|| !candidate.Gestures[abandoned.Length].Matches( input ) ) {
+				continue;
+			}
+			matches.Add( candidate );
+			if ( candidate.Gestures.Length == abandoned.Length + 1 ) {
+				completed = candidate;
+			}
+		}
+		if ( matches.Count is 0 ) {
+			this.ClearPendingCommandSequence();
+			return CursesCommandSequenceResult.MismatchResult(
+				input,
+				abandoned,
+				this.Route( input )
+			);
+		}
+
+		CursesKeyGesture[] extended = [
+			.. abandoned,
+			matches[0].Gestures[abandoned.Length]
+		];
+		if ( completed is not null ) {
+			this.ClearPendingCommandSequence();
+			return CursesCommandSequenceResult.CompletedResult(
+				input,
+				extended,
+				completed.Command
+			);
+		}
+
+		this.SetPendingCommandSequence(
+			this.pendingCommandSequenceOwner!,
+			extended,
+			matches.ToArray()
+		);
+		return CursesCommandSequenceResult.PendingResult( input, extended );
+	}
+
+	private void SetPendingCommandSequence(
+		object owner,
+		CursesKeyGesture[] gestures,
+		CursesCommandSequenceRegistration[] candidates
+	) {
+		ArgumentNullException.ThrowIfNull( owner );
+		ArgumentNullException.ThrowIfNull( gestures );
+		ArgumentNullException.ThrowIfNull( candidates );
+		this.pendingCommandSequenceOwner = owner;
+		this.pendingCommandSequenceGestures = gestures;
+		this.pendingCommandSequenceCandidates = candidates;
 	}
 
 	private bool HasGlobalCommandSequenceStartingWith(

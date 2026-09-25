@@ -178,6 +178,41 @@ public sealed class CursesCommandSequenceRoutingTests {
 	}
 
 	[Fact]
+	public void LongSequenceNarrowsCandidatesUntilCompletion() {
+		CursesScreen screen = new( 20, 10 );
+		using CursesInteractionRouter router = new( screen );
+		CursesKeyGesture g = Character( 'g' );
+		CursesKeyGesture d = Character( 'd' );
+		CursesKeyGesture x = Character( 'x' );
+		CursesCommand command = new( "definition-detail" );
+		router.BindGlobalGestureSequence( [ g, d, x ], command );
+		router.BindGlobalGestureSequence(
+			[ g, Character( 'e' ) ],
+			new CursesCommand( "other" )
+		);
+
+		Assert.Equal(
+			CursesCommandSequenceResultKind.Pending,
+			router.ProcessCommandSequence(
+				CursesInputEvent.FromText( new Rune( 'g' ) )
+			).Kind
+		);
+		CursesCommandSequenceResult narrowed = router.ProcessCommandSequence(
+			CursesInputEvent.FromText( new Rune( 'd' ) )
+		);
+		CursesCommandSequenceResult completed = router.ProcessCommandSequence(
+			CursesInputEvent.FromText( new Rune( 'x' ) )
+		);
+
+		Assert.Equal( CursesCommandSequenceResultKind.Pending, narrowed.Kind );
+		Assert.Equal( [ g, d ], narrowed.MatchedGestures );
+		Assert.Equal( CursesCommandSequenceResultKind.Completed, completed.Kind );
+		Assert.Equal( [ g, d, x ], completed.MatchedGestures );
+		Assert.Same( command, completed.Command );
+		Assert.False( router.HasPendingCommandSequence );
+	}
+
+	[Fact]
 	public void NonKeyboardInputFallsBackOrMismatches() {
 		CursesScreen screen = new( 20, 10 );
 		using CursesInteractionRouter router = new( screen );
