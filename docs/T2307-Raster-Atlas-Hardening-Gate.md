@@ -19,22 +19,20 @@ The complete method and expected operation counts are in
 
 T2307 is accepted at exact source head `751890de112be2e8d0be1757e1fdc6fd47b14c8d`
 by [pull-request workflow 1296](https://github.com/uniblab/Icod.DCurses/actions/runs/37106805634), run `37106805634`.
-The package candidate and all six Windows, Linux and macOS x64/ARM64 runtime jobs
-are green. The first macOS x64 attempt passed net8.0 and net10.0 but one net9.0
-256-tile RGB24 workload exhausted the harness's 15-second write wait; the unchanged
-job rerun passed all three frameworks. A later documentation-head run exhausted the
-same wait in net8.0 on a 16-tile case while its net9.0/net10.0 and all other runtime
-jobs passed. Because the failing framework and workload moved while product source
-did not, this is runner scheduling against an undersized test-harness deadline, not
-workload cost or a product defect. The scripted-I/O wait is therefore one minute;
-the deterministic operation-count assertions remain unchanged.
+Subsequent documentation-head runs exposed scheduler-sensitive failures in different
+frameworks, architectures and workload sizes. Extending the scripted wait to one
+minute did not resolve them, proving that the deadline was not the root cause. The
+atlas transaction fixture performs the same bounded fake-transport negotiation as
+the repository's existing terminal-protocol tests, but it had omitted their
+nonparallel `TerminalProtocolNegotiationCollection`. The correction places the
+fixture in that established collection and restores the original 15-second failure
+detector.
 
-The following exact-head run exposed a separate setup race on macOS ARM64: the
-fixture delivered the Kitty acknowledgement and Primary-DA barrier as independent
-input chunks, so scheduler timing could let the barrier complete verification before
-the acknowledgement was recorded. The fixture now follows Terminal 1.24's public
-verification test pattern and delivers the ordered Kitty-plus-DA frames in one input
-chunk. Product code and workload assertions remain unchanged.
+One run also exposed an independent setup-order race: the fixture delivered the Kitty
+acknowledgement and Primary-DA barrier as separate input chunks. It now follows
+Terminal 1.24's public-verification test pattern and delivers the ordered frames in
+one chunk. These corrections change only test scheduling and scripted input ordering;
+product code, package behavior and deterministic workload assertions are unchanged.
 
 The Staging artifact `icod-dcurses-pr-packages-Staging` has GitHub digest
 `sha256:22a72c3be6ca810b285d90d10e473c0d89d3fc65ac0d9e7145c20e94e2804d81`.

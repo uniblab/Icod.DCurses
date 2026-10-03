@@ -29,9 +29,8 @@ using Xunit;
 namespace Icod.DCurses.Tests;
 
 /// <summary>Exercises the complete atlas transaction against a scripted Terminal session.</summary>
+[Collection( TerminalProtocolNegotiationCollection.Name )]
 public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
-	private static readonly TimeSpan ScriptedIoTimeout = TimeSpan.FromMinutes( 1 );
-
 	[Fact]
 	public async Task CreationProjectionAndPresentationUseDeterministicOrder() {
 		AtlasTransport transport = new();
@@ -356,7 +355,7 @@ public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 		internal async Task WaitForWriteCountAsync(
 			int expected
 		) {
-			using CancellationTokenSource timeout = new( ScriptedIoTimeout );
+			using CancellationTokenSource timeout = new( TimeSpan.FromSeconds( 15 ) );
 			while ( true ) {
 				lock ( sync ) {
 					if ( expected <= writes.Count ) {
