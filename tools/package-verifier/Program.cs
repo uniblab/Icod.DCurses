@@ -14,7 +14,7 @@ internal static class Program {
 	private const string PackageCopyright = "Copyright (c) 2026 Timothy J. Bruce";
 	private const string RepositoryUrl = "https://github.com/uniblab/Icod.DCurses";
 	private const string TerminalPackageId = "Icod.Terminal";
-	private const string TerminalMinimumVersion = "1.24.0";
+	private const string TerminalMinimumVersion = "1.24.1";
 	private static readonly string[] TargetFrameworks = [
 		"net8.0",
 		"net9.0",
@@ -284,7 +284,7 @@ internal static class Program {
 		Require(
 			1 == references.Length
 				&& TerminalMinimumVersion == references[ 0 ].Attribute( "Version" )?.Value,
-			"Production project must require Icod.Terminal 1.24.0."
+			"Production project must require Icod.Terminal 1.24.1."
 		);
 
 		return dependencyIds;
@@ -293,7 +293,7 @@ internal static class Program {
 	private static void VerifyDependencyNegativeControls() {
 		XDocument extraProjectDependency = XDocument.Parse(
 			"<Project><ItemGroup>"
-				+ "<PackageReference Include='Icod.Terminal' Version='1.24.0' />"
+				+ "<PackageReference Include='Icod.Terminal' Version='1.24.1' />"
 				+ "<PackageReference Include='Icod.TermInfo' Version='1.17.0' />"
 				+ "</ItemGroup></Project>"
 		);
@@ -869,7 +869,7 @@ internal static class Program {
 				TerminalMinimumVersion == version
 					|| $"[{TerminalMinimumVersion}, )" == version
 					|| $"[{TerminalMinimumVersion},)" == version,
-				$"Package dependency for {targetFramework} must require Icod.Terminal 1.24.0."
+				$"Package dependency for {targetFramework} must require Icod.Terminal 1.24.1."
 			);
 		}
 	}

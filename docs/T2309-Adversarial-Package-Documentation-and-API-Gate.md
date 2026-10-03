@@ -6,7 +6,7 @@
 | --- | --- |
 | package/version | `Icod.DCurses 2.3.0-alpha.1` |
 | assembly version | `2.0.0.0` |
-| direct runtime dependency | exactly `Icod.Terminal 1.24.0` |
+| direct runtime dependency | exactly `Icod.Terminal 1.24.1` |
 | direct TermInfo dependency | none |
 | exported types | 105 |
 | canonical contract lines | 838 |
@@ -20,7 +20,7 @@ after this gate without deliberately reopening the fingerprint and roadmap decis
 
 The repository package validator must prove that the `.nupkg` contains the README,
 license, icon, three TFM assets, repository/source-link metadata and the matching symbol
-package. Its nuspec/deps/lock inspection must show the one direct `Icod.Terminal 1.24.0`
+package. Its nuspec/deps/lock inspection must show the one direct `Icod.Terminal 1.24.1`
 runtime dependency and no direct Icod.TermInfo dependency.
 
 The fresh NuGet-only consumer compiles and executes for net8.0, net9.0 and net10.0. Its
@@ -42,13 +42,14 @@ terminal restoration, not live raster rendering.
 
 ## Gate state
 
-T2309 is accepted at exact source head
+The original Terminal 1.24.0 T2309 candidate was accepted at exact source head
 `751890de112be2e8d0be1757e1fdc6fd47b14c8d` by
 [pull-request workflow 1296](https://github.com/uniblab/Icod.DCurses/actions/runs/37106805634), run `37106805634`. The package candidate
-and all six OS/architecture runtime jobs are green. The package artifact digest is
+and all six OS/architecture runtime jobs were green. The package artifact digest was
 `sha256:22a72c3be6ca810b285d90d10e473c0d89d3fc65ac0d9e7145c20e94e2804d81`;
 the `.nupkg` and `.snupkg` hashes are recorded in the T2307 gate and measurement
-report.
+report. The Terminal 1.24.1 dependency-only refresh must repeat the exact package and
+runtime qualification before T2309 is accepted on the current head.
 
 Live raster and explicit fallback observations remain the separate T2308/T2310
 maintainer checklist and are not inferred from CI.

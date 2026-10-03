@@ -6,10 +6,10 @@
 **Baseline:** published and tagged `v2.2.0`  
 **Current source and package version:** `2.3.0-alpha.1`  
 **Assembly version:** `2.0.0.0`  
-**Direct runtime dependency:** `Icod.Terminal 1.24.0` minimum; no direct `Icod.TermInfo` reference  
+**Direct runtime dependency:** `Icod.Terminal 1.24.1` minimum; no direct `Icod.TermInfo` reference
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** T2301–T2307 and T2309 accepted; T2308 automated acceptance complete with portable resize polling, live raster/text checklist pending; T2310 not started
+**Status:** T2301–T2307 accepted; T2308 automated acceptance complete with portable resize polling and recoverable malformed-raster fallback; T2309 dependency refresh to Terminal 1.24.1 under exact-head qualification; live Contour raster/text checklist pending; T2310 not started
 **Planning snapshot:** 2026-10-03
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
@@ -86,7 +86,7 @@ Controlled failures return explicit status and completed-update counts without s
 | **T2306** | Refresh serialization and lifecycle/failure hardening | Atlas work cannot interleave with refresh/lifecycle output; definite failures recover through the next front copy; ambiguous failures and generation loss require recreation |
 | **T2307** | Adversarial, capacity, allocation and workload measurement | Bounds fail before output; 1/4/16/64/121/256-tile package workloads recorded; no map-sized storage or hidden image cache; later Terminal work is evidence-gated |
 | **T2308** | Public-only Ultima-style sample and package-only consumer | Raster and explicit text fallback share one model; movement, overlays, viewport, resize/recreate and clean exit pass automated/manual acceptance |
-| **T2309** | Public API, package, dependency, XML and documentation freeze | Additive API fingerprint accepted; sole direct dependency exactly Terminal 1.24.0; README/sample guidance and package artifacts verified on all TFMs |
+| **T2309** | Public API, package, dependency, XML and documentation freeze | Additive API fingerprint accepted; sole direct dependency exactly Terminal 1.24.1; README/sample guidance and package artifacts verified on all TFMs |
 | **T2310** | RC, live-terminal acceptance and stable-source qualification | Exact RC head green across the PR matrix; live checklist accepted; unchanged stable source green before merge/tag/publication |
 
 Every tranche records an exact commit and evidence document. Green CI is necessary but not sufficient: semantic, package and manual gates still apply.
@@ -157,4 +157,4 @@ T2309 is the API/package regret deadline. After it, only fixes required by accep
 
 ## 10. Immediate next step
 
-Complete the T2308 live raster and explicit text-fallback checklist on representative terminals. After those observations are recorded, advance to T2310 RC qualification; do not promote stable source until the exact RC matrix and live evidence are accepted.
+Qualify the exact Terminal 1.24.1 dependency-refresh head, then repeat the T2308 live raster and explicit text-fallback checklist in Contour 0.7.0.8982. After those observations are recorded, advance to T2310 RC qualification; do not promote stable source until the exact RC matrix and live evidence are accepted.

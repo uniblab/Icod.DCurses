@@ -6,7 +6,7 @@
 
 **Architecture:** `CursesRasterAtlas` owns one DCurses facade over one Terminal resource, one placeholder grid and two opaque frames. `CursesSession` performs geometry, creation and presentation under its existing terminal-activity gate. `CursesWindow` projects atlas cells into the existing sparse retained-raster plane. Each present copies front to back, applies a bounded deterministic tile-change set, selects last and swaps only after acknowledgement.
 
-**Tech stack:** C# 13, .NET 8/9/10, xUnit 2.9.2, Icod.Terminal 1.24.0, PowerShell 5.1-compatible repository automation, GitHub Actions. No Python.
+**Tech stack:** C# 13, .NET 8/9/10, xUnit 2.9.2, Icod.Terminal 1.24.1, PowerShell 5.1-compatible repository automation, GitHub Actions. No Python.
 
 **Design authority:** `docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md`  
 **Release authority:** `Icod.DCurses-2.3.0-Development-Roadmap.md`
@@ -14,7 +14,7 @@
 ## Global rules
 
 - Preserve every 2.2 public member and `AssemblyVersion 2.0.0.0`.
-- Keep the sole direct production dependency at exactly `Icod.Terminal 1.24.0`; never add direct TermInfo access or raw control strings.
+- Keep the sole direct production dependency at exactly `Icod.Terminal 1.24.1`; never add direct TermInfo access or raw control strings.
 - Add XML documentation with each public member. Staging and Release warnings are errors.
 - Observe a focused RED before production behavior in every task.
 - Validate and copy all caller data before retained mutation or terminal output.
@@ -223,7 +223,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 1. Update README feature, ownership, minimum dependency, usage, fallback, resize and recreation guidance. Link the sample and measurement report.
 2. Generate the normalized .NET 8/9/10 API baseline/fingerprint and prove the 2.3 delta is additive over published 2.2.
 3. Verify every public member has accurate XML docs including exceptions, limits, I/O, acknowledgement and non-atomicity.
-4. Pack `2.3.0-alpha.1`; inspect the nuspec and lock/deps outputs for exactly one direct runtime dependency, `Icod.Terminal >= 1.24.0`, and no direct TermInfo.
+4. Pack `2.3.0-alpha.1`; inspect the nuspec and lock/deps outputs for exactly one direct runtime dependency, `Icod.Terminal >= 1.24.1`, and no direct TermInfo.
 5. Run fresh NuGet-only consumers on all TFMs and cross-platform workflow scripts. Check licensing/readme/icon/symbol/source-link artifacts.
 6. Freeze the public contract and record T2309. No new feature family enters afterward.
 

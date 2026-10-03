@@ -60,7 +60,7 @@ public sealed class PublicTwoOneDevelopmentIdentityTests {
 
 		XElement reference = Assert.Single( references );
 		Assert.Equal( "Icod.Terminal", reference.Attribute( "Include" )?.Value );
-		Assert.Equal( "1.24.0", reference.Attribute( "Version" )?.Value );
+		Assert.Equal( "1.24.1", reference.Attribute( "Version" )?.Value );
 		Assert.DoesNotContain(
 			references,
 			static current => string.Equals(

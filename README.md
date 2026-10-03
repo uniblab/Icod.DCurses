@@ -70,7 +70,7 @@ higher-level terminal applications / future widgets
 The direct 2.x runtime dependency is:
 
 ```text
-Icod.Terminal 1.24.0
+Icod.Terminal 1.24.1
 ```
 
 `Icod.TermInfo` is not a direct dependency of DCurses 2.x; NuGet may restore it transitively through Terminal. The 2.0 major-version boundary requires a consumer rebuild from 1.6; follow the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md). The previous 1.6 package retains its historical direct dependencies on `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`.

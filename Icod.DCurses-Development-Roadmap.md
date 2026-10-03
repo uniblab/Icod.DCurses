@@ -6,12 +6,12 @@
 **Latest tagged stable release:** `2.2.0`\
 **Current source/package identity:** `2.3.0-alpha.1`\
 **Current development assembly version:** `2.0.0.0`\
-**Current development runtime dependency:** direct `Icod.Terminal 1.24.0` only; TermInfo remains transitive\
-**Planned 2.3 direct runtime dependency:** `Icod.Terminal 1.24.0` minimum; no direct `Icod.TermInfo` reference\
+**Current development runtime dependency:** direct `Icod.Terminal 1.24.1` only; TermInfo remains transitive\
+**Planned 2.3 direct runtime dependency:** `Icod.Terminal 1.24.1` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.3.0` — first-class `CursesRasterAtlas` coordination\
-**Status:** 2.2.0 merged, tagged and released; 2.3.0 Option 1 approved and planning opened
+**Status:** 2.2.0 merged, tagged and released; 2.3 atlas implementation and automated acceptance complete; Terminal 1.24.1 dependency refresh under exact-head qualification before the live Contour raster checklist
 
 **Planning snapshot:** 2026-10-03
 
@@ -25,7 +25,7 @@ The published 2.2 architecture and release evidence remain recorded in [the 2.2 
 
 The published 2.0 contract and migration history remain governed by [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md), [docs/T2011-Stable-Source-Release-Gate.md](docs/T2011-Stable-Source-Release-Gate.md), [docs/Public-API-Fingerprint-2.0.json](docs/Public-API-Fingerprint-2.0.json), [docs/Public-API-Baseline-2.0.md](docs/Public-API-Baseline-2.0.md), and the [2.0 migration guide](docs/2.0-Migration-Guide.md).
 
-The published [Terminal 1.24.0 contract](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.24.0) supplies the existing semantic/session baseline plus bounded pixel-geometry queries, exact derivation support, raster planning snapshots, intrinsic resource geometry, acknowledged frame composition and region replacement, frame selection, and focused operation evidence required by `CursesRasterAtlas`. Any later integration gap must be fixed and released in the owning dependency before the affected DCurses gate advances; it must not be bypassed with TermInfo calls or raw terminal strings.
+The published [Terminal 1.24.1 contract](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.24.1) supplies the existing semantic/session baseline plus bounded pixel-geometry queries, exact derivation support, raster planning snapshots, intrinsic resource geometry, acknowledged frame composition and region replacement, frame selection, and focused operation evidence required by `CursesRasterAtlas`. Its persistent-raster verification distinguishes generic Kitty Graphics support from the nonzero terminal-assigned identity required by atlas creation, so malformed or zero identities become controlled capability evidence rather than escaping as parser failures. Any later integration gap must be fixed and released in the owning dependency before the affected DCurses gate advances; it must not be bypassed with TermInfo calls or raw terminal strings.
 
 The published [DCurses 1.6.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v1.6.0) is the behavioral migration baseline. Its implementation and release closure are governed by:
 
@@ -63,7 +63,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | Published |
 | `2.1.0` | Core presentation and text foundations for editor and roguelike applications | Merged, tagged and released |
 | `2.2.0` | Interaction and application conveniences for editor and roguelike applications | Published |
-| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Approved; planning and Terminal 1.24 dependency baseline in progress |
+| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Implementation and automated acceptance complete; Terminal 1.24.1 refresh and live Contour acceptance in progress |
 | `2.4+` | Higher-level packages, including a possible `Icod.DCurses.Widgets`, and later sprite/physical-placement work | Deferred; scope depends on application evidence |
 
 The post-1.0 progression is intentionally cumulative:
