@@ -29,6 +29,13 @@ did not, this is runner scheduling against an undersized test-harness deadline, 
 workload cost or a product defect. The scripted-I/O wait is therefore one minute;
 the deterministic operation-count assertions remain unchanged.
 
+The following exact-head run exposed a separate setup race on macOS ARM64: the
+fixture delivered the Kitty acknowledgement and Primary-DA barrier as independent
+input chunks, so scheduler timing could let the barrier complete verification before
+the acknowledgement was recorded. The fixture now follows Terminal 1.24's public
+verification test pattern and delivers the ordered Kitty-plus-DA frames in one input
+chunk. Product code and workload assertions remain unchanged.
+
 The Staging artifact `icod-dcurses-pr-packages-Staging` has GitHub digest
 `sha256:22a72c3be6ca810b285d90d10e473c0d89d3fc65ac0d9e7145c20e94e2804d81`.
 Its package hashes are:

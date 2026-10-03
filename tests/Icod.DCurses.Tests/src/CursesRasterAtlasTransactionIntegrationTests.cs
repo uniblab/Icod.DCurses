@@ -228,9 +228,10 @@ public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 				imageEnd - imageMarker - 2
 			);
 			transport.Publish(
-				Encoding.ASCII.GetBytes( $"\u001b_Gi={imageId};OK\u001b\\" )
+				Encoding.ASCII.GetBytes(
+					$"\u001b_Gi={imageId};OK\u001b\\\u001b[?64;1c"
+				)
 			);
-			transport.Publish( Encoding.ASCII.GetBytes( "\u001b[?64;1c" ) );
 			Assert.True( ( await verification ).IsUsable );
 
 			return await CursesSession.OpenAsync(
