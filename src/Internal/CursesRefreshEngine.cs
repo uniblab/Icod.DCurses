@@ -277,7 +277,7 @@ internal sealed class CursesRefreshEngine {
 			speculative.CursorColumn = null;
 		}
 
-		CursesLineShiftPlan? lineShift = this.lineShiftResolver.Resolve(
+		CursesLineShiftPlan? lineShift = rasterFrame.HasValue ? null : this.lineShiftResolver.Resolve(
 			desired,
 			speculative.Screen,
 			speculative.CurrentStyle,
@@ -317,7 +317,8 @@ internal sealed class CursesRefreshEngine {
 				preparation,
 				speculative,
 				desired,
-				screen.TextWidthProvider
+				screen.TextWidthProvider,
+				rasterFrame?.Bounds
 			);
 		}
 
@@ -362,13 +363,16 @@ internal sealed class CursesRefreshEngine {
 		Preparation preparation,
 		CursesRefreshPhysicalState speculative,
 		CursesVirtualScreen desired,
-		ICursesTextWidthProvider textWidthProvider
+		ICursesTextWidthProvider textWidthProvider,
+		CursesRectangle? rasterBounds
 	) {
 		bool screenComplete = false;
 		for ( int row = 0; row < desired.Rows; row++ ) {
+			bool coveredRow = rasterBounds.HasValue
+				&& row >= rasterBounds.Value.Row && row < rasterBounds.Value.BottomExclusive;
 			int regionsBeforeRow = this.activeDiagnostics?.DamagedRegions ?? 0;
 			CursesCharacterShiftPlan? characterShift =
-				this.characterShiftResolver.Resolve(
+				rasterBounds.HasValue ? null : this.characterShiftResolver.Resolve(
 					desired,
 					speculative.Screen,
 					row,
@@ -398,6 +402,12 @@ internal sealed class CursesRefreshEngine {
 
 			int column = 0;
 			while ( column < desired.Columns ) {
+				// Preserve logical fallback cells without flashing them beneath the image.
+				if ( coveredRow && column >= rasterBounds!.Value.Column
+					&& column < rasterBounds.Value.RightExclusive ) {
+					column = rasterBounds.Value.RightExclusive;
+					continue;
+				}
 				if ( !NeedsUpdate(
 					desired,
 					speculative.Screen,
@@ -419,7 +429,10 @@ internal sealed class CursesRefreshEngine {
 					row,
 					column
 				);
-				CursesErasePlan? erase = this.eraseResolver.Resolve(
+				if ( coveredRow && start < rasterBounds!.Value.Column ) {
+					end = Math.Min( end, rasterBounds.Value.Column - 1 );
+				}
+				CursesErasePlan? erase = rasterBounds.HasValue ? null : this.eraseResolver.Resolve(
 					desired,
 					speculative.Screen,
 					row,

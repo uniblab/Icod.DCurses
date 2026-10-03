@@ -283,9 +283,10 @@ static async Task<( CursesSession Session, bool PersistentUsable, bool OrdinaryU
 	bool forceText,
 	bool forceRaster
 ) {
+	CursesSessionOptions options = new() { UseSynchronizedOutput = true };
 	if ( forceText ) {
 		return (
-			await CursesSession.OpenAsync(),
+			await CursesSession.OpenAsync( options ),
 			false,
 			false,
 			"Text mode forced by --text."
@@ -308,7 +309,7 @@ static async Task<( CursesSession Session, bool PersistentUsable, bool OrdinaryU
 				// Ordinary raster evidence remains independent of persistent image identities.
 			}
 		}
-		CursesSession session = await CursesSession.OpenAsync( terminal );
+		CursesSession session = await CursesSession.OpenAsync( terminal, options );
 		terminal = null;
 		return ( session, persistent, ordinary.IsUsable, persistent
 			? "Persistent raster capability verified."
@@ -318,7 +319,7 @@ static async Task<( CursesSession Session, bool PersistentUsable, bool OrdinaryU
 			await terminal.DisposeAsync();
 		}
 		return (
-			await CursesSession.OpenAsync(),
+			await CursesSession.OpenAsync( options ),
 			false,
 			false,
 			"Raster verification failed; using text."

@@ -4,6 +4,7 @@ All notable `Icod.DCurses` release-line changes are summarized here. Detailed tr
 
 ## 2.3.0-alpha.1 — Development candidate
 
+- Omit logical fallback text covered by a complete raster frame and request synchronized output in the atlas sample, addressing text-map flashes seen in Windows Terminal and Contour. Preserve fallback text for the next ordinary refresh and reject image edges that split wide text footprints.
 - Added cell-aligned `CursesRasterAtlas`, exact pixel geometry, bounded double-buffered tile updates, and retained rectangular projection.
 - Added explicit `CursesSession.RefreshRasterAsync` for complete viewport images through Terminal's verified ordinary Kitty/Sixel transaction path. Source pixels and fallback policy remain application-owned.
 - Updated the atlas sample to prefer persistent atlas, then ordinary complete frames, then text. Added `--raster`; retained `--text`, portable resize polling, and clean exit. Complete-frame help temporarily uses the text view.

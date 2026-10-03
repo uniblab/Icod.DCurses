@@ -18,15 +18,16 @@ public sealed partial class CursesSession {
 	/// <param name="cancellationToken">Cancellation before output begins.</param>
 	/// <remarks>
 	/// Verify Terminal's ordinary RasterGraphics capability before use. Terminal chooses verified Kitty or Sixel.
-	/// Each call clears and repaints the screen, then draws the image over the destination text. The final
+	/// Each call clears and repaints the screen, omitting text covered by the image. The final
 	/// screen row must remain outside the image. Visible panels may not overlap the image, and retained
-	/// raster cells may not coexist with it. No source pixels or image identity are retained or replayed.
+	/// raster cells may not coexist with it. The image must not split a wide text footprint at either edge.
+	/// No source pixels or image identity are retained or replayed.
 	/// The next ordinary refresh clears the image and repaints text. Physical erasure and placement depend
 	/// on the terminal's graphics behavior. Output failure invalidates physical knowledge; no retry occurs.
 	/// </remarks>
 	/// <exception cref="ArgumentException">Image dimensions do not match a non-default geometry.</exception>
 	/// <exception cref="ArgumentOutOfRangeException">A destination coordinate is negative or overflows.</exception>
-	/// <exception cref="InvalidOperationException">The current screen cannot contain the frame, a panel overlaps, or retained raster cells exist.</exception>
+	/// <exception cref="InvalidOperationException">The current screen cannot contain the frame, a panel overlaps, retained raster cells exist, or an image edge splits wide text.</exception>
 	/// <exception cref="NotSupportedException">Verified raster output or a screen-clear operation is unavailable.</exception>
 	public ValueTask RefreshRasterAsync(
 		TerminalRasterImage image,
@@ -54,6 +55,12 @@ public sealed partial class CursesSession {
 			}
 		}
 		for ( int row = 0; row < screen.Rows; row++ ) {
+			if ( row >= frame.Bounds.Row && row < frame.Bounds.BottomExclusive
+				&& ( screen.VirtualScreen.GetCell( row, frame.Bounds.Column ).IsContinuation
+					|| ( frame.Bounds.RightExclusive < screen.Columns
+						&& screen.VirtualScreen.GetCell( row, frame.Bounds.RightExclusive ).IsContinuation ) ) ) {
+				throw new InvalidOperationException( "A raster frame edge cannot split a wide text footprint." );
+			}
 			for ( int column = 0; column < screen.Columns; column++ ) {
 				if ( screen.VirtualScreen.GetRasterCell( row, column ).HasValue ) {
 					throw new InvalidOperationException( "Immediate frames cannot coexist with retained raster cells." );

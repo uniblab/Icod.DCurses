@@ -164,3 +164,19 @@ Run the T2308 raster checklist in a terminal that supplies a nonzero terminal-as
 The approved fallback work reopens T2308 and T2309 for Terminal 1.25.0-alpha. DCurses adds explicit `RefreshRasterAsync`: one application-owned frame, exact geometry, same serialized transaction as text, conservative damage cleanup, and no persistent identity emulation. Terminal owns Kitty/Sixel selection and encoding. The sample prefers atlas, then complete frame, then text; `--raster` directly exercises the second path.
 
 Automated integration and the additive API fingerprint must be requalified. Then repeat the live checklist in Windows Terminal and Contour: initial image, movement, camera scrolling, blocked water, help open/close, repeated shrinking/growing, status-row cleanup, and Q/Escape restoration. WezTerm remains a controlled-fallback observation unless current verification supplies a usable backend. Earlier text acceptance does not count as frame-path acceptance. T2310 remains pending.
+
+### October 3 recording follow-up
+
+The supplied Windows Terminal and Contour recordings show graphics in `FRAME` mode,
+but the fallback text map flashes between images. Complete-frame refresh now omits
+covered logical text and the sample requests synchronized output. Wide text may not
+straddle an image edge. The regression-only run reproduced all four new cases with
+1,359 existing tests passing per framework ([run 37136861256](https://github.com/uniblab/Icod.DCurses/actions/runs/37136861256)).
+
+The WezTerm recording shows text fallback with left-margin player trails, reopening
+its earlier text acceptance. Terminal [PR #73](https://github.com/uniblab/Icod.Terminal/pull/73)
+prepares 1.25.0-alpha.1 to reject newline-dependent relative cursor plans. This DCurses
+branch retains the available 1.25.0-alpha dependency until alpha.1 is published;
+the WezTerm correction requires that subsequent dependency update. Repeat default,
+`-- --raster`, and `-- --text` tests after integrating it. No terminal rendering or
+stable-release acceptance is claimed by CI alone.
