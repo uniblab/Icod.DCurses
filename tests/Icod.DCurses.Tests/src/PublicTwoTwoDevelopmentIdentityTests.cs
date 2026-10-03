@@ -12,7 +12,7 @@
 
 	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	MERCHANTIBILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
@@ -27,7 +27,7 @@ namespace Icod.DCurses.Tests;
 
 public sealed class PublicTwoThreeDevelopmentIdentityTests {
 	[Fact]
-	public void ProjectCarriesTheApprovedTwoThreePlanningIdentity() {
+	public void ProjectCarriesTheApprovedTwoThreeCandidateIdentity() {
 		DirectoryInfo? root = new( AppContext.BaseDirectory );
 		while ( root is not null && !File.Exists( Path.Combine( root.FullName, "Icod.DCurses.sln" ) ) ) {
 			root = root.Parent;
@@ -42,7 +42,7 @@ public sealed class PublicTwoThreeDevelopmentIdentityTests {
 		Assert.Equal( "2.0.0.0", GetValue( "AssemblyVersion" ) );
 		Assert.Contains( "CursesRasterAtlas", GetValue( "PackageReleaseNotes" ),
 			StringComparison.Ordinal );
-		Assert.Contains( "planning baseline", GetValue( "PackageReleaseNotes" ),
+		Assert.Contains( "exact cell-pixel geometry", GetValue( "PackageReleaseNotes" ),
 			StringComparison.OrdinalIgnoreCase );
 		Assert.Equal( "1.24.0", project.Descendants()
 			.Single( element => "PackageReference" == element.Name.LocalName )
