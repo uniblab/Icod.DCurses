@@ -37,8 +37,17 @@ a regression ceiling, not an allocation promise for every runtime implementation
 
 Every row runs once with RGB24 updates and once with RGBA32 updates on .NET 8, 9
 and 10 in each runtime lane. The PR package job separately packs and executes the
-fresh NuGet-only consumer. Exact package hashes and workflow identity are recorded
-only after an exact-head run completes.
+fresh NuGet-only consumer.
+
+Exact source head `751890de112be2e8d0be1757e1fdc6fd47b14c8d` passed
+[pull-request workflow 1296](https://github.com/uniblab/Icod.DCurses/actions/runs/37106805634), run `37106805634`. The Staging artifact
+digest is `sha256:22a72c3be6ca810b285d90d10e473c0d89d3fc65ac0d9e7145c20e94e2804d81`.
+Its package hashes are:
+
+- `Icod.DCurses.2.3.0-alpha.1.nupkg`:
+  `b2f864305446e02f13d760bbf6ab2d22f9e1f7b6bead133a7237af49769e827c`;
+- `Icod.DCurses.2.3.0-alpha.1.snupkg`:
+  `96d48e775f0f05c51188441fd4730d020a7c846bdd3d49624c052044adbe4c62`.
 
 ## Decision
 

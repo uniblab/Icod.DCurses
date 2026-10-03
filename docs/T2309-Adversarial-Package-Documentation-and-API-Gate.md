@@ -42,7 +42,13 @@ terminal restoration, not live raster rendering.
 
 ## Gate state
 
-Source and documentation are frozen for exact-head qualification. Acceptance requires
-the package candidate and all six OS/architecture runtime jobs to pass unchanged. Live
-raster and explicit fallback observations remain the separate T2308/T2310 maintainer
-checklist and must not be inferred from CI.
+T2309 is accepted at exact source head
+`751890de112be2e8d0be1757e1fdc6fd47b14c8d` by
+[pull-request workflow 1296](https://github.com/uniblab/Icod.DCurses/actions/runs/37106805634), run `37106805634`. The package candidate
+and all six OS/architecture runtime jobs are green. The package artifact digest is
+`sha256:22a72c3be6ca810b285d90d10e473c0d89d3fc65ac0d9e7145c20e94e2804d81`;
+the `.nupkg` and `.snupkg` hashes are recorded in the T2307 gate and measurement
+report.
+
+Live raster and explicit fallback observations remain the separate T2308/T2310
+maintainer checklist and are not inferred from CI.

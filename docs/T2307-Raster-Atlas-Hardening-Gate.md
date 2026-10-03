@@ -17,9 +17,22 @@ The complete method and expected operation counts are in
 
 ## Gate state
 
-Implementation is complete in source. Acceptance requires an unchanged exact branch
-head to pass the package candidate plus all Windows, Linux and macOS x64/ARM64 runtime
-jobs. Until that run is recorded here, T2307 is implemented but not accepted.
+T2307 is accepted at exact source head `751890de112be2e8d0be1757e1fdc6fd47b14c8d`
+by [pull-request workflow 1296](https://github.com/uniblab/Icod.DCurses/actions/runs/37106805634), run `37106805634`.
+The package candidate and all six Windows, Linux and macOS x64/ARM64 runtime jobs
+are green. The first macOS x64 attempt passed net8.0 and net10.0 but one net9.0
+256-tile RGB24 workload exhausted the harness's 15-second write wait; the unchanged
+job rerun passed all three frameworks, classifying that cancellation as transient
+runner scheduling rather than a product defect.
 
-Live raster rendering is deliberately not claimed by this scripted gate. It is tested
-separately by the application and release-candidate checklists.
+The Staging artifact `icod-dcurses-pr-packages-Staging` has GitHub digest
+`sha256:22a72c3be6ca810b285d90d10e473c0d89d3fc65ac0d9e7145c20e94e2804d81`.
+Its package hashes are:
+
+- `Icod.DCurses.2.3.0-alpha.1.nupkg`:
+  `b2f864305446e02f13d760bbf6ab2d22f9e1f7b6bead133a7237af49769e827c`;
+- `Icod.DCurses.2.3.0-alpha.1.snupkg`:
+  `96d48e775f0f05c51188441fd4730d020a7c846bdd3d49624c052044adbe4c62`.
+
+Live raster rendering is deliberately not claimed by this scripted gate. It remains
+part of the T2308/T2310 application and release-candidate checklists.

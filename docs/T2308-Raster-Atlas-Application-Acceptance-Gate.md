@@ -47,7 +47,11 @@ dotnet run --project samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.Raster
 
 ## Gate state
 
-The automated implementation is complete. The exact-head CI matrix and the two live
-checklists remain to be recorded before T2308 is accepted. CI cannot prove that a
+The automated implementation and exact-source-head matrix are complete. Source head
+`751890de112be2e8d0be1757e1fdc6fd47b14c8d` passed
+[pull-request workflow 1296](https://github.com/uniblab/Icod.DCurses/actions/runs/37106805634) across the package candidate and all six
+runtime jobs.
+
+T2308 remains pending only on the two live checklists above. CI cannot prove that a
 particular emulator renders raster pixels correctly, so the live boxes must not be
 pre-checked from scripted transport evidence.

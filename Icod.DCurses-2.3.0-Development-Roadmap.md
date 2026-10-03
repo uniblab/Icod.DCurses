@@ -9,7 +9,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.24.0` minimum; no direct `Icod.TermInfo` reference  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** T2301–T2306 accepted; T2307–T2309 exact-head and live acceptance qualification in progress
+**Status:** T2301–T2307 and T2309 accepted at exact source head `751890de`; T2308 automated acceptance complete, live raster/text checklist pending; T2310 not started
 **Planning snapshot:** 2026-10-03
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
@@ -157,4 +157,4 @@ T2309 is the API/package regret deadline. After it, only fixes required by accep
 
 ## 10. Immediate next step
 
-T2301 freezes the exact public surface and validation vectors. Capture its expected missing-API RED run, then implement T2302 geometry and planning against those permanent tests.
+Complete the T2308 live raster and explicit text-fallback checklist on representative terminals. After those observations are recorded, advance to T2310 RC qualification; do not promote stable source until the exact RC matrix and live evidence are accepted.
