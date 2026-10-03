@@ -50,7 +50,7 @@ public enum CursesRefreshOperationKinds {
 	LineShift = 32,
 	/// <summary>Hyperlink presentation was prepared.</summary>
 	Hyperlink = 64,
-	/// <summary>Raster placeholders were prepared.</summary>
+	/// <summary>Raster placeholders or a complete raster image were prepared.</summary>
 	Raster = 128,
 	/// <summary>Synchronized-output framing was prepared.</summary>
 	Synchronization = 256

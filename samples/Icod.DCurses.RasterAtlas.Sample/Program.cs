@@ -11,8 +11,11 @@ using Icod.Terminal;
 bool forceText = args.Any(
 	argument => string.Equals( argument, "--text", StringComparison.OrdinalIgnoreCase )
 );
-( CursesSession openedSession, bool capabilityUsable, string startupStatus ) =
-	await OpenSessionAsync( forceText );
+bool forceRaster = args.Any(
+	argument => string.Equals( argument, "--raster", StringComparison.OrdinalIgnoreCase )
+);
+( CursesSession openedSession, bool persistentUsable, bool ordinaryUsable, string startupStatus ) =
+	await OpenSessionAsync( forceText, forceRaster );
 await using CursesSession session = openedSession;
 CursesScreen screen = session.Screen;
 CursesWindow standard = session.StandardScreen;
@@ -26,16 +29,19 @@ foreach ( CursesWindow window in new[] { standard, map, status, help.ContentWind
 RasterAtlasSampleState state = new( 1, 1 );
 CursesRasterAtlas? atlas = null;
 CursesRasterAtlasGeometry geometry = default;
-bool rasterActive = capabilityUsable;
+bool rasterActive = persistentUsable || ordinaryUsable;
+bool completeFrame = !persistentUsable && ordinaryUsable;
 bool helpVisible = false;
 bool running = true;
 bool layoutDirty = true;
+bool displayDirty = true;
 TimeSpan resizePollInterval = TimeSpan.FromMilliseconds( 250 );
 string message = startupStatus;
 
 while ( running ) {
 	if ( layoutDirty ) {
 		layoutDirty = false;
+		displayDirty = true;
 		if ( !RasterAtlasSampleLayout.TryArrange(
 			screen,
 			standard,
@@ -61,11 +67,13 @@ while ( running ) {
 					atlas = null;
 				}
 				try {
+					geometry = default;
 					geometry = await session.QueryRasterAtlasGeometryAsync(
 						mapRows,
 						mapColumns,
 						TimeSpan.FromSeconds( 2 )
 					);
+					if ( !completeFrame ) {
 					TerminalControlResult<CursesRasterAtlas> creation =
 						await session.CreateRasterAtlasAsync(
 							state.CreateInitialImage( geometry ),
@@ -82,31 +90,58 @@ while ( running ) {
 						);
 						message = "Raster atlas active; resize recreates it explicitly.";
 					} else {
-						rasterActive = false;
-						message = creation.Message ?? "Raster creation unavailable; using text.";
+						completeFrame = ordinaryUsable;
+						rasterActive = ordinaryUsable;
+						message = ordinaryUsable ? "Atlas unavailable; using complete raster frames." : "Raster creation unavailable; using text.";
+					}
+					}
+					if ( completeFrame ) {
+						message = "Complete raster frames active (Terminal chooses Kitty/Sixel).";
 					}
 				} catch ( Exception exception ) when (
 					RasterAtlasSampleFallback.IsRecoverableSetupException( exception )
 				) {
-					rasterActive = false;
-					message = $"Raster setup unavailable ({exception.GetType().Name}); using text.";
+					if ( atlas is not null ) {
+						await atlas.DisposeAsync();
+						atlas = null;
+					}
+					completeFrame = ordinaryUsable && geometry.Rows == mapRows && geometry.Columns == mapColumns;
+					rasterActive = completeFrame;
+					map.Clear();
+					message = completeFrame ? "Atlas setup unavailable; using complete raster frames."
+						: $"Raster setup unavailable ({exception.GetType().Name}); using text.";
 				}
 			}
-			if ( !rasterActive ) {
+			if ( !rasterActive || completeFrame ) {
 				DrawTextMap( map, state );
 			}
 		}
 	}
 
-	if ( screen.Rows >= 6 && screen.Columns >= 20 ) {
-		DrawStatus( status, state, rasterActive, message );
+	if ( displayDirty && screen.Rows >= 6 && screen.Columns >= 20 ) {
+		displayDirty = false;
+		DrawStatus( status, state, rasterActive, completeFrame, message );
 		if ( helpVisible ) {
 			DrawHelp( help.ContentWindow );
 			help.Show();
 		} else {
 			help.Hide();
 		}
-		await session.RefreshAsync();
+		if ( rasterActive && completeFrame && !helpVisible ) {
+			try {
+				await session.RefreshRasterAsync( state.CreateInitialImage( geometry ), map.Bounds.Row, map.Bounds.Column, geometry );
+			} catch ( Exception exception ) when (
+				RasterAtlasSampleFallback.IsRecoverableSetupException( exception ) || exception is NotSupportedException
+			) {
+				rasterActive = false;
+				message = $"Complete raster unavailable ({exception.GetType().Name}); using text.";
+				DrawStatus( status, state, false, false, message );
+				DrawTextMap( map, state );
+				await session.RefreshAsync();
+			}
+		} else {
+			await session.RefreshAsync();
+		}
 	}
 
 	CursesEvent current = await session.ReadEventAsync( resizePollInterval );
@@ -143,6 +178,7 @@ while ( running ) {
 	if ( input.Key is CursesKey.Escape ) {
 		if ( helpVisible ) {
 			helpVisible = false;
+			displayDirty = true;
 			continue;
 		}
 		break;
@@ -154,6 +190,7 @@ while ( running ) {
 		}
 		if ( character is '?' or 'h' or 'H' ) {
 			helpVisible = !helpVisible;
+			displayDirty = true;
 			continue;
 		}
 	}
@@ -182,6 +219,7 @@ while ( running ) {
 	}
 
 	RasterAtlasMoveResult move = state.Move( rowDelta, columnDelta );
+	displayDirty = true;
 	if ( !move.Moved ) {
 		message = "Water blocks that move.";
 		continue;
@@ -231,12 +269,14 @@ standard.Clear();
 await session.RefreshAsync();
 return 0;
 
-static async Task<( CursesSession Session, bool RasterUsable, string Status )> OpenSessionAsync(
-	bool forceText
+static async Task<( CursesSession Session, bool PersistentUsable, bool OrdinaryUsable, string Status )> OpenSessionAsync(
+	bool forceText,
+	bool forceRaster
 ) {
 	if ( forceText ) {
 		return (
 			await CursesSession.OpenAsync(),
+			false,
 			false,
 			"Text mode forced by --text."
 		);
@@ -247,20 +287,29 @@ static async Task<( CursesSession Session, bool RasterUsable, string Status )> O
 		terminal = await TerminalSession.OpenAsync(
 			new TerminalSessionOptions { RequireInteractiveOutput = true }
 		);
-		TerminalCapabilityStatus capability = await terminal.VerifyCapabilityAsync(
-			TerminalCapability.PersistentRasterGraphics
+		TerminalCapabilityStatus ordinary = await terminal.VerifyCapabilityAsync(
+			TerminalCapability.RasterGraphics
 		);
+		bool persistent = false;
+		if ( ordinary.IsUsable && !forceRaster ) {
+			try {
+				persistent = ( await terminal.VerifyCapabilityAsync( TerminalCapability.PersistentRasterGraphics ) ).IsUsable;
+			} catch ( Exception exception ) when ( RasterAtlasSampleFallback.IsRecoverableSetupException( exception ) ) {
+				// Ordinary raster evidence remains independent of persistent image identities.
+			}
+		}
 		CursesSession session = await CursesSession.OpenAsync( terminal );
 		terminal = null;
-		return capability.IsUsable
-			? ( session, true, "Persistent raster capability verified." )
-			: ( session, false, "Persistent raster unavailable; using text." );
+		return ( session, persistent, ordinary.IsUsable, persistent
+			? "Persistent raster capability verified."
+			: ordinary.IsUsable ? "Ordinary raster capability verified." : "Raster unavailable; using text." );
 	} catch {
 		if ( terminal is not null ) {
 			await terminal.DisposeAsync();
 		}
 		return (
 			await CursesSession.OpenAsync(),
+			false,
 			false,
 			"Raster verification failed; using text."
 		);
@@ -282,13 +331,14 @@ static void DrawStatus(
 	CursesWindow status,
 	RasterAtlasSampleState state,
 	bool rasterActive,
+	bool completeFrame,
 	string message
 ) {
 	status.Clear();
 	WriteLine(
 		status,
 		0,
-		$"{( rasterActive ? "RASTER" : "TEXT" )}  Pos {state.PlayerRow},{state.PlayerColumn}  Arrows/WASD move  ? help  Q exit"
+		$"{( rasterActive ? completeFrame ? "FRAME" : "ATLAS" : "TEXT" )}  Pos {state.PlayerRow},{state.PlayerColumn}  Arrows/WASD move  ? help  Q exit"
 	);
 	WriteLine( status, 1, message );
 }
@@ -299,7 +349,8 @@ static void DrawHelp( CursesWindow window ) {
 	WriteLine( window, 2, " Arrows/WASD  Move across the original generated map" );
 	WriteLine( window, 3, " Blue water    Blocks movement" );
 	WriteLine( window, 4, " ? or H        Close this retained panel" );
-	WriteLine( window, 5, " Resize        Explicitly recreate atlas and cells" );
+	WriteLine( window, 5, " Resize        Requery pixels and recreate view" );
+	WriteLine( window, 6, " Frame mode    Text view while help is open" );
 }
 
 static void WriteLine( CursesWindow window, int row, string text ) {

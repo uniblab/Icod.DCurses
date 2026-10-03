@@ -53,6 +53,11 @@ internal sealed class CursesPreparedRefresh {
 		this.diagnostics?.RecordPayload( CursesRefreshOperationKinds.Text );
 	}
 
+	internal void WriteRaster( TerminalRasterImage image ) {
+		this.transaction.WriteRaster( image );
+		this.diagnostics?.RecordPayload( CursesRefreshOperationKinds.Raster );
+	}
+
 	internal void WriteHyperlink(
 		string value,
 		CursesHyperlink hyperlink
