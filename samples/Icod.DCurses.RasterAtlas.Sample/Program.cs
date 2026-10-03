@@ -86,9 +86,7 @@ while ( running ) {
 						message = creation.Message ?? "Raster creation unavailable; using text.";
 					}
 				} catch ( Exception exception ) when (
-					exception is TimeoutException
-						or InvalidOperationException
-						or IOException
+					RasterAtlasSampleFallback.IsRecoverableSetupException( exception )
 				) {
 					rasterActive = false;
 					message = $"Raster setup unavailable ({exception.GetType().Name}); using text.";
