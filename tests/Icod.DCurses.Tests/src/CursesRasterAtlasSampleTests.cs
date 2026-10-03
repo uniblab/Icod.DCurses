@@ -90,6 +90,25 @@ public sealed class CursesRasterAtlasSampleTests {
 		);
 	}
 
+	[Fact]
+	public void SamplePollsDimensionsWhenLifecycleResizeNotificationIsUnavailable() {
+		string root = FindRepositoryRoot();
+		string program = File.ReadAllText( Path.Combine(
+			root,
+			"samples",
+			"Icod.DCurses.RasterAtlas.Sample",
+			"Program.cs"
+		) );
+
+		Assert.Contains( "TimeSpan resizePollInterval", program, StringComparison.Ordinal );
+		Assert.Contains( "ReadEventAsync( resizePollInterval )", program, StringComparison.Ordinal );
+		Assert.Contains( "CursesEventKind.Timeout", program, StringComparison.Ordinal );
+		Assert.Contains( "SynchronizeDimensions()", program, StringComparison.Ordinal );
+		Assert.Contains( "screen.Rows != previousRows", program, StringComparison.Ordinal );
+		Assert.Contains( "screen.Columns != previousColumns", program, StringComparison.Ordinal );
+		Assert.DoesNotContain( "OperatingSystem.", program, StringComparison.Ordinal );
+	}
+
 	private static string FindRepositoryRoot() {
 		DirectoryInfo? current = new( AppContext.BaseDirectory );
 		while ( current is not null ) {
