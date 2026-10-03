@@ -1,7 +1,7 @@
 # Icod.DCurses 2.3 `CursesRasterAtlas` Design
 
 **Date:** 2026-10-03  
-**Status:** Approved direction; exact public contract freezes at T2301  
+**Status:** Approved; exact public contract frozen at T2301
 **Decision:** Option 1, first-class `CursesRasterAtlas`  
 **Baseline:** published `Icod.DCurses 2.2.0` and `Icod.Terminal 1.24.0`  
 **Release roadmap:** [2.3.0 development roadmap](../../../Icod.DCurses-2.3.0-Development-Roadmap.md)
@@ -25,7 +25,7 @@ DCurses must not construct raster protocol strings, expose Terminal ids, cache a
 
 ## Selected shape
 
-The 2.3 surface is centered on these proposed public contracts. T2301 may improve a name only by amending this design before production implementation begins.
+The 2.3 surface is centered on these frozen public contracts. Any later public-contract change requires an explicit design and T2301 gate amendment.
 
 ```csharp
 public readonly record struct CursesRasterAtlasGeometry(

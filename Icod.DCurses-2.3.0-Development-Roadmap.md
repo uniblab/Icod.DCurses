@@ -9,7 +9,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.24.0` minimum; no direct `Icod.TermInfo` reference  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** T2300 planning/dependency baseline in review  
+**Status:** T2301 public contract frozen; implementation in progress
 **Planning snapshot:** 2026-10-03
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
@@ -157,4 +157,4 @@ T2309 is the API/package regret deadline. After it, only fixes required by accep
 
 ## 10. Immediate next step
 
-Review T2300. After approval, begin T2301 by writing permanent public-contract tests that fail because `CursesRasterAtlas` does not yet exist, then freeze the exact surface before implementing T2302.
+T2301 freezes the exact public surface and validation vectors. Capture its expected missing-API RED run, then implement T2302 geometry and planning against those permanent tests.
