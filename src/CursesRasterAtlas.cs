@@ -46,6 +46,7 @@ public sealed class CursesRasterAtlas : IAsyncDisposable {
 		tilePixelWidth = geometry.TilePixelWidth;
 		tilePixelHeight = geometry.TilePixelHeight;
 		this.placeholder = placeholder;
+		requiresRecreation = false;
 	}
 
 	/// <summary>Gets the atlas height in terminal cells.</summary>
