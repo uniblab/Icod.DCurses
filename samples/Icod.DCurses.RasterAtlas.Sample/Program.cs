@@ -35,13 +35,20 @@ bool helpVisible = false;
 bool running = true;
 bool layoutDirty = true;
 bool displayDirty = true;
+int previousRows = screen.Rows;
+int previousColumns = screen.Columns;
 TimeSpan resizePollInterval = TimeSpan.FromMilliseconds( 250 );
 string message = startupStatus;
 
 while ( running ) {
+	// Refresh also synchronizes live dimensions. Compare with the dimensions of
+	// the last layout so that a resize observed there is not lost by the poll.
+	layoutDirty |= screen.Rows != previousRows || screen.Columns != previousColumns;
 	if ( layoutDirty ) {
 		layoutDirty = false;
 		displayDirty = true;
+		previousRows = screen.Rows;
+		previousColumns = screen.Columns;
 		if ( !RasterAtlasSampleLayout.TryArrange(
 			screen,
 			standard,
@@ -133,6 +140,11 @@ while ( running ) {
 			} catch ( Exception exception ) when (
 				RasterAtlasSampleFallback.IsRecoverableSetupException( exception ) || exception is NotSupportedException
 			) {
+				if ( exception is InvalidOperationException
+					&& ( screen.Rows != previousRows || screen.Columns != previousColumns ) ) {
+					layoutDirty = true;
+					continue;
+				}
 				rasterActive = false;
 				message = $"Complete raster unavailable ({exception.GetType().Name}); using text.";
 				DrawStatus( status, state, false, false, message );
@@ -146,8 +158,6 @@ while ( running ) {
 
 	CursesEvent current = await session.ReadEventAsync( resizePollInterval );
 	if ( CursesEventKind.Timeout == current.Kind ) {
-		int previousRows = screen.Rows;
-		int previousColumns = screen.Columns;
 		_ = session.SynchronizeDimensions();
 		if ( screen.Rows != previousRows || screen.Columns != previousColumns ) {
 			session.Invalidate();
