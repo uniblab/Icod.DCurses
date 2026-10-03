@@ -56,6 +56,18 @@ runtime jobs. That matrix includes the portable polling regression on .NET 8, 9 
 
 A Windows Terminal text-fallback observation exposed the missing repaint when no
 lifecycle resize notification was delivered. The portable polling fix is automated and
-green; its live resize retest remains open. T2308 remains pending on the two live
-checklists above. CI cannot prove that a particular emulator renders raster pixels
-correctly, so the live boxes must not be pre-checked from scripted transport evidence.
+green.
+
+On 2026-10-03, the Terminal 1.24.1 dependency-refresh candidate was exercised in both
+Windows Terminal and Contour 0.7.0.8982. Both reported `TEXT` and
+`Persistent raster unavailable; using text.` rather than throwing the earlier malformed
+persistent-identity exception. In both terminals movement worked, water blocked movement,
+the camera scrolled and Q restored the terminal cleanly. These observations accept the
+controlled fallback, shared-model movement/collision/camera behavior and clean Q exit in
+those environments. They do not accept raster rendering: neither terminal supplied the
+nonzero terminal-assigned persistent image identity required by the atlas contract.
+
+T2308 therefore remains pending on the representative raster-capable checklist. Help,
+resize and Escape also remain unchecked for this exact Windows Terminal/Contour retest.
+CI cannot prove that a particular emulator renders raster pixels correctly, so the live
+raster boxes must not be pre-checked from scripted transport evidence.

@@ -11,7 +11,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.3.0` — first-class `CursesRasterAtlas` coordination\
-**Status:** 2.2.0 merged, tagged and released; 2.3 atlas implementation, automated acceptance and Terminal 1.24.1 dependency refresh qualified; live Contour raster checklist pending
+**Status:** 2.2.0 merged, tagged and released; 2.3 atlas implementation, automated acceptance, Terminal 1.24.1 dependency refresh and Windows Terminal/Contour controlled fallback qualified; representative live raster checklist pending
 
 **Planning snapshot:** 2026-10-03
 
@@ -63,7 +63,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | Published |
 | `2.1.0` | Core presentation and text foundations for editor and roguelike applications | Merged, tagged and released |
 | `2.2.0` | Interaction and application conveniences for editor and roguelike applications | Published |
-| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Implementation, automated acceptance and Terminal 1.24.1 refresh complete; live Contour acceptance pending |
+| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Implementation, automated acceptance, Terminal 1.24.1 refresh and controlled fallback complete; representative live raster acceptance pending |
 | `2.4+` | Higher-level packages, including a possible `Icod.DCurses.Widgets`, and later sprite/physical-placement work | Deferred; scope depends on application evidence |
 
 The post-1.0 progression is intentionally cumulative:
