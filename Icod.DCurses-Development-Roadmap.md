@@ -3,27 +3,29 @@
 **Project:** `Icod.DCurses`\
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
 **Published compatibility floor:** `1.0.0`\
-**Latest tagged stable release:** `2.1.0`\
-**Current source/package identity:** `2.2.0`\
+**Latest tagged stable release:** `2.2.0`\
+**Current source/package identity:** `2.3.0-alpha.1`\
 **Current development assembly version:** `2.0.0.0`\
-**Current development runtime dependency:** direct `Icod.Terminal 1.18.0` only; TermInfo remains transitive\
-**Planned 2.2 direct runtime dependency:** `Icod.Terminal 1.18.0` minimum; no direct `Icod.TermInfo` reference\
+**Current development runtime dependency:** direct `Icod.Terminal 1.24.0` only; TermInfo remains transitive\
+**Planned 2.3 direct runtime dependency:** `Icod.Terminal 1.24.0` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Active development target:** `2.2.0` — interaction and application conveniences\
-**Status:** 2.1.0 merged and tagged; 2.2.0 PR #34 accepted through T2208, maintainer review and merge pending
+**Active development target:** `2.3.0` — first-class `CursesRasterAtlas` coordination\
+**Status:** 2.2.0 merged, tagged and released; 2.3.0 Option 1 approved and planning opened
 
-**Planning snapshot:** 2026-09-25
+**Planning snapshot:** 2026-10-03
 
 ---
 
 ## Current authorities
 
-The active plan is [Icod.DCurses-2.2.0-Development-Roadmap.md](Icod.DCurses-2.2.0-Development-Roadmap.md), with its [interaction design](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The 2.1 architecture, API, tests and release evidence remain recorded in [the 2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md) and [the v2.1.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v2.1.0). T2201 accepted the published interaction baseline, T2202 added binding discovery, and T2203 accepted bounded command sequences with exact evidence in the [T2203 gate](docs/T2203-Bounded-Command-Sequences-Gate.md). T2204 prompt state and T2205 timing helpers remain deferred pending new application evidence. T2206 is accepted from exact-head automated evidence and the maintainer's completed [live editor and roguelike checklist](docs/T2206-Application-Interaction-Acceptance-Gate.md); the [accepted T2207 gate](docs/T2207-Adversarial-Package-Documentation-and-API-Gate.md) freezes the candidate contract and release evidence.
+The active plan is [Icod.DCurses-2.3.0-Development-Roadmap.md](Icod.DCurses-2.3.0-Development-Roadmap.md), governed by the approved [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md) and [implementation plan](docs/superpowers/plans/2026-10-03-icod-dcurses-2.3-curses-raster-atlas.md). The selected Option 1 is a first-class, session-owned atlas coordinator over Terminal 1.24 geometry, planning, acknowledged frame composition, RGB24/RGBA32 region replacement and frame selection. DCurses owns retained atlas coordinates, damage-oriented updates, front/back sequencing and refresh ordering; Terminal continues to own protocol encoding, opaque identities and the live terminal conversation; applications continue to own source art, maps, actors, collision, visibility and scheduling.
+
+The published 2.2 architecture and release evidence remain recorded in [the 2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md), its [interaction design](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md), and [the v2.2.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v2.2.0). T2204 prompt state and T2205 timing helpers remain deferred; the 2.3 graphics work does not reopen them.
 
 The published 2.0 contract and migration history remain governed by [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md), [docs/T2011-Stable-Source-Release-Gate.md](docs/T2011-Stable-Source-Release-Gate.md), [docs/Public-API-Fingerprint-2.0.json](docs/Public-API-Fingerprint-2.0.json), [docs/Public-API-Baseline-2.0.md](docs/Public-API-Baseline-2.0.md), and the [2.0 migration guide](docs/2.0-Migration-Guide.md).
 
-The published [Terminal 1.18.0 contract](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.18.0) supplies the semantic profile, dimensions, screen planner, session-bound output transaction, and safe unknown-rendition baseline used by DCurses 2.x. Any later integration gap must be fixed and released in the owning dependency before the affected DCurses gate advances; it must not be bypassed with TermInfo calls or raw terminal strings.
+The published [Terminal 1.24.0 contract](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.24.0) supplies the existing semantic/session baseline plus bounded pixel-geometry queries, exact derivation support, raster planning snapshots, intrinsic resource geometry, acknowledged frame composition and region replacement, frame selection, and focused operation evidence required by `CursesRasterAtlas`. Any later integration gap must be fixed and released in the owning dependency before the affected DCurses gate advances; it must not be bypassed with TermInfo calls or raw terminal strings.
 
 The published [DCurses 1.6.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v1.6.0) is the behavioral migration baseline. Its implementation and release closure are governed by:
 
@@ -60,8 +62,9 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `1.6.x` | Necessary maintenance only | As needed; no new feature track |
 | `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | Published |
 | `2.1.0` | Core presentation and text foundations for editor and roguelike applications | Merged, tagged and released |
-| `2.2.0` | Interaction and application conveniences for editor and roguelike applications | T2208 stable-source gate accepted; PR #34 remains draft and unmerged |
-| `2.3+` | Higher-level packages, including a possible `Icod.DCurses.Widgets`, and later graphics work | Deferred; scope depends on application evidence |
+| `2.2.0` | Interaction and application conveniences for editor and roguelike applications | Published |
+| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Approved; planning and Terminal 1.24 dependency baseline in progress |
+| `2.4+` | Higher-level packages, including a possible `Icod.DCurses.Widgets`, and later sprite/physical-placement work | Deferred; scope depends on application evidence |
 
 The post-1.0 progression is intentionally cumulative:
 
@@ -75,6 +78,7 @@ The post-1.0 progression is intentionally cumulative:
 2.0  all terminal-facing work goes through Terminal; DCurses retains presentation and interaction policy
 2.1  rich text, coordinate mapping, virtual viewports, bulk mutation, track layout and diagnostics support application-scale presentation
 2.2  caller-driven interaction mechanisms reduce repeated application input and command plumbing
+2.3  retained tile atlases coordinate cell geometry, damage, double-buffered updates and refresh ordering
 ```
 
 ---
@@ -302,7 +306,7 @@ T2101–T2112 are complete. PR [#33](https://github.com/uniblab/Icod.DCurses/pul
 
 The agreed release order was 2.1 core text and presentation, **then Option 3: interaction and application conveniences**, then a possible higher-level package. Version 2.2 builds on the published 1.4/1.5 interaction router and the 2.1 editor and roguelike witnesses. It targets repeated interaction mechanisms such as contextual or multi-key command composition, discoverable bindings and bounded prompt input, with pointer timing or frame timing admitted only when a concrete application case and ownership boundary justify them.
 
-The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candidate capabilities, evidence gates, tests and release sequence. T2201 froze the first discovery API, T2202 accepted its implementation, and T2203 accepted bounded command sequences. DCurses continues to expose mechanism without owning command execution or an application event loop. T2202 advanced `Version` and `PackageVersion` together to `2.2.0-alpha.1`; T2203 retained that identity. The [T2208 RC gate](docs/T2208-RC-Qualification.md) accepted `2.2.0-rc.1`, and the [stable-source gate](docs/T2208-Stable-Source-Release-Gate.md) accepted the unchanged unpublished `2.2.0` candidate.
+The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candidate capabilities, evidence gates, tests and release sequence. T2201 froze the first discovery API, T2202 accepted its implementation, and T2203 accepted bounded command sequences. DCurses continues to expose mechanism without owning command execution or an application event loop. T2202 advanced `Version` and `PackageVersion` together to `2.2.0-alpha.1`; T2203 retained that identity. The [T2208 RC gate](docs/T2208-RC-Qualification.md) accepted `2.2.0-rc.1`, the [stable-source gate](docs/T2208-Stable-Source-Release-Gate.md) accepted the unchanged `2.2.0` candidate, and that source is now published as `v2.2.0`.
 
 ### 2.2 tranche sequence
 
@@ -319,15 +323,52 @@ The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candida
 
 ---
 
+## 2.3 objective — `CursesRasterAtlas`
+
+The approved Option 1 is a generalized cell-aligned atlas coordinator, not an Ultima-specific engine. It makes the Terminal 1.24 raster mechanics usable through DCurses' existing retained windows, pads, viewports, panels, clipping, damage and refresh model.
+
+Version 2.3 will provide:
+
+- bounded, resize-sensitive cell-pixel geometry planning with exact fallback only;
+- one session-owned atlas containing one raster resource, one Unicode placeholder grid and two known frames;
+- immutable atlas/tile geometry and retained `CursesRasterCell` access without exposing Terminal ids;
+- bulk atlas-region projection into a `CursesWindow` with the existing clipping, composition and damage rules;
+- bounded, fully prevalidated tile updates in deterministic row-major order;
+- a serialized present operation that copies the selected front frame into the unselected back frame, applies acknowledged RGB24/RGBA32 tile updates, selects only after all work succeeds, then swaps caller-visible front/back state;
+- explicit controlled failure results and an indeterminate state after ambiguous committed failure; no blind retry, hidden upload cache or automatic replay;
+- an Ultima-style public-only sample with text fallback and package-only acceptance evidence.
+
+The full scope, non-goals, tranche gates and release policy are defined in [Icod.DCurses-2.3.0-Development-Roadmap.md](Icod.DCurses-2.3.0-Development-Roadmap.md). The design preserves the functional boundaries established by Terminal 1.24: DCurses coordinates presentation; it does not own game data, asset decoding, palette policy, collision, visibility, AI, save state, event loops or frame scheduling.
+
+### 2.3 tranche sequence
+
+| Tranche | Deliverable | Status |
+|---|---|---|
+| T2300 | Decision, roadmap, design, implementation plan, `2.3.0-alpha.1`, Terminal 1.24 reference | In progress on the planning PR |
+| T2301 | API-regret gate and permanent RED witnesses | Planned |
+| T2302 | Pixel geometry and advisory atlas planning | Planned |
+| T2303 | Atlas creation, ownership and rollback | Planned |
+| T2304 | Retained window/pad/viewport atlas projection | Planned |
+| T2305 | Double-buffered tile presentation and deterministic ordering | Planned |
+| T2306 | Refresh serialization, lifecycle and failure recovery | Planned |
+| T2307 | Adversarial, capacity, allocation and workload measurements | Planned |
+| T2308 | Public-only Ultima-style sample and package consumer | Planned |
+| T2309 | API, package, dependency, XML and documentation freeze | Planned |
+| T2310 | RC, live acceptance and stable-source qualification | Planned |
+
+No production implementation begins until T2300 is reviewed and T2301 freezes the public contract.
+
+---
+
 ## Later development sequence
 
 ### Higher-level packages
 
 A later `Icod.DCurses.Widgets` sibling package may build labels, buttons, text entry, lists, scrollbars and dialogs over the stable DCurses presentation and interaction mechanisms. Editor-specific document storage/undo/search facilities and game-specific world/entity systems belong in separate higher layers rather than DCurses core.
 
-### Richer physical raster coordination
+### Richer sprite and physical raster coordination
 
-Terminal already owns persistent raster placements, cropping, relative placement, z-order and animation. A later DCurses track may evaluate retained physical placement coordination or tile/sprite helpers if application evidence requires capabilities beyond Unicode-placeholder cells. That work must define its scene and lifecycle model explicitly and preserve Terminal ownership.
+Terminal already owns persistent raster placements, cropping, relative placement, z-order and animation. A later DCurses track may evaluate retained physical-placement coordination, sub-cell sprite movement or sprite animation if application evidence requires capabilities beyond the 2.3 Unicode-placeholder atlas. That work must define its scene and lifecycle model explicitly and preserve Terminal ownership. It is not silently included in `CursesRasterAtlas`.
 
 ---
 
@@ -349,15 +390,12 @@ Every development tranche preserves the established process:
 - explicit API/package/documentation regret gate before RC;
 - merge, post-merge Release validation, tagging, and publication remain separate maintainer actions.
 
-For 2.2, the published 2.1 API artifacts remain immutable historical evidence. The 2.2 public contract is additive unless a separate compatibility decision explicitly approves otherwise. T2201 freezes the interaction baseline and candidate APIs before public implementation; T2207 freezes the final API/package delta. `Version` and `PackageVersion` advance together at T2202; `AssemblyVersion` remains `2.0.0.0`.
+For 2.3, the published 2.2 API artifacts remain immutable historical evidence. The 2.3 public contract is additive unless a separate compatibility decision explicitly approves otherwise. T2301 freezes the atlas contract before public implementation; T2309 freezes the final API/package delta. `Version` and `PackageVersion` advance together at T2300; `AssemblyVersion` remains `2.0.0.0`.
 
 ---
 
 ## Immediate next step
 
-Review the accepted `2.2.0` stable-source candidate and merge separately only
-when authorized. The resulting `main` push must pass its Release-only workflow
-before any tag, GitHub Release or NuGet publication. PR #34 remains draft and
-unmerged.
+Review and approve the T2300 planning/dependency PR. After approval, begin T2301 with permanent failing contract tests and freeze exact public names, validation, capacities, result semantics and lifecycle behavior before implementing the first atlas API.
 
 The direct production dependency remains `Icod.DCurses -> Icod.Terminal`; any newly discovered live-terminal gap remains work for the owning Terminal dependency.
