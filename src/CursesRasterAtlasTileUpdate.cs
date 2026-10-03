@@ -26,6 +26,10 @@ using Icod.Terminal;
 /// <summary>Associates one atlas coordinate with immutable replacement pixels.</summary>
 public readonly record struct CursesRasterAtlasTileUpdate {
 	/// <summary>Initializes one tile update.</summary>
+	/// <param name="row">Zero-based atlas row validated when submitted.</param>
+	/// <param name="column">Zero-based atlas column validated when submitted.</param>
+	/// <param name="image">Caller-owned immutable replacement pixels.</param>
+	/// <exception cref="ArgumentNullException"><paramref name="image"/> is null.</exception>
 	public CursesRasterAtlasTileUpdate(
 		int row,
 		int column,

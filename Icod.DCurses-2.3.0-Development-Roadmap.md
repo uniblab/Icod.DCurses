@@ -9,7 +9,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.24.0` minimum; no direct `Icod.TermInfo` reference  
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** T2301–T2306 accepted; T2307 exact-head qualification and T2308 application acceptance in progress
+**Status:** T2301–T2306 accepted; T2307–T2309 exact-head and live acceptance qualification in progress
 **Planning snapshot:** 2026-10-03
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  

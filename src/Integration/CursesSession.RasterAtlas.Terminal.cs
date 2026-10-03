@@ -26,6 +26,20 @@ using Icod.Terminal;
 /// <summary>Terminal-backed raster-atlas creation.</summary>
 public sealed partial class CursesSession {
 	/// <summary>Creates one retained raster atlas from an exactly divisible initial image.</summary>
+	/// <remarks>
+	/// Creation owns one resource, one placeholder and two animation frames. Controlled
+	/// unavailability is returned; exceptions trigger reverse-order cleanup. The initial
+	/// image remains caller-owned and is not retained for replay.
+	/// </remarks>
+	/// <param name="initialImage">Immutable RGB24 or RGBA32 atlas pixels.</param>
+	/// <param name="rows">Atlas height in terminal cells, from 1 through 256.</param>
+	/// <param name="columns">Atlas width in terminal cells, from 1 through 256.</param>
+	/// <param name="cancellationToken">Cancellation for activity acquisition and Terminal creation.</param>
+	/// <returns>An available atlas or a controlled Terminal status.</returns>
+	/// <exception cref="ArgumentNullException"><paramref name="initialImage"/> is null.</exception>
+	/// <exception cref="ArgumentOutOfRangeException">An atlas axis is outside its bound.</exception>
+	/// <exception cref="ArgumentException">The image does not divide exactly across the atlas grid.</exception>
+	/// <exception cref="OperationCanceledException">Cancellation is requested.</exception>
 	public ValueTask<TerminalControlResult<CursesRasterAtlas>> CreateRasterAtlasAsync(
 		TerminalRasterImage initialImage,
 		int rows,

@@ -118,6 +118,12 @@ public sealed class CursesRasterAtlas : IAsyncDisposable {
 	}
 
 	/// <summary>Gets one opaque retained placeholder cell.</summary>
+	/// <param name="row">Zero-based atlas row.</param>
+	/// <param name="column">Zero-based atlas column.</param>
+	/// <returns>A session-bound cell suitable for retained projection.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">A coordinate is outside the atlas.</exception>
+	/// <exception cref="InvalidOperationException">The atlas requires explicit recreation.</exception>
+	/// <exception cref="ObjectDisposedException">The atlas has been disposed.</exception>
 	public CursesRasterCell GetCell(
 		int row,
 		int column
@@ -132,6 +138,20 @@ public sealed class CursesRasterAtlas : IAsyncDisposable {
 	}
 
 	/// <summary>Presents a bounded set of replacement tiles.</summary>
+	/// <remarks>
+	/// Validation and deterministic row-major ordering complete before output. A controlled
+	/// failure preserves the known front frame and is returned in the result. An exception
+	/// after possible output marks this atlas as requiring explicit recreation.
+	/// </remarks>
+	/// <param name="updates">Up to 4,096 unique exact-sized RGB24 or RGBA32 tiles.</param>
+	/// <param name="cancellationToken">Cancellation for validation, activity acquisition and output.</param>
+	/// <returns>The acknowledged presentation extent.</returns>
+	/// <exception cref="ArgumentNullException"><paramref name="updates"/> is null.</exception>
+	/// <exception cref="ArgumentOutOfRangeException">The list is too large or a coordinate is outside the atlas.</exception>
+	/// <exception cref="ArgumentException">A coordinate is duplicated or a tile has the wrong dimensions.</exception>
+	/// <exception cref="NotSupportedException">A tile is not RGB24 or RGBA32.</exception>
+	/// <exception cref="InvalidOperationException">The atlas is stale or requires recreation.</exception>
+	/// <exception cref="OperationCanceledException">Cancellation is requested.</exception>
 	public ValueTask<CursesRasterAtlasPresentationResult> PresentAsync(
 		IReadOnlyList<CursesRasterAtlasTileUpdate> updates,
 		CancellationToken cancellationToken = default
@@ -164,6 +184,8 @@ public sealed class CursesRasterAtlas : IAsyncDisposable {
 	}
 
 	/// <summary>Releases the atlas placeholder before its raster resource.</summary>
+	/// <remarks>Repeated and concurrent calls observe the same disposal task.</remarks>
+	/// <returns>A task representing serialized Terminal cleanup.</returns>
 	public ValueTask DisposeAsync() {
 		lock ( disposeSync ) {
 			disposeTask ??= owner.DisposeRasterAtlasAsync( this );

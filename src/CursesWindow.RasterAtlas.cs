@@ -24,6 +24,17 @@ namespace Icod.DCurses;
 /// <summary>Retained raster-atlas projection helpers.</summary>
 public sealed partial class CursesWindow {
 	/// <summary>Writes a rectangular atlas-cell region into this logical window.</summary>
+	/// <remarks>
+	/// The complete source, destination, owner and lifecycle state is validated before
+	/// retained mutation. Cells are written row-major and the logical cursor is unchanged.
+	/// </remarks>
+	/// <param name="row">Destination row in this window.</param>
+	/// <param name="column">Destination column in this window.</param>
+	/// <param name="atlas">Current atlas owned by this window's live session.</param>
+	/// <param name="sourceRectangle">Atlas-cell rectangle to project.</param>
+	/// <exception cref="ArgumentNullException"><paramref name="atlas"/> is null.</exception>
+	/// <exception cref="ArgumentOutOfRangeException">The source or destination rectangle is outside its owner.</exception>
+	/// <exception cref="InvalidOperationException">The owner differs or the atlas/session is not current.</exception>
 	public void WriteRasterAtlas(
 		int row,
 		int column,

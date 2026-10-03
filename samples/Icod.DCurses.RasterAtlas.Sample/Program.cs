@@ -184,14 +184,15 @@ while ( running ) {
 	}
 	message = $"Moved to {state.PlayerRow},{state.PlayerColumn}.";
 	if ( rasterActive && atlas is not null ) {
+		CursesRasterAtlas currentAtlas = atlas;
 		try {
-			CursesRasterAtlasPresentationResult result = await atlas.PresentAsync(
+			CursesRasterAtlasPresentationResult result = await currentAtlas.PresentAsync(
 				state.CreateUpdates( move, geometry )
 			);
 			if ( result.Status is not CursesRasterAtlasPresentationStatus.Presented
 				and not CursesRasterAtlasPresentationStatus.NoChanges ) {
 				message = result.Message ?? "Raster presentation unavailable; using text.";
-				await atlas.DisposeAsync();
+				await currentAtlas.DisposeAsync();
 				atlas = null;
 				rasterActive = false;
 				map.Clear();
@@ -204,7 +205,7 @@ while ( running ) {
 		) {
 			message = $"Raster state uncertain ({exception.GetType().Name}); using text.";
 			try {
-				await atlas.DisposeAsync();
+				await currentAtlas.DisposeAsync();
 			} catch {
 				// The session still owns final terminal restoration.
 			}

@@ -222,10 +222,10 @@ internal sealed class RasterAtlasSampleState {
 			return;
 		}
 		( red, green, blue ) = TerrainAt( row, column ) switch {
-			RasterAtlasTerrain.Meadow => ( 46, 125, 50 ),
-			RasterAtlasTerrain.Forest => ( 18, 72, 35 ),
-			RasterAtlasTerrain.Water => ( 28, 92, 160 ),
-			_ => ( 138, 111, 70 )
+			RasterAtlasTerrain.Meadow => ( (byte)46, (byte)125, (byte)50 ),
+			RasterAtlasTerrain.Forest => ( (byte)18, (byte)72, (byte)35 ),
+			RasterAtlasTerrain.Water => ( (byte)28, (byte)92, (byte)160 ),
+			_ => ( (byte)138, (byte)111, (byte)70 )
 		};
 	}
 

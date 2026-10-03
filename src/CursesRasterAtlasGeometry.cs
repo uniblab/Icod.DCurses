@@ -24,6 +24,14 @@ namespace Icod.DCurses;
 /// <summary>Describes an exact terminal-cell-aligned raster-atlas geometry.</summary>
 public readonly record struct CursesRasterAtlasGeometry {
 	/// <summary>Initializes one bounded raster-atlas geometry.</summary>
+	/// <param name="rows">Atlas height in terminal cells, from 1 through 256.</param>
+	/// <param name="columns">Atlas width in terminal cells, from 1 through 256.</param>
+	/// <param name="tilePixelWidth">Positive width of one terminal cell in pixels.</param>
+	/// <param name="tilePixelHeight">Positive height of one terminal cell in pixels.</param>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// An axis is outside its bound, a tile pixel dimension is not positive, or a
+	/// derived atlas pixel dimension does not fit in <see cref="int"/>.
+	/// </exception>
 	public CursesRasterAtlasGeometry(
 		int rows,
 		int columns,

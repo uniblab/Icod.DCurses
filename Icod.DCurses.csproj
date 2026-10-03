@@ -42,8 +42,8 @@
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
-		<Description>Managed, cross-platform curses-style terminal UI for .NET with retained text and mixed-media presentation, Unicode layout and selection geometry, viewport and track layout, panels, and deterministic interaction routing.</Description>
-		<PackageReleaseNotes>2.3.0-alpha.1 establishes the approved CursesRasterAtlas development baseline for cell-aligned tile presentation. The planning baseline retains the 2.0 assembly version, upgrades the sole direct runtime dependency to Icod.Terminal 1.24.0, and does not yet claim the planned atlas public API.</PackageReleaseNotes>
+		<Description>Managed, cross-platform curses-style terminal UI for .NET with retained text, mixed media, cell-aligned raster atlases, Unicode layout, viewports, panels, and deterministic interaction routing.</Description>
+		<PackageReleaseNotes>2.3.0-alpha.1 adds CursesRasterAtlas: exact cell-pixel geometry, bounded double-buffered RGB24/RGBA32 tile updates, retained rectangular projection, conservative lifecycle ownership, and explicit recreation/fallback guidance. The 2.0 assembly version remains stable and the sole direct runtime dependency is Icod.Terminal 1.24.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>

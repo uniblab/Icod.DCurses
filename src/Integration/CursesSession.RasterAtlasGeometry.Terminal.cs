@@ -26,6 +26,15 @@ using Icod.Terminal;
 /// <summary>Terminal-backed raster-atlas geometry observation.</summary>
 public sealed partial class CursesSession {
 	/// <summary>Queries exact current cell pixels and projects them across an atlas grid.</summary>
+	/// <param name="rows">Atlas height in terminal cells, from 1 through 256.</param>
+	/// <param name="columns">Atlas width in terminal cells, from 1 through 256.</param>
+	/// <param name="timeout">Positive timeout for each Terminal geometry query.</param>
+	/// <param name="cancellationToken">Cancellation for activity acquisition and queries.</param>
+	/// <returns>Fresh exact cell and atlas pixel geometry.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">An axis is outside its bound or <paramref name="timeout"/> is not positive.</exception>
+	/// <exception cref="InvalidOperationException">Exact cell pixels cannot be observed or derived.</exception>
+	/// <exception cref="TimeoutException">Both supported geometry query paths time out.</exception>
+	/// <exception cref="OperationCanceledException">Cancellation is requested.</exception>
 	public ValueTask<CursesRasterAtlasGeometry> QueryRasterAtlasGeometryAsync(
 		int rows,
 		int columns,
