@@ -1,7 +1,7 @@
 # T2301 `CursesRasterAtlas` API gate
 
-**Date:** 2026-10-03  
-**Status:** Contract frozen; RED evidence pending exact-head CI  
+**Date:** 2026-10-03
+**Status:** Contract frozen; expected RED captured in workflow run `37100960059`
 **Baseline:** `Icod.DCurses 2.2.0`, `Icod.Terminal 1.24.0`
 
 ## Decision

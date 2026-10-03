@@ -56,10 +56,10 @@ public sealed class CursesRasterAtlasValidationTests {
 	[Fact]
 	public void GeometryRejectsPixelMultiplicationOverflow() {
 		Assert.Throws<ArgumentOutOfRangeException>(
-			() => new CursesRasterAtlasGeometry( 256, 1, int.MaxValue, 1 )
+			() => new CursesRasterAtlasGeometry( 1, 256, int.MaxValue, 1 )
 		);
 		Assert.Throws<ArgumentOutOfRangeException>(
-			() => new CursesRasterAtlasGeometry( 1, 256, 1, int.MaxValue )
+			() => new CursesRasterAtlasGeometry( 256, 1, 1, int.MaxValue )
 		);
 	}
 
