@@ -11,7 +11,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.3.0` — first-class `CursesRasterAtlas` coordination\
-**Status:** 2.2.0 merged, tagged and released; 2.3 atlas implementation, automated acceptance, Terminal 1.24.1 dependency refresh and Windows Terminal/Contour controlled fallback qualified; representative live raster checklist pending
+**Status:** 2.2.0 merged, tagged and released; 2.3 atlas implementation, automated acceptance, Terminal 1.24.1 dependency refresh and Windows Terminal/Contour/WezTerm controlled fallback qualified; representative live raster checklist pending
 
 **Planning snapshot:** 2026-10-03
 

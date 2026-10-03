@@ -9,7 +9,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.24.1` minimum; no direct `Icod.TermInfo` reference
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** T2301–T2307 accepted; T2308 automated acceptance and Windows Terminal/Contour controlled fallback accepted; T2309 Terminal 1.24.1 dependency refresh qualified; representative live raster checklist pending; T2310 not started
+**Status:** T2301–T2307 accepted; T2308 automated acceptance and Windows Terminal/Contour/WezTerm controlled fallback accepted; T2309 Terminal 1.24.1 dependency refresh qualified; representative live raster checklist pending; T2310 not started
 **Planning snapshot:** 2026-10-03
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
@@ -157,4 +157,4 @@ T2309 is the API/package regret deadline. After it, only fixes required by accep
 
 ## 10. Immediate next step
 
-Run the T2308 raster checklist in a terminal that supplies a nonzero terminal-assigned persistent image identity. Windows Terminal and Contour 0.7.0.8982 have accepted the controlled Terminal 1.24.1 text fallback but cannot provide raster-rendering evidence. After a representative live raster observation is recorded, advance to T2310 RC qualification; do not promote stable source until the exact RC matrix and live evidence are accepted.
+Run the T2308 raster checklist in a terminal that supplies a nonzero terminal-assigned persistent image identity. Windows Terminal, Contour 0.7.0.8982 and WezTerm on Windows have accepted the controlled Terminal 1.24.1 text fallback but cannot provide raster-rendering evidence. After a representative live raster observation is recorded, advance to T2310 RC qualification; do not promote stable source until the exact RC matrix and live evidence are accepted.

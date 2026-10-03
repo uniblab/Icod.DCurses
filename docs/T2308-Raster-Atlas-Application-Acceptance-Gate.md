@@ -58,16 +58,18 @@ A Windows Terminal text-fallback observation exposed the missing repaint when no
 lifecycle resize notification was delivered. The portable polling fix is automated and
 green.
 
-On 2026-10-03, the Terminal 1.24.1 dependency-refresh candidate was exercised in both
-Windows Terminal and Contour 0.7.0.8982. Both reported `TEXT` and
+On 2026-10-03, the Terminal 1.24.1 dependency-refresh candidate was exercised in
+Windows Terminal, Contour 0.7.0.8982 and WezTerm on Windows. All three reported `TEXT` and
 `Persistent raster unavailable; using text.` rather than throwing the earlier malformed
-persistent-identity exception. In both terminals movement worked, water blocked movement,
-the camera scrolled and Q restored the terminal cleanly. These observations accept the
-controlled fallback, shared-model movement/collision/camera behavior and clean Q exit in
-those environments. They do not accept raster rendering: neither terminal supplied the
-nonzero terminal-assigned persistent image identity required by the atlas contract.
+persistent-identity exception. Windows Terminal and Contour additionally confirmed that
+movement worked, water blocked movement, the camera scrolled and Q restored the terminal
+cleanly. These observations accept the controlled fallback, and the first two accept the
+shared-model movement/collision/camera behavior and clean Q exit in those environments.
+They do not accept raster rendering: none supplied the nonzero terminal-assigned
+persistent image identity required by the atlas contract. The WezTerm capture alone does
+not distinguish which capability-evidence branch selected the fallback.
 
 T2308 therefore remains pending on the representative raster-capable checklist. Help,
-resize and Escape also remain unchecked for this exact Windows Terminal/Contour retest.
+resize and Escape also remain unchecked for this exact Windows-host retest.
 CI cannot prove that a particular emulator renders raster pixels correctly, so the live
 raster boxes must not be pre-checked from scripted transport evidence.
