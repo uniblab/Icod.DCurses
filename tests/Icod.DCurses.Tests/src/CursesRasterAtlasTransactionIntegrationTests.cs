@@ -30,6 +30,8 @@ namespace Icod.DCurses.Tests;
 
 /// <summary>Exercises the complete atlas transaction against a scripted Terminal session.</summary>
 public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
+	private static readonly TimeSpan ScriptedIoTimeout = TimeSpan.FromMinutes( 1 );
+
 	[Fact]
 	public async Task CreationProjectionAndPresentationUseDeterministicOrder() {
 		AtlasTransport transport = new();
@@ -353,7 +355,7 @@ public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 		internal async Task WaitForWriteCountAsync(
 			int expected
 		) {
-			using CancellationTokenSource timeout = new( TimeSpan.FromSeconds( 15 ) );
+			using CancellationTokenSource timeout = new( ScriptedIoTimeout );
 			while ( true ) {
 				lock ( sync ) {
 					if ( expected <= writes.Count ) {

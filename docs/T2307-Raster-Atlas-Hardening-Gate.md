@@ -22,8 +22,12 @@ by [pull-request workflow 1296](https://github.com/uniblab/Icod.DCurses/actions/
 The package candidate and all six Windows, Linux and macOS x64/ARM64 runtime jobs
 are green. The first macOS x64 attempt passed net8.0 and net10.0 but one net9.0
 256-tile RGB24 workload exhausted the harness's 15-second write wait; the unchanged
-job rerun passed all three frameworks, classifying that cancellation as transient
-runner scheduling rather than a product defect.
+job rerun passed all three frameworks. A later documentation-head run exhausted the
+same wait in net8.0 on a 16-tile case while its net9.0/net10.0 and all other runtime
+jobs passed. Because the failing framework and workload moved while product source
+did not, this is runner scheduling against an undersized test-harness deadline, not
+workload cost or a product defect. The scripted-I/O wait is therefore one minute;
+the deterministic operation-count assertions remain unchanged.
 
 The Staging artifact `icod-dcurses-pr-packages-Staging` has GitHub digest
 `sha256:22a72c3be6ca810b285d90d10e473c0d89d3fc65ac0d9e7145c20e94e2804d81`.
