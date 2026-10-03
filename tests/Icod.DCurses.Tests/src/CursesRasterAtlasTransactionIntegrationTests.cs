@@ -217,12 +217,12 @@ public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 					TerminalCapability.PersistentRasterGraphics
 				).AsTask();
 			await transport.WaitForWriteCountAsync( 1 );
-			string probe = transport.GetAsciiWrite( 0 );
-			int imageMarker = probe.IndexOf( "i=", StringComparison.Ordinal );
+			string genericProbe = transport.GetAsciiWrite( 0 );
+			int imageMarker = genericProbe.IndexOf( "i=", StringComparison.Ordinal );
 			Assert.True( 0 <= imageMarker );
-			int imageEnd = probe.IndexOfAny( [ ',', ';' ], imageMarker + 2 );
+			int imageEnd = genericProbe.IndexOfAny( [ ',', ';' ], imageMarker + 2 );
 			Assert.True( imageMarker + 2 < imageEnd );
-			string imageId = probe.Substring(
+			string imageId = genericProbe.Substring(
 				imageMarker + 2,
 				imageEnd - imageMarker - 2
 			);
@@ -230,6 +230,26 @@ public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 				Encoding.ASCII.GetBytes(
 					$"\u001b_Gi={imageId};OK\u001b\\\u001b[?64;1c"
 				)
+			);
+			await transport.WaitForWriteCountAsync( 2 );
+			string persistentProbe = transport.GetAsciiWrite( 1 );
+			int numberMarker = persistentProbe.IndexOf( "I=", StringComparison.Ordinal );
+			Assert.True( 0 <= numberMarker );
+			int numberEnd = persistentProbe.IndexOfAny( [ ',', ';' ], numberMarker + 2 );
+			Assert.True( numberMarker + 2 < numberEnd );
+			string imageNumber = persistentProbe.Substring(
+				numberMarker + 2,
+				numberEnd - numberMarker - 2
+			);
+			transport.Publish(
+				Encoding.ASCII.GetBytes(
+					$"\u001b_Gi=77,I={imageNumber};OK\u001b\\"
+				)
+			);
+			await transport.WaitForWriteCountAsync( 3 );
+			Assert.Equal(
+				"\u001b_Ga=d,d=I,i=77,q=2\u001b\\",
+				transport.GetAsciiWrite( 2 )
 			);
 			Assert.True( ( await verification ).IsUsable );
 
