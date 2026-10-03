@@ -23,6 +23,7 @@ using System.Text;
 using System.Threading.Channels;
 using Icod.Terminal;
 using Icod.TermInfo;
+using Icod.Timing;
 using Xunit;
 
 namespace Icod.DCurses.Tests;
@@ -52,7 +53,8 @@ public sealed class CursesRasterAtlasGeometryIntegrationTests {
 	[Fact]
 	public async Task OnlyDirectTimeoutFallsBackToExactTerminalPixelDerivation() {
 		GeometryTransport transport = new();
-		await using CursesSession session = await OpenSessionAsync( transport );
+		ControllableMonotonicClock clock = new();
+		await using CursesSession session = await OpenSessionAsync( transport, clock );
 
 		Task<CursesRasterAtlasGeometry> query = session.QueryRasterAtlasGeometryAsync(
 			4,
@@ -61,6 +63,7 @@ public sealed class CursesRasterAtlasGeometryIntegrationTests {
 		).AsTask();
 		await WaitForWriteCountAsync( transport, 1 );
 		Assert.Equal( Encoding.ASCII.GetBytes( "\u001b[16t" ), transport.GetWrite( 0 ) );
+		clock.Advance( TimeSpan.FromSeconds( 2 ) );
 		await WaitForWriteCountAsync( transport, 2 );
 		Assert.Equal( Encoding.ASCII.GetBytes( "\u001b[14t" ), transport.GetWrite( 1 ) );
 		transport.Publish( Encoding.ASCII.GetBytes( "\u001b[4;800;1200t" ) );
@@ -91,7 +94,8 @@ public sealed class CursesRasterAtlasGeometryIntegrationTests {
 	}
 
 	private static async ValueTask<CursesSession> OpenSessionAsync(
-		GeometryTransport transport
+		GeometryTransport transport,
+		IMonotonicClock? monotonicClock = null
 	) {
 		TerminalSession terminalSession = await TerminalSession.OpenAsync(
 			new GeometryTerminalControlProvider(),
@@ -102,6 +106,7 @@ public sealed class CursesRasterAtlasGeometryIntegrationTests {
 			new TerminalSessionOptions {
 				TerminalOverride = TerminalProfiles.Dumb,
 				ConfigureOutput = false,
+				MonotonicClock = monotonicClock ?? SystemMonotonicClock.Instance,
 				ObserveLifecycleEvents = false,
 				InputDecoderOptions = new TerminalInputDecoderOptions {
 					EscapeSequenceTimeout = TimeSpan.Zero
@@ -129,6 +134,100 @@ public sealed class CursesRasterAtlasGeometryIntegrationTests {
 	) {
 		using CancellationTokenSource timeout = new( TimeSpan.FromSeconds( 15 ) );
 		await transport.WaitForWriteCountAsync( expected, timeout.Token );
+	}
+
+	private sealed class ControllableMonotonicClock : IMonotonicClock {
+		private readonly object sync = new();
+		private readonly List<PendingDelay> delays = [];
+		private long timestamp;
+
+		public long GetTimestamp() {
+			lock ( sync ) {
+				return timestamp;
+			}
+		}
+
+		public TimeSpan GetElapsedTime(
+			long startingTimestamp,
+			long endingTimestamp
+		) {
+			return TimeSpan.FromTicks( checked( endingTimestamp - startingTimestamp ) );
+		}
+
+		public ValueTask DelayAsync(
+			TimeSpan delay,
+			CancellationToken cancellationToken = default
+		) {
+			if ( TimeSpan.Zero > delay ) {
+				throw new ArgumentOutOfRangeException( nameof( delay ) );
+			}
+			cancellationToken.ThrowIfCancellationRequested();
+			if ( TimeSpan.Zero == delay ) {
+				return ValueTask.CompletedTask;
+			}
+
+			PendingDelay pending;
+			lock ( sync ) {
+				pending = new PendingDelay(
+					checked( timestamp + delay.Ticks ),
+					cancellationToken
+				);
+				delays.Add( pending );
+			}
+			return new ValueTask( pending.Task );
+		}
+
+		internal void Advance(
+			TimeSpan elapsed
+		) {
+			if ( TimeSpan.Zero > elapsed ) {
+				throw new ArgumentOutOfRangeException( nameof( elapsed ) );
+			}
+
+			PendingDelay[] completed;
+			lock ( sync ) {
+				timestamp = checked( timestamp + elapsed.Ticks );
+				completed = delays.Where( delay => delay.Due <= timestamp ).ToArray();
+				foreach ( PendingDelay delay in completed ) {
+					_ = delays.Remove( delay );
+				}
+			}
+			foreach ( PendingDelay delay in completed ) {
+				delay.Complete();
+			}
+		}
+
+		private sealed class PendingDelay {
+			private readonly TaskCompletionSource completion = new(
+				TaskCreationOptions.RunContinuationsAsynchronously
+			);
+			private readonly CancellationTokenRegistration cancellationRegistration;
+
+			internal PendingDelay(
+				long due,
+				CancellationToken cancellationToken
+			) {
+				Due = due;
+				cancellationRegistration = cancellationToken.Register(
+					static state => ( (PendingDelay)state! ).Cancel(),
+					this
+				);
+			}
+
+			internal long Due { get; }
+
+			internal Task Task => completion.Task;
+
+			internal void Complete() {
+				if ( completion.TrySetResult() ) {
+					cancellationRegistration.Dispose();
+				}
+			}
+
+			private void Cancel() {
+				_ = completion.TrySetCanceled();
+			}
+		}
 	}
 
 	private sealed class GeometryTerminalControlProvider : ITerminalControlProvider {

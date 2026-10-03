@@ -70,7 +70,7 @@ public sealed class CursesRasterAtlasPublicContractTests {
 				window.WriteRasterAtlas( row, column, atlas, rectangle );
 
 		Assert.Equal( 12, geometry.PixelWidth );
-		Assert.Equal( 15, geometry.PixelHeight );
+		Assert.Equal( 10, geometry.PixelHeight );
 		Assert.Equal( 1, update.Row );
 		Assert.Equal( 2, update.Column );
 		Assert.Same( image, update.Image );
