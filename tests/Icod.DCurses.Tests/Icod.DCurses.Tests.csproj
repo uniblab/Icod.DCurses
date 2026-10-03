@@ -60,6 +60,8 @@
              Link="RoguelikeSampleInteraction.cs" />
     <Compile Include="..\..\samples\Icod.DCurses.RasterAtlas.Sample\RasterAtlasSampleState.cs"
              Link="RasterAtlasSampleState.cs" />
+    <Compile Include="..\..\samples\Icod.DCurses.RasterAtlas.Sample\RasterAtlasSampleLayout.cs"
+             Link="RasterAtlasSampleLayout.cs" />
     <Compile Include="..\..\samples\Icod.DCurses.Editor.Sample\EditorSampleState.cs"
              Link="EditorSampleState.cs" />
     <Compile Include="..\..\samples\Icod.DCurses.Editor.Sample\EditorSampleInteraction.cs"
