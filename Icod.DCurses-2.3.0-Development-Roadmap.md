@@ -9,7 +9,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.24.1` minimum; no direct `Icod.TermInfo` reference
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** T2301–T2307 accepted; T2308 automated acceptance complete with portable resize polling and recoverable malformed-raster fallback; T2309 dependency refresh to Terminal 1.24.1 under exact-head qualification; live Contour raster/text checklist pending; T2310 not started
+**Status:** T2301–T2307 accepted; T2308 automated acceptance complete with portable resize polling and recoverable malformed-raster fallback; T2309 Terminal 1.24.1 dependency refresh qualified; live Contour raster/text checklist pending; T2310 not started
 **Planning snapshot:** 2026-10-03
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
@@ -157,4 +157,4 @@ T2309 is the API/package regret deadline. After it, only fixes required by accep
 
 ## 10. Immediate next step
 
-Qualify the exact Terminal 1.24.1 dependency-refresh head, then repeat the T2308 live raster and explicit text-fallback checklist in Contour 0.7.0.8982. After those observations are recorded, advance to T2310 RC qualification; do not promote stable source until the exact RC matrix and live evidence are accepted.
+Repeat the T2308 live raster and explicit text-fallback checklist in Contour 0.7.0.8982 against the qualified Terminal 1.24.1 dependency. After those observations are recorded, advance to T2310 RC qualification; do not promote stable source until the exact RC matrix and live evidence are accepted.

@@ -1,7 +1,7 @@
 # Icod.DCurses 2.3 Development Public API Baseline
 
 **Candidate identity:** `2.3.0-alpha.1`  
-**Status:** Public API fingerprint accepted at exact source head `751890de112be2e8d0be1757e1fdc6fd47b14c8d` by [workflow 1296](https://github.com/uniblab/Icod.DCurses/actions/runs/37106805634); the package-only Terminal 1.24.1 dependency refresh is pending exact-head qualification
+**Status:** Public API fingerprint accepted at exact source head `751890de112be2e8d0be1757e1fdc6fd47b14c8d` by [workflow 1296](https://github.com/uniblab/Icod.DCurses/actions/runs/37106805634); the Terminal 1.24.1 dependency refresh was accepted at exact executable head `2709b44768136d17568f3b210093878ab2891c05` by [workflow 1310](https://github.com/uniblab/Icod.DCurses/actions/runs/37120790042)
 **AssemblyVersion:** `2.0.0.0`  
 **Direct production dependency:** `Icod.Terminal 1.24.1`
 

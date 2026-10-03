@@ -48,8 +48,14 @@ The original Terminal 1.24.0 T2309 candidate was accepted at exact source head
 and all six OS/architecture runtime jobs were green. The package artifact digest was
 `sha256:22a72c3be6ca810b285d90d10e473c0d89d3fc65ac0d9e7145c20e94e2804d81`;
 the `.nupkg` and `.snupkg` hashes are recorded in the T2307 gate and measurement
-report. The Terminal 1.24.1 dependency-only refresh must repeat the exact package and
-runtime qualification before T2309 is accepted on the current head.
+report.
+
+The Terminal 1.24.1 dependency refresh was accepted at exact executable head
+`2709b44768136d17568f3b210093878ab2891c05` by
+[pull-request workflow 1310](https://github.com/uniblab/Icod.DCurses/actions/runs/37120790042),
+run `37120790042`. The package candidate and all six OS/architecture runtime jobs were
+green. The refreshed artifact digest is
+`sha256:9004aa8a63459b9c2d2e59fda8b1cc76cc8bb203fc5e75ba8b43351b322debe5`.
 
 Live raster and explicit fallback observations remain the separate T2308/T2310
 maintainer checklist and are not inferred from CI.
