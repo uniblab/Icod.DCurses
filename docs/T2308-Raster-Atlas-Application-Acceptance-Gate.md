@@ -73,3 +73,7 @@ T2308 therefore remains pending on the representative raster-capable checklist. 
 resize and Escape also remain unchecked for this exact Windows-host retest.
 CI cannot prove that a particular emulator renders raster pixels correctly, so the live
 raster boxes must not be pre-checked from scripted transport evidence.
+
+## Complete-frame fallback acceptance (pending)
+
+Terminal 1.25.0-alpha enables the explicit ordinary Kitty/Sixel path in the sample. Repeat default and `-- --raster` runs in Windows Terminal and Contour, following the [sample checklist](../samples/Icod.DCurses.RasterAtlas.Sample/README.md#live-acceptance-for-the-new-frame-path). Confirm FRAME pixels, movement, camera, water collision, help text transition and image restoration, repeated resize, no stale images or repeated status bars, and Q/Escape cleanup. `-- --text` must still work. No live DCurses frame evidence is claimed from the earlier Terminal-only gradient screenshots.

@@ -30,6 +30,7 @@ public sealed class CursesCompleteRasterRefreshTests {
 		string output = transport.Text;
 		Assert.StartsWith( "\u001b[?2026h", output );
 		Assert.Contains( "<clear>", output );
+		Assert.Contains( marker, output );
 		Assert.True( output.IndexOf( "STATUS", StringComparison.Ordinal ) < output.IndexOf( marker, StringComparison.Ordinal ) );
 		Assert.Contains( "<cup:0,0>" + marker, output );
 		Assert.EndsWith( "\u001b\\<cup:0,0>\u001b[?2026l", output );
@@ -116,9 +117,57 @@ public sealed class CursesCompleteRasterRefreshTests {
 		Assert.DoesNotContain( "\u001b_G", transport.Text );
 	}
 
+	[Fact]
+	public async Task UnsupportedSixelAlphaRejectsPreparedTextBeforeOutput() {
+		Transport transport = new( false );
+		await using CursesSession session = await OpenAsync( transport );
+		session.StandardScreen.Write( "PENDING" );
+		TerminalRasterImage alpha = TerminalRasterImage.CreateRgba32( 1, 1, [ 1, 2, 3, 128 ] );
+		await Assert.ThrowsAsync<NotSupportedException>( () => session.RefreshRasterAsync( alpha, 0, 0, Geometry ).AsTask() );
+		Assert.Empty( transport.Text );
+		await session.RefreshAsync();
+		Assert.Contains( "PENDING", transport.Text );
+	}
+
+	[Fact]
+	public async Task RetainedRasterCellsRejectBeforeOutput() {
+		Transport transport = new( true );
+		await using CursesSession session = await OpenAsync( transport );
+		session.Screen.VirtualScreen.SetRasterCell( 2, 2,
+			CursesRasterRepresentationBaselineTests.CreateLogicalRasterCell( session.HostSession ) );
+		await Assert.ThrowsAsync<InvalidOperationException>( () => session.RefreshRasterAsync( Image, 0, 0, Geometry ).AsTask() );
+		Assert.Empty( transport.Text );
+		session.Screen.VirtualScreen.SetRasterCell( 2, 2, null );
+	}
+
+	[Fact]
+	public async Task ResizeAfterImageGenerationRejectsBeforeOutput() {
+		Transport transport = new( true );
+		await using CursesSession session = await OpenAsync( transport );
+		TerminalRasterImage image = Image;
+		transport.Size = new( 1, 1 );
+		await Assert.ThrowsAsync<InvalidOperationException>( () => session.RefreshRasterAsync( image, 0, 0, Geometry ).AsTask() );
+		Assert.Empty( transport.Text );
+	}
+
+	[Fact]
+	public async Task RasterWriteFailureDoesNotRetryAndTextRefreshRepairsDamage() {
+		Transport transport = new( true );
+		await using CursesSession session = await OpenAsync( transport );
+		transport.FailRasterWrite = true;
+		await Assert.ThrowsAsync<IOException>( () => session.RefreshRasterAsync( Image, 0, 0, Geometry ).AsTask() );
+		Assert.Equal( 1, transport.RasterWriteAttempts );
+		Assert.False( session.LatestRefreshDiagnostics!.LogicalStatePublished );
+		Assert.True( session.LatestRefreshDiagnostics.PhysicalStateInvalidated );
+		transport.Clear();
+		await session.RefreshAsync();
+		Assert.Contains( "<clear>", transport.Text );
+		Assert.Equal( 1, transport.RasterWriteAttempts );
+	}
+
 	private static async Task<CursesSession> OpenAsync( Transport transport, bool verify = true ) {
 		TerminalSession terminal = await TerminalSession.OpenAsync(
-			new Provider(), TerminalEndpoint.StandardInput, TerminalEndpoint.StandardOutput,
+			new Provider( transport ), TerminalEndpoint.StandardInput, TerminalEndpoint.StandardOutput,
 			transport, transport, new TerminalSessionOptions {
 				TerminalOverride = new TerminalDescriptionBuilder( "complete-raster-test" )
 					.SetString( StringCapability.CursorAddress, "<cup:%p1%d,%p2%d>" )
@@ -150,6 +199,9 @@ public sealed class CursesCompleteRasterRefreshTests {
 		internal string Text => output.ToString();
 		internal int FlushCount { get; private set; }
 		internal bool FailNextFlush { get; set; }
+		internal bool FailRasterWrite { get; set; }
+		internal int RasterWriteAttempts { get; private set; }
+		internal TerminalSize Size { get; set; } = new( 8, 4 );
 		internal void Clear() { output.Clear(); FlushCount = 0; }
 		public async ValueTask<int> ReadAsync( Memory<byte> buffer, CancellationToken cancellationToken = default ) {
 			byte[] bytes = await input.Reader.ReadAsync( cancellationToken );
@@ -158,11 +210,17 @@ public sealed class CursesCompleteRasterRefreshTests {
 		}
 		public ValueTask WriteAsync( ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default ) {
 			string text = Encoding.UTF8.GetString( buffer.Span );
+			if ( text.Contains( "a=T", StringComparison.Ordinal ) ) {
+				RasterWriteAttempts++;
+				if ( FailRasterWrite ) { throw new IOException( "Synthetic raster write failure." ); }
+			}
 			output.Append( text );
 			if ( text.Contains( "a=q", StringComparison.Ordinal ) ) {
 				int start = text.IndexOf( "i=", StringComparison.Ordinal ) + 2;
 				int end = text.IndexOfAny( [ ',', ';' ], start );
-				string response = $"\u001b_Gi={text[start..end]};{( kitty ? "OK" : "ENOTSUP" )}\u001b\\\u001b[?64;4c";
+				// Any correlated Kitty reply proves protocol recognition. A Sixel-only
+				// terminal ignores Kitty APC and replies to the following DA request.
+				string response = kitty ? $"\u001b_Gi={text[start..end]};OK\u001b\\\u001b[?64;4c" : "\u001b[?64;4c";
 				input.Writer.TryWrite( Encoding.ASCII.GetBytes( response ) );
 			}
 			return ValueTask.CompletedTask;
@@ -174,13 +232,13 @@ public sealed class CursesCompleteRasterRefreshTests {
 		}
 	}
 
-	private sealed class Provider : ITerminalControlProvider {
+	private sealed class Provider( Transport transport ) : ITerminalControlProvider {
 		private readonly TerminalModeSnapshot baseline = TerminalModeSnapshot.CreatePosix(
 			0, 0, 0, 0x0002UL, new byte[32], 0, 32, 0, new TerminalSpeed(13,9600), new TerminalSpeed(13,9600) );
 		public TerminalControlResult<TerminalEndpointObservation> Observe( TerminalEndpoint endpoint ) =>
 			TerminalControlResult<TerminalEndpointObservation>.Available( new( true, null, TerminalPlatformKind.PosixTermios,
 				TerminalControlCapabilities.Attachment | TerminalControlCapabilities.LiveSize | TerminalControlCapabilities.ModeRead | TerminalControlCapabilities.ModeWrite ) );
-		public TerminalControlResult<TerminalSize> GetSize( TerminalEndpoint endpoint ) => TerminalControlResult<TerminalSize>.Available( new( 8, 4 ) );
+		public TerminalControlResult<TerminalSize> GetSize( TerminalEndpoint endpoint ) => TerminalControlResult<TerminalSize>.Available( transport.Size );
 		public TerminalControlResult<TerminalModeSnapshot> GetMode( TerminalEndpoint endpoint ) => TerminalControlResult<TerminalModeSnapshot>.Available( baseline );
 		public TerminalControlMutationResult SetMode( TerminalEndpoint endpoint, TerminalModeSnapshot mode, TerminalModeApplyTiming timing ) => TerminalControlMutationResult.Success();
 	}

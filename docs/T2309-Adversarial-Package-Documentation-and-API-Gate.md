@@ -1,18 +1,18 @@
 # T2309 Adversarial, Package, Documentation and API Gate
 
-## Frozen candidate
+## Current candidate (gate reopened)
 
 | Item | Candidate |
 | --- | --- |
 | package/version | `Icod.DCurses 2.3.0-alpha.1` |
 | assembly version | `2.0.0.0` |
-| direct runtime dependency | exactly `Icod.Terminal 1.24.1` |
+| direct runtime dependency | exactly `Icod.Terminal 1.25.0-alpha` |
 | direct TermInfo dependency | none |
 | exported types | 105 |
-| canonical contract lines | 838 |
-| API SHA-256 | `86603abe361c3a54e3b85fd2f0321e319bfb6fe11ff4abcaeb99151621827932` |
+| canonical contract lines | 839 |
+| API SHA-256 | `b86ba658fd90d041eeccf5345ecc71a978bea785f0b2bbb9b8274091ccc4afc1` |
 
-The delta over published 2.2 is additive and limited to the five atlas types and three
+The delta over published 2.2 is additive and limited to the five atlas types and four
 host methods recorded in `Public-API-Baseline-2.3.md`. No new feature family may enter
 after this gate without deliberately reopening the fingerprint and roadmap decision.
 
@@ -20,7 +20,7 @@ after this gate without deliberately reopening the fingerprint and roadmap decis
 
 The repository package validator must prove that the `.nupkg` contains the README,
 license, icon, three TFM assets, repository/source-link metadata and the matching symbol
-package. Its nuspec/deps/lock inspection must show the one direct `Icod.Terminal 1.24.1`
+package. Its nuspec/deps/lock inspection must show the one direct `Icod.Terminal 1.25.0-alpha`
 runtime dependency and no direct Icod.TermInfo dependency.
 
 The fresh NuGet-only consumer compiles and executes for net8.0, net9.0 and net10.0. Its
@@ -59,3 +59,7 @@ green. The refreshed artifact digest is
 
 Live raster and explicit fallback observations remain the separate T2308/T2310
 maintainer checklist and are not inferred from CI.
+
+## Reopened for complete-frame refresh
+
+The approved Terminal 1.25.0-alpha integration adds one session method and reopens this gate. Earlier exact-head results above remain historical evidence; they do not qualify the new frame path. The current candidate must pass the API fingerprint, six runtime lanes, package consumer, and XML gates again.

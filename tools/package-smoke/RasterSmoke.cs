@@ -69,6 +69,9 @@ internal static class RasterSmoke {
 		) || null == typeof( CursesWindow ).GetMethod(
 			nameof( CursesWindow.WriteRasterAtlas ),
 			[ typeof( int ), typeof( int ), typeof( CursesRasterAtlas ), typeof( CursesRectangle ) ]
+		) || null == typeof( CursesSession ).GetMethod(
+			nameof( CursesSession.RefreshRasterAsync ),
+			[ typeof( TerminalRasterImage ), typeof( int ), typeof( int ), typeof( CursesRasterAtlasGeometry ), typeof( CancellationToken ) ]
 		) ) {
 			throw new InvalidOperationException(
 				"Package-only retained-raster public surface changed."

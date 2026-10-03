@@ -2,9 +2,9 @@
   "schema": 1,
   "release": "2.3.0-alpha.1",
   "status": "development",
-  "sha256": "86603abe361c3a54e3b85fd2f0321e319bfb6fe11ff4abcaeb99151621827932",
+  "sha256": "b86ba658fd90d041eeccf5345ecc71a978bea785f0b2bbb9b8274091ccc4afc1",
   "exportedTypeCount": 105,
-  "contractLineCount": 838,
+  "contractLineCount": 839,
   "exportedTypes": [
     "Icod.DCurses.CursesAlertKind",
     "Icod.DCurses.CursesAmbiguousWidthPolicy",

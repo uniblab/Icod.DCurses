@@ -166,6 +166,7 @@ public sealed class CursesPreparedRefreshTests {
 				"AddPlan",
 				"CommitAsync",
 				"WriteHyperlink",
+				"WriteRaster",
 				"WriteRasterPlaceholderCell",
 				"WriteRasterPlaceholderCells",
 				"WriteText"

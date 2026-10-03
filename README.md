@@ -256,6 +256,18 @@ should provide an ordinary text path when capability verification, exact geometr
 creation or presentation is unavailable. See the [complete sample and terminal notes](samples/Icod.DCurses.RasterAtlas.Sample/README.md)
 and [measurement report](docs/Raster-Atlas-Measurement-2.3.md).
 
+For terminals with verified ordinary raster output but no persistent image identities,
+applications can explicitly present a complete viewport using
+`await session.RefreshRasterAsync(image, row, column, geometry)`. Query exact geometry
+as above, keep the final screen row outside the image, and verify Terminal's ordinary
+`RasterGraphics` capability before use. Terminal 1.25.0-alpha chooses Kitty or Sixel
+and encodes the image in the same transaction as the text refresh. Each call clears
+and repaints the screen; DCurses stores no source image and performs no automatic replay.
+Visible panels must not overlap this immediate image, and retained raster cells cannot
+coexist with it. The next ordinary refresh clears previous frame damage and restores
+text. The sample uses a text view while help is open and exposes `--raster` for direct
+testing. Physical placement, clearing, and resize still require live terminal acceptance.
+
 ## Feature Inventory
 
 - **Logical screens and windows** — retained curses-style cell surfaces, cursor movement, editing, scrolling, styles, and explicit refresh.
@@ -278,14 +290,14 @@ and [measurement report](docs/Raster-Atlas-Measurement-2.3.md).
 - No second terminal capability database or raw-input reader.
 - No private OSC/CSI/DCS/APC graphics framing for Terminal-owned facilities.
 - No public Terminal-private persistent-raster ids.
-- No hidden raster source cache/re-upload or automatic Sixel fallback.
+- No hidden raster source cache/re-upload or Sixel emulation of retained raster identities.
 - No atlas batching, Indexed8 partial replacement, map-sized storage, automatic replay, or inferred raster backend.
 - No widget/control framework, callback dispatcher, retained capture/bubble event tree, automatic focus-on-click, PTY/process hosting, terminal emulation, or application framework.
 - Application policy remains above DCurses.
 
 ## Samples and Documentation
 
-`Icod.DCurses.RasterAtlas.Sample` is the 2.3 tile-application acceptance sample; `--text` forces its fallback path. `Icod.DCurses.MixedMedia.Sample` demonstrates all three retained presentation axes together—ordinary text, `CursesHyperlink` semantic metadata, and raster placeholder cells—inside a pannable pad, with panel overlays, clipping, interaction geometry, serialized refresh, and graceful continuation when raster ownership is unavailable.
+`Icod.DCurses.RasterAtlas.Sample` is the 2.3 tile-application acceptance sample; `--text` forces text; `--raster` bypasses the persistent atlas and exercises complete-frame Kitty/Sixel output. `Icod.DCurses.MixedMedia.Sample` demonstrates all three retained presentation axes together—ordinary text, `CursesHyperlink` semantic metadata, and raster placeholder cells—inside a pannable pad, with panel overlays, clipping, interaction geometry, serialized refresh, and graceful continuation when raster ownership is unavailable.
 
 Recommended documentation entry points:
 

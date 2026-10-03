@@ -74,26 +74,26 @@ while ( running ) {
 						TimeSpan.FromSeconds( 2 )
 					);
 					if ( !completeFrame ) {
-					TerminalControlResult<CursesRasterAtlas> creation =
-						await session.CreateRasterAtlasAsync(
-							state.CreateInitialImage( geometry ),
-							mapRows,
-							mapColumns
-						);
-					if ( creation.IsAvailable ) {
-						atlas = creation.GetRequiredValue();
-						map.WriteRasterAtlas(
-							0,
-							0,
-							atlas,
-							new CursesRectangle( 0, 0, mapRows, mapColumns )
-						);
-						message = "Raster atlas active; resize recreates it explicitly.";
-					} else {
-						completeFrame = ordinaryUsable;
-						rasterActive = ordinaryUsable;
-						message = ordinaryUsable ? "Atlas unavailable; using complete raster frames." : "Raster creation unavailable; using text.";
-					}
+						TerminalControlResult<CursesRasterAtlas> creation =
+							await session.CreateRasterAtlasAsync(
+								state.CreateInitialImage( geometry ),
+								mapRows,
+								mapColumns
+							);
+						if ( creation.IsAvailable ) {
+							atlas = creation.GetRequiredValue();
+							map.WriteRasterAtlas(
+								0,
+								0,
+								atlas,
+								new CursesRectangle( 0, 0, mapRows, mapColumns )
+							);
+							message = "Raster atlas active; resize recreates it explicitly.";
+						} else {
+							completeFrame = ordinaryUsable;
+							rasterActive = ordinaryUsable;
+							message = ordinaryUsable ? "Atlas unavailable; using complete raster frames." : "Raster creation unavailable; using text.";
+						}
 					}
 					if ( completeFrame ) {
 						message = "Complete raster frames active (Terminal chooses Kitty/Sixel).";

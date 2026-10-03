@@ -6,12 +6,12 @@
 **Latest tagged stable release:** `2.2.0`\
 **Current source/package identity:** `2.3.0-alpha.1`\
 **Current development assembly version:** `2.0.0.0`\
-**Current development runtime dependency:** direct `Icod.Terminal 1.24.1` only; TermInfo remains transitive\
-**Planned 2.3 direct runtime dependency:** `Icod.Terminal 1.24.1` minimum; no direct `Icod.TermInfo` reference\
+**Current development runtime dependency:** direct `Icod.Terminal 1.25.0-alpha` only; TermInfo remains transitive\
+**Planned 2.3 direct runtime dependency:** `Icod.Terminal 1.25.0-alpha` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.3.0` — first-class `CursesRasterAtlas` coordination\
-**Status:** 2.2.0 merged, tagged and released; 2.3 atlas implementation, automated acceptance, Terminal 1.24.1 dependency refresh and Windows Terminal/Contour/WezTerm controlled fallback qualified; representative live raster checklist pending
+**Status:** 2.2.0 released; 2.3 atlas gates previously accepted; complete-frame fallback on Terminal 1.25.0-alpha is under automated requalification; live raster acceptance and RC remain pending
 
 **Planning snapshot:** 2026-10-03
 
@@ -63,7 +63,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | Published |
 | `2.1.0` | Core presentation and text foundations for editor and roguelike applications | Merged, tagged and released |
 | `2.2.0` | Interaction and application conveniences for editor and roguelike applications | Published |
-| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Implementation, automated acceptance, Terminal 1.24.1 refresh and controlled fallback complete; representative live raster acceptance pending |
+| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Atlas accepted; complete-frame fallback under requalification; live raster acceptance pending |
 | `2.4+` | Higher-level packages, including a possible `Icod.DCurses.Widgets`, and later sprite/physical-placement work | Deferred; scope depends on application evidence |
 
 The post-1.0 progression is intentionally cumulative:
@@ -399,3 +399,9 @@ For 2.3, the published 2.2 API artifacts remain immutable historical evidence. T
 Review and approve the T2300 planning/dependency PR. After approval, begin T2301 with permanent failing contract tests and freeze exact public names, validation, capacities, result semantics and lifecycle behavior before implementing the first atlas API.
 
 The direct production dependency remains `Icod.DCurses -> Icod.Terminal`; any newly discovered live-terminal gap remains work for the owning Terminal dependency.
+
+## Complete-frame fallback extension (2026-10-03)
+
+The approved fallback work reopens T2308 and T2309 for Terminal 1.25.0-alpha. DCurses adds explicit `RefreshRasterAsync`: one application-owned frame, exact geometry, same serialized transaction as text, conservative damage cleanup, and no persistent identity emulation. Terminal owns Kitty/Sixel selection and encoding. The sample prefers atlas, then complete frame, then text; `--raster` directly exercises the second path.
+
+Automated integration and the additive API fingerprint must be requalified. Then repeat the live checklist in Windows Terminal and Contour: initial image, movement, camera scrolling, blocked water, help open/close, repeated shrinking/growing, status-row cleanup, and Q/Escape restoration. WezTerm remains a controlled-fallback observation unless current verification supplies a usable backend. Earlier text acceptance does not count as frame-path acceptance. T2310 remains pending.

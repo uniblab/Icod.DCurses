@@ -1,16 +1,16 @@
 # Icod.DCurses 2.3 Development Public API Baseline
 
 **Candidate identity:** `2.3.0-alpha.1`  
-**Status:** Public API fingerprint accepted at exact source head `751890de112be2e8d0be1757e1fdc6fd47b14c8d` by [workflow 1296](https://github.com/uniblab/Icod.DCurses/actions/runs/37106805634); the Terminal 1.24.1 dependency refresh was accepted at exact executable head `2709b44768136d17568f3b210093878ab2891c05` by [workflow 1310](https://github.com/uniblab/Icod.DCurses/actions/runs/37120790042)
+**Status:** Reopened for the approved complete-frame extension; fingerprint observed in CI run 37133853737; final qualification pending. Earlier atlas-only qualification remains recorded in T2309.
 **AssemblyVersion:** `2.0.0.0`  
-**Direct production dependency:** `Icod.Terminal 1.24.1`
+**Direct production dependency:** `Icod.Terminal 1.25.0-alpha`
 
 ## Compiled candidate fingerprint
 
 ```text
 105 exported types
-838 canonical declared contract lines
-sha256 86603abe361c3a54e3b85fd2f0321e319bfb6fe11ff4abcaeb99151621827932
+839 canonical declared contract lines
+sha256 b86ba658fd90d041eeccf5345ecc71a978bea785f0b2bbb9b8274091ccc4afc1
 ```
 
 `Public-API-Fingerprint-2.3.json` is the candidate fingerprint. CI compiles and
@@ -29,6 +29,7 @@ immutable at 100 exported types, 783 contract lines and SHA-256
 | New type | `CursesRasterAtlasPresentationStatus` |
 | Session method | `QueryRasterAtlasGeometryAsync(int, int, TimeSpan, CancellationToken)` |
 | Session method | `CreateRasterAtlasAsync(TerminalRasterImage, int, int, CancellationToken)` |
+| Session method | `RefreshRasterAsync(TerminalRasterImage, int, int, CursesRasterAtlasGeometry, CancellationToken)` |
 | Window method | `WriteRasterAtlas(int, int, CursesRasterAtlas, CursesRectangle)` |
 
 No published 2.2 type or member is removed or changed. The only new external public
@@ -59,3 +60,7 @@ The [measurement report](Raster-Atlas-Measurement-2.3.md),
 [sample README](../samples/Icod.DCurses.RasterAtlas.Sample/README.md) and
 [development roadmap](../Icod.DCurses-2.3.0-Development-Roadmap.md) define the
 acceptance evidence and non-goals.
+
+## Complete-frame extension
+
+The user-approved Terminal 1.25 fallback work reopens the fingerprint gate with one additive session method and no new public type. The compiled fingerprint above was observed on .NET 8/9/10 in CI run 37133853737. See the [implementation contract](superpowers/plans/2026-10-03-complete-frame-raster-fallback.md). Retained atlas identity and ownership remain unchanged.
