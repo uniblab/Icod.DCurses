@@ -1,0 +1,103 @@
+/*
+	Icod.DCurses.Tests
+	Automated test suite for Icod.DCurses.
+	Copyright (C) 2026  Timothy J. Bruce <uniblab@hotmail.com>
+*/
+
+using System.Xml.Linq;
+using Icod.DCurses.RasterAtlas.Sample;
+using Icod.Terminal;
+using Xunit;
+
+namespace Icod.DCurses.Tests;
+
+/// <summary>Exercises the headless model and public-only raster-atlas sample contract.</summary>
+public sealed class CursesRasterAtlasSampleTests {
+	[Fact]
+	public void StableCameraMovementProducesOnlyOldAndNewTileUpdates() {
+		RasterAtlasSampleState state = new( 10, 10 );
+		CursesRasterAtlasGeometry geometry = new( 10, 10, 2, 3 );
+
+		RasterAtlasMoveResult move = state.Move( 0, 1 );
+		CursesRasterAtlasTileUpdate[] updates = state.CreateUpdates( move, geometry );
+
+		Assert.True( move.Moved );
+		Assert.False( move.ViewportChanged );
+		Assert.Equal( 2, updates.Length );
+		Assert.Equal( ( 5, 5 ), ( updates[ 0 ].Row, updates[ 0 ].Column ) );
+		Assert.Equal( ( 5, 6 ), ( updates[ 1 ].Row, updates[ 1 ].Column ) );
+		Assert.All( updates, update => {
+			Assert.Equal( 2, update.Image.Width );
+			Assert.Equal( 3, update.Image.Height );
+		} );
+	}
+
+	[Fact]
+	public void CameraShiftProducesOneBoundedViewportUpdatePerCell() {
+		RasterAtlasSampleState state = new( 4, 4 );
+		CursesRasterAtlasGeometry geometry = new( 4, 4, 1, 1 );
+		RasterAtlasMoveResult move = default;
+		for ( int index = 0; index < 4; index++ ) {
+			move = state.Move( 0, 1 );
+		}
+
+		Assert.True( move.ViewportChanged );
+		CursesRasterAtlasTileUpdate[] updates = state.CreateUpdates( move, geometry );
+		Assert.Equal( 16, updates.Length );
+		Assert.Equal( 16, updates.Select( update => ( update.Row, update.Column ) ).Distinct().Count() );
+	}
+
+	[Fact]
+	public void ResizeRequiresMatchingRecreatedGeometryAndUsesNoWorldSizedStorage() {
+		RasterAtlasSampleState state = new( 4, 5 );
+		Assert.True( state.ResizeViewport( 6, 7 ) );
+		Assert.Throws<ArgumentException>(
+			() => state.CreateInitialImage( new CursesRasterAtlasGeometry( 4, 5, 1, 1 ) )
+		);
+		TerminalRasterImage image = state.CreateInitialImage(
+			new CursesRasterAtlasGeometry( 6, 7, 2, 3 )
+		);
+		Assert.Equal( 14, image.Width );
+		Assert.Equal( 18, image.Height );
+		Assert.Equal( 42, state.CreateTextFrame().Length );
+	}
+
+	[Fact]
+	public void SampleBuildsInSolutionAndExposesExplicitTextFallback() {
+		string root = FindRepositoryRoot();
+		string folder = Path.Combine( root, "samples", "Icod.DCurses.RasterAtlas.Sample" );
+		string projectPath = Path.Combine( folder, "Icod.DCurses.RasterAtlas.Sample.csproj" );
+		XDocument project = XDocument.Load( projectPath );
+		Assert.Equal(
+			"net8.0;net9.0;net10.0",
+			project.Descendants( "TargetFrameworks" ).Single().Value
+		);
+		Assert.Equal(
+			@"..\..\Icod.DCurses.csproj",
+			project.Descendants( "ProjectReference" ).Single().Attribute( "Include" )?.Value
+		);
+		string program = File.ReadAllText( Path.Combine( folder, "Program.cs" ) );
+		Assert.Contains( "--text", program, StringComparison.Ordinal );
+		Assert.Contains( "VerifyCapabilityAsync", program, StringComparison.Ordinal );
+		Assert.Contains( "QueryRasterAtlasGeometryAsync", program, StringComparison.Ordinal );
+		Assert.Contains( "CreateRasterAtlasAsync", program, StringComparison.Ordinal );
+		Assert.Contains( "WriteRasterAtlas", program, StringComparison.Ordinal );
+		Assert.Contains( "PresentAsync", program, StringComparison.Ordinal );
+		Assert.Contains(
+			@"samples\Icod.DCurses.RasterAtlas.Sample\Icod.DCurses.RasterAtlas.Sample.csproj",
+			File.ReadAllText( Path.Combine( root, "Icod.DCurses.sln" ) ),
+			StringComparison.Ordinal
+		);
+	}
+
+	private static string FindRepositoryRoot() {
+		DirectoryInfo? current = new( AppContext.BaseDirectory );
+		while ( current is not null ) {
+			if ( File.Exists( Path.Combine( current.FullName, "Icod.DCurses.sln" ) ) ) {
+				return current.FullName;
+			}
+			current = current.Parent;
+		}
+		throw new InvalidOperationException( "Repository root not found." );
+	}
+}
