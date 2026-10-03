@@ -89,3 +89,26 @@ scrolling, help open/close, repeated shrinking/growing, no repeated status rows 
 images, and clean Q/Escape exit. Then run `-- --text`. Preserve unknown-capability
 fallback observations separately; the earlier Terminal-only gradient test does not
 qualify DCurses frame placement, clearing, or resize.
+
+### October 3 retest observations
+
+With Terminal 1.25.0-alpha.1, the new recordings show stable complete-frame graphics
+in Contour during movement. Windows Terminal no longer flashes the fallback map,
+but the image clears and returns in horizontal bands. Terminal PR #74 addresses
+avoidable Sixel transport fragmentation; a single write still cannot guarantee
+atomic host presentation.
+
+The WezTerm recording remains in TEXT, with the player appearing at the expected
+columns and no earlier left-edge trails. Some terrain glyph combinations look
+joined or uneven. Font shaping is a hypothesis, not a confirmed cursor defect.
+For an isolated comparison, temporarily disable ligatures in the existing WezTerm
+configuration (before its `return config`):
+
+```lua
+config.harfbuzz_features = { 'calt=0', 'clig=0', 'liga=0' }
+```
+
+If font-specific `harfbuzz_features` are already set, adjust those as well; they
+can override the global setting. Repeat `-- --text`, then restore the preference.
+See [WezTerm font shaping](https://wezterm.org/config/font-shaping.html).
+This comparison does not change capability detection or qualify the raster path.

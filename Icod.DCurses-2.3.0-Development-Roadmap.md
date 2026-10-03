@@ -180,3 +180,18 @@ branch now consumes that package in production and tests, with matching package 
 dependency-boundary gates. Repeat default, `-- --raster`, and `-- --text` tests.
 No terminal rendering or
 stable-release acceptance is claimed by CI alone.
+
+### 17:20–17:22 UTC retest
+
+The next recordings show Contour complete-frame movement without the earlier text
+flash. Windows Terminal replaces the text flash with visible clearing and partial
+horizontal image bands; immediate-frame acceptance remains open. Terminal
+[PR #74](https://github.com/uniblab/Icod.Terminal/pull/74) coalesces prepared Sixel
+fragments into one bounded image write, with unchanged bytes and failure rules.
+The DCurses dependency stays at published alpha.1 until the next candidate is available.
+
+WezTerm remains TEXT. The player no longer leaves left-edge trails in the supplied
+recording, but terrain glyphs appear joined or uneven. Compare with font ligatures
+disabled before attributing this remaining symptom to cursor planning. See the
+sample README for the isolated check. Resize/help acceptance is still outstanding;
+these movement recordings do not qualify every checklist item.
