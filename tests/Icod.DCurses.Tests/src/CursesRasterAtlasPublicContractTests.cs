@@ -166,9 +166,9 @@ public sealed class CursesRasterAtlasPublicContractTests {
 		int parameterCount
 	) {
 		MethodInfo method = Assert.Single(
-			type.GetMethods( BindingFlags.Public | BindingFlags.Instance )
-				.Where( candidate => candidate.Name == name
-					&& candidate.GetParameters().Length == parameterCount )
+			type.GetMethods( BindingFlags.Public | BindingFlags.Instance ),
+			candidate => candidate.Name == name
+				&& candidate.GetParameters().Length == parameterCount
 		);
 		ParameterInfo cancellation = method.GetParameters()[^1];
 		Assert.Equal( typeof( CancellationToken ), cancellation.ParameterType );
