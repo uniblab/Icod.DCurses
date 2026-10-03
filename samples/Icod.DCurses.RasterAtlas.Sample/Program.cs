@@ -30,6 +30,7 @@ bool rasterActive = capabilityUsable;
 bool helpVisible = false;
 bool running = true;
 bool layoutDirty = true;
+TimeSpan resizePollInterval = TimeSpan.FromMilliseconds( 250 );
 string message = startupStatus;
 
 while ( running ) {
@@ -115,7 +116,17 @@ while ( running ) {
 		await session.RefreshAsync();
 	}
 
-	CursesEvent current = await session.ReadEventAsync();
+	CursesEvent current = await session.ReadEventAsync( resizePollInterval );
+	if ( CursesEventKind.Timeout == current.Kind ) {
+		int previousRows = screen.Rows;
+		int previousColumns = screen.Columns;
+		_ = session.SynchronizeDimensions();
+		if ( screen.Rows != previousRows || screen.Columns != previousColumns ) {
+			session.Invalidate();
+			layoutDirty = true;
+		}
+		continue;
+	}
 	if ( CursesEventKind.Lifecycle == current.Kind && current.Lifecycle is not null ) {
 		if ( current.Lifecycle.Kind is CursesLifecycleEventKind.Interrupt
 			or CursesLifecycleEventKind.Termination ) {
