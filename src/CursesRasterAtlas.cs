@@ -283,6 +283,22 @@ public sealed class CursesRasterAtlas : IAsyncDisposable {
 	private CursesRasterAtlasTileUpdate[] ValidateAndOrderUpdates(
 		IReadOnlyList<CursesRasterAtlasTileUpdate> updates
 	) {
+		return ValidateAndOrderUpdates(
+			updates,
+			rows,
+			columns,
+			tilePixelWidth,
+			tilePixelHeight
+		);
+	}
+
+	internal static CursesRasterAtlasTileUpdate[] ValidateAndOrderUpdates(
+		IReadOnlyList<CursesRasterAtlasTileUpdate> updates,
+		int rows,
+		int columns,
+		int tilePixelWidth,
+		int tilePixelHeight
+	) {
 		ArgumentNullException.ThrowIfNull( updates );
 		if ( MaximumUpdatesPerPresentation < updates.Count ) {
 			throw new ArgumentOutOfRangeException( nameof( updates ) );

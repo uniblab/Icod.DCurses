@@ -29,7 +29,7 @@ using Xunit;
 namespace Icod.DCurses.Tests;
 
 /// <summary>Exercises the complete atlas transaction against a scripted Terminal session.</summary>
-public sealed class CursesRasterAtlasTransactionIntegrationTests {
+public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 	[Fact]
 	public async Task CreationProjectionAndPresentationUseDeterministicOrder() {
 		AtlasTransport transport = new();
@@ -177,9 +177,21 @@ public sealed class CursesRasterAtlasTransactionIntegrationTests {
 	) {
 		byte[] pixels = new byte[ checked( width * height * 3 ) ];
 		for ( int index = 0; index < pixels.Length; index++ ) {
-			pixels[ index ] = checked( (byte)( first + index ) );
+			pixels[ index ] = unchecked( (byte)( first + index ) );
 		}
 		return TerminalRasterImage.CreateRgb24( width, height, pixels );
+	}
+
+	private static TerminalRasterImage Rgba32(
+		int width,
+		int height,
+		byte first
+	) {
+		byte[] pixels = new byte[ checked( width * height * 4 ) ];
+		for ( int index = 0; index < pixels.Length; index++ ) {
+			pixels[ index ] = unchecked( (byte)( first + index ) );
+		}
+		return TerminalRasterImage.CreateRgba32( width, height, pixels );
 	}
 
 	private static async ValueTask<CursesSession> OpenSessionAsync(
