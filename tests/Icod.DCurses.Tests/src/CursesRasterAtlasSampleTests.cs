@@ -63,6 +63,47 @@ public sealed class CursesRasterAtlasSampleTests {
 	}
 
 	[Fact]
+	public void RelayoutClearsAbandonedStatusRowsBeforeMovingWindows() {
+		CursesScreen screen = new( 40, 8 );
+		CursesWindow standard = screen.StandardWindow;
+		CursesWindow map = screen.CreateWindow( 0, 0, 1, 1 );
+		CursesWindow status = screen.CreateWindow( 0, 0, 1, 1 );
+		using CursesPanel help = screen.CreatePanel( 0, 0, 1, 1 );
+
+		Assert.True( RasterAtlasSampleLayout.TryArrange(
+			screen,
+			standard,
+			map,
+			status,
+			help,
+			out _,
+			out _
+		) );
+		status.Move( 0, 0 );
+		status.Write( "OLD STATUS" );
+		status.Move( 1, 0 );
+		status.Write( "OLD MESSAGE" );
+
+		screen.Resize( 60, 12 );
+		Assert.True( RasterAtlasSampleLayout.TryArrange(
+			screen,
+			standard,
+			map,
+			status,
+			help,
+			out _,
+			out _
+		) );
+
+		for ( int row = 6; row < 8; row++ ) {
+			for ( int column = 0; column < 40; column++ ) {
+				Assert.True( screen.VirtualScreen.GetCell( row, column ).IsBlank );
+			}
+		}
+		Assert.Equal( new CursesRectangle( 10, 0, 2, 60 ), status.Bounds );
+	}
+
+	[Fact]
 	public void SampleBuildsInSolutionAndExposesExplicitTextFallback() {
 		string root = FindRepositoryRoot();
 		string folder = Path.Combine( root, "samples", "Icod.DCurses.RasterAtlas.Sample" );
