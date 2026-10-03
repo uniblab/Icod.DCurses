@@ -37,8 +37,11 @@ There is no hidden graphics backend ladder.
 
 Resize is deliberately explicit. The sample disposes the old atlas, clears stale
 retained cells, queries new geometry, creates a new atlas from application-owned pixels,
-and projects replacement cells. An ambiguous presentation exception also abandons the
-atlas and falls back to text rather than replaying a hidden image cache.
+and projects replacement cells. Lifecycle resize notifications trigger this path
+immediately when available; a timed check through the public session API also detects
+changed dimensions when an emulator or multiplexer suppresses those notifications. No
+operating-system or terminal-name detection is used. An ambiguous presentation exception
+also abandons the atlas and falls back to text rather than replaying a hidden image cache.
 
 Kitty graphics-capable terminals that satisfy Terminal's complete persistent-raster
 verification are expected to take the raster path. Other terminals are expected to

@@ -9,6 +9,8 @@ presentation. The automated suite proves:
 - stable-camera movement produces only the old and new tile updates;
 - a camera shift produces exactly one bounded update per visible cell;
 - resize rejects old geometry and reconstructs only the new viewport image;
+- lifecycle notifications and timed public-API dimension synchronization drive the
+  same recreation path without operating-system or terminal-name detection;
 - the sample is built for .NET 8, 9 and 10 as part of the solution;
 - `--text`, capability verification, exact geometry, atlas creation, retained
   projection and presentation are all visible in application source;
@@ -47,11 +49,13 @@ dotnet run --project samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.Raster
 
 ## Gate state
 
-The automated implementation and exact-source-head matrix are complete. Source head
-`751890de112be2e8d0be1757e1fdc6fd47b14c8d` passed
-[pull-request workflow 1296](https://github.com/uniblab/Icod.DCurses/actions/runs/37106805634) across the package candidate and all six
-runtime jobs.
+The automated implementation and exact-source-head matrix are complete. Implementation
+head `6995e5c3f809412a290a345512c294d35c011b55` passed
+[pull-request workflow 1302](https://github.com/uniblab/Icod.DCurses/actions/runs/37111392715) across the package candidate and all six
+runtime jobs. That matrix includes the portable polling regression on .NET 8, 9 and 10.
 
-T2308 remains pending only on the two live checklists above. CI cannot prove that a
-particular emulator renders raster pixels correctly, so the live boxes must not be
-pre-checked from scripted transport evidence.
+A Windows Terminal text-fallback observation exposed the missing repaint when no
+lifecycle resize notification was delivered. The portable polling fix is automated and
+green; its live resize retest remains open. T2308 remains pending on the two live
+checklists above. CI cannot prove that a particular emulator renders raster pixels
+correctly, so the live boxes must not be pre-checked from scripted transport evidence.
