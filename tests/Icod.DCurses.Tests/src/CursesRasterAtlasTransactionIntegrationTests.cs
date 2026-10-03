@@ -314,6 +314,7 @@ public sealed class CursesRasterAtlasTransactionIntegrationTests {
 				lock ( sync ) {
 					return writes.Count;
 				}
+			}
 		}
 
 		internal string GetAsciiWrite(
