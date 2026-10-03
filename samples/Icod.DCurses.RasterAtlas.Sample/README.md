@@ -77,6 +77,11 @@ the pixels correctly. Record that separately with the T2308/T2310 live checklist
 
 ## Live acceptance for the new frame path
 
+The sample now consumes Terminal 1.25.0-alpha.1 through DCurses, including its
+newline-safe cursor planning. Retest WezTerm with default and `-- --text`: movement
+must not leave player trails at the left margin. TEXT remains valid when graphics
+cannot be verified; this package update does not change backend detection.
+
 In Windows Terminal and Contour, run both the default command and `-- --raster`.
 Check the mode indicator and original pixel art, no text-map flashes between frames,
 movement without left-margin trails, water collision, camera

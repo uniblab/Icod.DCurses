@@ -70,7 +70,7 @@ higher-level terminal applications / future widgets
 The direct 2.x runtime dependency is:
 
 ```text
-Icod.Terminal 1.25.0-alpha
+Icod.Terminal 1.25.0-alpha.1
 ```
 
 `Icod.TermInfo` is not a direct dependency of DCurses 2.x; NuGet may restore it transitively through Terminal. The 2.0 major-version boundary requires a consumer rebuild from 1.6; follow the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md). The previous 1.6 package retains its historical direct dependencies on `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`.
@@ -260,9 +260,11 @@ For terminals with verified ordinary raster output but no persistent image ident
 applications can explicitly present a complete viewport using
 `await session.RefreshRasterAsync(image, row, column, geometry)`. Query exact geometry
 as above, keep the final screen row outside the image, and verify Terminal's ordinary
-`RasterGraphics` capability before use. Terminal 1.25.0-alpha chooses Kitty or Sixel
+`RasterGraphics` capability before use. Terminal 1.25.0-alpha.1 chooses Kitty or Sixel
 and encodes the image in the same transaction as the text refresh. Each call clears
-and repaints the screen; DCurses stores no source image and performs no automatic replay.
+and repaints uncovered text, omitting the logical fallback cells beneath the image;
+DCurses stores no source image and performs no automatic replay. The sample requests
+synchronized output to reduce intermediate redraws on hosts that honor it.
 Visible panels must not overlap this immediate image, and retained raster cells cannot
 coexist with it. The next ordinary refresh clears previous frame damage and restores
 text. The sample uses a text view while help is open and exposes `--raster` for direct

@@ -8,7 +8,7 @@ All notable `Icod.DCurses` release-line changes are summarized here. Detailed tr
 - Added cell-aligned `CursesRasterAtlas`, exact pixel geometry, bounded double-buffered tile updates, and retained rectangular projection.
 - Added explicit `CursesSession.RefreshRasterAsync` for complete viewport images through Terminal's verified ordinary Kitty/Sixel transaction path. Source pixels and fallback policy remain application-owned.
 - Updated the atlas sample to prefer persistent atlas, then ordinary complete frames, then text. Added `--raster`; retained `--text`, portable resize polling, and clean exit. Complete-frame help temporarily uses the text view.
-- The sole direct runtime dependency is `Icod.Terminal 1.25.0-alpha`; AssemblyVersion remains `2.0.0.0` with .NET 8/9/10 targets. Live raster acceptance and RC qualification remain pending.
+- The sole direct runtime dependency is `Icod.Terminal 1.25.0-alpha.1`; AssemblyVersion remains `2.0.0.0` with .NET 8/9/10 targets. Live raster acceptance and RC qualification remain pending.
 
 ## 2.2.0 — Stable-source candidate, unpublished
 

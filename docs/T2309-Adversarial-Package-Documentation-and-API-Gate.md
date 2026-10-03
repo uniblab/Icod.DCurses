@@ -6,7 +6,7 @@
 | --- | --- |
 | package/version | `Icod.DCurses 2.3.0-alpha.1` |
 | assembly version | `2.0.0.0` |
-| direct runtime dependency | exactly `Icod.Terminal 1.25.0-alpha` |
+| direct runtime dependency | exactly `Icod.Terminal 1.25.0-alpha.1` |
 | direct TermInfo dependency | none |
 | exported types | 105 |
 | canonical contract lines | 839 |
@@ -20,7 +20,7 @@ after this gate without deliberately reopening the fingerprint and roadmap decis
 
 The repository package validator must prove that the `.nupkg` contains the README,
 license, icon, three TFM assets, repository/source-link metadata and the matching symbol
-package. Its nuspec/deps/lock inspection must show the one direct `Icod.Terminal 1.25.0-alpha`
+package. Its nuspec/deps/lock inspection must show the one direct `Icod.Terminal 1.25.0-alpha.1`
 runtime dependency and no direct Icod.TermInfo dependency.
 
 The fresh NuGet-only consumer compiles and executes for net8.0, net9.0 and net10.0. Its

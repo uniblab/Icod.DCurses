@@ -6,10 +6,10 @@
 **Baseline:** published and tagged `v2.2.0`  
 **Current source and package version:** `2.3.0-alpha.1`  
 **Assembly version:** `2.0.0.0`  
-**Direct runtime dependency:** `Icod.Terminal 1.25.0-alpha` minimum; no direct `Icod.TermInfo` reference
+**Direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.1` minimum; no direct `Icod.TermInfo` reference
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** T2301–T2307 accepted; T2308/T2309 reopened for approved complete-frame fallback on Terminal 1.25.0-alpha; live raster acceptance pending; T2310 not started
+**Status:** T2301–T2307 accepted; T2308/T2309 reopened for approved complete-frame fallback on Terminal 1.25.0-alpha.1; live raster acceptance pending; T2310 not started
 **Planning snapshot:** 2026-10-03
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
@@ -86,7 +86,7 @@ Controlled failures return explicit status and completed-update counts without s
 | **T2306** | Refresh serialization and lifecycle/failure hardening | Atlas work cannot interleave with refresh/lifecycle output; definite failures recover through the next front copy; ambiguous failures and generation loss require recreation |
 | **T2307** | Adversarial, capacity, allocation and workload measurement | Bounds fail before output; 1/4/16/64/121/256-tile package workloads recorded; no map-sized storage or hidden image cache; later Terminal work is evidence-gated |
 | **T2308** | Public-only Ultima-style sample and package-only consumer | Raster and explicit text fallback share one model; movement, overlays, viewport, resize/recreate and clean exit pass automated/manual acceptance |
-| **T2309** | Public API, package, dependency, XML and documentation freeze | Reopened for one additive complete-frame refresh method and Terminal 1.25.0-alpha; exact-head requalification required |
+| **T2309** | Public API, package, dependency, XML and documentation freeze | Reopened for one additive complete-frame refresh method and Terminal 1.25.0-alpha.1; exact-head requalification required |
 | **T2310** | RC, live-terminal acceptance and stable-source qualification | Exact RC head green across the PR matrix; live checklist accepted; unchanged stable source green before merge/tag/publication |
 
 Every tranche records an exact commit and evidence document. Green CI is necessary but not sufficient: semantic, package and manual gates still apply.
@@ -157,7 +157,7 @@ T2309 is the API/package regret deadline. After it, only fixes required by accep
 
 ## 10. Immediate next step
 
-Run the T2308 raster checklist in a terminal that supplies a nonzero terminal-assigned persistent image identity. Windows Terminal, Contour 0.7.0.8982 and WezTerm on Windows have accepted the controlled Terminal 1.24.1 text fallback but cannot provide raster-rendering evidence. After a representative live raster observation is recorded, advance to T2310 RC qualification; do not promote stable source until the exact RC matrix and live evidence are accepted.
+Requalify the published Terminal 1.25.0-alpha.1 dependency, then repeat the T2308 checklist in Windows Terminal, Contour and WezTerm. Windows Terminal and Contour have shown complete-frame graphics, but the reported flashes require a retest after the covered-text and synchronized-output corrections. WezTerm text acceptance must be repeated after the upstream cursor fix. Persistent atlas acceptance remains separate. T2310 RC qualification follows accepted automated and live evidence.
 
 ## Complete-frame fallback extension (2026-10-03)
 
@@ -175,8 +175,8 @@ straddle an image edge. The regression-only run reproduced all four new cases wi
 
 The WezTerm recording shows text fallback with left-margin player trails, reopening
 its earlier text acceptance. Terminal [PR #73](https://github.com/uniblab/Icod.Terminal/pull/73)
-prepares 1.25.0-alpha.1 to reject newline-dependent relative cursor plans. This DCurses
-branch retains the available 1.25.0-alpha dependency until alpha.1 is published;
-the WezTerm correction requires that subsequent dependency update. Repeat default,
-`-- --raster`, and `-- --text` tests after integrating it. No terminal rendering or
+published 1.25.0-alpha.1 to reject newline-dependent relative cursor plans. This DCurses
+branch now consumes that package in production and tests, with matching package and
+dependency-boundary gates. Repeat default, `-- --raster`, and `-- --text` tests.
+No terminal rendering or
 stable-release acceptance is claimed by CI alone.
