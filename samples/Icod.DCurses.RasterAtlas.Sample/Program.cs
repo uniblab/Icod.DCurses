@@ -36,27 +36,22 @@ string message = startupStatus;
 while ( running ) {
 	if ( layoutDirty ) {
 		layoutDirty = false;
-		if ( screen.Rows < 6 || screen.Columns < 20 ) {
+		if ( !RasterAtlasSampleLayout.TryArrange(
+			screen,
+			standard,
+			map,
+			status,
+			help,
+			out int mapRows,
+			out int mapColumns
+		) ) {
 			if ( atlas is not null ) {
 				await atlas.DisposeAsync();
 				atlas = null;
 			}
-			standard.Clear();
 			WriteLine( standard, 0, "Resize to at least 20 columns x 6 rows; Q exits." );
 			await session.RefreshAsync();
 		} else {
-			int mapRows = Math.Min( 30, screen.Rows - 2 );
-			int mapColumns = Math.Min( 80, screen.Columns );
-			map.SetBounds( new CursesRectangle( 0, 0, mapRows, mapColumns ) );
-			status.SetBounds( new CursesRectangle( screen.Rows - 2, 0, 2, screen.Columns ) );
-			int helpRows = Math.Min( 8, screen.Rows - 2 );
-			int helpColumns = Math.Min( 54, screen.Columns - 2 );
-			help.SetBounds( new CursesRectangle(
-				( screen.Rows - helpRows ) / 2,
-				( screen.Columns - helpColumns ) / 2,
-				helpRows,
-				helpColumns
-			) );
 			_ = state.ResizeViewport( mapRows, mapColumns );
 			map.Clear();
 
