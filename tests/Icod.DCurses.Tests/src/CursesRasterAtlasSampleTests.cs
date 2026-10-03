@@ -14,6 +14,29 @@ namespace Icod.DCurses.Tests;
 /// <summary>Exercises the headless model and public-only raster-atlas sample contract.</summary>
 public sealed class CursesRasterAtlasSampleTests {
 	[Fact]
+	public void MalformedPersistentCreationResponseSelectsTextFallback() {
+		Assert.True(
+			RasterAtlasSampleFallback.IsRecoverableSetupException(
+				new FormatException( "Synthetic terminal-assigned image id failure." )
+			)
+		);
+	}
+
+	[Fact]
+	public void CancellationAndProgrammingErrorsDoNotSelectTextFallback() {
+		Assert.False(
+			RasterAtlasSampleFallback.IsRecoverableSetupException(
+				new OperationCanceledException()
+			)
+		);
+		Assert.False(
+			RasterAtlasSampleFallback.IsRecoverableSetupException(
+				new ArgumentException( "Synthetic caller error." )
+			)
+		);
+	}
+
+	[Fact]
 	public void StableCameraMovementProducesOnlyOldAndNewTileUpdates() {
 		RasterAtlasSampleState state = new( 10, 10 );
 		CursesRasterAtlasGeometry geometry = new( 10, 10, 2, 3 );
