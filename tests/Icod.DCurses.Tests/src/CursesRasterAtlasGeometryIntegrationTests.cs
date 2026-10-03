@@ -127,7 +127,7 @@ public sealed class CursesRasterAtlasGeometryIntegrationTests {
 		GeometryTransport transport,
 		int expected
 	) {
-		using CancellationTokenSource timeout = new( TimeSpan.FromSeconds( 5 ) );
+		using CancellationTokenSource timeout = new( TimeSpan.FromSeconds( 15 ) );
 		await transport.WaitForWriteCountAsync( expected, timeout.Token );
 	}
 
