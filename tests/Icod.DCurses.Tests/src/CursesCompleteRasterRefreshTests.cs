@@ -18,6 +18,41 @@ public sealed class CursesCompleteRasterRefreshTests {
 	private static CursesRasterAtlasGeometry Geometry => new( 1, 1, 1, 1 );
 
 	[Theory]
+	[InlineData( true )]
+	[InlineData( false )]
+	public async Task FrameOmitsCoveredTextButTextRefreshRestoresIt( bool kitty ) {
+		Transport transport = new( kitty );
+		await using CursesSession session = await OpenAsync( transport );
+		session.StandardScreen.Write( "LSECRET!" );
+		session.StandardScreen.Move( 3, 0 );
+		session.StandardScreen.Write( "STATUS" );
+		TerminalRasterImage image = TerminalRasterImage.CreateRgb24( 6, 1, new byte[18] );
+		for ( int frame = 0; frame < 2; frame++ ) {
+			transport.Clear();
+			await session.RefreshRasterAsync( image, 0, 1, new( 1, 6, 1, 1 ) );
+			Assert.DoesNotContain( "SECRET", transport.Text );
+			Assert.Contains( "L", transport.Text );
+			Assert.Contains( "!", transport.Text );
+			Assert.Contains( "STATUS", transport.Text );
+			Assert.Equal( 1, transport.FlushCount );
+		}
+		transport.Clear();
+		await session.RefreshAsync();
+		Assert.Contains( "LSECRET!", transport.Text );
+	}
+
+	[Theory]
+	[InlineData( 0 )]
+	[InlineData( 1 )]
+	public async Task FrameCannotSplitWideTextAtEitherHorizontalEdge( int column ) {
+		Transport transport = new( true );
+		await using CursesSession session = await OpenAsync( transport );
+		session.StandardScreen.Write( "界" );
+		await Assert.ThrowsAsync<InvalidOperationException>( () => session.RefreshRasterAsync( Image, 0, column, Geometry ).AsTask() );
+		Assert.Empty( transport.Text );
+	}
+
+	[Theory]
 	[InlineData( true, "\u001b_Ga=T" )]
 	[InlineData( false, "\u001bP0;1;0q" )]
 	public async Task VerifiedBackendUsesOneTransactionAndRestoresUnknownCursor( bool kitty, string marker ) {
