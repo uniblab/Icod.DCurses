@@ -25,9 +25,9 @@ using Xunit;
 
 namespace Icod.DCurses.Tests;
 
-public sealed class PublicTwoTwoDevelopmentIdentityTests {
+public sealed class PublicTwoThreeDevelopmentIdentityTests {
 	[Fact]
-	public void ProjectCarriesTheApprovedTwoTwoStableSourceIdentity() {
+	public void ProjectCarriesTheApprovedTwoThreePlanningIdentity() {
 		DirectoryInfo? root = new( AppContext.BaseDirectory );
 		while ( root is not null && !File.Exists( Path.Combine( root.FullName, "Icod.DCurses.sln" ) ) ) {
 			root = root.Parent;
@@ -37,28 +37,25 @@ public sealed class PublicTwoTwoDevelopmentIdentityTests {
 		string GetValue( string name ) => project.Descendants()
 			.Single( element => name == element.Name.LocalName ).Value;
 
-		Assert.Equal( "2.2.0", GetValue( "Version" ) );
-		Assert.Equal( "2.2.0", GetValue( "PackageVersion" ) );
+		Assert.Equal( "2.3.0-alpha.1", GetValue( "Version" ) );
+		Assert.Equal( "2.3.0-alpha.1", GetValue( "PackageVersion" ) );
 		Assert.Equal( "2.0.0.0", GetValue( "AssemblyVersion" ) );
-		Assert.Contains( "binding discovery", GetValue( "PackageReleaseNotes" ),
+		Assert.Contains( "CursesRasterAtlas", GetValue( "PackageReleaseNotes" ),
+			StringComparison.Ordinal );
+		Assert.Contains( "planning baseline", GetValue( "PackageReleaseNotes" ),
 			StringComparison.OrdinalIgnoreCase );
-		Assert.Contains( "bounded command sequences", GetValue( "PackageReleaseNotes" ),
-			StringComparison.OrdinalIgnoreCase );
-		Assert.Equal( "1.18.0", project.Descendants()
+		Assert.Equal( "1.24.0", project.Descendants()
 			.Single( element => "PackageReference" == element.Name.LocalName )
 			.Attribute( "Version" )?.Value );
 	}
 
 	[Fact]
-	public void CandidateFingerprintAndPackageNotesIdentifyTheSameRelease() {
+	public void PublishedTwoTwoFingerprintRemainsFrozen() {
 		DirectoryInfo? root = new( AppContext.BaseDirectory );
 		while ( root is not null && !File.Exists( Path.Combine( root.FullName, "Icod.DCurses.sln" ) ) ) {
 			root = root.Parent;
 		}
 		Assert.NotNull( root );
-		XDocument project = XDocument.Load( Path.Combine( root.FullName, "Icod.DCurses.csproj" ) );
-		string releaseNotes = project.Descendants()
-			.Single( element => "PackageReleaseNotes" == element.Name.LocalName ).Value;
 		using JsonDocument fingerprint = JsonDocument.Parse( File.ReadAllText( Path.Combine(
 			root.FullName,
 			"docs",
@@ -69,8 +66,5 @@ public sealed class PublicTwoTwoDevelopmentIdentityTests {
 			fingerprint.RootElement.GetProperty( "release" ).GetString() );
 		Assert.Equal( "stable-source",
 			fingerprint.RootElement.GetProperty( "status" ).GetString() );
-		Assert.Contains( "2.2.0", releaseNotes, StringComparison.Ordinal );
-		Assert.Contains( "stable-source", releaseNotes, StringComparison.Ordinal );
-		Assert.DoesNotContain( "2.2.0-", releaseNotes, StringComparison.Ordinal );
 	}
 }
