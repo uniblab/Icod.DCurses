@@ -180,3 +180,17 @@ Stop at the first failure and report the command, mode indicator, and exact
 exception or newly emitted kitty stderr. If input still waits for Enter, do not
 continue the graphics tests. Prior graphics payload/parser errors are not yet
 independently established as fixed.
+
+### Raster startup exceptions
+
+If startup reports `Raster verification failed; using text.`, press Q to return
+to the shell. The sample writes the failed startup stage and full exception to
+standard error after restoring the failed session and before opening text mode;
+the diagnostic is visible again after text mode exits. Copy that complete output,
+including the stack trace. This distinguishes ordinary capability probing from
+Terminal session setup or curses presentation initialization. It does not change
+raster verification or force an unverified backend.
+
+The alpha.3 WSL2/kitty retest confirms immediate input and clean exit. Forced
+`--raster` still selects TEXT with the startup-exception message; the graphics
+failure remains under investigation and is not accepted as working.

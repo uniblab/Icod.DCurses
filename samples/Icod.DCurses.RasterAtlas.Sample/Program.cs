@@ -294,30 +294,38 @@ static async Task<( CursesSession Session, bool PersistentUsable, bool OrdinaryU
 	}
 
 	TerminalSession? terminal = null;
+	string startupStage = "opening the Terminal session";
 	try {
 		terminal = await TerminalSession.OpenAsync(
 			new TerminalSessionOptions { RequireInteractiveOutput = true }
 		);
+		startupStage = "verifying ordinary raster capability";
 		TerminalCapabilityStatus ordinary = await terminal.VerifyCapabilityAsync(
 			TerminalCapability.RasterGraphics
 		);
 		bool persistent = false;
 		if ( ordinary.IsUsable && !forceRaster ) {
+			startupStage = "verifying persistent raster capability";
 			try {
 				persistent = ( await terminal.VerifyCapabilityAsync( TerminalCapability.PersistentRasterGraphics ) ).IsUsable;
 			} catch ( Exception exception ) when ( RasterAtlasSampleFallback.IsRecoverableSetupException( exception ) ) {
 				// Ordinary raster evidence remains independent of persistent image identities.
 			}
 		}
+		startupStage = "opening the curses presentation";
 		CursesSession session = await CursesSession.OpenAsync( terminal, options );
 		terminal = null;
 		return ( session, persistent, ordinary.IsUsable, persistent
 			? "Persistent raster capability verified."
 			: ordinary.IsUsable ? "Ordinary raster capability verified." : "Raster unavailable; using text." );
-	} catch {
+	} catch ( Exception exception ) {
 		if ( terminal is not null ) {
 			await terminal.DisposeAsync();
 		}
+		// Write after restoration and before entering the fallback's alternate screen.
+		// The complete diagnostic is visible again when the user exits text mode.
+		Console.Error.WriteLine( $"Raster startup failed while {startupStage}:" );
+		Console.Error.WriteLine( exception );
 		return (
 			await CursesSession.OpenAsync( options ),
 			false,
