@@ -11,7 +11,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.3.0` — first-class `CursesRasterAtlas` coordination\
-**Status:** 2.2.0 released; 2.3 now consumes published Terminal 1.25.0-alpha.5 for bounded size-aware persistent-raster transfer deadlines, together with alpha.4 kitty DA1 compatibility and the earlier input, cursor and Sixel corrections. Windows Terminal/Contour performance, help, resize recovery and Q/Escape exit are accepted on alpha.2. WSL2/kitty FRAME rendering, immediate input and clean exit are accepted; alpha.5 persistent-ATLAS acceptance and exact dependency requalification precede RC.
+**Status:** Feature development is on hold; prepare the existing 2.3 feature set for release with documented limits. T2301–T2307 have automated acceptance; Kitty 0.32.2 persistent-ATLAS live acceptance is deferred because of the deliberately unresolved ACK defect. Ordinary FRAME and TEXT remain available under application-owned policy; FRAME flicker is documented. RC/stable qualification and publication remain pending. See [release readiness](docs/2.3-Release-Readiness.md).
 
 **Planning snapshot:** 2026-10-04
 
@@ -63,7 +63,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | Published |
 | `2.1.0` | Core presentation and text foundations for editor and roguelike applications | Merged, tagged and released |
 | `2.2.0` | Interaction and application conveniences for editor and roguelike applications | Published |
-| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Atlas accepted; complete-frame fallback under requalification; live raster acceptance pending |
+| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Feature development on hold; release preparation with known raster limits; RC/stable qualification pending |
 | `2.4+` | Higher-level packages, including a possible `Icod.DCurses.Widgets`, and later sprite/physical-placement work | Deferred; scope depends on application evidence |
 
 The post-1.0 progression is intentionally cumulative:
