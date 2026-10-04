@@ -11,7 +11,7 @@ All notable `Icod.DCurses` release-line changes are summarized here. Detailed tr
 - Consume Terminal's coalesced Sixel screen writes to reduce avoidable progressive redraw while preserving its newline-safe cursor correction. Physical flicker still requires live retesting.
 - Consume Terminal alpha.3's Linux/macOS byte-input correction: keys and terminal replies no longer pass through the managed console line reader. Immediate WSL2/kitty input and clean exit are accepted; graphics acceptance remains open.
 - Consume Terminal alpha.4's DA1 parser correction for kitty 0.32.2's empty optional attribute list (`CSI ?62;c`), removing the captured raster-startup parsing failure. Graphics still require independently verified capability evidence.
-- Consume Terminal alpha.5's bounded size-aware deadlines for persistent resource uploads, animation-frame appends and partial-frame edits. This addresses the captured ATLAS startup timeout while preserving Terminal's acknowledgement and failure semantics.
+- Consume Terminal alpha.5's bounded size-aware deadlines for persistent resource uploads, animation-frame appends and partial-frame edits. The live ATLAS run still times out on Kitty 0.32.2's missing animation-upload acknowledgement and falls back to FRAME; the deadline bounds the wait without resolving the defect. The [standalone reproducer and bug report](tools/kitty-frame-ack-bug-report.md) record the deliberately unresolved blocker; no production workaround is added.
 - The sole direct runtime dependency is `Icod.Terminal 1.25.0-alpha.5`; AssemblyVersion remains `2.0.0.0` with .NET 8/9/10 targets. Live persistent-ATLAS acceptance and RC qualification remain pending.
 
 ## 2.2.0 — Stable-source candidate, unpublished
