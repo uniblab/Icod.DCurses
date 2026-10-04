@@ -76,7 +76,7 @@ raster boxes must not be pre-checked from scripted transport evidence.
 
 ## Complete-frame fallback acceptance (pending)
 
-The current candidate consumes Terminal 1.25.0-alpha.4, including kitty DA1 compatibility, immediate Unix byte input, the relative-cursor correction and coalesced Sixel screen writes. The October 3 17:20–17:22 UTC recordings show Contour movement without the earlier text flash, Windows Terminal with progressive horizontal image redraw, and WezTerm text fallback without the earlier left-margin trails. The 03:46 UTC WezTerm configuration test was inconclusive and is superseded by the restart/retest evidence below. These earlier recordings predate alpha.2 consumption.
+The current candidate consumes Terminal 1.25.0-alpha.5, including bounded size-aware persistent-raster transfer deadlines, kitty DA1 compatibility, immediate Unix byte input, the relative-cursor correction and coalesced Sixel screen writes. The October 3 17:20–17:22 UTC recordings show Contour movement without the earlier text flash, Windows Terminal with progressive horizontal image redraw, and WezTerm text fallback without the earlier left-margin trails. The 03:46 UTC WezTerm configuration test was inconclusive and is superseded by the restart/retest evidence below. These earlier recordings predate alpha.2 consumption.
 
 Repeat default and `-- --raster` runs in Windows Terminal and Contour, following the [sample checklist](../samples/Icod.DCurses.RasterAtlas.Sample/README.md#live-acceptance-for-the-new-frame-path). Confirm FRAME pixels without text-map flashes, movement, camera, water collision, help text transition and image restoration, repeated resize, no stale images or repeated status bars, and Q/Escape cleanup. Run default and `-- --text` in WezTerm and confirm movement leaves no left-margin trails. `-- --text` must also work in the other two terminals. Unknown raster capability may still select TEXT; alpha.4 corrects DA1 parsing while preserving independent graphics evidence requirements.
 
@@ -108,14 +108,16 @@ briefly shows an old image strip during active resize; it clears when dimensions
 settle. These observations supersede the pending help/resize/exit items above,
 but do not establish persistent ATLAS support or artifact-free live dragging.
 
-### WSL2/kitty alpha.4 graphics retest required
+### WSL2/kitty alpha.5 persistent-atlas retest required
 
 The WSL2/kitty alpha.2 text run required Enter and echoed keys. Terminal alpha.3
 fixed the upstream byte transport; the maintainer accepts immediate input and
 clean exit. The subsequent application log identified the DA1 parser exception
 on kitty 0.32.2's empty optional attribute list. Published Terminal alpha.4 fixes
-that parser; DCurses now consumes it. Follow the
-[kitty retest](../samples/Icod.DCurses.RasterAtlas.Sample/README.md#wsl2kitty-retest-with-terminal-alpha4):
+that parser. The next run reached persistent frame creation and exposed the fixed
+one-second transfer deadline; published alpha.5 supplies the bounded size-aware
+deadline and DCurses now consumes it. Follow the
+[kitty retest](../samples/Icod.DCurses.RasterAtlas.Sample/README.md#wsl2kitty-retest-with-terminal-alpha5):
 briefly check TEXT input, then explicit FRAME and default ATLAS selection. Record
-the actual mode and fresh stderr. Live graphics, persistent ownership and the
-earlier payload-size report remain separate acceptance.
+the actual mode and fresh stderr. FRAME display is accepted; persistent ATLAS
+ownership, sparse updates and command-driven flicker remain separate acceptance.

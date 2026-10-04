@@ -6,12 +6,12 @@
 **Latest tagged stable release:** `2.2.0`\
 **Current source/package identity:** `2.3.0-alpha.1`\
 **Current development assembly version:** `2.0.0.0`\
-**Current development runtime dependency:** direct `Icod.Terminal 1.25.0-alpha.4` only; TermInfo remains transitive\
-**Planned 2.3 direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.4` minimum; no direct `Icod.TermInfo` reference\
+**Current development runtime dependency:** direct `Icod.Terminal 1.25.0-alpha.5` only; TermInfo remains transitive\
+**Planned 2.3 direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.5` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.3.0` — first-class `CursesRasterAtlas` coordination\
-**Status:** 2.2.0 released; 2.3 now consumes published Terminal 1.25.0-alpha.4 for the kitty DA1 parser correction, alongside immediate Unix byte input and the earlier cursor and Sixel corrections. Windows Terminal/Contour performance, help, resize recovery and Q/Escape exit are accepted on alpha.2. WSL2/kitty immediate input and clean exit are accepted on alpha.3; alpha.4 graphics retesting, persistent-atlas acceptance, and dependency requalification precede RC.
+**Status:** 2.2.0 released; 2.3 now consumes published Terminal 1.25.0-alpha.5 for bounded size-aware persistent-raster transfer deadlines, together with alpha.4 kitty DA1 compatibility and the earlier input, cursor and Sixel corrections. Windows Terminal/Contour performance, help, resize recovery and Q/Escape exit are accepted on alpha.2. WSL2/kitty FRAME rendering, immediate input and clean exit are accepted; alpha.5 persistent-ATLAS acceptance and exact dependency requalification precede RC.
 
 **Planning snapshot:** 2026-10-04
 

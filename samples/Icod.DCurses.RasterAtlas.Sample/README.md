@@ -77,7 +77,7 @@ the pixels correctly. Record that separately with the T2308/T2310 live checklist
 
 ## Live acceptance for the new frame path
 
-The sample now consumes Terminal 1.25.0-alpha.4 through DCurses, including kitty DA1 compatibility, immediate
+The sample now consumes Terminal 1.25.0-alpha.5 through DCurses, including bounded persistent-transfer deadlines, kitty DA1 compatibility, immediate
 Linux/macOS byte input, newline-safe cursor planning and coalesced Sixel screen writes. Alpha.2 combines
 each prepared Sixel image into one bounded output write; it does not guarantee
 atomic physical presentation. Retest WezTerm with default and `-- --text`: movement
@@ -146,13 +146,15 @@ briefly shows an old image strip during active resize; it clears when dimensions
 settle. These observations supersede the pending help/resize/exit items above,
 but do not establish persistent ATLAS support or artifact-free live dragging.
 
-## WSL2/kitty retest with Terminal alpha.4
+## WSL2/kitty retest with Terminal alpha.5
 
 The earlier Linux text run required Enter and echoed keys over the map. Terminal
 alpha.3 replaces the managed console line reader with direct Unix byte input.
 The maintainer has confirmed immediate input and clean exit on alpha.3. Alpha.4
 corrects the DA1 parsing exception that subsequently blocked graphics startup.
-The following checks establish live rendering separately from automated coverage.
+Alpha.5 gives the persistent resource and animation-frame uploads enough bounded
+time to complete before their correlated acknowledgements. The following checks
+establish live rendering separately from automated coverage.
 
 Inside the kitty window, use your existing checkout (either in the Linux filesystem
 or under `/mnt/c` for a Windows checkout):
@@ -165,7 +167,7 @@ dotnet restore samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.
 dotnet list Icod.DCurses.csproj package
 ```
 
-Confirm the resolved Terminal package is `1.25.0-alpha.4`. If it is not yet
+Confirm the resolved Terminal package is `1.25.0-alpha.5`. If it is not yet
 available from NuGet, stop and retry restore after publication becomes visible.
 
 1. As a quick regression check, run the forced-text command above (`-- --text`). Tap `d` without Enter; the
