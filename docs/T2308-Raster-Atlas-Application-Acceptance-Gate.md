@@ -30,7 +30,7 @@ Run the following on a representative raster-capable terminal:
 dotnet run --project samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.Sample.csproj --framework net10.0
 ```
 
-- [ ] status reports `RASTER`;
+- [ ] status reports `ATLAS`;
 - [ ] movement updates the player without tearing;
 - [ ] camera movement replaces the complete visible viewport coherently;
 - [ ] help appears above the raster map and closes cleanly;
@@ -76,6 +76,25 @@ raster boxes must not be pre-checked from scripted transport evidence.
 
 ## Complete-frame fallback acceptance (pending)
 
-The current candidate consumes Terminal 1.25.0-alpha.2, including the relative-cursor correction and coalesced Sixel screen writes. The October 3 17:20–17:22 UTC recordings show Contour movement without the earlier text flash, Windows Terminal with progressive horizontal image redraw, and WezTerm text fallback without the earlier left-margin trails. The October 4 03:46 UTC WezTerm recording still shows ground dots shifting beside the player after ligatures were disabled; a kerning-disabled comparison is pending. These recordings predate alpha.2 consumption and do not close acceptance.
+The current candidate consumes Terminal 1.25.0-alpha.2, including the relative-cursor correction and coalesced Sixel screen writes. The October 3 17:20–17:22 UTC recordings show Contour movement without the earlier text flash, Windows Terminal with progressive horizontal image redraw, and WezTerm text fallback without the earlier left-margin trails. The 03:46 UTC WezTerm configuration test was inconclusive and is superseded by the restart/retest evidence below. These earlier recordings predate alpha.2 consumption.
 
 Repeat default and `-- --raster` runs in Windows Terminal and Contour, following the [sample checklist](../samples/Icod.DCurses.RasterAtlas.Sample/README.md#live-acceptance-for-the-new-frame-path). Confirm FRAME pixels without text-map flashes, movement, camera, water collision, help text transition and image restoration, repeated resize, no stale images or repeated status bars, and Q/Escape cleanup. Run default and `-- --text` in WezTerm and confirm movement leaves no left-margin trails. `-- --text` must also work in the other two terminals. Unknown raster capability may still select TEXT; this dependency update does not change graphics verification.
+
+### October 4 04:10–04:12 UTC acceptance update
+
+The maintainer accepts performance in Windows Terminal and Contour after pulling
+the Terminal 1.25.0-alpha.2 integration. Both recordings run `-- --raster`, show
+`FRAME` graphics and player movement, and return cleanly to the prompt. This
+accepts the reported movement/redraw performance in these two environments; it
+does not claim universally flicker-free or atomic terminal presentation.
+
+The third recording shows WezTerm running `-- --raster`, selecting `TEXT` with
+`Raster unavailable; using text.`, moving, and returning cleanly to the prompt.
+Earlier 03:58/04:01 UTC tests on the pre-integration checkout establish that the
+three ligature settings are sufficient after restarting WezTerm; `kern=0` is not
+required by that comparison. The kerning hypothesis is withdrawn.
+
+Help open/close with frame restoration, repeated shrink/grow with status/image
+cleanup, and explicit separate Q/Escape checks remain to be recorded on the current
+candidate. These clips do not exercise persistent `ATLAS` ownership or establish
+camera-scroll/water-collision acceptance for this exact dependency head.

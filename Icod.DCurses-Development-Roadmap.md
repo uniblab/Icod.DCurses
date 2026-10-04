@@ -11,7 +11,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.3.0` — first-class `CursesRasterAtlas` coordination\
-**Status:** 2.2.0 released; 2.3 consumes published Terminal 1.25.0-alpha.2 for newline-safe cursor planning and coalesced Sixel screen writes; covered-text and synchronized-output corrections are integrated; automated dependency requalification and live raster/text retests precede RC
+**Status:** 2.2.0 released; 2.3 consumes published Terminal 1.25.0-alpha.2 for newline-safe cursor planning and coalesced Sixel screen writes; covered-text and synchronized-output corrections are integrated; alpha.2 dependency checks passed, Windows Terminal/Contour redraw performance is accepted, and WezTerm dots are stable with ligatures disabled after restart; remaining help/resize/exit and persistent-atlas acceptance precede RC
 
 **Planning snapshot:** 2026-10-03
 

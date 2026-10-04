@@ -100,23 +100,39 @@ but the image clears and returns in horizontal bands. Terminal PR #74 addresses
 avoidable Sixel transport fragmentation; a single write still cannot guarantee
 atomic host presentation.
 
-The WezTerm recording remains in TEXT, with the player appearing at the expected
-columns and no earlier left-edge trails. Some terrain glyph combinations look
-joined or uneven. Font shaping is a hypothesis, not a confirmed cursor defect.
-The October 4 03:46 UTC recording with ligatures disabled shows no clear
-improvement. Closer frame inspection and the user report identify ground dots
-shifting roughly 1–2 pixels beside the moving player. Kerning is a hypothesis,
-not an established cause; a kerning-disabled retest is still pending.
-For that isolated comparison, temporarily disable kerning as well as ligatures
-in the existing WezTerm configuration (before its `return config`):
+The October 4 03:58/04:01 UTC WezTerm retests supersede the earlier inconclusive
+configuration comparison. The maintainer confirms that ground dots stay fixed
+after restarting WezTerm with only the following ligature settings. Adding
+`kern=0` is unnecessary in this comparison; the kerning hypothesis is withdrawn.
+In the existing WezTerm configuration, before `return config`, use:
 
 ```lua
-config.harfbuzz_features = { 'calt=0', 'clig=0', 'liga=0', 'kern=0' }
+config.harfbuzz_features = { 'calt=0', 'clig=0', 'liga=0' }
 ```
 
 On Windows, open `%USERPROFILE%\.wezterm.lua` in Notepad, replace the existing
 `config.harfbuzz_features` line, save, and restart WezTerm.
 If font-specific `harfbuzz_features` are already set, adjust those as well; they
-can override the global setting. Repeat `-- --text`, then restore the preference.
+can override the global setting. This is a user font preference; the application
+does not modify it.
 See [WezTerm font shaping](https://wezterm.org/config/font-shaping.html).
 This comparison does not change capability detection or qualify the raster path.
+
+### October 4 04:10–04:12 UTC acceptance update
+
+The maintainer accepts performance in Windows Terminal and Contour after pulling
+the Terminal 1.25.0-alpha.2 integration. Both recordings run `-- --raster`, show
+`FRAME` graphics and player movement, and return cleanly to the prompt. This
+accepts the reported movement/redraw performance in these two environments; it
+does not claim universally flicker-free or atomic terminal presentation.
+
+The third recording shows WezTerm running `-- --raster`, selecting `TEXT` with
+`Raster unavailable; using text.`, moving, and returning cleanly to the prompt.
+Earlier 03:58/04:01 UTC tests on the pre-integration checkout establish that the
+three ligature settings are sufficient after restarting WezTerm; `kern=0` is not
+required by that comparison. The kerning hypothesis is withdrawn.
+
+Help open/close with frame restoration, repeated shrink/grow with status/image
+cleanup, and explicit separate Q/Escape checks remain to be recorded on the current
+candidate. These clips do not exercise persistent `ATLAS` ownership or establish
+camera-scroll/water-collision acceptance for this exact dependency head.

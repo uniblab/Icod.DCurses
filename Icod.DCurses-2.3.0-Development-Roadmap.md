@@ -157,7 +157,7 @@ T2309 is the API/package regret deadline. After it, only fixes required by accep
 
 ## 10. Immediate next step
 
-Requalify the published Terminal 1.25.0-alpha.2 dependency, then repeat the T2308 checklist in Windows Terminal, Contour and WezTerm. The earlier fallback-text flash and left-margin trails are no longer visible in the latest recordings. Windows Terminal still needs a live retest of progressive image redraw after the Sixel write correction. WezTerm ground-dot shifting remains a separate text-rendering investigation. Persistent atlas acceptance remains separate. T2310 RC qualification follows accepted automated and live evidence.
+The Terminal 1.25.0-alpha.2 integration passed all seven jobs in workflow 1323. The maintainer accepts Windows Terminal and Contour movement/redraw performance, and WezTerm dot shifting is resolved in the reported configuration comparison by disabling ligatures and restarting. Complete the remaining help, resize, cleanup, explicit exit-key, and persistent-atlas acceptance checks before T2310 RC qualification.
 
 ## Complete-frame fallback extension (2026-10-03)
 
@@ -201,15 +201,35 @@ these movement recordings do not qualify every checklist item.
 Terminal 1.25.0-alpha.2 is now published. Production and test references, package
 verification, dependency guards, and current documentation now require alpha.2.
 DCurses remains 2.3.0-alpha.1 with AssemblyVersion 2.0.0.0 and an unchanged public
-API. All six runtime lanes and the package/fresh-consumer gate must pass on this
-new dependency head before automated requalification is accepted.
+API. Dependency head `84175cf817b8b092e0d7dbe1198c82f11e635740` passed all six
+runtime lanes and the package/fresh-consumer gate in
+[workflow 1323](https://github.com/uniblab/Icod.DCurses/actions/runs/37175860045).
 
 The 03:46 UTC WezTerm recording after disabling ligatures shows no clear improvement.
 Ground dots beside the moving player shift roughly 1–2 pixels; kerning remains an
-unconfirmed explanation and the kerning-disabled comparison is pending. Alpha.2
+unconfirmed explanation at that point, superseded by the later retests below. Alpha.2
 does not address text shaping or change graphics capability verification.
 
 Repeat default and forced-frame runs in Windows Terminal and Contour to assess
 Sixel redraw, then help/resize/status cleanup and Q/Escape. A single Sixel write
 cannot prove atomic host rendering. Persistent-atlas acceptance and T2310 remain
 open; this dependency bump does not promote the DCurses release.
+
+### October 4 04:10–04:12 UTC acceptance update
+
+The maintainer accepts performance in Windows Terminal and Contour after pulling
+the Terminal 1.25.0-alpha.2 integration. Both recordings run `-- --raster`, show
+`FRAME` graphics and player movement, and return cleanly to the prompt. This
+accepts the reported movement/redraw performance in these two environments; it
+does not claim universally flicker-free or atomic terminal presentation.
+
+The third recording shows WezTerm running `-- --raster`, selecting `TEXT` with
+`Raster unavailable; using text.`, moving, and returning cleanly to the prompt.
+Earlier 03:58/04:01 UTC tests on the pre-integration checkout establish that the
+three ligature settings are sufficient after restarting WezTerm; `kern=0` is not
+required by that comparison. The kerning hypothesis is withdrawn.
+
+Help open/close with frame restoration, repeated shrink/grow with status/image
+cleanup, and explicit separate Q/Escape checks remain to be recorded on the current
+candidate. These clips do not exercise persistent `ATLAS` ownership or establish
+camera-scroll/water-collision acceptance for this exact dependency head.
