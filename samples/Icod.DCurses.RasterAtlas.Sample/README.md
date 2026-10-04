@@ -6,6 +6,21 @@ is to exercise the presentation demands shared by cell-aligned tile games: a mov
 player, a scrolling camera, sparse tile replacement, retained text/status overlays,
 resize recreation and a text fallback driven by the same model.
 
+## Current release boundary
+
+Feature development is on hold. In the maintainer's WSL2/Ubuntu 24.04 test with
+Kitty 0.32.2 and Terminal 1.25.0-alpha.5, forced TEXT works and forced/default
+fallback FRAME has correct input and display, with command-driven flicker.
+Default atlas creation waits for a missing animation-upload acknowledgement,
+then falls back to FRAME after the bounded deadline. Persistent ATLAS is **not
+live accepted** in this environment. The [reproducer and bug report](../../tools/kitty-frame-ack-bug-report.md)
+preserve the unresolved defect; no protocol workaround is included.
+
+Use the existing `--raster` command below to bypass atlas startup on this host.
+This selects the ordinary raster path; it does not force Kitty or guarantee
+flicker-free presentation. The [release readiness record](../../docs/2.3-Release-Readiness.md)
+supersedes historical requests below for further Kitty diagnosis.
+
 Run it from the repository root:
 
 ```text
@@ -40,8 +55,9 @@ the sample owns every source pixel and gameplay decision.
 
 If persistent support or atlas creation is unavailable but ordinary raster and exact
 geometry are usable, the sample explicitly chooses complete-frame rendering through
-`CursesSession.RefreshRasterAsync`. Terminal chooses verified ordinary Kitty first,
-then Sixel. The mode indicator reads `ATLAS`, `FRAME`, or `TEXT`; `FRAME` alone does
+`CursesSession.RefreshRasterAsync`. Terminal prefers verified ordinary Kitty over Sixel during capability selection.
+It does not retry a failed Kitty write through Sixel; atlas setup failure can
+still select ordinary Kitty for FRAME. The mode indicator reads `ATLAS`, `FRAME`, or `TEXT`; `FRAME` alone does
 not identify which protocol Terminal selected. No DCurses protocol bytes or terminal-name
 heuristics are involved. Unknown/unusable capability or geometry selects text.
 
@@ -197,8 +213,8 @@ raster verification or force an unverified backend.
 
 The alpha.3 WSL2/kitty retest confirmed immediate input and clean exit. Its forced
 `--raster` run selected TEXT because Terminal rejected the empty optional DA1
-attribute list in `CSI ?62;c`. Published alpha.4 corrects that parser. Live FRAME
-and persistent ATLAS rendering remain unaccepted until the retest above.
+attribute list in `CSI ?62;c`. Published alpha.4 corrects that parser. The later alpha.5 retest accepts FRAME input/display with flicker, while
+persistent ATLAS remains unaccepted because of the missing ACK described above.
 
 Capture a fresh application diagnostic while testing FRAME:
 
