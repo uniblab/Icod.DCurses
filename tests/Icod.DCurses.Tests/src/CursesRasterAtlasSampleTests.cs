@@ -14,6 +14,30 @@ namespace Icod.DCurses.Tests;
 /// <summary>Exercises the headless model and public-only raster-atlas sample contract.</summary>
 public sealed class CursesRasterAtlasSampleTests {
 	[Fact]
+	public void RecoverableAtlasSetupFailureIsWrittenWithItsStageAndException() {
+		using StringWriter writer = new();
+		FormatException exception = new( "Synthetic persistent response failure." );
+
+		RasterAtlasSampleFallback.WriteSetupFailure(
+			writer,
+			"creating the persistent raster atlas",
+			exception
+		);
+
+		string diagnostic = writer.ToString();
+		Assert.Contains(
+			"Raster atlas setup failed while creating the persistent raster atlas:",
+			diagnostic,
+			StringComparison.Ordinal
+		);
+		Assert.Contains(
+			"System.FormatException: Synthetic persistent response failure.",
+			diagnostic,
+			StringComparison.Ordinal
+		);
+	}
+
+	[Fact]
 	public void MalformedPersistentCreationResponseSelectsTextFallback() {
 		Assert.True(
 			RasterAtlasSampleFallback.IsRecoverableSetupException(
