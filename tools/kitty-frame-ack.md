@@ -43,3 +43,21 @@ further investigation before changing the libraries.
 For a Kitty issue report, include `kitty --version`, the probe's complete
 output, and `kitty-frame-ack.sh`. Running through tmux, screen, or another
 terminal proxy introduces another variable; run directly in Kitty first.
+
+## Confirmed result and unresolved status (2026-10-04)
+
+The maintainer ran this probe in Kitty 0.32.2 on WSL2 / Ubuntu 24.04, Windows 10.
+Root creation returned `Gi=1,I=6682;OK`; the single-chunk append returned
+`Gi=1,r=2;OK`; the documented two-chunk append timed out with no input bytes;
+and the final-chunk-identifier comparison returned `Gi=1,r=4;OK`.
+The frame-4 response shows that the silent transfer created frame 3 successfully.
+This independently reproduces the missing acknowledgement without either Icod
+library. It does not qualify persistent ATLAS rendering or explain FRAME flicker.
+
+The complete [upstream bug report](kitty-frame-ack-bug-report.md) includes the
+standalone script, exact output, environment, protocol expectation, and source
+analysis. Upstream filing was attempted, but GitHub returned HTTP 403,
+`Resource not accessible by integration`; no upstream issue was created.
+Status remains **unresolved**, as requested by the maintainer. No production
+workaround or alpha.6 dependency change is authorized by this report. Further
+probe expansion and library fixes are deferred.
