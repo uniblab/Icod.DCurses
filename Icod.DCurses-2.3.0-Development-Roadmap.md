@@ -9,7 +9,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.5` minimum; no direct `Icod.TermInfo` reference
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** T2301–T2307 accepted; T2308/T2309 persistent-ATLAS acceptance remains blocked by the confirmed Kitty 0.32.2 animation-upload ACK defect; the blocker is intentionally unresolved; T2310 not started
+**Status:** Feature development on hold; T2301–T2307 accepted; release preparation resumes for the existing feature set with documented limitations. Kitty persistent-ATLAS live acceptance is deferred and remains unaccepted; T2309 exact release-head qualification and T2310 RC/stable gates remain pending.
 **Planning snapshot:** 2026-10-04
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
@@ -87,7 +87,7 @@ Controlled failures return explicit status and completed-update counts without s
 | **T2307** | Adversarial, capacity, allocation and workload measurement | Bounds fail before output; 1/4/16/64/121/256-tile package workloads recorded; no map-sized storage or hidden image cache; later Terminal work is evidence-gated |
 | **T2308** | Public-only Ultima-style sample and package-only consumer | Raster and explicit text fallback share one model; movement, overlays, viewport, resize/recreate and clean exit pass automated/manual acceptance |
 | **T2309** | Public API, package, dependency, XML and documentation freeze | Reopened for one additive complete-frame refresh method and Terminal 1.25.0-alpha.5; exact-head requalification required |
-| **T2310** | RC, live-terminal acceptance and stable-source qualification | Exact RC head green across the PR matrix; live checklist accepted; unchanged stable source green before merge/tag/publication |
+| **T2310** | RC, scoped live-terminal evidence and stable-source qualification | Exact RC head green across the PR matrix; release limitations explicitly recorded; persistent Kitty ATLAS live acceptance deferred by the October 4 maintainer decision; unchanged stable source green before merge/tag/publication |
 
 Every tranche records an exact commit and evidence document. Green CI is necessary but not sufficient: semantic, package and manual gates still apply.
 
@@ -157,7 +157,7 @@ T2309 is the API/package regret deadline. After it, only fixes required by accep
 
 ## 10. Immediate next step
 
-Leave the confirmed Kitty animation-upload acknowledgement blocker unresolved at the maintainer's request. The standalone reproducer and [upstream bug report](tools/kitty-frame-ack-bug-report.md) preserve the evidence; upstream submission requires access because the GitHub integration returned HTTP 403. Do not implement the identifier workaround, expand the probe, or qualify persistent ATLAS from fallback results. Alpha.2 Windows Terminal/Contour performance, help/frame restoration, resize recovery and both exit keys remain accepted. WSL2/kitty FRAME input/display and clean exit remain accepted, with command-driven flicker still observed. Persistent ATLAS acceptance and T2310 RC qualification remain pending.
+Prepare the existing feature set for release under [the release readiness boundary](docs/2.3-Release-Readiness.md); further feature development is on hold. Leave the confirmed Kitty animation-upload acknowledgement blocker unresolved at the maintainer's request. The standalone reproducer and [upstream bug report](tools/kitty-frame-ack-bug-report.md) preserve the evidence; upstream submission requires access because the GitHub integration returned HTTP 403. Do not implement the identifier workaround, expand the probe, or qualify persistent ATLAS from fallback results. Alpha.2 Windows Terminal/Contour performance, help/frame restoration, resize recovery and both exit keys remain accepted. WSL2/kitty FRAME input/display and clean exit remain accepted, with command-driven flicker still observed. Persistent ATLAS acceptance and T2310 RC qualification remain pending.
 
 ## Complete-frame fallback extension (2026-10-03)
 
@@ -320,3 +320,16 @@ and reporting. No production workaround, alpha.6 dependency bump, further probe
 expansion, or ATLAS acceptance is claimed. Animation-control response assumptions
 and FRAME flicker are separate open concerns, outside the confirmed upstream
 upload bug report. T2308/T2309 and T2310 remain open.
+
+### Feature development hold and release boundary (2026-10-04)
+
+The maintainer directs release preparation for the existing feature set, with no
+workaround for the Kitty ACK defect. This decision supersedes earlier next steps
+requiring further Kitty diagnosis or persistent-ATLAS live acceptance before RC.
+It does not turn fallback FRAME observations into ATLAS acceptance. Retain the
+current public surface and dependency; defer additional atlas/backend work.
+
+The [release readiness record](docs/2.3-Release-Readiness.md) distinguishes automated
+contract evidence, live rendering observations, deferred acceptance and outstanding
+version/dependency and RC/stable decisions. Correct the stale alpha.4 release guard
+to match the alpha.5 project reference. No renderer behavior changes are included.
