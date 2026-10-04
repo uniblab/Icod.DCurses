@@ -60,8 +60,8 @@ jobs:
 
           $terminalNode = $project.SelectSingleNode("/Project/ItemGroup/PackageReference[@Include='Icod.Terminal']")
           $references = @($project.SelectNodes('/Project/ItemGroup/PackageReference'))
-          if (1 -ne $references.Count -or $null -eq $terminalNode -or $terminalNode.Version -ne '1.18.0') {
-              throw 'Icod.DCurses.csproj must depend directly only on Icod.Terminal 1.18.0.'
+          if (1 -ne $references.Count -or $null -eq $terminalNode -or $terminalNode.Version -ne '1.25.0-alpha.2') {
+              throw 'Icod.DCurses.csproj must depend directly only on Icod.Terminal 1.25.0-alpha.2.'
           }
 
           "version=$tagVersion" >> $env:GITHUB_OUTPUT
