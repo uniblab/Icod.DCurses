@@ -69,6 +69,7 @@ while ( running ) {
 			map.Clear();
 
 			if ( rasterActive ) {
+				string rasterSetupStage = "querying raster cell geometry";
 				if ( atlas is not null ) {
 					await atlas.DisposeAsync();
 					atlas = null;
@@ -81,6 +82,7 @@ while ( running ) {
 						TimeSpan.FromSeconds( 2 )
 					);
 					if ( !completeFrame ) {
+						rasterSetupStage = "creating the persistent raster atlas";
 						TerminalControlResult<CursesRasterAtlas> creation =
 							await session.CreateRasterAtlasAsync(
 								state.CreateInitialImage( geometry ),
@@ -108,6 +110,11 @@ while ( running ) {
 				} catch ( Exception exception ) when (
 					RasterAtlasSampleFallback.IsRecoverableSetupException( exception )
 				) {
+					RasterAtlasSampleFallback.WriteSetupFailure(
+						Console.Error,
+						rasterSetupStage,
+						exception
+					);
 					if ( atlas is not null ) {
 						await atlas.DisposeAsync();
 						atlas = null;
