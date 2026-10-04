@@ -76,7 +76,7 @@ raster boxes must not be pre-checked from scripted transport evidence.
 
 ## Complete-frame fallback acceptance (pending)
 
-The current candidate consumes Terminal 1.25.0-alpha.2, including the relative-cursor correction and coalesced Sixel screen writes. The October 3 17:20–17:22 UTC recordings show Contour movement without the earlier text flash, Windows Terminal with progressive horizontal image redraw, and WezTerm text fallback without the earlier left-margin trails. The 03:46 UTC WezTerm configuration test was inconclusive and is superseded by the restart/retest evidence below. These earlier recordings predate alpha.2 consumption.
+The current candidate consumes Terminal 1.25.0-alpha.3, including immediate Unix byte input, the relative-cursor correction and coalesced Sixel screen writes. The October 3 17:20–17:22 UTC recordings show Contour movement without the earlier text flash, Windows Terminal with progressive horizontal image redraw, and WezTerm text fallback without the earlier left-margin trails. The 03:46 UTC WezTerm configuration test was inconclusive and is superseded by the restart/retest evidence below. These earlier recordings predate alpha.2 consumption.
 
 Repeat default and `-- --raster` runs in Windows Terminal and Contour, following the [sample checklist](../samples/Icod.DCurses.RasterAtlas.Sample/README.md#live-acceptance-for-the-new-frame-path). Confirm FRAME pixels without text-map flashes, movement, camera, water collision, help text transition and image restoration, repeated resize, no stale images or repeated status bars, and Q/Escape cleanup. Run default and `-- --text` in WezTerm and confirm movement leaves no left-margin trails. `-- --text` must also work in the other two terminals. Unknown raster capability may still select TEXT; this dependency update does not change graphics verification.
 
@@ -98,3 +98,21 @@ Help open/close with frame restoration, repeated shrink/grow with status/image
 cleanup, and explicit separate Q/Escape checks remain to be recorded on the current
 candidate. These clips do not exercise persistent `ATLAS` ownership or establish
 camera-scroll/water-collision acceptance for this exact dependency head.
+
+### October 4 help, resize and exit follow-up
+
+The subsequent 04:16–04:17 UTC recordings and maintainer confirmation accept
+help opening/closing with FRAME restoration, resize recovery and status cleanup,
+and both Q and Escape exit in Windows Terminal and Contour on alpha.2. Contour
+briefly shows an old image strip during active resize; it clears when dimensions
+settle. These observations supersede the pending help/resize/exit items above,
+but do not establish persistent ATLAS support or artifact-free live dragging.
+
+### Unix input retest required
+
+The WSL2/kitty alpha.2 text run required Enter and echoed keys. Terminal alpha.3
+fixes the upstream byte transport; DCurses now consumes it. Follow the
+[three-stage kitty retest](../samples/Icod.DCurses.RasterAtlas.Sample/README.md#wsl2kitty-retest-with-terminal-alpha3):
+TEXT input first, explicit FRAME second, default ATLAS selection last. Record the
+actual mode and any fresh stderr separately. No Unix live acceptance or graphics
+parser-error resolution is inferred from the dependency bump or CI.

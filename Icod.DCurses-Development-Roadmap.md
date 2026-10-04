@@ -6,14 +6,14 @@
 **Latest tagged stable release:** `2.2.0`\
 **Current source/package identity:** `2.3.0-alpha.1`\
 **Current development assembly version:** `2.0.0.0`\
-**Current development runtime dependency:** direct `Icod.Terminal 1.25.0-alpha.2` only; TermInfo remains transitive\
-**Planned 2.3 direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.2` minimum; no direct `Icod.TermInfo` reference\
+**Current development runtime dependency:** direct `Icod.Terminal 1.25.0-alpha.3` only; TermInfo remains transitive\
+**Planned 2.3 direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.3` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.3.0` — first-class `CursesRasterAtlas` coordination\
-**Status:** 2.2.0 released; 2.3 consumes published Terminal 1.25.0-alpha.2 for newline-safe cursor planning and coalesced Sixel screen writes; covered-text and synchronized-output corrections are integrated; alpha.2 dependency checks passed, Windows Terminal/Contour redraw performance is accepted, and WezTerm dots are stable with ligatures disabled after restart; remaining help/resize/exit and persistent-atlas acceptance precede RC
+**Status:** 2.2.0 released; 2.3 now consumes published Terminal 1.25.0-alpha.3 for immediate Unix byte input, alongside the earlier cursor and Sixel corrections. Windows Terminal/Contour performance, help, resize recovery and Q/Escape exit are accepted on alpha.2. WSL2/kitty text and raster retesting, persistent-atlas acceptance, and dependency requalification precede RC.
 
-**Planning snapshot:** 2026-10-03
+**Planning snapshot:** 2026-10-04
 
 ---
 

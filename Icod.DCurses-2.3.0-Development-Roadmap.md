@@ -6,11 +6,11 @@
 **Baseline:** published and tagged `v2.2.0`  
 **Current source and package version:** `2.3.0-alpha.1`  
 **Assembly version:** `2.0.0.0`  
-**Direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.2` minimum; no direct `Icod.TermInfo` reference
+**Direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.3` minimum; no direct `Icod.TermInfo` reference
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** T2301–T2307 accepted; T2308/T2309 reopened for approved complete-frame fallback on Terminal 1.25.0-alpha.2; live raster acceptance pending; T2310 not started
-**Planning snapshot:** 2026-10-03
+**Status:** T2301–T2307 accepted; T2308/T2309 await Terminal 1.25.0-alpha.3 dependency requalification and WSL2/kitty live acceptance; T2310 not started
+**Planning snapshot:** 2026-10-04
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
 **Implementation plan:** [2.3 atlas implementation plan](docs/superpowers/plans/2026-10-03-icod-dcurses-2.3-curses-raster-atlas.md)
@@ -86,7 +86,7 @@ Controlled failures return explicit status and completed-update counts without s
 | **T2306** | Refresh serialization and lifecycle/failure hardening | Atlas work cannot interleave with refresh/lifecycle output; definite failures recover through the next front copy; ambiguous failures and generation loss require recreation |
 | **T2307** | Adversarial, capacity, allocation and workload measurement | Bounds fail before output; 1/4/16/64/121/256-tile package workloads recorded; no map-sized storage or hidden image cache; later Terminal work is evidence-gated |
 | **T2308** | Public-only Ultima-style sample and package-only consumer | Raster and explicit text fallback share one model; movement, overlays, viewport, resize/recreate and clean exit pass automated/manual acceptance |
-| **T2309** | Public API, package, dependency, XML and documentation freeze | Reopened for one additive complete-frame refresh method and Terminal 1.25.0-alpha.2; exact-head requalification required |
+| **T2309** | Public API, package, dependency, XML and documentation freeze | Reopened for one additive complete-frame refresh method and Terminal 1.25.0-alpha.3; exact-head requalification required |
 | **T2310** | RC, live-terminal acceptance and stable-source qualification | Exact RC head green across the PR matrix; live checklist accepted; unchanged stable source green before merge/tag/publication |
 
 Every tranche records an exact commit and evidence document. Green CI is necessary but not sufficient: semantic, package and manual gates still apply.
@@ -157,7 +157,7 @@ T2309 is the API/package regret deadline. After it, only fixes required by accep
 
 ## 10. Immediate next step
 
-The Terminal 1.25.0-alpha.2 integration passed all seven jobs in workflow 1323. The maintainer accepts Windows Terminal and Contour movement/redraw performance, and WezTerm dot shifting is resolved in the reported configuration comparison by disabling ligatures and restarting. Complete the remaining help, resize, cleanup, explicit exit-key, and persistent-atlas acceptance checks before T2310 RC qualification.
+Requalify the published Terminal 1.25.0-alpha.3 dependency across the six runtime lanes and package gate, then follow the [WSL2/kitty retest](samples/Icod.DCurses.RasterAtlas.Sample/README.md#wsl2kitty-retest-with-terminal-alpha3). Alpha.2 Windows Terminal/Contour performance, help/frame restoration, resize recovery and both exit keys are accepted. Persistent ATLAS rendering and the Unix text/frame/atlas checks remain open before T2310 RC qualification.
 
 ## Complete-frame fallback extension (2026-10-03)
 
@@ -233,3 +233,30 @@ Help open/close with frame restoration, repeated shrink/grow with status/image
 cleanup, and explicit separate Q/Escape checks remain to be recorded on the current
 candidate. These clips do not exercise persistent `ATLAS` ownership or establish
 camera-scroll/water-collision acceptance for this exact dependency head.
+
+### October 4 help, resize and exit follow-up
+
+The subsequent 04:16–04:17 UTC recordings and maintainer confirmation accept
+help opening/closing with FRAME restoration, resize recovery and status cleanup,
+and both Q and Escape exit in Windows Terminal and Contour on alpha.2. Contour
+briefly shows an old image strip during active resize; it clears when dimensions
+settle. These observations supersede the pending help/resize/exit items above,
+but do not establish persistent ATLAS support or artifact-free live dragging.
+
+### Published alpha.3 Unix input integration (2026-10-04 UTC)
+
+WSL2/Ubuntu 24.04 with kitty 0.32.2 rendered text but waited for Enter and echoed
+keys into the map. Terminal [PR #75](https://github.com/uniblab/Icod.Terminal/pull/75)
+corrected the process-standard-input transport for Linux and macOS. Its real
+pseudo-terminal regression passed CBreak/Raw immediate input, UTF-8, response
+routing, no echo, cancellation, restoration and reopening on .NET 8/9/10 in
+[run 37180001042](https://github.com/uniblab/Icod.Terminal/actions/runs/37180001042).
+
+DCurses now consumes published 1.25.0-alpha.3 in production, tests, package checks
+and the release dependency guard. DCurses remains 2.3.0-alpha.1; its public API
+and assembly identity are unchanged. This dependency update requires its own
+CI qualification, recorded in PR #35. Follow the sample
+[WSL2/kitty checklist](samples/Icod.DCurses.RasterAtlas.Sample/README.md#wsl2kitty-retest-with-terminal-alpha3)
+after pulling. Earlier Kitty graphics parser errors are not independently claimed
+fixed, and persistent ATLAS acceptance remains open. No native I/O or protocol
+workaround is added to DCurses.

@@ -77,8 +77,8 @@ the pixels correctly. Record that separately with the T2308/T2310 live checklist
 
 ## Live acceptance for the new frame path
 
-The sample now consumes Terminal 1.25.0-alpha.2 through DCurses, including its
-newline-safe cursor planning and coalesced Sixel screen writes. Alpha.2 combines
+The sample now consumes Terminal 1.25.0-alpha.3 through DCurses, including immediate
+Linux/macOS byte input, newline-safe cursor planning and coalesced Sixel screen writes. Alpha.2 combines
 each prepared Sixel image into one bounded output write; it does not guarantee
 atomic physical presentation. Retest WezTerm with default and `-- --text`: movement
 must not leave player trails at the left margin. TEXT remains valid when graphics
@@ -136,3 +136,47 @@ Help open/close with frame restoration, repeated shrink/grow with status/image
 cleanup, and explicit separate Q/Escape checks remain to be recorded on the current
 candidate. These clips do not exercise persistent `ATLAS` ownership or establish
 camera-scroll/water-collision acceptance for this exact dependency head.
+
+### October 4 help, resize and exit follow-up
+
+The subsequent 04:16–04:17 UTC recordings and maintainer confirmation accept
+help opening/closing with FRAME restoration, resize recovery and status cleanup,
+and both Q and Escape exit in Windows Terminal and Contour on alpha.2. Contour
+briefly shows an old image strip during active resize; it clears when dimensions
+settle. These observations supersede the pending help/resize/exit items above,
+but do not establish persistent ATLAS support or artifact-free live dragging.
+
+## WSL2/kitty retest with Terminal alpha.3
+
+The earlier Linux text run required Enter and echoed keys over the map. Terminal
+alpha.3 replaces the managed console line reader with direct Unix byte input.
+Its automated Linux/macOS checks passed; the following is the remaining live
+DCurses acceptance, including graphics which those checks do not establish.
+
+Inside the kitty window, in the existing Linux checkout:
+
+```sh
+cd ~/Development/Icod/Icod.DCurses
+git switch 2.3.0-raster-atlas-roadmap
+git pull --ff-only
+dotnet restore samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.Sample.csproj
+dotnet list Icod.DCurses.csproj package
+```
+
+Confirm the resolved Terminal package is `1.25.0-alpha.3`. If it is not yet
+available from NuGet, stop and retry restore after publication becomes visible.
+
+1. Run the forced-text command above (`-- --text`). Tap `d` without Enter; the
+   player must move immediately and no `d` may appear at the top-left. Check
+   arrows/WASD, help, resize and Q. Run again to check Escape independently.
+2. Run the forced-frame command (`-- --raster`). Record whether the indicator is
+   FRAME or TEXT. If FRAME, check movement, water collision, camera scrolling,
+   help/frame restoration, resize cleanup and Q/Escape.
+3. Run the default command without sample flags. Record ATLAS, FRAME or TEXT.
+   If ATLAS, repeat the same checks to exercise persistent ownership and sparse
+   updates. A FRAME/TEXT fallback does not qualify the persistent-atlas checklist.
+
+Stop at the first failure and report the command, mode indicator, and exact
+exception or newly emitted kitty stderr. If input still waits for Enter, do not
+continue the graphics tests. Prior graphics payload/parser errors are not yet
+independently established as fixed.

@@ -17,7 +17,7 @@ It verifies:
   LGPL license expression, repository, and required license acceptance;
 - the package contains non-empty `LICENSE` and `icod_tui_toolchain.jpg` payloads;
 - the production project and each target-framework dependency group declare
-  only `Icod.Terminal` at the required `1.25.0-alpha.2` minimum;
+  only `Icod.Terminal` at the required `1.25.0-alpha.3` minimum;
 - every packaged DCurses assembly has no direct `Icod.TermInfo` assembly
   reference or metadata type reference;
 - dependency assemblies are not accidentally bundled into the primary package;

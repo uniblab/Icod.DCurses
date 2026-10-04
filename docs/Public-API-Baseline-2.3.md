@@ -3,7 +3,7 @@
 **Candidate identity:** `2.3.0-alpha.1`  
 **Status:** Reopened for the approved complete-frame extension; fingerprint observed in CI run 37133853737; final qualification pending. Earlier atlas-only qualification remains recorded in T2309.
 **AssemblyVersion:** `2.0.0.0`  
-**Direct production dependency:** `Icod.Terminal 1.25.0-alpha.2`
+**Direct production dependency:** `Icod.Terminal 1.25.0-alpha.3`
 
 ## Compiled candidate fingerprint
 

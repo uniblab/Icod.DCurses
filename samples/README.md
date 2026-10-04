@@ -2,7 +2,7 @@
 
 The repository contains thirteen executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
-All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project. The 2.3 source declares only `Icod.Terminal 1.25.0-alpha.2` directly; Terminal may restore TermInfo transitively. Published 2.2, 2.1 and 2.0 declare Terminal 1.18.0. The previous 1.6 package keeps its historical direct dependency set. To migrate external applications, see [the 2.0 migration guide](../docs/2.0-Migration-Guide.md).
+All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project. The 2.3 source declares only `Icod.Terminal 1.25.0-alpha.3` directly; Terminal may restore TermInfo transitively. Published 2.2, 2.1 and 2.0 declare Terminal 1.18.0. The previous 1.6 package keeps its historical direct dependency set. To migrate external applications, see [the 2.0 migration guide](../docs/2.0-Migration-Guide.md).
 
 ## Which sample should I run?
 
