@@ -6,12 +6,12 @@
 **Latest tagged stable release:** `2.2.0`\
 **Current source/package identity:** `2.3.0-alpha.1`\
 **Current development assembly version:** `2.0.0.0`\
-**Current development runtime dependency:** direct `Icod.Terminal 1.25.0-alpha.1` only; TermInfo remains transitive\
-**Planned 2.3 direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.1` minimum; no direct `Icod.TermInfo` reference\
+**Current development runtime dependency:** direct `Icod.Terminal 1.25.0-alpha.2` only; TermInfo remains transitive\
+**Planned 2.3 direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.2` minimum; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.3.0` — first-class `CursesRasterAtlas` coordination\
-**Status:** 2.2.0 released; 2.3 consumes published Terminal 1.25.0-alpha.1 for newline-safe cursor planning; covered-text and synchronized-output corrections are integrated; automated dependency requalification and live raster/text retests precede RC
+**Status:** 2.2.0 released; 2.3 consumes published Terminal 1.25.0-alpha.2 for newline-safe cursor planning and coalesced Sixel screen writes; covered-text and synchronized-output corrections are integrated; automated dependency requalification and live raster/text retests precede RC
 
 **Planning snapshot:** 2026-10-03
 

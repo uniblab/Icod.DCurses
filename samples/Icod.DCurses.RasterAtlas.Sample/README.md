@@ -77,8 +77,10 @@ the pixels correctly. Record that separately with the T2308/T2310 live checklist
 
 ## Live acceptance for the new frame path
 
-The sample now consumes Terminal 1.25.0-alpha.1 through DCurses, including its
-newline-safe cursor planning. Retest WezTerm with default and `-- --text`: movement
+The sample now consumes Terminal 1.25.0-alpha.2 through DCurses, including its
+newline-safe cursor planning and coalesced Sixel screen writes. Alpha.2 combines
+each prepared Sixel image into one bounded output write; it does not guarantee
+atomic physical presentation. Retest WezTerm with default and `-- --text`: movement
 must not leave player trails at the left margin. TEXT remains valid when graphics
 cannot be verified; this package update does not change backend detection.
 
@@ -101,13 +103,19 @@ atomic host presentation.
 The WezTerm recording remains in TEXT, with the player appearing at the expected
 columns and no earlier left-edge trails. Some terrain glyph combinations look
 joined or uneven. Font shaping is a hypothesis, not a confirmed cursor defect.
-For an isolated comparison, temporarily disable ligatures in the existing WezTerm
-configuration (before its `return config`):
+The October 4 03:46 UTC recording with ligatures disabled shows no clear
+improvement. Closer frame inspection and the user report identify ground dots
+shifting roughly 1–2 pixels beside the moving player. Kerning is a hypothesis,
+not an established cause; a kerning-disabled retest is still pending.
+For that isolated comparison, temporarily disable kerning as well as ligatures
+in the existing WezTerm configuration (before its `return config`):
 
 ```lua
-config.harfbuzz_features = { 'calt=0', 'clig=0', 'liga=0' }
+config.harfbuzz_features = { 'calt=0', 'clig=0', 'liga=0', 'kern=0' }
 ```
 
+On Windows, open `%USERPROFILE%\.wezterm.lua` in Notepad, replace the existing
+`config.harfbuzz_features` line, save, and restart WezTerm.
 If font-specific `harfbuzz_features` are already set, adjust those as well; they
 can override the global setting. Repeat `-- --text`, then restore the preference.
 See [WezTerm font shaping](https://wezterm.org/config/font-shaping.html).

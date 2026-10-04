@@ -6,10 +6,10 @@
 **Baseline:** published and tagged `v2.2.0`  
 **Current source and package version:** `2.3.0-alpha.1`  
 **Assembly version:** `2.0.0.0`  
-**Direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.1` minimum; no direct `Icod.TermInfo` reference
+**Direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.2` minimum; no direct `Icod.TermInfo` reference
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** T2301–T2307 accepted; T2308/T2309 reopened for approved complete-frame fallback on Terminal 1.25.0-alpha.1; live raster acceptance pending; T2310 not started
+**Status:** T2301–T2307 accepted; T2308/T2309 reopened for approved complete-frame fallback on Terminal 1.25.0-alpha.2; live raster acceptance pending; T2310 not started
 **Planning snapshot:** 2026-10-03
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
@@ -86,7 +86,7 @@ Controlled failures return explicit status and completed-update counts without s
 | **T2306** | Refresh serialization and lifecycle/failure hardening | Atlas work cannot interleave with refresh/lifecycle output; definite failures recover through the next front copy; ambiguous failures and generation loss require recreation |
 | **T2307** | Adversarial, capacity, allocation and workload measurement | Bounds fail before output; 1/4/16/64/121/256-tile package workloads recorded; no map-sized storage or hidden image cache; later Terminal work is evidence-gated |
 | **T2308** | Public-only Ultima-style sample and package-only consumer | Raster and explicit text fallback share one model; movement, overlays, viewport, resize/recreate and clean exit pass automated/manual acceptance |
-| **T2309** | Public API, package, dependency, XML and documentation freeze | Reopened for one additive complete-frame refresh method and Terminal 1.25.0-alpha.1; exact-head requalification required |
+| **T2309** | Public API, package, dependency, XML and documentation freeze | Reopened for one additive complete-frame refresh method and Terminal 1.25.0-alpha.2; exact-head requalification required |
 | **T2310** | RC, live-terminal acceptance and stable-source qualification | Exact RC head green across the PR matrix; live checklist accepted; unchanged stable source green before merge/tag/publication |
 
 Every tranche records an exact commit and evidence document. Green CI is necessary but not sufficient: semantic, package and manual gates still apply.
@@ -157,7 +157,7 @@ T2309 is the API/package regret deadline. After it, only fixes required by accep
 
 ## 10. Immediate next step
 
-Requalify the published Terminal 1.25.0-alpha.1 dependency, then repeat the T2308 checklist in Windows Terminal, Contour and WezTerm. Windows Terminal and Contour have shown complete-frame graphics, but the reported flashes require a retest after the covered-text and synchronized-output corrections. WezTerm text acceptance must be repeated after the upstream cursor fix. Persistent atlas acceptance remains separate. T2310 RC qualification follows accepted automated and live evidence.
+Requalify the published Terminal 1.25.0-alpha.2 dependency, then repeat the T2308 checklist in Windows Terminal, Contour and WezTerm. The earlier fallback-text flash and left-margin trails are no longer visible in the latest recordings. Windows Terminal still needs a live retest of progressive image redraw after the Sixel write correction. WezTerm ground-dot shifting remains a separate text-rendering investigation. Persistent atlas acceptance remains separate. T2310 RC qualification follows accepted automated and live evidence.
 
 ## Complete-frame fallback extension (2026-10-03)
 
@@ -175,8 +175,8 @@ straddle an image edge. The regression-only run reproduced all four new cases wi
 
 The WezTerm recording shows text fallback with left-margin player trails, reopening
 its earlier text acceptance. Terminal [PR #73](https://github.com/uniblab/Icod.Terminal/pull/73)
-published 1.25.0-alpha.1 to reject newline-dependent relative cursor plans. This DCurses
-branch now consumes that package in production and tests, with matching package and
+published 1.25.0-alpha.1 to reject newline-dependent relative cursor plans. The initial DCurses
+integration consumed that package in production and tests, with matching package and
 dependency-boundary gates. Repeat default, `-- --raster`, and `-- --text` tests.
 No terminal rendering or
 stable-release acceptance is claimed by CI alone.
@@ -188,10 +188,28 @@ flash. Windows Terminal replaces the text flash with visible clearing and partia
 horizontal image bands; immediate-frame acceptance remains open. Terminal
 [PR #74](https://github.com/uniblab/Icod.Terminal/pull/74) coalesces prepared Sixel
 fragments into one bounded image write, with unchanged bytes and failure rules.
-The DCurses dependency stays at published alpha.1 until the next candidate is available.
+At this retest, DCurses remained on alpha.1 while alpha.2 publication was pending.
 
 WezTerm remains TEXT. The player no longer leaves left-edge trails in the supplied
 recording, but terrain glyphs appear joined or uneven. Compare with font ligatures
 disabled before attributing this remaining symptom to cursor planning. See the
 sample README for the isolated check. Resize/help acceptance is still outstanding;
 these movement recordings do not qualify every checklist item.
+
+### Published alpha.2 integration (2026-10-04 UTC)
+
+Terminal 1.25.0-alpha.2 is now published. Production and test references, package
+verification, dependency guards, and current documentation now require alpha.2.
+DCurses remains 2.3.0-alpha.1 with AssemblyVersion 2.0.0.0 and an unchanged public
+API. All six runtime lanes and the package/fresh-consumer gate must pass on this
+new dependency head before automated requalification is accepted.
+
+The 03:46 UTC WezTerm recording after disabling ligatures shows no clear improvement.
+Ground dots beside the moving player shift roughly 1–2 pixels; kerning remains an
+unconfirmed explanation and the kerning-disabled comparison is pending. Alpha.2
+does not address text shaping or change graphics capability verification.
+
+Repeat default and forced-frame runs in Windows Terminal and Contour to assess
+Sixel redraw, then help/resize/status cleanup and Q/Escape. A single Sixel write
+cannot prove atomic host rendering. Persistent-atlas acceptance and T2310 remain
+open; this dependency bump does not promote the DCurses release.
