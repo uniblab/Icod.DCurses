@@ -9,7 +9,7 @@
 **Direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.5` minimum; no direct `Icod.TermInfo` reference
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** T2301–T2307 accepted; T2308/T2309 await Terminal 1.25.0-alpha.5 dependency requalification and WSL2/kitty persistent-ATLAS acceptance; T2310 not started
+**Status:** T2301–T2307 accepted; T2308/T2309 persistent-ATLAS acceptance remains blocked by the confirmed Kitty 0.32.2 animation-upload ACK defect; the blocker is intentionally unresolved; T2310 not started
 **Planning snapshot:** 2026-10-04
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
@@ -157,7 +157,7 @@ T2309 is the API/package regret deadline. After it, only fixes required by accep
 
 ## 10. Immediate next step
 
-Requalify the published Terminal 1.25.0-alpha.5 dependency across the six runtime lanes and package gate, then follow the [WSL2/kitty retest](samples/Icod.DCurses.RasterAtlas.Sample/README.md#wsl2kitty-retest-with-terminal-alpha5). Alpha.2 Windows Terminal/Contour performance, help/frame restoration, resize recovery and both exit keys are accepted. WSL2/kitty FRAME rendering, immediate input and clean exit are accepted. Persistent ATLAS rendering remains open before T2310 RC qualification.
+Leave the confirmed Kitty animation-upload acknowledgement blocker unresolved at the maintainer's request. The standalone reproducer and [upstream bug report](tools/kitty-frame-ack-bug-report.md) preserve the evidence; upstream submission requires access because the GitHub integration returned HTTP 403. Do not implement the identifier workaround, expand the probe, or qualify persistent ATLAS from fallback results. Alpha.2 Windows Terminal/Contour performance, help/frame restoration, resize recovery and both exit keys remain accepted. WSL2/kitty FRAME input/display and clean exit remain accepted, with command-driven flicker still observed. Persistent ATLAS acceptance and T2310 RC qualification remain pending.
 
 ## Complete-frame fallback extension (2026-10-03)
 
@@ -295,3 +295,28 @@ identity failures and 1,361 other tests passing per framework in
 The next live acceptance is default ATLAS startup followed by movement, collision,
 camera scrolling, help restoration, resize cleanup and independent Q/Escape exit.
 No timeout or protocol workaround is added to DCurses.
+
+### Confirmed Kitty upload ACK defect; deliberately unresolved (2026-10-04)
+
+The independent [two-pixel Bash reproducer](tools/kitty-frame-ack.sh) received
+root and single-chunk `OK` replies in Kitty 0.32.2, no reply for the documented
+`a=f,m=0` final continuation, and `Gi=1,r=4;OK` when the final continuation
+repeated `i=1`. Frame 4 proves the silent upload created frame 3. Source inspection
+agrees: the final response is constructed from continuation controls lacking an
+image identifier. This establishes an upstream upload-acknowledgement defect,
+not a rejected frame or an Icod response-matcher failure.
+
+Alpha.5's live default run still times out on the first appended atlas frame and
+falls back to FRAME. Forced TEXT works; forced/default fallback FRAME has correct
+input and display but command-driven flicker. The size-aware deadline bounds the
+wait; it does not cure the missing ACK. The [complete bug report](tools/kitty-frame-ack-bug-report.md)
+records the captured output, source evidence, untested clean-config/new-version
+cases, and submission status. Filing with `kovidgoyal/kitty` was attempted but
+returned HTTP 403, `Resource not accessible by integration`; there is no upstream
+issue number to cite.
+
+The maintainer directs that this trouble remain unresolved after documentation
+and reporting. No production workaround, alpha.6 dependency bump, further probe
+expansion, or ATLAS acceptance is claimed. Animation-control response assumptions
+and FRAME flicker are separate open concerns, outside the confirmed upstream
+upload bug report. T2308/T2309 and T2310 remain open.
