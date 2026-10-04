@@ -11,7 +11,9 @@
 
 This source tree is the unpublished **`Icod.DCurses 2.3.0-alpha.1`** development candidate. The latest published stable release is **`2.2.0`**; check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published package versions.
 
-Version 2.3 adds `CursesRasterAtlas`, a bounded cell-aligned raster presentation owner for tile-oriented applications. Applications keep durable source pixels and gameplay state; DCurses retains placeholder cells, viewport coordinates and transaction serialization; Icod.Terminal 1.24 owns exact cell-pixel geometry, live raster identities, acknowledgement and lifecycle certainty. Presentations copy the known front frame to a back frame, replace a caller-supplied set of RGB24/RGBA32 tiles, then select the completed frame. The [raster-atlas sample](samples/Icod.DCurses.RasterAtlas.Sample/README.md) demonstrates sparse movement, retained help/status overlays, explicit resize recreation and `--text` fallback from one model.
+Feature development is **on hold** while the existing 2.3 feature set is prepared for release. Kitty 0.32.2 persistent-atlas startup remains affected by an unresolved upload-acknowledgement defect; ordinary complete-frame output works in the reported environment but flickers during commands. No production workaround is planned. See [release readiness and known limitations](docs/2.3-Release-Readiness.md).
+
+Version 2.3 adds `CursesRasterAtlas`, a bounded cell-aligned raster presentation owner for tile-oriented applications. Applications keep durable source pixels and gameplay state; DCurses retains placeholder cells, viewport coordinates and transaction serialization; Icod.Terminal 1.25.0-alpha.5 owns exact cell-pixel geometry, live raster identities, acknowledgement and lifecycle certainty. Presentations copy the known front frame to a back frame, replace a caller-supplied set of RGB24/RGBA32 tiles, then select the completed frame. The [raster-atlas sample](samples/Icod.DCurses.RasterAtlas.Sample/README.md) demonstrates sparse movement, retained help/status overlays, explicit resize recreation and `--text` fallback from one model.
 
 Version 2.2 adds immutable discovery of the effective single-key and multi-key command bindings in current routing precedence, plus bounded command sequences with explicit pending, completed, mismatch, fallback, and cancellation results. It keeps command execution, labels, localization, timeouts, and the event loop application-owned. The [editor and roguelike samples](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/samples/README.md) exercise these facilities through public APIs; the [2.2 API baseline](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/docs/Public-API-Baseline-2.2.md) records the additive contract over 2.1.
 
@@ -269,6 +271,28 @@ Visible panels must not overlap this immediate image, and retained raster cells 
 coexist with it. The next ordinary refresh clears previous frame damage and restores
 text. The sample uses a text view while help is open and exposes `--raster` for direct
 testing. Physical placement, clearing, and resize still require live terminal acceptance.
+
+## Raster selection and fallback
+
+Terminal's ordinary raster capability policy prefers **verified Kitty**, then
+**verified Sixel**. When neither is usable, the application can choose text.
+This is capability selection, not automatic recovery from a failed Kitty write:
+Terminal sends through one selected backend and does not replay the image through
+Sixel after an error.
+
+The sample owns a separate presentation ladder:
+
+| Mode | Selection |
+|---|---|
+| ATLAS | Verified persistent identities and exact geometry; uses Kitty animation facilities |
+| FRAME | Atlas setup unavailable or recoverably fails, with verified ordinary raster and usable geometry; ordinary Kitty is preferred over Sixel |
+| TEXT | Raster capability/geometry unavailable, or recoverable frame/presentation failure; also forced with `--text` |
+
+`--raster` selects ordinary FRAME directly and bypasses persistent-atlas negotiation.
+A Kitty atlas setup failure can therefore fall back to **Kitty FRAME**. Persistent
+atlas identities are not emulated through Sixel, and `FRAME` does not identify the
+selected graphics protocol. Atlas presentation uncertainty abandons the atlas for
+text; no hidden cache or backend replay occurs.
 
 ## Feature Inventory
 
