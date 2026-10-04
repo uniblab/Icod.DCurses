@@ -9,8 +9,9 @@ All notable `Icod.DCurses` release-line changes are summarized here. Detailed tr
 - Added explicit `CursesSession.RefreshRasterAsync` for complete viewport images through Terminal's verified ordinary Kitty/Sixel transaction path. Source pixels and fallback policy remain application-owned.
 - Updated the atlas sample to prefer persistent atlas, then ordinary complete frames, then text. Added `--raster`; retained `--text`, portable resize polling, and clean exit. Complete-frame help temporarily uses the text view.
 - Consume Terminal's coalesced Sixel screen writes to reduce avoidable progressive redraw while preserving its newline-safe cursor correction. Physical flicker still requires live retesting.
-- Consume Terminal alpha.3's Linux/macOS byte-input correction: keys and terminal replies no longer pass through the managed console line reader. Live WSL2/kitty text and raster retesting remains required.
-- The sole direct runtime dependency is `Icod.Terminal 1.25.0-alpha.3`; AssemblyVersion remains `2.0.0.0` with .NET 8/9/10 targets. Live raster acceptance and RC qualification remain pending.
+- Consume Terminal alpha.3's Linux/macOS byte-input correction: keys and terminal replies no longer pass through the managed console line reader. Immediate WSL2/kitty input and clean exit are accepted; graphics acceptance remains open.
+- Consume Terminal alpha.4's DA1 parser correction for kitty 0.32.2's empty optional attribute list (`CSI ?62;c`), removing the captured raster-startup parsing failure. Graphics still require independently verified capability evidence.
+- The sole direct runtime dependency is `Icod.Terminal 1.25.0-alpha.4`; AssemblyVersion remains `2.0.0.0` with .NET 8/9/10 targets. Live raster acceptance and RC qualification remain pending.
 
 ## 2.2.0 — Stable-source candidate, unpublished
 

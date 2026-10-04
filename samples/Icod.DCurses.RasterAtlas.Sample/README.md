@@ -77,12 +77,12 @@ the pixels correctly. Record that separately with the T2308/T2310 live checklist
 
 ## Live acceptance for the new frame path
 
-The sample now consumes Terminal 1.25.0-alpha.3 through DCurses, including immediate
+The sample now consumes Terminal 1.25.0-alpha.4 through DCurses, including kitty DA1 compatibility, immediate
 Linux/macOS byte input, newline-safe cursor planning and coalesced Sixel screen writes. Alpha.2 combines
 each prepared Sixel image into one bounded output write; it does not guarantee
 atomic physical presentation. Retest WezTerm with default and `-- --text`: movement
 must not leave player trails at the left margin. TEXT remains valid when graphics
-cannot be verified; this package update does not change backend detection.
+cannot be verified; alpha.4 corrects parsing during Kitty detection while preserving the evidence requirements.
 
 In Windows Terminal and Contour, run both the default command and `-- --raster`.
 Check the mode indicator and original pixel art, no text-map flashes between frames,
@@ -146,27 +146,29 @@ briefly shows an old image strip during active resize; it clears when dimensions
 settle. These observations supersede the pending help/resize/exit items above,
 but do not establish persistent ATLAS support or artifact-free live dragging.
 
-## WSL2/kitty retest with Terminal alpha.3
+## WSL2/kitty retest with Terminal alpha.4
 
 The earlier Linux text run required Enter and echoed keys over the map. Terminal
 alpha.3 replaces the managed console line reader with direct Unix byte input.
-Its automated Linux/macOS checks passed; the following is the remaining live
-DCurses acceptance, including graphics which those checks do not establish.
+The maintainer has confirmed immediate input and clean exit on alpha.3. Alpha.4
+corrects the DA1 parsing exception that subsequently blocked graphics startup.
+The following checks establish live rendering separately from automated coverage.
 
-Inside the kitty window, in the existing Linux checkout:
+Inside the kitty window, use your existing checkout (either in the Linux filesystem
+or under `/mnt/c` for a Windows checkout):
 
 ```sh
-cd ~/Development/Icod/Icod.DCurses
+cd /path/to/Icod.DCurses
 git switch 2.3.0-raster-atlas-roadmap
-git pull --ff-only
+git pull --ff-only https://github.com/uniblab/Icod.DCurses.git 2.3.0-raster-atlas-roadmap
 dotnet restore samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.Sample.csproj
 dotnet list Icod.DCurses.csproj package
 ```
 
-Confirm the resolved Terminal package is `1.25.0-alpha.3`. If it is not yet
+Confirm the resolved Terminal package is `1.25.0-alpha.4`. If it is not yet
 available from NuGet, stop and retry restore after publication becomes visible.
 
-1. Run the forced-text command above (`-- --text`). Tap `d` without Enter; the
+1. As a quick regression check, run the forced-text command above (`-- --text`). Tap `d` without Enter; the
    player must move immediately and no `d` may appear at the top-left. Check
    arrows/WASD, help, resize and Q. Run again to check Escape independently.
 2. Run the forced-frame command (`-- --raster`). Record whether the indicator is
@@ -191,6 +193,17 @@ including the stack trace. This distinguishes ordinary capability probing from
 Terminal session setup or curses presentation initialization. It does not change
 raster verification or force an unverified backend.
 
-The alpha.3 WSL2/kitty retest confirms immediate input and clean exit. Forced
-`--raster` still selects TEXT with the startup-exception message; the graphics
-failure remains under investigation and is not accepted as working.
+The alpha.3 WSL2/kitty retest confirmed immediate input and clean exit. Its forced
+`--raster` run selected TEXT because Terminal rejected the empty optional DA1
+attribute list in `CSI ?62;c`. Published alpha.4 corrects that parser. Live FRAME
+and persistent ATLAS rendering remain unaccepted until the retest above.
+
+Capture a fresh application diagnostic while testing FRAME:
+
+```sh
+dotnet run --project samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.Sample.csproj --framework net10.0 -- --raster 2> raster-startup.log
+```
+
+After exiting with Q, run `cat raster-startup.log`. An empty file means no startup
+exception was captured; it does not by itself prove graphics support. Record the
+mode indicator and rendering behavior as well.

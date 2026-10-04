@@ -2,7 +2,7 @@
 
 This project is intentionally not part of `Icod.DCurses.sln` and has no project reference to the repository library.
 
-Package validation copies the smoke project and its explicitly staged source witnesses into a temporary directory, uses an isolated NuGet package cache, restores the exact current DCurses package version from the local artifact directory, and resolves the package-declared dependency graph. The 2.3 candidate declares `Icod.Terminal 1.25.0-alpha.3` directly; `Icod.TermInfo` remains a transitive dependency through Terminal.
+Package validation copies the smoke project and its explicitly staged source witnesses into a temporary directory, uses an isolated NuGet package cache, restores the exact current DCurses package version from the local artifact directory, and resolves the package-declared dependency graph. The 2.3 candidate declares `Icod.Terminal 1.25.0-alpha.4` directly; `Icod.TermInfo` remains a transitive dependency through Terminal.
 
 Dependency versions are not duplicated as verifier policy. The package metadata is authoritative; restore/build/run establish whether the generated package is consumable with its declared dependency graph.
 
