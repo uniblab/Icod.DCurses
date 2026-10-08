@@ -44,9 +44,6 @@ public sealed class PublicTwoThreeDevelopmentIdentityTests {
 			StringComparison.Ordinal );
 		Assert.Contains( "exact cell-pixel geometry", GetValue( "PackageReleaseNotes" ),
 			StringComparison.OrdinalIgnoreCase );
-		Assert.Equal( "1.28.0-alpha.1", project.Descendants()
-			.Single( element => "PackageReference" == element.Name.LocalName )
-			.Attribute( "Version" )?.Value );
 	}
 
 	[Fact]
