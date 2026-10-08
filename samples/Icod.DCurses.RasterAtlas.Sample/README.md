@@ -162,15 +162,14 @@ briefly shows an old image strip during active resize; it clears when dimensions
 settle. These observations supersede the pending help/resize/exit items above,
 but do not establish persistent ATLAS support or artifact-free live dragging.
 
-## WSL2/kitty retest with Terminal alpha.5
+## WSL2/kitty retest with Terminal 1.28.0-alpha.1
 
-The earlier Linux text run required Enter and echoed keys over the map. Terminal
-alpha.3 replaces the managed console line reader with direct Unix byte input.
-The maintainer has confirmed immediate input and clean exit on alpha.3. Alpha.4
-corrects the DA1 parsing exception that subsequently blocked graphics startup.
-Alpha.5 gives the persistent resource and animation-frame uploads enough bounded
-time to complete before their correlated acknowledgements. The following checks
-establish live rendering separately from automated coverage.
+Terminal `1.28.0-alpha.1` has passed its own source-built Kitty `0.49.2`
+8×8 placeholder-atlas witness: all 1/4/16/64 RGB24 damage workloads were
+acknowledged and the grid was removed at disposal. That validates Terminal's
+transaction ordering and lifecycle, but it does **not** itself accept this
+DCurses sample. The following checks establish DCurses live rendering separately
+from automated coverage.
 
 Inside the kitty window, use your existing checkout (either in the Linux filesystem
 or under `/mnt/c` for a Windows checkout):
@@ -183,7 +182,7 @@ dotnet restore samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.
 dotnet list Icod.DCurses.csproj package
 ```
 
-Confirm the resolved Terminal package is `1.25.0-alpha.5`. If it is not yet
+Confirm the resolved Terminal package is `1.28.0-alpha.1`. If it is not yet
 available from NuGet, stop and retry restore after publication becomes visible.
 
 1. As a quick regression check, run the forced-text command above (`-- --text`). Tap `d` without Enter; the
@@ -210,6 +209,8 @@ the diagnostic is visible again after text mode exits. Copy that complete output
 including the stack trace. This distinguishes ordinary capability probing from
 Terminal session setup or curses presentation initialization. It does not change
 raster verification or force an unverified backend.
+
+### Historical alpha.3–alpha.5 observations
 
 The alpha.3 WSL2/kitty retest confirmed immediate input and clean exit. Its forced
 `--raster` run selected TEXT because Terminal rejected the empty optional DA1
