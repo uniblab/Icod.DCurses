@@ -116,6 +116,56 @@ public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 	}
 
 	[Fact]
+	public async Task FullCoveragePresentationUsesOneCombinedRegionUpdate() {
+		AtlasTransport transport = new();
+		await using CursesSession session = await OpenSessionAsync( transport );
+		CursesRasterAtlas atlas = await CreateAtlasAsync(
+			session,
+			transport,
+			Rgb24( 2, 2, 0 )
+		);
+		await using ( atlas ) {
+			int presentationStart = transport.WriteCount;
+			Task<CursesRasterAtlasPresentationResult> presentation = atlas.PresentAsync(
+				[
+					new CursesRasterAtlasTileUpdate( 1, 1, Rgb24( 1, 1, 10 ) ),
+					new CursesRasterAtlasTileUpdate( 0, 1, Rgb24( 1, 1, 4 ) ),
+					new CursesRasterAtlasTileUpdate( 1, 0, Rgb24( 1, 1, 7 ) ),
+					new CursesRasterAtlasTileUpdate( 0, 0, Rgb24( 1, 1, 1 ) )
+				]
+			).AsTask();
+
+			await transport.WaitForWriteCountAsync( presentationStart + 1 );
+			Assert.Equal(
+				"\u001b_Ga=c,i=77,r=1,c=2,w=2,h=2,X=0,Y=0,x=0,y=0,C=1\u001b\\",
+				transport.GetAsciiWrite( presentationStart )
+			);
+			transport.PublishOk();
+
+			await transport.WaitForWriteCountAsync( presentationStart + 2 );
+			Assert.Equal(
+				"\u001b_Ga=f,f=24,s=2,v=2,t=d,i=77,r=2,x=0,y=0,X=1,m=0;AQIDBAUGBwgJCgsM\u001b\\",
+				transport.GetAsciiWrite( presentationStart + 1 )
+			);
+			transport.PublishOk();
+
+			await transport.WaitForWriteCountAsync( presentationStart + 3 );
+			Assert.Equal(
+				"\u001b_Ga=a,i=77,c=2,q=2\u001b\\",
+				transport.GetAsciiWrite( presentationStart + 2 )
+			);
+			transport.PublishOk();
+
+			CursesRasterAtlasPresentationResult result = await presentation;
+			Assert.Equal( CursesRasterAtlasPresentationStatus.Presented, result.Status );
+			Assert.Equal( 4, result.RequestedUpdateCount );
+			Assert.Equal( 4, result.CompletedUpdateCount );
+			Assert.True( result.FrameSelected );
+			Assert.Equal( presentationStart + 3, transport.WriteCount );
+		}
+	}
+
+	[Fact]
 	public async Task AmbiguousCompositionFailureRequiresExplicitRecreation() {
 		AtlasTransport transport = new();
 		await using CursesSession session = await OpenSessionAsync( transport );
