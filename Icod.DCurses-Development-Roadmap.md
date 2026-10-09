@@ -4,14 +4,14 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
 **Published compatibility floor:** `1.0.0`\
 **Latest tagged stable release:** `2.2.0`\
-**Current source/package identity:** `2.3.0-alpha.1`\
+**Current source/package identity:** `2.3.0`\
 **Current development assembly version:** `2.0.0.0`\
-**Current development runtime dependency:** direct `Icod.Terminal 1.25.0-alpha.5` only; TermInfo remains transitive\
-**Planned 2.3 direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.5` minimum; no direct `Icod.TermInfo` reference\
+**Current development runtime dependency:** direct stable `Icod.Terminal 1.28.0` only; TermInfo remains transitive\
+**Stable 2.3 direct runtime dependency:** `Icod.Terminal 1.28.0`; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.3.0` — first-class `CursesRasterAtlas` coordination\
-**Status:** Feature development is on hold; prepare the existing 2.3 feature set for release with documented limits. T2301–T2307 have automated acceptance; Kitty 0.32.2 persistent-ATLAS live acceptance is deferred because of the deliberately unresolved ACK defect. Ordinary FRAME and TEXT remain available under application-owned policy; FRAME flicker is documented. RC/stable qualification and publication remain pending. See [release readiness](docs/2.3-Release-Readiness.md).
+**Status:** Stable 2.3.0 release candidate prepared. T2301–T2309 are implemented; the current ATLAS, FRAME, and TEXT paths have maintainer acceptance in their recorded environments. Exact-head PR validation, merge, post-merge Release validation, tagging, and publication remain pending. See [release readiness](docs/2.3-Release-Readiness.md).
 
 **Planning snapshot:** 2026-10-04
 
@@ -63,7 +63,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | Published |
 | `2.1.0` | Core presentation and text foundations for editor and roguelike applications | Merged, tagged and released |
 | `2.2.0` | Interaction and application conveniences for editor and roguelike applications | Published |
-| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Feature development on hold; release preparation with known raster limits; RC/stable qualification pending |
+| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Stable release candidate; exact-head PR and post-merge qualification pending |
 | `2.4+` | Higher-level packages, including a possible `Icod.DCurses.Widgets`, and later sprite/physical-placement work | Deferred; scope depends on application evidence |
 
 The post-1.0 progression is intentionally cumulative:
@@ -344,17 +344,17 @@ The full scope, non-goals, tranche gates and release policy are defined in [Icod
 
 | Tranche | Deliverable | Status |
 |---|---|---|
-| T2300 | Decision, roadmap, design, implementation plan, `2.3.0-alpha.1`, Terminal 1.24 reference | In progress on the planning PR |
-| T2301 | API-regret gate and permanent RED witnesses | Planned |
-| T2302 | Pixel geometry and advisory atlas planning | Planned |
-| T2303 | Atlas creation, ownership and rollback | Planned |
-| T2304 | Retained window/pad/viewport atlas projection | Planned |
-| T2305 | Double-buffered tile presentation and deterministic ordering | Planned |
-| T2306 | Refresh serialization, lifecycle and failure recovery | Planned |
-| T2307 | Adversarial, capacity, allocation and workload measurements | Planned |
-| T2308 | Public-only Ultima-style sample and package consumer | Planned |
-| T2309 | API, package, dependency, XML and documentation freeze | Planned |
-| T2310 | RC, live acceptance and stable-source qualification | Planned |
+| T2300 | Decision, roadmap, design, implementation plan, `2.3.0-alpha.1`, Terminal 1.24 reference | Accepted |
+| T2301 | API-regret gate and permanent RED witnesses | Accepted |
+| T2302 | Pixel geometry and advisory atlas planning | Accepted |
+| T2303 | Atlas creation, ownership and rollback | Accepted |
+| T2304 | Retained window/pad/viewport atlas projection | Accepted |
+| T2305 | Double-buffered tile presentation and deterministic ordering | Accepted |
+| T2306 | Refresh serialization, lifecycle and failure recovery | Accepted |
+| T2307 | Adversarial, capacity, allocation and workload measurements | Accepted |
+| T2308 | Public-only tile sample, supplied artwork, fallback, and package consumer | Accepted |
+| T2309 | API, package, dependency, XML and documentation freeze | Stable candidate prepared; exact-head CI pending |
+| T2310 | Live acceptance and stable-source qualification | Live acceptance recorded; merge/main/tag pending |
 
 No production implementation begins until T2300 is reviewed and T2301 freezes the public contract.
 
@@ -396,12 +396,12 @@ For 2.3, the published 2.2 API artifacts remain immutable historical evidence. T
 
 ## Immediate next step
 
-Review and approve the T2300 planning/dependency PR. After approval, begin T2301 with permanent failing contract tests and freeze exact public names, validation, capacities, result semantics and lifecycle behavior before implementing the first atlas API.
+Qualify the stable `2.3.0` release-preparation head in PR Staging. After review, merge separately, require the post-merge Release workflow to pass, and only then create and push `v2.3.0`.
 
 The direct production dependency remains `Icod.DCurses -> Icod.Terminal`; any newly discovered live-terminal gap remains work for the owning Terminal dependency.
 
 ## Complete-frame fallback extension (2026-10-03)
 
-The approved fallback work reopens T2308 and T2309 for Terminal 1.25.0-alpha. DCurses adds explicit `RefreshRasterAsync`: one application-owned frame, exact geometry, same serialized transaction as text, conservative damage cleanup, and no persistent identity emulation. Terminal owns Kitty/Sixel selection and encoding. The sample prefers atlas, then complete frame, then text; `--raster` directly exercises the second path.
+The approved fallback work completed T2308 and feeds the T2309 release freeze through stable Terminal 1.28.0. DCurses adds explicit `RefreshRasterAsync`: one application-owned frame, exact geometry, same serialized transaction as text, conservative damage cleanup, and no persistent identity emulation. Terminal owns Kitty/Sixel selection and encoding. The sample prefers atlas, then complete frame, then text; `--raster` directly exercises the second path.
 
-Automated integration and the additive API fingerprint must be requalified. Then repeat the live checklist in Windows Terminal and Contour: initial image, movement, camera scrolling, blocked water, help open/close, repeated shrinking/growing, status-row cleanup, and Q/Escape restoration. WezTerm remains a controlled-fallback observation unless current verification supplies a usable backend. Earlier text acceptance does not count as frame-path acceptance. T2310 remains pending.
+Automated integration, the additive API fingerprint, and package-only acceptance are implemented. Maintainer observations cover the documented ATLAS, FRAME, and TEXT paths, including movement, camera scrolling, blocked water, help restoration, resize cleanup, and independent Q/Escape exit. WezTerm remains a controlled-fallback observation unless current verification supplies a usable backend. Final exact-head CI, merge, main validation, tag, and publication remain separate.

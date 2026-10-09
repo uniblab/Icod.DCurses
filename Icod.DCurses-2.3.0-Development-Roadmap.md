@@ -4,12 +4,12 @@
 **Release:** `2.3.0`  
 **Theme:** First-class `CursesRasterAtlas` coordination (approved Option 1)  
 **Baseline:** published and tagged `v2.2.0`  
-**Current source and package version:** `2.3.0-alpha.1`  
+**Current source and package version:** `2.3.0`  
 **Assembly version:** `2.0.0.0`  
-**Direct runtime dependency:** `Icod.Terminal 1.25.0-alpha.5` minimum; no direct `Icod.TermInfo` reference
+**Direct runtime dependency:** stable `Icod.Terminal 1.28.0`; no direct `Icod.TermInfo` reference
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** Feature development on hold; T2301–T2307 accepted; release preparation resumes for the existing feature set with documented limitations. Kitty persistent-ATLAS live acceptance is deferred and remains unaccepted; T2309 exact release-head qualification and T2310 RC/stable gates remain pending.
+**Status:** Stable 2.3.0 release candidate prepared. T2301–T2309 are implemented and the documented ATLAS/FRAME/TEXT live checks are accepted in their tested environments. Exact-head PR validation, merge, post-merge Release validation, tagging, and publication remain pending.
 **Planning snapshot:** 2026-10-04
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
@@ -333,3 +333,29 @@ The [release readiness record](docs/2.3-Release-Readiness.md) distinguishes auto
 contract evidence, live rendering observations, deferred acceptance and outstanding
 version/dependency and RC/stable decisions. Correct the stale alpha.4 release guard
 to match the alpha.5 project reference. No renderer behavior changes are included.
+
+
+## Stable 2.3.0 release preparation (2026-10-09)
+
+Published stable `Icod.Terminal 1.28.0` is the sole direct production
+dependency for the stable DCurses candidate. Dependency policy remains
+version-agnostic: project, test, package-verifier, and release gates require the
+single direct package identity `Icod.Terminal` and a declared package version;
+successful restore, compilation, and tests establish API compatibility.
+
+The candidate retains `AssemblyVersion 2.0.0.0`, the frozen 105-type /
+839-line additive API contract, complete-frame fallback, recoverable
+presentation-timeout fallback, and full-atlas update coalescing. The public
+sample uses the supplied water, grass, forest, road, and player artwork and
+exposes ATLAS, FRAME, and TEXT explicitly.
+
+Maintainer acceptance covers immediate input, movement, water collision, camera
+scrolling, help restoration, resize cleanup, and independent Q/Escape exit in
+the recorded environments. This is not a claim of universally atomic or
+flicker-free host presentation. Historical Kitty 0.32.2 acknowledgement
+evidence remains preserved rather than generalized to current Kitty releases.
+
+Release closure is procedural: the exact PR head must pass every Staging runtime
+and package job; the reviewed PR must be merged separately; the merge commit
+must pass the `main` Release workflow; only then may `v2.3.0` be created and
+pushed. This preparation does not merge, tag, or publish.

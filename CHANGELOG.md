@@ -2,20 +2,17 @@
 
 All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/` and the versioned roadmap files.
 
-## 2.3.0-alpha.1 — Development candidate
+## 2.3.0 — Stable release candidate
 
-- Feature development is on hold; prepare the existing feature set for release with documented limitations. Kitty persistent-ATLAS live acceptance is deferred; the ACK defect and ordinary-frame flicker remain unresolved. See [release readiness](docs/2.3-Release-Readiness.md).
-- Clarify verified Kitty/Sixel capability selection versus application-owned ATLAS/FRAME/TEXT fallback; a failed Kitty write is not automatically retried through Sixel.
-- Update the sole direct Icod.Terminal dependency to the published `1.28.0-alpha.1` package. Terminal's source-built Kitty `0.49.2` 8×8 placeholder-atlas witness now confirms acknowledged region updates and disposal; dedicated DCurses ATLAS live acceptance remains pending.
-- Omit logical fallback text covered by a complete raster frame and request synchronized output in the atlas sample, addressing text-map flashes seen in Windows Terminal and Contour. Preserve fallback text for the next ordinary refresh and reject image edges that split wide text footprints.
-- Added cell-aligned `CursesRasterAtlas`, exact pixel geometry, bounded double-buffered tile updates, and retained rectangular projection.
-- Added explicit `CursesSession.RefreshRasterAsync` for complete viewport images through Terminal's verified ordinary Kitty/Sixel transaction path. Source pixels and fallback policy remain application-owned.
-- Updated the atlas sample to prefer persistent atlas, then ordinary complete frames, then text. Added `--raster`; retained `--text`, portable resize polling, and clean exit. Complete-frame help temporarily uses the text view.
-- Consume Terminal's coalesced Sixel screen writes to reduce avoidable progressive redraw while preserving its newline-safe cursor correction. Physical flicker still requires live retesting.
-- Consume Terminal alpha.3's Linux/macOS byte-input correction: keys and terminal replies no longer pass through the managed console line reader. Immediate WSL2/kitty input and clean exit are accepted; graphics acceptance remains open.
-- Consume Terminal alpha.4's DA1 parser correction for kitty 0.32.2's empty optional attribute list (`CSI ?62;c`), removing the captured raster-startup parsing failure. Graphics still require independently verified capability evidence.
-- Consume Terminal alpha.5's bounded size-aware deadlines for persistent resource uploads, animation-frame appends and partial-frame edits. The live ATLAS run still times out on Kitty 0.32.2's missing animation-upload acknowledgement and falls back to FRAME; the deadline bounds the wait without resolving the defect. The [standalone reproducer and bug report](tools/kitty-frame-ack-bug-report.md) record the deliberately unresolved blocker; no production workaround is added.
-- The sole direct runtime dependency is `Icod.Terminal 1.28.0-alpha.1`; AssemblyVersion remains `2.0.0.0` with .NET 8/9/10 targets. Live persistent-ATLAS acceptance is deferred pending the dedicated DCurses sample retest; RC/stable qualification remains pending.
+- Added cell-aligned `CursesRasterAtlas` coordination with exact cell-pixel geometry, bounded double-buffered RGB24/RGBA32 updates, retained rectangular projection, conservative lifecycle ownership, and application-driven recreation.
+- Added `CursesSession.RefreshRasterAsync` for explicit complete-frame presentation through Terminal's verified ordinary Kitty/Sixel path while retaining logical text for later fallback.
+- Added the public-only RasterAtlas sample with ATLAS → FRAME → TEXT selection, supplied 16×16 water/grass/forest/road/player artwork, movement, collision, camera scrolling, help restoration, resize recreation, and independent Q/Escape exits.
+- Coalesced complete-atlas workloads into one combined region update, eliminating per-tile acknowledgement latency during full camera scrolls while retaining sparse updates for partial damage.
+- Added recoverable timeout classification so uncertain atlas presentation abandons persistent ownership and selects TEXT instead of freezing the application.
+- Preserved application ownership of source pixels, maps, collision, scheduling, and fallback policy; DCurses does not emit raw Kitty/Sixel commands, infer a backend from terminal identity, or retain a hidden replay cache.
+- Preserved the additive 105-type, 839-line public contract with API SHA-256 `b86ba658fd90d041eeccf5345ecc71a978bea785f0b2bbb9b8274091ccc4afc1`.
+- The sole direct runtime dependency is stable `Icod.Terminal 1.28.0`; `AssemblyVersion` remains `2.0.0.0`, with .NET 8/9/10 targets.
+- Live observations establish the tested ATLAS, FRAME, and TEXT paths; presentation remains ordered rather than universally atomic or gapless, and historical Kitty 0.32.2 acknowledgement behavior remains documented.
 
 ## 2.2.0 — Stable-source candidate, unpublished
 

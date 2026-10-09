@@ -9,18 +9,21 @@ resize recreation and a text fallback driven by the same model.
 
 ## Current release boundary
 
-Feature development is on hold. In the maintainer's WSL2/Ubuntu 24.04 test with
-Kitty 0.32.2 and Terminal 1.25.0-alpha.5, forced TEXT works and forced/default
-fallback FRAME has correct input and display, with command-driven flicker.
-Default atlas creation waits for a missing animation-upload acknowledgement,
-then falls back to FRAME after the bounded deadline. Persistent ATLAS is **not
-live accepted** in this environment. The [reproducer and bug report](../../tools/kitty-frame-ack-bug-report.md)
-preserve the unresolved defect; no protocol workaround is included.
+The stable 2.3 candidate consumes published `Icod.Terminal 1.28.0`. The
+maintainer has accepted the current sample's ATLAS, FRAME, and TEXT behavior,
+including supplied tile artwork, immediate input, movement, water collision,
+camera scrolling, help restoration, resize cleanup, and independent Q/Escape
+exit. Complete-atlas camera updates are coalesced into one region mutation;
+partial damage remains sparse. A recoverable atlas-presentation timeout abandons
+the uncertain atlas and selects TEXT instead of leaving the application blocked.
 
-Use the existing `--raster` command below to bypass atlas startup on this host.
-This selects the ordinary raster path; it does not force Kitty or guarantee
-flicker-free presentation. The [release readiness record](../../docs/2.3-Release-Readiness.md)
-supersedes historical requests below for further Kitty diagnosis.
+Acceptance is deliberately bounded. Terminal acknowledgements establish ordered
+completion, not atomic or gapless physical presentation. Host-specific flicker
+or resize artifacts can still occur. The historical Kitty 0.32.2 missing
+animation-upload acknowledgement remains documented in the
+[reproducer and bug report](../../tools/kitty-frame-ack-bug-report.md); DCurses
+contains no identifier workaround, protocol-private output, or hidden backend
+retry.
 
 Run it from the repository root:
 
@@ -92,14 +95,13 @@ without persistent image identities. The automated suite proves model behavior, 
 and fallback structure; it does not prove that a particular terminal emulator renders
 the pixels correctly. Record that separately with the T2308/T2310 live checklist.
 
-## Live acceptance for the new frame path
+## Live acceptance and known limits
 
-The sample now consumes Terminal 1.25.0-alpha.5 through DCurses, including bounded persistent-transfer deadlines, kitty DA1 compatibility, immediate
-Linux/macOS byte input, newline-safe cursor planning and coalesced Sixel screen writes. Alpha.2 combines
-each prepared Sixel image into one bounded output write; it does not guarantee
-atomic physical presentation. Retest WezTerm with default and `-- --text`: movement
-must not leave player trails at the left margin. TEXT remains valid when graphics
-cannot be verified; alpha.4 corrects parsing during Kitty detection while preserving the evidence requirements.
+The sample consumes stable Terminal 1.28.0 through DCurses, including bounded
+persistent-transfer deadlines, immediate Linux/macOS byte input, Kitty DA1
+compatibility, newline-safe cursor planning, and coalesced Sixel screen writes.
+The public mode indicator is the acceptance authority: `ATLAS`, `FRAME`, or
+`TEXT`. No mode claims a universally atomic host redraw.
 
 In Windows Terminal and Contour, run both the default command and `-- --raster`.
 Check the mode indicator and supplied pixel art, no text-map flashes between frames,
@@ -163,43 +165,30 @@ briefly shows an old image strip during active resize; it clears when dimensions
 settle. These observations supersede the pending help/resize/exit items above,
 but do not establish persistent ATLAS support or artifact-free live dragging.
 
-## WSL2/kitty retest with Terminal 1.28.0-alpha.1
+## WSL2/kitty acceptance with Terminal 1.28.0
 
-Terminal `1.28.0-alpha.1` has passed its own source-built Kitty `0.49.2`
-8×8 placeholder-atlas witness: all 1/4/16/64 RGB24 damage workloads were
-acknowledged and the grid was removed at disposal. That validates Terminal's
-transaction ordering and lifecycle, but it does **not** itself accept this
-DCurses sample. The following checks establish DCurses live rendering separately
-from automated coverage.
+Terminal 1.28.0 and the source-built Kitty 0.49.2 witness establish the protocol
+transaction and lifecycle path used by DCurses. The maintainer's current DCurses
+sample run accepts the default ATLAS path with the supplied 16×16 water, grass,
+forest, road, and player tiles, immediate movement, blocked water, camera
+scrolling, help restoration, resize cleanup, and clean Q/Escape exit. The
+full-coverage coalescing change removes the prior per-tile scroll delay.
 
-Inside the kitty window, use your existing checkout (either in the Linux filesystem
-or under `/mnt/c` for a Windows checkout):
+To repeat the stable-package check inside Kitty:
 
 ```sh
 cd /path/to/Icod.DCurses
 git switch 2.3.0-raster-atlas-roadmap
 git pull --ff-only https://github.com/uniblab/Icod.DCurses.git 2.3.0-raster-atlas-roadmap
-dotnet restore samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.Sample.csproj
+dotnet restore samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.Sample.csproj --force-evaluate
 dotnet list Icod.DCurses.csproj package
+dotnet run --project samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.Sample.csproj -c Release -f net10.0
 ```
 
-Confirm the resolved Terminal package is `1.28.0-alpha.1`. If it is not yet
-available from NuGet, stop and retry restore after publication becomes visible.
-
-1. As a quick regression check, run the forced-text command above (`-- --text`). Tap `d` without Enter; the
-   player must move immediately and no `d` may appear at the top-left. Check
-   arrows/WASD, help, resize and Q. Run again to check Escape independently.
-2. Run the forced-frame command (`-- --raster`). Record whether the indicator is
-   FRAME or TEXT. If FRAME, check movement, water collision, camera scrolling,
-   help/frame restoration, resize cleanup and Q/Escape.
-3. Run the default command without sample flags. Record ATLAS, FRAME or TEXT.
-   If ATLAS, repeat the same checks to exercise persistent ownership and sparse
-   updates. A FRAME/TEXT fallback does not qualify the persistent-atlas checklist.
-
-Stop at the first failure and report the command, mode indicator, and exact
-exception or newly emitted kitty stderr. If input still waits for Enter, do not
-continue the graphics tests. Prior graphics payload/parser errors are not yet
-independently established as fixed.
+Confirm the resolved direct package is `Icod.Terminal 1.28.0`. Use
+`-- --raster` to exercise FRAME directly and `-- --text` to force TEXT.
+Record the mode indicator along with rendering behavior; a fallback is a
+controlled result, not evidence that another mode rendered.
 
 ### Raster startup exceptions
 

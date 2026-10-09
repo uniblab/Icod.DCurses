@@ -9,11 +9,11 @@
 
 ## Status
 
-This source tree is the unpublished **`Icod.DCurses 2.3.0-alpha.1`** development candidate. The latest published stable release is **`2.2.0`**; check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published package versions.
+This source tree is the stable **`Icod.DCurses 2.3.0`** release candidate. The latest published stable release remains **`2.2.0`** until the reviewed candidate is merged, validated on `main`, tagged, and published; check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for availability.
 
-Feature development is **on hold** while the existing 2.3 feature set is prepared for release. Kitty 0.32.2 persistent-atlas startup remains affected by an unresolved upload-acknowledgement defect; ordinary complete-frame output works in the reported environment but flickers during commands. No production workaround is planned. See [release readiness and known limitations](docs/2.3-Release-Readiness.md).
+Version 2.3 adds `CursesRasterAtlas`, a bounded cell-aligned raster presentation owner for tile-oriented applications. Applications keep durable source pixels and gameplay state; DCurses retains placeholder cells, viewport coordinates and transaction serialization; stable Icod.Terminal 1.28.0 owns exact cell-pixel geometry, live raster identities, acknowledgement and lifecycle certainty. Presentations copy the known front frame to a back frame, apply bounded RGB24/RGBA32 damage, then select the completed frame. Complete-atlas workloads are coalesced into one region update, and recoverable presentation timeouts select the sample's text fallback instead of leaving the application blocked.
 
-Version 2.3 adds `CursesRasterAtlas`, a bounded cell-aligned raster presentation owner for tile-oriented applications. Applications keep durable source pixels and gameplay state; DCurses retains placeholder cells, viewport coordinates and transaction serialization; Icod.Terminal 1.25.0-alpha.5 owns exact cell-pixel geometry, live raster identities, acknowledgement and lifecycle certainty. Presentations copy the known front frame to a back frame, replace a caller-supplied set of RGB24/RGBA32 tiles, then select the completed frame. The [raster-atlas sample](samples/Icod.DCurses.RasterAtlas.Sample/README.md) demonstrates sparse movement, retained help/status overlays, explicit resize recreation and `--text` fallback from one model.
+The [raster-atlas sample](samples/Icod.DCurses.RasterAtlas.Sample/README.md) demonstrates ATLAS → FRAME → TEXT selection, supplied 16×16 terrain/player artwork, movement, collision, camera scrolling, retained help/status presentation, explicit resize recreation, and clean Q/Escape exits. Live acceptance is specific to the tested environments: protocol completion is ordered, not a promise of universally atomic or gapless physical presentation. See [release readiness and known limitations](docs/2.3-Release-Readiness.md).
 
 Version 2.2 adds immutable discovery of the effective single-key and multi-key command bindings in current routing precedence, plus bounded command sequences with explicit pending, completed, mismatch, fallback, and cancellation results. It keeps command execution, labels, localization, timeouts, and the event loop application-owned. The [editor and roguelike samples](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/samples/README.md) exercise these facilities through public APIs; the [2.2 API baseline](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/docs/Public-API-Baseline-2.2.md) records the additive contract over 2.1.
 
@@ -72,23 +72,23 @@ higher-level terminal applications / future widgets
 The direct 2.x runtime dependency is:
 
 ```text
-Icod.Terminal 1.25.0-alpha.5
+Icod.Terminal 1.28.0
 ```
 
 `Icod.TermInfo` is not a direct dependency of DCurses 2.x; NuGet may restore it transitively through Terminal. The 2.0 major-version boundary requires a consumer rebuild from 1.6; follow the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md). The previous 1.6 package retains its historical direct dependencies on `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`.
 
 ## Install
 
-Install the latest stable release from NuGet:
+Install the 2.3 stable release from NuGet after publication:
+
+```text
+dotnet add package Icod.DCurses --version 2.3.0
+```
+
+For the previous stable release:
 
 ```text
 dotnet add package Icod.DCurses --version 2.2.0
-```
-
-For the previous 2.1 release:
-
-```text
-dotnet add package Icod.DCurses --version 2.1.0
 ```
 
 The package targets:
@@ -262,7 +262,7 @@ For terminals with verified ordinary raster output but no persistent image ident
 applications can explicitly present a complete viewport using
 `await session.RefreshRasterAsync(image, row, column, geometry)`. Query exact geometry
 as above, keep the final screen row outside the image, and verify Terminal's ordinary
-`RasterGraphics` capability before use. Terminal 1.25.0-alpha.5 chooses Kitty or Sixel
+`RasterGraphics` capability before use. Terminal 1.28.0 chooses Kitty or Sixel
 and encodes the image in the same transaction as the text refresh. Each call clears
 and repaints uncovered text, omitting the logical fallback cells beneath the image;
 DCurses stores no source image and performs no automatic replay. The sample requests

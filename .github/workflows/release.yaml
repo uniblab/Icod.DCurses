@@ -60,13 +60,17 @@ jobs:
 
           $terminalNode = $project.SelectSingleNode("/Project/ItemGroup/PackageReference[@Include='Icod.Terminal']")
           $references = @($project.SelectNodes('/Project/ItemGroup/PackageReference'))
-          if (1 -ne $references.Count -or $null -eq $terminalNode -or $terminalNode.Version -ne '1.25.0-alpha.5') {
-              throw 'Icod.DCurses.csproj must depend directly only on Icod.Terminal 1.25.0-alpha.5.'
+          if (1 -ne $references.Count -or $null -eq $terminalNode) {
+              throw 'Icod.DCurses.csproj must depend directly only on Icod.Terminal.'
+          }
+          $terminalVersion = $terminalNode.GetAttribute('Version')
+          if ([string]::IsNullOrWhiteSpace($terminalVersion)) {
+              throw 'The direct Icod.Terminal dependency must declare a version.'
           }
 
           "version=$tagVersion" >> $env:GITHUB_OUTPUT
           "prerelease=$($tagVersion.Contains('-').ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
-          "terminal_version=$($terminalNode.Version)" >> $env:GITHUB_OUTPUT
+          "terminal_version=$terminalVersion" >> $env:GITHUB_OUTPUT
 
   runtime:
     needs: metadata
