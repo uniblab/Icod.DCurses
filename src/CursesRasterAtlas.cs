@@ -249,6 +249,7 @@ public sealed class CursesRasterAtlas : IAsyncDisposable {
 			);
 		}
 
+		TerminalRasterImage? fullCoverage = TryCreateFullCoverageImage( updates );
 		int completed = 0;
 		try {
 			TerminalControlMutationResult composition = await animation.ComposeFrameAsync(
@@ -264,19 +265,34 @@ public sealed class CursesRasterAtlas : IAsyncDisposable {
 				return FromControlledFailure( composition, updates.Count, completed );
 			}
 
-			foreach ( CursesRasterAtlasTileUpdate update in updates ) {
+			if ( fullCoverage is not null ) {
 				TerminalControlMutationResult replacement =
 					await animation.UpdateFrameRegionAsync(
 						backFrame,
-						update.Image,
-						checked( update.Column * tilePixelWidth ),
-						checked( update.Row * tilePixelHeight ),
+						fullCoverage,
+						0,
+						0,
 						cancellationToken
 					).ConfigureAwait( false );
 				if ( !replacement.Succeeded ) {
 					return FromControlledFailure( replacement, updates.Count, completed );
 				}
-				completed++;
+				completed = updates.Count;
+			} else {
+				foreach ( CursesRasterAtlasTileUpdate update in updates ) {
+					TerminalControlMutationResult replacement =
+						await animation.UpdateFrameRegionAsync(
+							backFrame,
+							update.Image,
+							checked( update.Column * tilePixelWidth ),
+							checked( update.Row * tilePixelHeight ),
+							cancellationToken
+						).ConfigureAwait( false );
+					if ( !replacement.Succeeded ) {
+						return FromControlledFailure( replacement, updates.Count, completed );
+					}
+					completed++;
+				}
 			}
 
 			TerminalControlMutationResult selection = await animation.SelectFrameAsync(
@@ -300,6 +316,46 @@ public sealed class CursesRasterAtlas : IAsyncDisposable {
 			owner.InvalidatePhysicalScreen();
 			throw;
 		}
+	}
+
+	private TerminalRasterImage? TryCreateFullCoverageImage(
+		IReadOnlyList<CursesRasterAtlasTileUpdate> updates
+	) {
+		if ( updates.Count != checked( rows * columns ) ) {
+			return null;
+		}
+
+		TerminalRasterPixelFormat format = updates[ 0 ].Image.PixelFormat;
+		if ( updates.Any( update => update.Image.PixelFormat != format ) ) {
+			return null;
+		}
+
+		int bytesPerPixel = TerminalRasterPixelFormat.Rgb24 == format ? 3 : 4;
+		byte[] pixels = new byte[ checked( PixelWidth * PixelHeight * bytesPerPixel ) ];
+		foreach ( CursesRasterAtlasTileUpdate update in updates ) {
+			for ( int pixelRow = 0; pixelRow < tilePixelHeight; pixelRow++ ) {
+				int destination = checked(
+					( ( update.Row * tilePixelHeight + pixelRow ) * PixelWidth
+						+ update.Column * tilePixelWidth ) * bytesPerPixel
+				);
+				for ( int pixelColumn = 0; pixelColumn < tilePixelWidth; pixelColumn++ ) {
+					TerminalRasterColor color = update.Image.GetPixelColor(
+						pixelColumn,
+						pixelRow
+					);
+					pixels[ destination++ ] = color.Red;
+					pixels[ destination++ ] = color.Green;
+					pixels[ destination++ ] = color.Blue;
+					if ( TerminalRasterPixelFormat.Rgba32 == format ) {
+						pixels[ destination++ ] = color.Alpha;
+					}
+				}
+			}
+		}
+
+		return TerminalRasterPixelFormat.Rgb24 == format
+			? TerminalRasterImage.CreateRgb24( PixelWidth, PixelHeight, pixels )
+			: TerminalRasterImage.CreateRgba32( PixelWidth, PixelHeight, pixels );
 	}
 
 	private CursesRasterAtlasTileUpdate[] ValidateAndOrderUpdates(
