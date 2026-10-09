@@ -17,7 +17,7 @@ It verifies:
   LGPL license expression, repository, and required license acceptance;
 - the package contains non-empty `LICENSE` and `icod_tui_toolchain.jpg` payloads;
 - the production project and each target-framework dependency group declare
-  only `Icod.Terminal` at the required `1.25.0-alpha.5` minimum;
+  only `Icod.Terminal`, with a package-emitted version range;
 - every packaged DCurses assembly has no direct `Icod.TermInfo` assembly
   reference or metadata type reference;
 - dependency assemblies are not accidentally bundled into the primary package;
@@ -25,8 +25,10 @@ It verifies:
 - the symbol package contains exactly one non-empty portable PDB for each target
   framework.
 
-The Terminal-only direct dependency and its minimum are independent verifier
-policy. A matching but incorrect project and package dependency set must fail.
+The Terminal-only direct dependency boundary is independent verifier policy.
+Compatibility with the selected Terminal version is established by compiling and
+testing the solution rather than duplicating that version in verifier assertions.
+A matching but incorrect project and package dependency set must fail.
 The verifier checks direct dependencies and emitted assembly metadata; it does
 not reject `Icod.TermInfo` when restored transitively through Terminal.
 
