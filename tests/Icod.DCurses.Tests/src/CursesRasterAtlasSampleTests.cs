@@ -161,8 +161,8 @@ public sealed class CursesRasterAtlasSampleTests {
 		TerminalRasterImage frame = state.CreateInitialImage( geometry );
 		Assert.Equal( new TerminalRasterColor( 28, 92, 160 ), frame.GetPixelColor( 5, 0 ) );
 		Assert.Equal( new TerminalRasterColor( 245, 220, 80 ), frame.GetPixelColor( 5 * 16, 5 * 16 ) );
-		Assert.Equal( "~", state.CreateTextFrame()[ 0 ].Grapheme );
-		Assert.Equal( "@", state.CreateTextFrame()[ 5 * 10 + 5 ].Grapheme );
+		Assert.Equal( "~", state.CreateTextFrame()[ 0 ].Content );
+		Assert.Equal( "@", state.CreateTextFrame()[ 5 * 10 + 5 ].Content );
 
 		string program = File.ReadAllText( Path.Combine(
 			FindRepositoryRoot(),
