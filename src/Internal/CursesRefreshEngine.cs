@@ -172,7 +172,8 @@ internal sealed class CursesRefreshEngine {
 		int requestedCursorRow,
 		int requestedCursorColumn,
 		CancellationToken cancellationToken = default,
-		CursesRefreshDiagnosticsAccumulator? diagnostics = null
+		CursesRefreshDiagnosticsAccumulator? diagnostics = null,
+		CursesRasterRefreshFrame? rasterFrame = null
 	) {
 		ArgumentNullException.ThrowIfNull( screen );
 		ValidateCursor(
@@ -189,7 +190,8 @@ internal sealed class CursesRefreshEngine {
 				screen,
 				requestedCursorRow,
 				requestedCursorColumn,
-				cancellationToken
+				cancellationToken,
+				rasterFrame
 			).ConfigureAwait( false );
 		} catch {
 			this.InvalidateKnownState();
@@ -203,15 +205,25 @@ internal sealed class CursesRefreshEngine {
 		}
 	}
 
+	private bool immediateRasterDamage;
+
 	private async ValueTask RefreshCoreAsync(
 		CursesScreen screen,
 		int requestedCursorRow,
 		int requestedCursorColumn,
-		CancellationToken cancellationToken
+		CancellationToken cancellationToken,
+		CursesRasterRefreshFrame? rasterFrame
 	) {
 		CursesVirtualScreen desired = screen.VirtualScreen;
 		desired.EnableChangeTracking();
 		this.EnsurePhysicalState( desired );
+		bool clearRasterDamage = rasterFrame.HasValue || this.immediateRasterDamage;
+		if ( clearRasterDamage ) {
+			this.physicalState!.Invalidate();
+			if ( this.activeDiagnostics is not null ) {
+				this.activeDiagnostics.IsFullRepaint = true;
+			}
+		}
 		if ( 0 != Interlocked.Exchange( ref this.invalidationRequested, 0 ) ) {
 			this.physicalState!.Invalidate();
 			if ( this.activeDiagnostics is not null ) {
@@ -220,7 +232,7 @@ internal sealed class CursesRefreshEngine {
 		}
 
 		ulong capturedRevision = desired.ChangeRevision;
-		if ( !this.RequiresOutput(
+		if ( !clearRasterDamage && !this.RequiresOutput(
 			desired,
 			this.physicalState!,
 			requestedCursorRow,
@@ -237,6 +249,15 @@ internal sealed class CursesRefreshEngine {
 				this.activeDiagnostics
 			)
 		);
+
+		if ( clearRasterDamage ) {
+			TerminalScreenOperationPlan clear = this.planner.PlanErase( TerminalScreenEraseKind.Screen, desired.Rows )
+				?? throw new NotSupportedException( "Complete raster refresh requires a terminal screen-clear operation." );
+			preparation.Prepared.AddPlan( clear, CursesRefreshOperationKinds.Erase );
+			preparation.HasOutput = true;
+			speculative.CursorRow = null;
+			speculative.CursorColumn = null;
+		}
 
 		if ( this.scrollRegionResetRequired ) {
 			TerminalScreenOperationPlan? recovery = this.planner.PlanScrollRegion(
@@ -256,7 +277,7 @@ internal sealed class CursesRefreshEngine {
 			speculative.CursorColumn = null;
 		}
 
-		CursesLineShiftPlan? lineShift = this.lineShiftResolver.Resolve(
+		CursesLineShiftPlan? lineShift = rasterFrame.HasValue ? null : this.lineShiftResolver.Resolve(
 			desired,
 			speculative.Screen,
 			speculative.CurrentStyle,
@@ -296,8 +317,18 @@ internal sealed class CursesRefreshEngine {
 				preparation,
 				speculative,
 				desired,
-				screen.TextWidthProvider
+				screen.TextWidthProvider,
+				rasterFrame?.Bounds
 			);
+		}
+
+		if ( rasterFrame.HasValue ) {
+			CursesRasterRefreshFrame frame = rasterFrame.Value;
+			this.PrepareCursor( preparation, speculative, frame.Bounds.Row, frame.Bounds.Column );
+			preparation.Prepared.WriteRaster( frame.Image );
+			preparation.HasOutput = true;
+			speculative.CursorRow = null;
+			speculative.CursorColumn = null;
 		}
 
 		this.PrepareCursor(
@@ -316,7 +347,11 @@ internal sealed class CursesRefreshEngine {
 		if ( this.activeDiagnostics is not null && this.useSynchronizedOutput ) {
 			this.activeDiagnostics.OperationKinds |= CursesRefreshOperationKinds.Synchronization;
 		}
+		// A failed commit may have emitted part of an image or its erase. Preserve damage
+		// until a later complete transaction succeeds, including preflight failures.
+		this.immediateRasterDamage |= rasterFrame.HasValue;
 		await preparation.Prepared.CommitAsync( cancellationToken ).ConfigureAwait( false );
+		this.immediateRasterDamage = rasterFrame.HasValue;
 		if ( preparation.RestoresFullScrollRegion ) {
 			this.scrollRegionResetRequired = false;
 		}
@@ -328,13 +363,16 @@ internal sealed class CursesRefreshEngine {
 		Preparation preparation,
 		CursesRefreshPhysicalState speculative,
 		CursesVirtualScreen desired,
-		ICursesTextWidthProvider textWidthProvider
+		ICursesTextWidthProvider textWidthProvider,
+		CursesRectangle? rasterBounds
 	) {
 		bool screenComplete = false;
 		for ( int row = 0; row < desired.Rows; row++ ) {
+			bool coveredRow = rasterBounds.HasValue
+				&& row >= rasterBounds.Value.Row && row < rasterBounds.Value.BottomExclusive;
 			int regionsBeforeRow = this.activeDiagnostics?.DamagedRegions ?? 0;
 			CursesCharacterShiftPlan? characterShift =
-				this.characterShiftResolver.Resolve(
+				rasterBounds.HasValue ? null : this.characterShiftResolver.Resolve(
 					desired,
 					speculative.Screen,
 					row,
@@ -364,6 +402,12 @@ internal sealed class CursesRefreshEngine {
 
 			int column = 0;
 			while ( column < desired.Columns ) {
+				// Preserve logical fallback cells without flashing them beneath the image.
+				if ( coveredRow && column >= rasterBounds!.Value.Column
+					&& column < rasterBounds.Value.RightExclusive ) {
+					column = rasterBounds.Value.RightExclusive;
+					continue;
+				}
 				if ( !NeedsUpdate(
 					desired,
 					speculative.Screen,
@@ -385,7 +429,10 @@ internal sealed class CursesRefreshEngine {
 					row,
 					column
 				);
-				CursesErasePlan? erase = this.eraseResolver.Resolve(
+				if ( coveredRow && start < rasterBounds!.Value.Column ) {
+					end = Math.Min( end, rasterBounds.Value.Column - 1 );
+				}
+				CursesErasePlan? erase = rasterBounds.HasValue ? null : this.eraseResolver.Resolve(
 					desired,
 					speculative.Screen,
 					row,

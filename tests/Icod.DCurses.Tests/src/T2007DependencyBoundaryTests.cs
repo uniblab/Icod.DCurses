@@ -30,7 +30,6 @@ namespace Icod.DCurses.Tests;
 /// <summary>Guards the production dependency and compiled metadata boundary.</summary>
 public sealed class T2007DependencyBoundaryTests {
 	private const string TerminalPackage = "Icod.Terminal";
-	private const string TerminalVersion = "1.18.0";
 	private const string TermInfoAssembly = "Icod.TermInfo";
 
 	[Fact]
@@ -45,8 +44,8 @@ public sealed class T2007DependencyBoundaryTests {
 	public void DirectTermInfoReferenceFailsTheProjectGuard() {
 		XDocument project = XDocument.Parse(
 			"<Project><ItemGroup>"
-				+ "<PackageReference Include='Icod.Terminal' Version='1.18.0' />"
-				+ "<PackageReference Include='Icod.TermInfo' Version='1.15.0' />"
+				+ "<PackageReference Include='Icod.Terminal' />"
+				+ "<PackageReference Include='Icod.TermInfo' Version='1.17.0' />"
 				+ "</ItemGroup></Project>"
 		);
 		Assert.Throws<InvalidOperationException>(
@@ -108,10 +107,9 @@ public sealed class T2007DependencyBoundaryTests {
 			.Where( element => "PackageReference" == element.Name.LocalName )
 			.ToArray();
 		if ( 1 != references.Length
-			|| TerminalPackage != references[ 0 ].Attribute( "Include" )?.Value
-			|| TerminalVersion != references[ 0 ].Attribute( "Version" )?.Value ) {
+			|| TerminalPackage != references[ 0 ].Attribute( "Include" )?.Value ) {
 			throw new InvalidOperationException(
-				"Production must depend directly only on Icod.Terminal 1.18.0."
+				"Production must depend directly only on Icod.Terminal."
 			);
 		}
 	}

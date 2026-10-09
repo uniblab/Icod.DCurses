@@ -9,7 +9,11 @@
 
 ## Status
 
-This source tree is the unpublished **`Icod.DCurses 2.2.0`** stable-source candidate. The latest published stable release is **`2.1.0`**; check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published package versions.
+This source tree defines the stable **`Icod.DCurses 2.3.0`** release. Check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published availability and version history.
+
+Version 2.3 adds `CursesRasterAtlas`, a bounded cell-aligned raster presentation owner for tile-oriented applications. Applications keep durable source pixels and gameplay state; DCurses retains placeholder cells, viewport coordinates and transaction serialization; stable Icod.Terminal 1.28.0 owns exact cell-pixel geometry, live raster identities, acknowledgement and lifecycle certainty. Presentations copy the known front frame to a back frame, apply bounded RGB24/RGBA32 damage, then select the completed frame. Complete-atlas workloads are coalesced into one region update, and recoverable presentation timeouts select the sample's text fallback instead of leaving the application blocked.
+
+The [raster-atlas sample](samples/Icod.DCurses.RasterAtlas.Sample/README.md) demonstrates ATLAS → FRAME → TEXT selection, supplied 16×16 terrain/player artwork, movement, collision, camera scrolling, retained help/status presentation, explicit resize recreation, and clean Q/Escape exits. Live acceptance is specific to the tested environments: protocol completion is ordered, not a promise of universally atomic or gapless physical presentation. See [release readiness and known limitations](docs/2.3-Release-Readiness.md).
 
 Version 2.2 adds immutable discovery of the effective single-key and multi-key command bindings in current routing precedence, plus bounded command sequences with explicit pending, completed, mismatch, fallback, and cancellation results. It keeps command execution, labels, localization, timeouts, and the event loop application-owned. The [editor and roguelike samples](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/samples/README.md) exercise these facilities through public APIs; the [2.2 API baseline](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/docs/Public-API-Baseline-2.2.md) records the additive contract over 2.1.
 
@@ -68,23 +72,23 @@ higher-level terminal applications / future widgets
 The direct 2.x runtime dependency is:
 
 ```text
-Icod.Terminal 1.18.0
+Icod.Terminal 1.28.0
 ```
 
 `Icod.TermInfo` is not a direct dependency of DCurses 2.x; NuGet may restore it transitively through Terminal. The 2.0 major-version boundary requires a consumer rebuild from 1.6; follow the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md). The previous 1.6 package retains its historical direct dependencies on `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`.
 
 ## Install
 
-Install the latest stable release from NuGet:
+Install the stable 2.3 package from NuGet:
 
 ```text
-dotnet add package Icod.DCurses --version 2.1.0
+dotnet add package Icod.DCurses --version 2.3.0
 ```
 
-For the previous 2.0 release:
+For the previous stable release:
 
 ```text
-dotnet add package Icod.DCurses --version 2.0.0
+dotnet add package Icod.DCurses --version 2.2.0
 ```
 
 The package targets:
@@ -205,6 +209,91 @@ CursesSession
 
 `CursesRasterOwnershipState` reports `Current`, `Stale`, `Released`, or `Disposed`. DCurses never exposes Terminal-private raster ids, constructs Kitty/Sixel command bytes, retains a hidden source-image cache for replay, or silently switches graphics backends.
 
+## 2.3 Cell-Aligned Raster Atlas
+
+After the application verifies Terminal's persistent-raster capability, it can query
+exact current cell-pixel geometry and create one two-frame atlas. The initial image
+must divide exactly into the requested 1..256 rows and columns. Each presentation
+accepts at most 4,096 unique RGB24/RGBA32 images that exactly match one tile:
+
+```csharp
+CursesRasterAtlasGeometry geometry =
+	await session.QueryRasterAtlasGeometryAsync(
+		rows: 12,
+		columns: 20,
+		timeout: TimeSpan.FromSeconds( 2 )
+	);
+
+TerminalRasterImage initialImage = BuildApplicationOwnedImage( geometry );
+TerminalControlResult<CursesRasterAtlas> creation =
+	await session.CreateRasterAtlasAsync( initialImage, geometry.Rows, geometry.Columns );
+
+if ( creation.IsAvailable ) {
+	await using CursesRasterAtlas atlas = creation.GetRequiredValue();
+	screen.WriteRasterAtlas(
+		0,
+		0,
+		atlas,
+		new CursesRectangle( 0, 0, atlas.Rows, atlas.Columns )
+	);
+	await session.RefreshAsync();
+
+	CursesRasterAtlasPresentationResult result = await atlas.PresentAsync(
+		[ new CursesRasterAtlasTileUpdate( row, column, replacementTile ) ]
+	);
+}
+```
+
+Creation consumes one Terminal raster resource, one Unicode placeholder placement and
+two animation frames. Disposal releases the placeholder before the resource. A
+controlled presentation failure leaves the known front frame selected and reports how
+many tile replacements were acknowledged. An exception after output may have committed;
+it sets `RequiresRecreation`, rejects later cell/presentation use, and the application
+must dispose and recreate from its own pixels. DCurses never retains the initial image,
+automatically retries, or chooses a hidden fallback.
+
+Resize is also application-owned: dispose the old atlas, clear or replace its retained
+cells, query fresh geometry, create a new atlas and project its new cells. Applications
+should provide an ordinary text path when capability verification, exact geometry,
+creation or presentation is unavailable. See the [complete sample and terminal notes](samples/Icod.DCurses.RasterAtlas.Sample/README.md)
+and [measurement report](docs/Raster-Atlas-Measurement-2.3.md).
+
+For terminals with verified ordinary raster output but no persistent image identities,
+applications can explicitly present a complete viewport using
+`await session.RefreshRasterAsync(image, row, column, geometry)`. Query exact geometry
+as above, keep the final screen row outside the image, and verify Terminal's ordinary
+`RasterGraphics` capability before use. Terminal 1.28.0 chooses Kitty or Sixel
+and encodes the image in the same transaction as the text refresh. Each call clears
+and repaints uncovered text, omitting the logical fallback cells beneath the image;
+DCurses stores no source image and performs no automatic replay. The sample requests
+synchronized output to reduce intermediate redraws on hosts that honor it.
+Visible panels must not overlap this immediate image, and retained raster cells cannot
+coexist with it. The next ordinary refresh clears previous frame damage and restores
+text. The sample uses a text view while help is open and exposes `--raster` for direct
+testing. Physical placement, clearing, and resize still require live terminal acceptance.
+
+## Raster selection and fallback
+
+Terminal's ordinary raster capability policy prefers **verified Kitty**, then
+**verified Sixel**. When neither is usable, the application can choose text.
+This is capability selection, not automatic recovery from a failed Kitty write:
+Terminal sends through one selected backend and does not replay the image through
+Sixel after an error.
+
+The sample owns a separate presentation ladder:
+
+| Mode | Selection |
+|---|---|
+| ATLAS | Verified persistent identities and exact geometry; uses Kitty animation facilities |
+| FRAME | Atlas setup unavailable or recoverably fails, with verified ordinary raster and usable geometry; ordinary Kitty is preferred over Sixel |
+| TEXT | Raster capability/geometry unavailable, or recoverable frame/presentation failure; also forced with `--text` |
+
+`--raster` selects ordinary FRAME directly and bypasses persistent-atlas negotiation.
+A Kitty atlas setup failure can therefore fall back to **Kitty FRAME**. Persistent
+atlas identities are not emulated through Sixel, and `FRAME` does not identify the
+selected graphics protocol. Atlas presentation uncertainty abandons the atlas for
+text; no hidden cache or backend replay occurs.
+
 ## Feature Inventory
 
 - **Logical screens and windows** — retained curses-style cell surfaces, cursor movement, editing, scrolling, styles, and explicit refresh.
@@ -212,6 +301,7 @@ CursesSession
 - **Pads and viewports** — off-screen retained surfaces with independently clipped projections onto the visible screen.
 - **Semantic metadata** — retained metadata such as hyperlinks, emitted through Terminal-owned semantic operations.
 - **Retained mixed media** — lazy row-sparse raster state participating in editing, scrolling, copy/overlay, pads/viewports, panels, clipping, resize, and damage refresh.
+- **2.3 raster atlas** — exact cell-pixel geometry, bounded double-buffered tile replacement, retained rectangular projection, conservative lifecycle certainty, and caller-driven fallback/recreation.
 - **Retained panels** — deterministic z-order, movement, visibility, resizing, clipping, transparency, composition, and disposal. Blank+raster coordinates remain visually present under blank-cell transparency.
 - **Geometry and layout** — immutable rectangles/insets plus stateless split, dock, and clip helpers.
 - **Lifecycle and refresh** — physical-state invalidation after terminal uncertainty, sparse/full redraw, synchronized output, and stale raster rejection before output.
@@ -226,17 +316,22 @@ CursesSession
 - No second terminal capability database or raw-input reader.
 - No private OSC/CSI/DCS/APC graphics framing for Terminal-owned facilities.
 - No public Terminal-private persistent-raster ids.
-- No hidden raster source cache/re-upload or automatic Sixel fallback.
+- No hidden raster source cache/re-upload or Sixel emulation of retained raster identities.
+- No atlas batching, Indexed8 partial replacement, map-sized storage, automatic replay, or inferred raster backend.
 - No widget/control framework, callback dispatcher, retained capture/bubble event tree, automatic focus-on-click, PTY/process hosting, terminal emulation, or application framework.
 - Application policy remains above DCurses.
 
 ## Samples and Documentation
 
-`Icod.DCurses.MixedMedia.Sample` demonstrates all three retained presentation axes together—ordinary text, `CursesHyperlink` semantic metadata, and raster placeholder cells—inside a pannable pad, with panel overlays, clipping, interaction geometry, serialized refresh, and graceful continuation when raster ownership is unavailable.
+`Icod.DCurses.RasterAtlas.Sample` is the 2.3 tile-application acceptance sample; `--text` forces text; `--raster` bypasses the persistent atlas and exercises complete-frame Kitty/Sixel output. `Icod.DCurses.MixedMedia.Sample` demonstrates all three retained presentation axes together—ordinary text, `CursesHyperlink` semantic metadata, and raster placeholder cells—inside a pannable pad, with panel overlays, clipping, interaction geometry, serialized refresh, and graceful continuation when raster ownership is unavailable.
 
 Recommended documentation entry points:
 
-- [`CHANGELOG.md`](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/CHANGELOG.md)
+- [`docs/Public-API-Baseline-2.3.md`](docs/Public-API-Baseline-2.3.md)
+- [`docs/Raster-Atlas-Measurement-2.3.md`](docs/Raster-Atlas-Measurement-2.3.md)
+- [`samples/Icod.DCurses.RasterAtlas.Sample/README.md`](samples/Icod.DCurses.RasterAtlas.Sample/README.md)
+- [`Icod.DCurses-2.3.0-Development-Roadmap.md`](Icod.DCurses-2.3.0-Development-Roadmap.md)
+- [`CHANGELOG.md`](CHANGELOG.md)
 - [`docs/Public-API-Baseline-2.2.md`](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/docs/Public-API-Baseline-2.2.md)
 - [`Icod.DCurses-2.2.0-Development-Roadmap.md`](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/Icod.DCurses-2.2.0-Development-Roadmap.md)
 - [`samples/README.md`](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/samples/README.md) for runnable 2.2 editor and roguelike consumers

@@ -40,8 +40,13 @@ public sealed partial class CursesSession {
 	/// Synchronizes the desired logical screen with the terminal and leaves the physical cursor
 	/// at the current <see cref="StandardScreen"/> cursor position.
 	/// </summary>
-	public async ValueTask RefreshAsync(
+	public ValueTask RefreshAsync(
 		CancellationToken cancellationToken = default
+	) => this.RefreshWithRasterAsync( null, cancellationToken );
+
+	private async ValueTask RefreshWithRasterAsync(
+		CursesRasterRefreshFrame? rasterFrame,
+		CancellationToken cancellationToken
 	) {
 		CursesRefreshDiagnosticsAccumulator? diagnostics = this.Options.EnableRefreshDiagnostics
 			? new CursesRefreshDiagnosticsAccumulator() : null;
@@ -51,7 +56,7 @@ public sealed partial class CursesSession {
 			using IDisposable activity = await this.AcquireTerminalActivityAsync(
 				cancellationToken
 			).ConfigureAwait( false );
-			await this.RefreshCoreAsync( cancellationToken, diagnostics ).ConfigureAwait( false );
+			await this.RefreshCoreAsync( cancellationToken, diagnostics, rasterFrame ).ConfigureAwait( false );
 			if ( diagnostics is not null ) {
 				diagnostics.LogicalStatePublished = true;
 			}
@@ -96,18 +101,23 @@ public sealed partial class CursesSession {
 
 	private async ValueTask RefreshCoreAsync(
 		CancellationToken cancellationToken,
-		CursesRefreshDiagnosticsAccumulator? diagnostics
+		CursesRefreshDiagnosticsAccumulator? diagnostics,
+		CursesRasterRefreshFrame? rasterFrame = null
 	) {
 		cancellationToken.ThrowIfCancellationRequested();
 		_ = this.SynchronizeDimensions();
 		CursesScreen currentScreen = this.Screen;
+		if ( rasterFrame.HasValue ) {
+			ValidateRasterRefresh( currentScreen, rasterFrame.Value );
+		}
 		if ( !currentScreen.HasPanels ) {
 			await this.GetRefreshEngine().RefreshAsync(
 				currentScreen,
 				currentScreen.StandardWindow.CursorRow,
 				currentScreen.StandardWindow.CursorColumn,
 				cancellationToken,
-				diagnostics
+				diagnostics,
+				rasterFrame
 			).ConfigureAwait( false );
 			return;
 		}
@@ -117,12 +127,16 @@ public sealed partial class CursesSession {
 			currentScreen,
 			composed
 		);
+		if ( rasterFrame.HasValue ) {
+			ValidateRasterRefresh( projection, rasterFrame.Value );
+		}
 		await this.GetRefreshEngine().RefreshAsync(
 			projection,
 			currentScreen.StandardWindow.CursorRow,
 			currentScreen.StandardWindow.CursorColumn,
 			cancellationToken,
-			diagnostics
+			diagnostics,
+			rasterFrame
 		).ConfigureAwait( false );
 		composed.MarkClean();
 	}

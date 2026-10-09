@@ -1,0 +1,79 @@
+# T2309 Adversarial, Package, Documentation and API Gate
+
+## Stable gate closure
+
+| Item | Candidate |
+| --- | --- |
+| package/version | `Icod.DCurses 2.3.0` |
+| assembly version | `2.0.0.0` |
+| direct runtime dependency | exactly `Icod.Terminal 1.28.0` |
+| direct TermInfo dependency | none |
+| exported types | 105 |
+| canonical contract lines | 839 |
+| API SHA-256 | `b86ba658fd90d041eeccf5345ecc71a978bea785f0b2bbb9b8274091ccc4afc1` |
+
+The delta over published 2.2 is additive and limited to the five atlas types and four
+host methods recorded in `Public-API-Baseline-2.3.md`. No new feature family may enter
+after this gate without deliberately reopening the fingerprint and roadmap decision.
+
+## Package and consumer checks
+
+The repository package validator must prove that the `.nupkg` contains the README,
+license, icon, three TFM assets, repository/source-link metadata and the matching symbol
+package. Its nuspec/deps/lock inspection must show the one direct `Icod.Terminal 1.28.0`
+runtime dependency and no direct Icod.TermInfo dependency.
+
+The fresh NuGet-only consumer compiles and executes for net8.0, net9.0 and net10.0. Its
+raster smoke constructs the 2.3 geometry/update values and reflects the public geometry,
+creation and projection methods from the packed assembly. The Linux package lane also
+runs the existing live pseudo-terminal refresh; that validates package consumption and
+terminal restoration, not live raster rendering.
+
+## Documentation checks
+
+- The root README defines ownership, dependency, bounds, presentation, controlled vs
+  ambiguous failure, fallback, resize and recreation.
+- The sample index and sample-specific README document `--text`, expected capability
+  behavior, application-owned pixels, controls and live limitations.
+- `Raster-Atlas-Measurement-2.3.md` records the deterministic workload and allocation
+  method without a non-portable elapsed-time gate.
+- XML summaries describe the limits and conservative acknowledgement semantics; the
+  compiler-generated XML file remains part of all package assets.
+
+## Gate state
+
+The original Terminal 1.24.0 T2309 candidate was accepted at exact source head
+`751890de112be2e8d0be1757e1fdc6fd47b14c8d` by
+[pull-request workflow 1296](https://github.com/uniblab/Icod.DCurses/actions/runs/37106805634), run `37106805634`. The package candidate
+and all six OS/architecture runtime jobs were green. The package artifact digest was
+`sha256:22a72c3be6ca810b285d90d10e473c0d89d3fc65ac0d9e7145c20e94e2804d81`;
+the `.nupkg` and `.snupkg` hashes are recorded in the T2307 gate and measurement
+report.
+
+The Terminal 1.24.1 dependency refresh was accepted at exact executable head
+`2709b44768136d17568f3b210093878ab2891c05` by
+[pull-request workflow 1310](https://github.com/uniblab/Icod.DCurses/actions/runs/37120790042),
+run `37120790042`. The package candidate and all six OS/architecture runtime jobs were
+green. The refreshed artifact digest is
+`sha256:9004aa8a63459b9c2d2e59fda8b1cc76cc8bb203fc5e75ba8b43351b322debe5`.
+
+Live raster and explicit fallback observations remain the separate T2308/T2310
+maintainer checklist and are not inferred from CI.
+
+## Stable-source qualification
+
+The complete-frame extension and later stable Terminal integration retain the frozen
+105-type / 839-line additive API contract. Stable implementation/package head
+`8c528a5ec8925635f7c704091fda3fe187d9ffe7` passed the package candidate and all six
+OS/architecture runtime jobs in
+[PR Staging run 1374](https://github.com/uniblab/Icod.DCurses/actions/runs/37970187901).
+The package job created `Icod.DCurses.2.3.0.nupkg` and
+`Icod.DCurses.2.3.0.snupkg`, verified package structure, metadata, the stable
+`Icod.Terminal 1.28.0` dependency, assembly identity, XML documentation and portable
+symbols, and restored/built/executed fresh package-only consumers for .NET 8, 9 and 10.
+The uploaded workflow artifact digest is
+`sha256:bf4f1cc78ea6877f0b8e9ff8f9de2f63cb03e4428f0f7396c93fe8d1e4a381c0`.
+
+T2309 is closed for the stable 2.3.0 source/package candidate. Live rendering evidence
+remains separately bounded by T2308 and the sample README; CI does not convert terminal
+acknowledgement into a claim of universally atomic or gapless physical presentation.

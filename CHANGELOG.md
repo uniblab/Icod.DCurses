@@ -2,6 +2,18 @@
 
 All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/` and the versioned roadmap files.
 
+## 2.3.0 — Stable release candidate
+
+- Added cell-aligned `CursesRasterAtlas` coordination with exact cell-pixel geometry, bounded double-buffered RGB24/RGBA32 updates, retained rectangular projection, conservative lifecycle ownership, and application-driven recreation.
+- Added `CursesSession.RefreshRasterAsync` for explicit complete-frame presentation through Terminal's verified ordinary Kitty/Sixel path while retaining logical text for later fallback.
+- Added the public-only RasterAtlas sample with ATLAS → FRAME → TEXT selection, supplied 16×16 water/grass/forest/road/player artwork, movement, collision, camera scrolling, help restoration, resize recreation, and independent Q/Escape exits.
+- Coalesced complete-atlas workloads into one combined region update, eliminating per-tile acknowledgement latency during full camera scrolls while retaining sparse updates for partial damage.
+- Added recoverable timeout classification so uncertain atlas presentation abandons persistent ownership and selects TEXT instead of freezing the application.
+- Preserved application ownership of source pixels, maps, collision, scheduling, and fallback policy; DCurses does not emit raw Kitty/Sixel commands, infer a backend from terminal identity, or retain a hidden replay cache.
+- Preserved the additive 105-type, 839-line public contract with API SHA-256 `b86ba658fd90d041eeccf5345ecc71a978bea785f0b2bbb9b8274091ccc4afc1`.
+- The sole direct runtime dependency is stable `Icod.Terminal 1.28.0`; `AssemblyVersion` remains `2.0.0.0`, with .NET 8/9/10 targets.
+- Live observations establish the tested ATLAS, FRAME, and TEXT paths; presentation remains ordered rather than universally atomic or gapless, and historical Kitty 0.32.2 acknowledgement behavior remains documented.
+
 ## 2.2.0 — Stable-source candidate, unpublished
 
 - Added detached, read-only discovery of effective single-key and command-sequence bindings in focused-region, active-scope, then router-global precedence.

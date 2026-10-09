@@ -52,7 +52,7 @@ public sealed class PublicTwoOneDevelopmentIdentityTests {
 	}
 
 	[Fact]
-	public void ProductionProjectReferencesOnlyTerminalOneEighteen() {
+	public void ProductionProjectRetainsTheTerminalOnlyDependencyBoundary() {
 		XElement[] references = LoadProductionProject()
 			.Descendants()
 			.Where( static element => "PackageReference" == element.Name.LocalName )
@@ -60,7 +60,6 @@ public sealed class PublicTwoOneDevelopmentIdentityTests {
 
 		XElement reference = Assert.Single( references );
 		Assert.Equal( "Icod.Terminal", reference.Attribute( "Include" )?.Value );
-		Assert.Equal( "1.18.0", reference.Attribute( "Version" )?.Value );
 		Assert.DoesNotContain(
 			references,
 			static current => string.Equals(

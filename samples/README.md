@@ -1,8 +1,8 @@
 # Icod.DCurses Samples
 
-The repository contains twelve executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
+The repository contains thirteen executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
-All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project. Versions 2.2, 2.1 and 2.0 declare only `Icod.Terminal 1.18.0` directly; Terminal may restore TermInfo transitively. The previous 1.6 package keeps its historical direct dependency set. To migrate external applications, see [the 2.0 migration guide](../docs/2.0-Migration-Guide.md). The editor and roguelike samples now exercise 2.2 binding discovery and command sequences from repository source; they cannot run unchanged against the earlier 2.1 NuGet package.
+All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project. The 2.3 source declares only stable `Icod.Terminal 1.28.0` directly; Terminal may restore TermInfo transitively. Published 2.2, 2.1 and 2.0 declare Terminal 1.18.0. The previous 1.6 package keeps its historical direct dependency set. To migrate external applications, see [the 2.0 migration guide](../docs/2.0-Migration-Guide.md).
 
 ## Which sample should I run?
 
@@ -13,6 +13,7 @@ All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the rep
 | Explicit geometry/layout and resize recomputation | `Icod.DCurses.Layout.Sample` |
 | Retained text + hyperlink metadata + raster presentation, panning, panels, and interaction geometry | `Icod.DCurses.MixedMedia.Sample` |
 | Virtualized large world, sparse movement, track layout, and retained help overlay | `Icod.DCurses.Roguelike.Sample` |
+| Cell-aligned tile atlas, sparse raster updates, resize recreation, and explicit text fallback | `Icod.DCurses.RasterAtlas.Sample` |
 | Sparse synthetic document, Unicode editing, selection, wrap, and two-axis scrolling | `Icod.DCurses.Editor.Sample` |
 | Interaction scopes, capture, spatial focus, gestures, commands, and pointer preferences | `Icod.DCurses.Interaction.Sample` |
 | General interactive API showcase | `Icod.DCurses.Showcase` |
@@ -73,6 +74,25 @@ dotnet run --project samples/Icod.DCurses.Roguelike.Sample/Icod.DCurses.Roguelik
 ```
 
 Use arrows or WASD to move through `+` doors and `#` corridors; `-`/`|` walls, `~` water, and blank rock block movement. Press `?` or `g h` to open help; inside the modal help scope, press `?` or `g m` to return to the map. `Q` or `Escape` exits from either context. The sidebar/help shortcut text is selected from effective binding discovery rather than a duplicated precedence table. Activating or leaving help invalidates a pending prefix, and movement bindings cannot leak behind the overlay. Both samples clear the retained screen and refresh before returning to the shell. The minimum supported terminal size is 30 columns by 6 rows; resize above that limit to resume the map. This is application code using public DCurses APIs, not a game engine or a terminal protocol implementation.
+
+## Icod.DCurses.RasterAtlas.Sample
+
+`Icod.DCurses.RasterAtlas.Sample` is the 2.3 tile-presentation acceptance sample. It
+uses one original coordinate-generated map model for both a verified persistent-raster
+path and an ordinary retained-text path. Movement normally replaces only the old and
+new player cells; camera movement replaces the bounded viewport. A retained help panel
+and text status area remain above the same map model.
+
+```text
+dotnet run --project samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.Sample.csproj --framework net10.0
+dotnet run --project samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.Sample.csproj --framework net10.0 -- --text
+```
+
+The second command forces text fallback. Raster setup/presentation failure also falls
+back without inferring a backend. Resize disposes the old atlas, clears its retained
+cells, queries fresh geometry and creates a replacement from application-owned pixels.
+See the [sample-specific README](Icod.DCurses.RasterAtlas.Sample/README.md) for terminal
+expectations, controls, ownership boundaries and the live-acceptance limitation.
 
 ## Icod.DCurses.Editor.Sample
 

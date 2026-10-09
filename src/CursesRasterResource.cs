@@ -104,6 +104,12 @@ public sealed class CursesRasterResource : IAsyncDisposable {
 		);
 	}
 
+	internal int PixelWidth => GetCurrentResource().PixelWidth;
+
+	internal int PixelHeight => GetCurrentResource().PixelHeight;
+
+	internal TerminalRasterAnimation Animation => GetCurrentResource().Animation;
+
 	private async ValueTask<TerminalControlResult<CursesRasterPlaceholder>> CreatePlaceholderCoreAsync(
 		TerminalRasterResource current,
 		int columns,
@@ -137,6 +143,11 @@ public sealed class CursesRasterResource : IAsyncDisposable {
 				$"A raster placeholder dimension must be between 1 and {MaximumPlaceholderDimension}."
 			);
 		}
+	}
+
+	private TerminalRasterResource GetCurrentResource() {
+		return Volatile.Read( ref resource )
+			?? throw new ObjectDisposedException( nameof( CursesRasterResource ) );
 	}
 
 	private static CursesRasterOwnershipState DisposedState => new(
