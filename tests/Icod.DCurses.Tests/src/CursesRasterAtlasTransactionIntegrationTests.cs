@@ -80,41 +80,30 @@ public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 				]
 			).AsTask();
 			await transport.WaitForWriteCountAsync( presentationStart + 1 );
-			string expectedComposition =
-				"\u001b_Ga=c,i=77,r=1,c=2,w=2,h=2,X=0,Y=0,x=0,y=0,C=1\u001b\\";
-			string actualComposition = transport.GetAsciiWrite( presentationStart );
-			Assert.True(
-				string.Equals( expectedComposition, actualComposition, StringComparison.Ordinal ),
-				$"Expected composition bytes: {Convert.ToHexString( Encoding.ASCII.GetBytes( expectedComposition ) )}; actual: {Convert.ToHexString( Encoding.ASCII.GetBytes( actualComposition ) )}."
+			Assert.Equal(
+				"\u001b_Ga=c,i=77,r=1,c=2,w=2,h=2,X=0,Y=0,x=0,y=0,C=1\u001b\\",
+				transport.GetAsciiWrite( presentationStart )
 			);
 			transport.PublishOk();
 
 			await transport.WaitForWriteCountAsync( presentationStart + 2 );
-			string expectedFirstUpdate =
-				"\u001b_Ga=f,f=24,s=1,v=1,t=d,i=77,r=2,x=0,y=0,X=1,m=0;AQID\u001b\\";
-			string actualFirstUpdate = transport.GetAsciiWrite( presentationStart + 1 );
-			Assert.True(
-				string.Equals( expectedFirstUpdate, actualFirstUpdate, StringComparison.Ordinal ),
-				$"Expected first-update bytes: {Convert.ToHexString( Encoding.ASCII.GetBytes( expectedFirstUpdate ) )}; actual: {Convert.ToHexString( Encoding.ASCII.GetBytes( actualFirstUpdate ) )}."
+			Assert.Equal(
+				"\u001b_Ga=f,f=24,s=1,v=1,t=d,i=77,r=2,x=0,y=0,X=1,m=0;AQID\u001b\\",
+				transport.GetAsciiWrite( presentationStart + 1 )
 			);
 			transport.PublishOk();
 
 			await transport.WaitForWriteCountAsync( presentationStart + 3 );
-			string expectedSecondUpdate =
-				"\u001b_Ga=f,f=24,s=1,v=1,t=d,i=77,r=2,x=1,y=1,X=1,m=0;BAUG\u001b\\";
-			string actualSecondUpdate = transport.GetAsciiWrite( presentationStart + 2 );
-			Assert.True(
-				string.Equals( expectedSecondUpdate, actualSecondUpdate, StringComparison.Ordinal ),
-				$"Expected second-update bytes: {Convert.ToHexString( Encoding.ASCII.GetBytes( expectedSecondUpdate ) )}; actual: {Convert.ToHexString( Encoding.ASCII.GetBytes( actualSecondUpdate ) )}."
+			Assert.Equal(
+				"\u001b_Ga=f,f=24,s=1,v=1,t=d,i=77,r=2,x=1,y=1,X=1,m=0;BAUG\u001b\\",
+				transport.GetAsciiWrite( presentationStart + 2 )
 			);
 			transport.PublishOk();
 
 			await transport.WaitForWriteCountAsync( presentationStart + 4 );
-			string expectedSelection = "\u001b_Ga=a,i=77,c=2\u001b\\";
-			string actualSelection = transport.GetAsciiWrite( presentationStart + 3 );
-			Assert.True(
-				string.Equals( expectedSelection, actualSelection, StringComparison.Ordinal ),
-				$"Expected selection bytes: {Convert.ToHexString( Encoding.ASCII.GetBytes( expectedSelection ) )}; actual: {Convert.ToHexString( Encoding.ASCII.GetBytes( actualSelection ) )}."
+			Assert.Equal(
+				"\u001b_Ga=a,i=77,c=2,q=2\u001b\\",
+				transport.GetAsciiWrite( presentationStart + 3 )
 			);
 			transport.PublishOk();
 
