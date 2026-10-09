@@ -27,7 +27,7 @@ namespace Icod.DCurses.Tests;
 
 public sealed class PublicTwoThreeDevelopmentIdentityTests {
 	[Fact]
-	public void ProjectCarriesTheApprovedTwoThreeCandidateIdentity() {
+	public void ProjectCarriesTheApprovedStableTwoThreeIdentity() {
 		DirectoryInfo? root = new( AppContext.BaseDirectory );
 		while ( root is not null && !File.Exists( Path.Combine( root.FullName, "Icod.DCurses.sln" ) ) ) {
 			root = root.Parent;
@@ -37,8 +37,8 @@ public sealed class PublicTwoThreeDevelopmentIdentityTests {
 		string GetValue( string name ) => project.Descendants()
 			.Single( element => name == element.Name.LocalName ).Value;
 
-		Assert.Equal( "2.3.0-alpha.1", GetValue( "Version" ) );
-		Assert.Equal( "2.3.0-alpha.1", GetValue( "PackageVersion" ) );
+		Assert.Equal( "2.3.0", GetValue( "Version" ) );
+		Assert.Equal( "2.3.0", GetValue( "PackageVersion" ) );
 		Assert.Equal( "2.0.0.0", GetValue( "AssemblyVersion" ) );
 		Assert.Contains( "CursesRasterAtlas", GetValue( "PackageReleaseNotes" ),
 			StringComparison.Ordinal );
