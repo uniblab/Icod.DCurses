@@ -119,6 +119,62 @@ public sealed class CursesRasterAtlasSampleTests {
 	}
 
 	[Fact]
+	public void AtlasTileUpdatesUseSuppliedArtworkAndOpaquePlayer() {
+		RasterAtlasSampleState state = new( 10, 10 );
+		CursesRasterAtlasGeometry geometry = new( 10, 10, 16, 16 );
+
+		CursesRasterAtlasTileUpdate[] updates = state.CreateFullUpdates( geometry );
+
+		TerminalRasterImage water = updates.Single( update => update.Row == 0 && update.Column == 0 ).Image;
+		TerminalRasterImage grass = updates.Single( update => update.Row == 0 && update.Column == 1 ).Image;
+		TerminalRasterImage forest = updates.Single( update => update.Row == 0 && update.Column == 4 ).Image;
+		TerminalRasterImage road = updates.Single( update => update.Row == 0 && update.Column == 9 ).Image;
+		TerminalRasterImage player = updates.Single( update => update.Row == 5 && update.Column == 5 ).Image;
+
+		Assert.Equal( new TerminalRasterColor( 85, 85, 255 ), water.GetPixelColor( 5, 0 ) );
+		Assert.Equal( new TerminalRasterColor( 85, 255, 85 ), grass.GetPixelColor( 1, 3 ) );
+		Assert.Equal( new TerminalRasterColor( 170, 0, 0 ), forest.GetPixelColor( 5, 0 ) );
+		Assert.Equal( new TerminalRasterColor( 255, 255, 255 ), road.GetPixelColor( 0, 0 ) );
+		Assert.Equal( new TerminalRasterColor( 0, 0, 0 ), player.GetPixelColor( 0, 0 ) );
+		Assert.Equal( new TerminalRasterColor( 170, 85, 0 ), player.GetPixelColor( 6, 2 ) );
+	}
+
+	[Fact]
+	public void AtlasTileUpdatesScaleArtworkWithNearestNeighborSampling() {
+		RasterAtlasSampleState state = new( 10, 10 );
+		CursesRasterAtlasGeometry geometry = new( 10, 10, 8, 8 );
+
+		CursesRasterAtlasTileUpdate[] updates = state.CreateFullUpdates( geometry );
+		TerminalRasterImage water = updates.Single( update => update.Row == 0 && update.Column == 0 ).Image;
+		TerminalRasterImage player = updates.Single( update => update.Row == 5 && update.Column == 5 ).Image;
+
+		Assert.Equal( new TerminalRasterColor( 85, 85, 255 ), water.GetPixelColor( 3, 0 ) );
+		Assert.Equal( new TerminalRasterColor( 0, 0, 0 ), player.GetPixelColor( 0, 0 ) );
+		Assert.Equal( new TerminalRasterColor( 170, 85, 0 ), player.GetPixelColor( 3, 1 ) );
+	}
+
+	[Fact]
+	public void AtlasSetupUsesArtworkWhileFrameAndTextRemainGenerated() {
+		RasterAtlasSampleState state = new( 10, 10 );
+		CursesRasterAtlasGeometry geometry = new( 10, 10, 16, 16 );
+
+		TerminalRasterImage frame = state.CreateInitialImage( geometry );
+		Assert.Equal( new TerminalRasterColor( 28, 92, 160 ), frame.GetPixelColor( 5, 0 ) );
+		Assert.Equal( new TerminalRasterColor( 245, 220, 80 ), frame.GetPixelColor( 5 * 16, 5 * 16 ) );
+		Assert.Equal( "~", state.CreateTextFrame()[ 0 ].Grapheme );
+		Assert.Equal( "@", state.CreateTextFrame()[ 5 * 10 + 5 ].Grapheme );
+
+		string program = File.ReadAllText( Path.Combine(
+			FindRepositoryRoot(),
+			"samples",
+			"Icod.DCurses.RasterAtlas.Sample",
+			"Program.cs"
+		) );
+		Assert.Contains( "state.CreateAtlasImage( geometry )", program, StringComparison.Ordinal );
+		Assert.Contains( "RefreshRasterAsync( state.CreateInitialImage( geometry )", program, StringComparison.Ordinal );
+	}
+
+	[Fact]
 	public void RelayoutClearsAbandonedStatusRowsBeforeMovingWindows() {
 		CursesScreen screen = new( 40, 8 );
 		CursesWindow standard = screen.StandardWindow;
