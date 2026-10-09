@@ -90,9 +90,12 @@ public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 			transport.PublishOk();
 
 			await transport.WaitForWriteCountAsync( presentationStart + 2 );
-			Assert.Equal(
-				"\u001b_Ga=f,f=24,s=1,v=1,t=d,i=77,r=2,x=0,y=0,X=1,m=0;AQID\u001b\\",
-				transport.GetAsciiWrite( presentationStart + 1 )
+			string expectedFirstUpdate =
+				"\u001b_Ga=f,f=24,s=1,v=1,t=d,i=77,r=2,x=0,y=0,X=1,m=0;AQID\u001b\\";
+			string actualFirstUpdate = transport.GetAsciiWrite( presentationStart + 1 );
+			Assert.True(
+				string.Equals( expectedFirstUpdate, actualFirstUpdate, StringComparison.Ordinal ),
+				$"Expected first-update bytes: {Convert.ToHexString( Encoding.ASCII.GetBytes( expectedFirstUpdate ) )}; actual: {Convert.ToHexString( Encoding.ASCII.GetBytes( actualFirstUpdate ) )}."
 			);
 			transport.PublishOk();
 
