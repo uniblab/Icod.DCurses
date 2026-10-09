@@ -9,7 +9,7 @@
 **Direct runtime dependency:** stable `Icod.Terminal 1.28.0`; no direct `Icod.TermInfo` reference
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** Stable 2.3.0 release candidate prepared. T2301–T2309 are implemented and the documented ATLAS/FRAME/TEXT live checks are accepted in their tested environments. Stable implementation head `a6c580c` passed all seven jobs in [PR Staging run 1373](https://github.com/uniblab/Icod.DCurses/actions/runs/37969532926). Documentation closure, merge, post-merge Release validation, tagging, and publication remain pending.
+**Status:** Stable 2.3.0 source/package candidate qualified. T2301–T2309 are implemented and the documented ATLAS/FRAME/TEXT live checks are accepted in their tested environments. Stable implementation/package head `8c528a5ec8925635f7c704091fda3fe187d9ffe7` passed all seven jobs in [PR Staging run 1374](https://github.com/uniblab/Icod.DCurses/actions/runs/37970187901). Documentation closure is complete; merge, post-merge Release validation, tagging, and publication remain maintainer actions.
 **Planning snapshot:** 2026-10-04
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
@@ -256,7 +256,7 @@ At this checkpoint DCurses consumed published 1.25.0-alpha.3 in production, test
 and the release dependency guard. DCurses remains 2.3.0-alpha.1; its public API
 and assembly identity are unchanged. This dependency update requires its own
 CI qualification, recorded in PR #35. Follow the sample
-[WSL2/kitty checklist](samples/Icod.DCurses.RasterAtlas.Sample/README.md#wsl2kitty-retest-with-terminal-alpha5)
+[WSL2/kitty checklist](samples/Icod.DCurses.RasterAtlas.Sample/README.md#wsl2kitty-acceptance-with-terminal-1280)
 after pulling. Earlier Kitty graphics parser errors are not independently claimed
 fixed, and persistent ATLAS acceptance remains open. No native I/O or protocol
 workaround is added to DCurses.

@@ -1,11 +1,11 @@
-# Icod.DCurses 2.3 Development Public API Baseline
+# Icod.DCurses 2.3 Public API Baseline
 
-**Candidate identity:** `2.3.0-alpha.1`  
-**Status:** Reopened for the approved complete-frame extension; fingerprint observed in CI run 37133853737; final qualification pending. Earlier atlas-only qualification remains recorded in T2309.
+**Release identity:** `2.3.0`  
+**Status:** Stable-source contract frozen. Implementation/package head `8c528a5ec8925635f7c704091fda3fe187d9ffe7` passed all seven jobs in [PR Staging run 1374](https://github.com/uniblab/Icod.DCurses/actions/runs/37970187901); this documentation closure does not change the compiled contract.
 **AssemblyVersion:** `2.0.0.0`  
-**Direct production dependency:** `Icod.Terminal 1.25.0-alpha.5`
+**Direct production dependency:** `Icod.Terminal 1.28.0`
 
-## Compiled candidate fingerprint
+## Compiled stable-source fingerprint
 
 ```text
 105 exported types
@@ -13,7 +13,7 @@
 sha256 b86ba658fd90d041eeccf5345ecc71a978bea785f0b2bbb9b8274091ccc4afc1
 ```
 
-`Public-API-Fingerprint-2.3.json` is the candidate fingerprint. CI compiles and
+`Public-API-Fingerprint-2.3.json` is the stable-source fingerprint. CI compiles and
 compares the assembly on .NET 8, 9 and 10. The published 2.2 fingerprint remains
 immutable at 100 exported types, 783 contract lines and SHA-256
 `7c9866abaeeacc7f64631d2a800b91333cee72ad1a53872896e8f4d8c7ccb097`.
@@ -63,4 +63,4 @@ acceptance evidence and non-goals.
 
 ## Complete-frame extension
 
-The user-approved Terminal 1.25 fallback work reopens the fingerprint gate with one additive session method and no new public type. The compiled fingerprint above was observed on .NET 8/9/10 in CI run 37133853737. See the [implementation contract](superpowers/plans/2026-10-03-complete-frame-raster-fallback.md). Retained atlas identity and ownership remain unchanged.
+The complete-frame fallback added one session method and no new public type. The final compiled fingerprint above was verified on .NET 8, 9 and 10 by the stable package qualification. See the [implementation contract](superpowers/plans/2026-10-03-complete-frame-raster-fallback.md). Retained atlas identity and ownership remain unchanged.

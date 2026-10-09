@@ -1,12 +1,12 @@
 # T2309 Adversarial, Package, Documentation and API Gate
 
-## Current candidate (gate reopened)
+## Stable gate closure
 
 | Item | Candidate |
 | --- | --- |
-| package/version | `Icod.DCurses 2.3.0-alpha.1` |
+| package/version | `Icod.DCurses 2.3.0` |
 | assembly version | `2.0.0.0` |
-| direct runtime dependency | exactly `Icod.Terminal 1.25.0-alpha.5` |
+| direct runtime dependency | exactly `Icod.Terminal 1.28.0` |
 | direct TermInfo dependency | none |
 | exported types | 105 |
 | canonical contract lines | 839 |
@@ -20,7 +20,7 @@ after this gate without deliberately reopening the fingerprint and roadmap decis
 
 The repository package validator must prove that the `.nupkg` contains the README,
 license, icon, three TFM assets, repository/source-link metadata and the matching symbol
-package. Its nuspec/deps/lock inspection must show the one direct `Icod.Terminal 1.25.0-alpha.5`
+package. Its nuspec/deps/lock inspection must show the one direct `Icod.Terminal 1.28.0`
 runtime dependency and no direct Icod.TermInfo dependency.
 
 The fresh NuGet-only consumer compiles and executes for net8.0, net9.0 and net10.0. Its
@@ -60,6 +60,20 @@ green. The refreshed artifact digest is
 Live raster and explicit fallback observations remain the separate T2308/T2310
 maintainer checklist and are not inferred from CI.
 
-## Reopened for complete-frame refresh
+## Stable-source qualification
 
-The approved Terminal 1.25.0-alpha integration adds one session method and reopens this gate. Earlier exact-head results above remain historical evidence; they do not qualify the new frame path. The current candidate must pass the API fingerprint, six runtime lanes, package consumer, and XML gates again.
+The complete-frame extension and later stable Terminal integration retain the frozen
+105-type / 839-line additive API contract. Stable implementation/package head
+`8c528a5ec8925635f7c704091fda3fe187d9ffe7` passed the package candidate and all six
+OS/architecture runtime jobs in
+[PR Staging run 1374](https://github.com/uniblab/Icod.DCurses/actions/runs/37970187901).
+The package job created `Icod.DCurses.2.3.0.nupkg` and
+`Icod.DCurses.2.3.0.snupkg`, verified package structure, metadata, the stable
+`Icod.Terminal 1.28.0` dependency, assembly identity, XML documentation and portable
+symbols, and restored/built/executed fresh package-only consumers for .NET 8, 9 and 10.
+The uploaded workflow artifact digest is
+`sha256:bf4f1cc78ea6877f0b8e9ff8f9de2f63cb03e4428f0f7396c93fe8d1e4a381c0`.
+
+T2309 is closed for the stable 2.3.0 source/package candidate. Live rendering evidence
+remains separately bounded by T2308 and the sample README; CI does not convert terminal
+acknowledgement into a claim of universally atomic or gapless physical presentation.

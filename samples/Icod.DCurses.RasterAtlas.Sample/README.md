@@ -9,7 +9,7 @@ resize recreation and a text fallback driven by the same model.
 
 ## Current release boundary
 
-The stable 2.3 candidate consumes published `Icod.Terminal 1.28.0`. The
+The stable 2.3 release consumes published `Icod.Terminal 1.28.0`. The
 maintainer has accepted the current sample's ATLAS, FRAME, and TEXT behavior,
 including supplied tile artwork, immediate input, movement, water collision,
 camera scrolling, help restoration, resize cleanup, and independent Q/Escape
