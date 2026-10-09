@@ -2,7 +2,15 @@
 
 All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/` and the versioned roadmap files.
 
-## 2.3.0 — Stable release candidate
+## 2.3.1 — Documentation and release-state correction
+
+- Corrected the packaged README installation command and stable source identity after the published 2.3.0 release.
+- Reconciled the active roadmap, 2.3 roadmap, release-readiness record, and API identity records with the completed 2.3.0 merge, tag, validation, and publication.
+- Added a durable 2.3.0 release-closure record with exact PR, commit, workflow, tag, release, and package-asset evidence.
+- Corrected current sample instructions that still directed maintainers to the retired 2.3 development branch.
+- Contains no runtime or public API changes. The 105-type, 839-line API fingerprint, `AssemblyVersion 2.0.0.0`, .NET 8/9/10 targets, and sole direct `Icod.Terminal 1.28.0` dependency are unchanged.
+
+## 2.3.0 — Published stable release
 
 - Added cell-aligned `CursesRasterAtlas` coordination with exact cell-pixel geometry, bounded double-buffered RGB24/RGBA32 updates, retained rectangular projection, conservative lifecycle ownership, and application-driven recreation.
 - Added `CursesSession.RefreshRasterAsync` for explicit complete-frame presentation through Terminal's verified ordinary Kitty/Sixel path while retaining logical text for later fallback.
@@ -14,14 +22,14 @@ All notable `Icod.DCurses` release-line changes are summarized here. Detailed tr
 - The sole direct runtime dependency is stable `Icod.Terminal 1.28.0`; `AssemblyVersion` remains `2.0.0.0`, with .NET 8/9/10 targets.
 - Live observations establish the tested ATLAS, FRAME, and TEXT paths; presentation remains ordered rather than universally atomic or gapless, and historical Kitty 0.32.2 acknowledgement behavior remains documented.
 
-## 2.2.0 — Stable-source candidate, unpublished
+## 2.2.0 — Published stable release
 
 - Added detached, read-only discovery of effective single-key and command-sequence bindings in focused-region, active-scope, then router-global precedence.
 - Added bounded two-through-eight-gesture command sequences with explicit pending, completed, mismatch, fallback, and application-driven cancellation results.
 - Kept ordinary single-key routing unchanged; sequence state is invalidated by relevant focus, scope, binding, region, resize, and disposal transitions.
 - Updated the public-only editor and roguelike samples to generate shortcut help from effective binding discovery and exercise contextual sequences without transferring command execution or event-loop ownership to DCurses.
 - Added package-only consumer coverage and adversarial, lifecycle, precedence, capacity, allocation, dependency, API-fingerprint, XML-documentation, and cross-platform Staging gates.
-- Preserved the published 2.1 source surface additively, `AssemblyVersion` `2.0.0.0`, .NET 8/9/10 targets, and the sole direct `Icod.Terminal 1.18.0` production dependency. RC and stable-source qualification are accepted; publication remains pending.
+- Preserved the published 2.1 source surface additively, `AssemblyVersion` `2.0.0.0`, .NET 8/9/10 targets, and the sole direct `Icod.Terminal 1.18.0` production dependency. RC, stable-source qualification, and publication completed.
 
 ## 2.1.0 — Core Presentation and Text
 
@@ -29,7 +37,7 @@ All notable `Icod.DCurses` release-line changes are summarized here. Detailed tr
 - Added retained window layout projection and prepared bulk cell writes, plus application-owned large-content viewport and stateless fixed/weighted track geometry.
 - Added bounded, opt-in refresh diagnostics with explicit outcome publication and disabled-path allocation qualification.
 - Added public-only roguelike and editor acceptance samples with synthetic large content, visible-slice rendering, documented controls and headless tests.
-- Preserved `AssemblyVersion` `2.0.0.0`, .NET 8/9/10 targets, and the sole direct `Icod.Terminal 1.18.0` production dependency. The stable-source candidate passed the PR Staging matrix; the `main` push validates Release configuration before publication.
+- Preserved `AssemblyVersion` `2.0.0.0`, .NET 8/9/10 targets, and the sole direct `Icod.Terminal 1.18.0` production dependency. The stable source passed the PR Staging matrix and the published release retained the same public contract.
 
 ## 2.0.0 — Terminal Integration
 

@@ -27,7 +27,7 @@ namespace Icod.DCurses.Tests;
 
 public sealed class PublicTwoThreeDevelopmentIdentityTests {
 	[Fact]
-	public void ProjectCarriesTheApprovedStableTwoThreeIdentity() {
+	public void ProjectCarriesTheApprovedStableTwoThreePatchIdentity() {
 		DirectoryInfo? root = new( AppContext.BaseDirectory );
 		while ( root is not null && !File.Exists( Path.Combine( root.FullName, "Icod.DCurses.sln" ) ) ) {
 			root = root.Parent;
@@ -37,13 +37,69 @@ public sealed class PublicTwoThreeDevelopmentIdentityTests {
 		string GetValue( string name ) => project.Descendants()
 			.Single( element => name == element.Name.LocalName ).Value;
 
-		Assert.Equal( "2.3.0", GetValue( "Version" ) );
-		Assert.Equal( "2.3.0", GetValue( "PackageVersion" ) );
+		Assert.Equal( "2.3.1", GetValue( "Version" ) );
+		Assert.Equal( "2.3.1", GetValue( "PackageVersion" ) );
 		Assert.Equal( "2.0.0.0", GetValue( "AssemblyVersion" ) );
 		Assert.Contains( "CursesRasterAtlas", GetValue( "PackageReleaseNotes" ),
 			StringComparison.Ordinal );
-		Assert.Contains( "exact cell-pixel geometry", GetValue( "PackageReleaseNotes" ),
+		Assert.Contains( "documentation", GetValue( "PackageReleaseNotes" ),
 			StringComparison.OrdinalIgnoreCase );
+		Assert.Contains( "no runtime or public API changes", GetValue( "PackageReleaseNotes" ),
+			StringComparison.OrdinalIgnoreCase );
+	}
+
+	[Fact]
+	public void CurrentReleaseDocumentationCarriesDurableTwoThreePatchState() {
+		DirectoryInfo? root = new( AppContext.BaseDirectory );
+		while ( root is not null && !File.Exists( Path.Combine( root.FullName, "Icod.DCurses.sln" ) ) ) {
+			root = root.Parent;
+		}
+		Assert.NotNull( root );
+
+		string readme = File.ReadAllText( Path.Combine( root.FullName, "README.md" ) );
+		string normalizedReadme = readme.ReplaceLineEndings( "\n" );
+		Assert.Contains( "Icod.DCurses 2.3.1", readme, StringComparison.Ordinal );
+		Assert.Contains( "--version 2.3.1", readme, StringComparison.Ordinal );
+		Assert.Contains(
+			"For the previous stable release:\n\n```text\ndotnet add package Icod.DCurses --version 2.3.0",
+			normalizedReadme,
+			StringComparison.Ordinal
+		);
+		Assert.DoesNotContain( "release candidate", readme, StringComparison.OrdinalIgnoreCase );
+
+		string roadmap = File.ReadAllText( Path.Combine(
+			root.FullName,
+			"Icod.DCurses-Development-Roadmap.md"
+		) );
+		Assert.Contains( "Current stable source/package identity:** `2.3.1`", roadmap,
+			StringComparison.Ordinal );
+		Assert.Contains( "Active feature track:** maintenance", roadmap,
+			StringComparison.Ordinal );
+		Assert.DoesNotContain( "Latest tagged stable release:** `2.2.0`", roadmap,
+			StringComparison.Ordinal );
+		Assert.DoesNotContain( "merge/main/tag pending", roadmap,
+			StringComparison.OrdinalIgnoreCase );
+
+		string changelog = File.ReadAllText( Path.Combine( root.FullName, "CHANGELOG.md" ) );
+		Assert.Contains( "## 2.3.1 — Documentation and release-state correction", changelog,
+			StringComparison.Ordinal );
+
+		string readiness = File.ReadAllText( Path.Combine(
+			root.FullName,
+			"docs",
+			"2.3-Release-Readiness.md"
+		) );
+		Assert.Contains( "Published 2.3.0 closure", readiness, StringComparison.Ordinal );
+
+		using JsonDocument fingerprint = JsonDocument.Parse( File.ReadAllText( Path.Combine(
+			root.FullName,
+			"docs",
+			"Public-API-Fingerprint-2.3.json"
+		) ) );
+		Assert.Equal( "2.3.1",
+			fingerprint.RootElement.GetProperty( "release" ).GetString() );
+		Assert.Equal( "stable-source",
+			fingerprint.RootElement.GetProperty( "status" ).GetString() );
 	}
 
 	[Fact]

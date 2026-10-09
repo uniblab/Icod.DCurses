@@ -9,7 +9,7 @@
 
 ## Status
 
-This source tree defines the stable **`Icod.DCurses 2.3.0`** release. Check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published availability and version history.
+This source tree defines the stable **Icod.DCurses 2.3.1** maintenance release. Version 2.3.1 corrects package-facing documentation and durable release-state records after 2.3.0 publication; it contains no runtime or public API changes. Check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published availability and version history.
 
 Version 2.3 adds `CursesRasterAtlas`, a bounded cell-aligned raster presentation owner for tile-oriented applications. Applications keep durable source pixels and gameplay state; DCurses retains placeholder cells, viewport coordinates and transaction serialization; stable Icod.Terminal 1.28.0 owns exact cell-pixel geometry, live raster identities, acknowledgement and lifecycle certainty. Presentations copy the known front frame to a back frame, apply bounded RGB24/RGBA32 damage, then select the completed frame. Complete-atlas workloads are coalesced into one region update, and recoverable presentation timeouts select the sample's text fallback instead of leaving the application blocked.
 
@@ -82,13 +82,13 @@ Icod.Terminal 1.28.0
 Install the stable 2.3 package from NuGet:
 
 ```text
-dotnet add package Icod.DCurses --version 2.3.0
+dotnet add package Icod.DCurses --version 2.3.1
 ```
 
 For the previous stable release:
 
 ```text
-dotnet add package Icod.DCurses --version 2.2.0
+dotnet add package Icod.DCurses --version 2.3.0
 ```
 
 The package targets:
@@ -328,6 +328,7 @@ text; no hidden cache or backend replay occurs.
 Recommended documentation entry points:
 
 - [`docs/Public-API-Baseline-2.3.md`](docs/Public-API-Baseline-2.3.md)
+- [`docs/T2310-2.3.0-Stable-Release-Closure.md`](docs/T2310-2.3.0-Stable-Release-Closure.md)
 - [`docs/Raster-Atlas-Measurement-2.3.md`](docs/Raster-Atlas-Measurement-2.3.md)
 - [`samples/Icod.DCurses.RasterAtlas.Sample/README.md`](samples/Icod.DCurses.RasterAtlas.Sample/README.md)
 - [`Icod.DCurses-2.3.0-Development-Roadmap.md`](Icod.DCurses-2.3.0-Development-Roadmap.md)
@@ -357,7 +358,7 @@ sha256 1d33658358af26049d858e084a80d9f3b80abab974c1c4d3bfb36c2c2b477c65
 
 ## Authors
 
-Inspired by original work from Bill Joy, author of the original `termcap`; Mary Ann (born Mark) Horton, author of `terminfo`; Pavel Curtis, author of `pcurses`; and Zeyd Ben-Halim, Eric S. Raymond, and Thomas Dickey, whose work developed and maintained `libtinfo` and `ncurses`.
+Inspired by original work from Bill Joy, author of the original `termcap`; Ken Arnold, for his work on `termcap` and `curses`; Mary Ann (born Mark) Horton, author of `terminfo`; Pavel Curtis, author of `pcurses`; and Zeyd Ben-Halim, Eric S. Raymond, and Thomas Dickey, whose work developed and maintained `libtinfo` and `ncurses`.
 
 Managed .NET implementation by Timothy J. Bruce <uniblab@hotmail.com>.
 
