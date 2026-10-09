@@ -23,7 +23,7 @@ public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 	[InlineData( 64, true )]
 	[InlineData( 121, true )]
 	[InlineData( 256, true )]
-	public async Task PackageShapedWorkloadsUseOneComposeOneUpdatePerTileAndOneSelect(
+	public async Task PackageShapedWorkloadsCoalesceOnlyFullCoverage(
 		int changedTiles,
 		bool rgba32
 	) {
@@ -40,7 +40,8 @@ public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 			).ToArray();
 			int start = transport.WriteCount;
 			Task<CursesRasterAtlasPresentationResult> presentation = atlas.PresentAsync( updates ).AsTask();
-			int operationCount = changedTiles + 2;
+			int regionOperationCount = 256 == changedTiles ? 1 : changedTiles;
+			int operationCount = regionOperationCount + 2;
 			for ( int offset = 0; offset < operationCount; offset++ ) {
 				await transport.WaitForWriteCountAsync( start + offset + 1 );
 				transport.PublishOk();
@@ -51,10 +52,17 @@ public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 			Assert.Equal( changedTiles, result.CompletedUpdateCount );
 			Assert.Equal( operationCount, transport.WriteCount - start );
 			Assert.Contains( "a=c", transport.GetAsciiWrite( start ), StringComparison.Ordinal );
-			for ( int offset = 1; offset <= changedTiles; offset++ ) {
+			for ( int offset = 1; offset <= regionOperationCount; offset++ ) {
 				Assert.Contains(
 					rgba32 ? "a=f,f=32" : "a=f,f=24",
 					transport.GetAsciiWrite( start + offset ),
+					StringComparison.Ordinal
+				);
+			}
+			if ( 256 == changedTiles ) {
+				Assert.Contains(
+					"s=16,v=16",
+					transport.GetAsciiWrite( start + 1 ),
 					StringComparison.Ordinal
 				);
 			}
