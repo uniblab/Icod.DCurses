@@ -86,8 +86,8 @@ Controlled failures return explicit status and completed-update counts without s
 | **T2306** | Refresh serialization and lifecycle/failure hardening | Atlas work cannot interleave with refresh/lifecycle output; definite failures recover through the next front copy; ambiguous failures and generation loss require recreation |
 | **T2307** | Adversarial, capacity, allocation and workload measurement | Bounds fail before output; 1/4/16/64/121/256-tile package workloads recorded; no map-sized storage or hidden image cache; later Terminal work is evidence-gated |
 | **T2308** | Public-only Ultima-style sample and package-only consumer | Raster and explicit text fallback share one model; movement, overlays, viewport, resize/recreate and clean exit pass automated/manual acceptance |
-| **T2309** | Public API, package, dependency, XML and documentation freeze | Reopened for one additive complete-frame refresh method and Terminal 1.25.0-alpha.5; exact-head requalification required |
-| **T2310** | RC, scoped live-terminal evidence and stable-source qualification | Exact RC head green across the PR matrix; release limitations explicitly recorded; persistent Kitty ATLAS live acceptance deferred by the October 4 maintainer decision; unchanged stable source green before merge/tag/publication |
+| **T2309** | Public API, package, dependency, XML and documentation freeze | Stable 105-type / 839-line contract and `Icod.Terminal 1.28.0` package boundary qualified at implementation/package head `8c528a5e` in seven-job PR Staging run 1374 |
+| **T2310** | RC, scoped live-terminal evidence and stable-source qualification | Stable source/package head green across the PR matrix; ATLAS/FRAME/TEXT evidence and limitations recorded for the tested environments; merge, post-merge validation, tag and publication remain maintainer actions |
 
 Every tranche records an exact commit and evidence document. Green CI is necessary but not sufficient: semantic, package and manual gates still apply.
 
@@ -149,21 +149,31 @@ The Ultima-style sample must remain clearly original and minimal. It demonstrate
 
 No tile-map container, camera policy, entity/component system, collision, visibility/fog, pathfinding, AI, combat, inventory, persistence, game loop, asset file decoder, palette conversion, texture scaling, arbitrary transforms, physical sprite scene, sub-cell motion, animation scheduler, widget library, terminal emulator or PTY host enters 2.3.
 
-No hidden fallback ladder, source-image replay, automatic retry, raster batching, Indexed8 partial updates, remote-capacity query or protocol extension is invented in DCurses. A later Terminal 1.25 proposal requires T2307 package evidence.
+No hidden fallback ladder, source-image replay, automatic retry, raster batching, Indexed8 partial updates, remote-capacity query or protocol extension is invented in DCurses. Any later Terminal integration remains subject to the T2307 package-evidence boundary.
 
 ## 9. Release policy
 
-T2309 is the API/package regret deadline. After it, only fixes required by acceptance evidence enter the release. T2310 promotes one exact source through RC and stable-source gates. Merge, the post-merge Release workflow, tag, GitHub Release and NuGet publication remain separate maintainer actions.
+T2309 is the API/package regret deadline. After it, only fixes required by acceptance evidence enter the release. T2310 records the exact stable source/package qualification. Merge, the post-merge Release workflow, tag, GitHub Release and NuGet publication remain separate maintainer actions.
 
 ## 10. Immediate next step
 
-Prepare the existing feature set for release under [the release readiness boundary](docs/2.3-Release-Readiness.md); further feature development is on hold. Leave the confirmed Kitty animation-upload acknowledgement blocker unresolved at the maintainer's request. The standalone reproducer and [upstream bug report](tools/kitty-frame-ack-bug-report.md) preserve the evidence; upstream submission requires access because the GitHub integration returned HTTP 403. Do not implement the identifier workaround, expand the probe, or qualify persistent ATLAS from fallback results. Alpha.2 Windows Terminal/Contour performance, help/frame restoration, resize recovery and both exit keys remain accepted. WSL2/kitty FRAME input/display and clean exit remain accepted, with command-driven flicker still observed. Persistent ATLAS acceptance and T2310 RC qualification remain pending.
+Merge the reviewed stable candidate after its documentation-only PR matrix is green.
+Then require the merge commit to pass the `main` Release workflow before creating and
+pushing `v2.3.0`. GitHub Release and NuGet publication remain explicit maintainer
+actions. No further feature development or protocol workaround enters this release.
 
-## Complete-frame fallback extension (2026-10-03)
+## Historical complete-frame fallback extension (2026-10-03)
 
-The approved fallback work reopens T2308 and T2309 for Terminal 1.25.0-alpha. DCurses adds explicit `RefreshRasterAsync`: one application-owned frame, exact geometry, same serialized transaction as text, conservative damage cleanup, and no persistent identity emulation. Terminal owns Kitty/Sixel selection and encoding. The sample prefers atlas, then complete frame, then text; `--raster` directly exercises the second path.
+The approved fallback work reopened T2308 and T2309 for Terminal 1.25.0-alpha. DCurses
+added explicit `RefreshRasterAsync`: one application-owned frame, exact geometry, the
+same serialized transaction as text, conservative damage cleanup, and no persistent
+identity emulation. Terminal owns Kitty/Sixel selection and encoding. The sample prefers
+atlas, then complete frame, then text; `--raster` directly exercises the second path.
 
-Automated integration and the additive API fingerprint must be requalified. Then repeat the live checklist in Windows Terminal and Contour: initial image, movement, camera scrolling, blocked water, help open/close, repeated shrinking/growing, status-row cleanup, and Q/Escape restoration. WezTerm remains a controlled-fallback observation unless current verification supplies a usable backend. Earlier text acceptance does not count as frame-path acceptance. T2310 remains pending.
+Automated integration and the additive API fingerprint were subsequently requalified.
+Windows Terminal and Contour supplied the requested FRAME observations, WezTerm supplied
+a controlled fallback observation, and the later Terminal 1.28.0 / Kitty 0.49.2 retest
+supplied the accepted ATLAS witness recorded in the stable-release section below.
 
 ### October 3 recording follow-up
 
