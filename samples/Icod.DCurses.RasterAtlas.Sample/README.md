@@ -9,7 +9,7 @@ resize recreation and a text fallback driven by the same model.
 
 ## Current release boundary
 
-The stable 2.3 release consumes published `Icod.Terminal 1.28.0`. The
+The stable 2.3.1 maintenance source consumes published `Icod.Terminal 1.28.0` and contains no runtime or public API changes from the published 2.3.0 feature release. The
 maintainer has accepted the current sample's ATLAS, FRAME, and TEXT behavior,
 including supplied tile artwork, immediate input, movement, water collision,
 camera scrolling, help restoration, resize cleanup, and independent Q/Escape
@@ -178,8 +178,8 @@ To repeat the stable-package check inside Kitty:
 
 ```sh
 cd /path/to/Icod.DCurses
-git switch 2.3.0-raster-atlas-roadmap
-git pull --ff-only https://github.com/uniblab/Icod.DCurses.git 2.3.0-raster-atlas-roadmap
+git switch main
+git pull --ff-only https://github.com/uniblab/Icod.DCurses.git main
 dotnet restore samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.Sample.csproj --force-evaluate
 dotnet list Icod.DCurses.csproj package
 dotnet run --project samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.Sample.csproj -c Release -f net10.0

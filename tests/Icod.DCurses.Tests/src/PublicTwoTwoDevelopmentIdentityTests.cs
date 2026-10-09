@@ -57,11 +57,12 @@ public sealed class PublicTwoThreeDevelopmentIdentityTests {
 		Assert.NotNull( root );
 
 		string readme = File.ReadAllText( Path.Combine( root.FullName, "README.md" ) );
+		string normalizedReadme = readme.ReplaceLineEndings( "\n" );
 		Assert.Contains( "Icod.DCurses 2.3.1", readme, StringComparison.Ordinal );
 		Assert.Contains( "--version 2.3.1", readme, StringComparison.Ordinal );
 		Assert.Contains(
 			"For the previous stable release:\n\n```text\ndotnet add package Icod.DCurses --version 2.3.0",
-			readme,
+			normalizedReadme,
 			StringComparison.Ordinal
 		);
 		Assert.DoesNotContain( "release candidate", readme, StringComparison.OrdinalIgnoreCase );

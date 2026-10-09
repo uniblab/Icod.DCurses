@@ -1,7 +1,7 @@
 # Icod.DCurses 2.3 Public API Baseline
 
-**Release identity:** `2.3.0`  
-**Status:** Stable-source contract frozen. Implementation/package head `8c528a5ec8925635f7c704091fda3fe187d9ffe7` passed all seven jobs in [PR Staging run 1374](https://github.com/uniblab/Icod.DCurses/actions/runs/37970187901); this documentation closure does not change the compiled contract.
+**Release identity:** `2.3.1`\
+**Status:** Stable-source contract frozen. The public API first shipped in 2.3.0 and is unchanged in the 2.3.1 documentation/release-state maintenance patch. The published 2.3.0 merge commit passed all seven jobs in [post-merge run 37976470537](https://github.com/uniblab/Icod.DCurses/actions/runs/37976470537).
 **AssemblyVersion:** `2.0.0.0`  
 **Direct production dependency:** `Icod.Terminal 1.28.0`
 

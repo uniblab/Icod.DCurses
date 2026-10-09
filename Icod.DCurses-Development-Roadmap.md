@@ -3,15 +3,15 @@
 **Project:** `Icod.DCurses`\
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
 **Published compatibility floor:** `1.0.0`\
-**Latest tagged stable release:** `2.2.0`\
-**Current source/package identity:** `2.3.0`\
+**Published releases:** [GitHub Releases](https://github.com/uniblab/Icod.DCurses/releases) and [NuGet](https://www.nuget.org/packages/Icod.DCurses/)\
+**Current stable source/package identity:** `2.3.1`\
 **Current development assembly version:** `2.0.0.0`\
 **Current development runtime dependency:** direct stable `Icod.Terminal 1.28.0` only; TermInfo remains transitive\
 **Stable 2.3 direct runtime dependency:** `Icod.Terminal 1.28.0`; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Active development target:** `2.3.0` — first-class `CursesRasterAtlas` coordination\
-**Status:** Stable 2.3.0 release candidate prepared. T2301–T2309 are implemented; the current ATLAS, FRAME, and TEXT paths have maintainer acceptance in their recorded environments. Stable implementation head `a6c580c` passed all seven PR Staging jobs in [run 1373](https://github.com/uniblab/Icod.DCurses/actions/runs/37969532926). The documentation-only release-closure head, merge, post-merge Release validation, tagging, and publication remain pending. See [release readiness](docs/2.3-Release-Readiness.md).
+**Active feature track:** maintenance; higher-level widgets belong in a sibling package\
+**Status:** The 2.3 feature track is complete. Version 2.3.0 was merged, validated, tagged, and published on 2026-10-09. Version 2.3.1 corrects package-facing documentation and durable release records only; it contains no runtime or public API changes. See the [2.3 release record](docs/2.3-Release-Readiness.md) and [published 2.3.0 closure](docs/T2310-2.3.0-Stable-Release-Closure.md).
 
 **Planning snapshot:** 2026-10-04
 
@@ -19,7 +19,7 @@
 
 ## Current authorities
 
-The active plan is [Icod.DCurses-2.3.0-Development-Roadmap.md](Icod.DCurses-2.3.0-Development-Roadmap.md), governed by the approved [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md) and [implementation plan](docs/superpowers/plans/2026-10-03-icod-dcurses-2.3-curses-raster-atlas.md). The selected Option 1 is a first-class, session-owned atlas coordinator over Terminal 1.24 geometry, planning, acknowledged frame composition, RGB24/RGBA32 region replacement and frame selection. DCurses owns retained atlas coordinates, damage-oriented updates, front/back sequencing and refresh ordering; Terminal continues to own protocol encoding, opaque identities and the live terminal conversation; applications continue to own source art, maps, actors, collision, visibility and scheduling.
+The completed [Icod.DCurses 2.3 roadmap](Icod.DCurses-2.3.0-Development-Roadmap.md), approved [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md), [implementation plan](docs/superpowers/plans/2026-10-03-icod-dcurses-2.3-curses-raster-atlas.md), and [publication closure](docs/T2310-2.3.0-Stable-Release-Closure.md) are the historical authority for the published 2.3 feature line. DCurses owns retained atlas coordinates, damage-oriented updates, front/back sequencing and refresh ordering; Terminal owns protocol encoding, opaque identities and the live terminal conversation; applications own source art, maps, actors, collision, visibility and scheduling.
 
 The published 2.2 architecture and release evidence remain recorded in [the 2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md), its [interaction design](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md), and [the v2.2.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v2.2.0). T2204 prompt state and T2205 timing helpers remain deferred; the 2.3 graphics work does not reopen them.
 
@@ -63,7 +63,8 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | Published |
 | `2.1.0` | Core presentation and text foundations for editor and roguelike applications | Merged, tagged and released |
 | `2.2.0` | Interaction and application conveniences for editor and roguelike applications | Published |
-| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Stable implementation/package head green; documentation closure and post-merge qualification pending |
+| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Published 2026-10-09 |
+| `2.3.1` | Package documentation and release-state correction | Maintenance patch; no runtime or public API changes |
 | `2.4+` | Higher-level packages, including a possible `Icod.DCurses.Widgets`, and later sprite/physical-placement work | Deferred; scope depends on application evidence |
 
 The post-1.0 progression is intentionally cumulative:
@@ -354,7 +355,7 @@ The full scope, non-goals, tranche gates and release policy are defined in [Icod
 | T2307 | Adversarial, capacity, allocation and workload measurements | Accepted |
 | T2308 | Public-only tile sample, supplied artwork, fallback, and package consumer | Accepted |
 | T2309 | API, package, dependency, XML and documentation freeze | Accepted on implementation head `a6c580c`; 7/7 PR Staging jobs green |
-| T2310 | Live acceptance and stable-source qualification | Live acceptance recorded; merge/main/tag pending |
+| T2310 | Live acceptance, stable-source qualification, and publication | Closed; see `docs/T2310-2.3.0-Stable-Release-Closure.md` |
 
 No production implementation begins until T2300 is reviewed and T2301 freezes the public contract.
 
@@ -388,15 +389,15 @@ Every development tranche preserves the established process:
 - Windows/Linux/macOS x64/ARM64 runtime matrix;
 - exact-head qualification before advancing a checkpoint;
 - explicit API/package/documentation regret gate before RC;
-- merge, post-merge Release validation, tagging, and publication remain separate maintainer actions.
+- for any future release, merge, post-merge Release validation, tagging, and publication are separate maintainer actions.
 
 For 2.3, the published 2.2 API artifacts remain immutable historical evidence. The 2.3 public contract is additive unless a separate compatibility decision explicitly approves otherwise. T2301 freezes the atlas contract before public implementation; T2309 freezes the final API/package delta. `Version` and `PackageVersion` advance together at T2300; `AssemblyVersion` remains `2.0.0.0`.
 
 ---
 
-## Immediate next step
+## Current maintenance direction
 
-Qualify the documentation-only release-closure head in PR Staging. After review, merge separately, require the post-merge Release workflow to pass, and only then create and push `v2.3.0`.
+Keep 2.3 changes to necessary compatibility, correctness, packaging, and documentation maintenance. A higher-level widget system should begin in a sibling `Icod.Widgets` project rather than reopening the completed DCurses 2.3 feature track.
 
 The direct production dependency remains `Icod.DCurses -> Icod.Terminal`; any newly discovered live-terminal gap remains work for the owning Terminal dependency.
 
@@ -404,4 +405,4 @@ The direct production dependency remains `Icod.DCurses -> Icod.Terminal`; any ne
 
 The approved fallback work completed T2308 and feeds the T2309 release freeze through stable Terminal 1.28.0. DCurses adds explicit `RefreshRasterAsync`: one application-owned frame, exact geometry, same serialized transaction as text, conservative damage cleanup, and no persistent identity emulation. Terminal owns Kitty/Sixel selection and encoding. The sample prefers atlas, then complete frame, then text; `--raster` directly exercises the second path.
 
-Automated integration, the additive API fingerprint, and package-only acceptance are implemented. Maintainer observations cover the documented ATLAS, FRAME, and TEXT paths, including movement, camera scrolling, blocked water, help restoration, resize cleanup, and independent Q/Escape exit. WezTerm remains a controlled-fallback observation unless current verification supplies a usable backend. Final exact-head CI, merge, main validation, tag, and publication remain separate.
+Automated integration, the additive API fingerprint, and package-only acceptance are implemented. Maintainer observations cover the documented ATLAS, FRAME, and TEXT paths, including movement, camera scrolling, blocked water, help restoration, resize cleanup, and independent Q/Escape exit. WezTerm remains a controlled-fallback observation unless current verification supplies a usable backend. Exact-head CI, merge, main validation, tag, and publication completed for 2.3.0; see the T2310 closure record.

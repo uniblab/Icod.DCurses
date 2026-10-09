@@ -4,12 +4,12 @@
 **Release:** `2.3.0`  
 **Theme:** First-class `CursesRasterAtlas` coordination (approved Option 1)  
 **Baseline:** published and tagged `v2.2.0`  
-**Current source and package version:** `2.3.0`  
+**Current maintenance source and package version:** `2.3.1`\
 **Assembly version:** `2.0.0.0`  
 **Direct runtime dependency:** stable `Icod.Terminal 1.28.0`; no direct `Icod.TermInfo` reference
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** Stable 2.3.0 source/package candidate qualified. T2301–T2309 are implemented and the documented ATLAS/FRAME/TEXT live checks are accepted in their tested environments. Stable implementation/package head `8c528a5ec8925635f7c704091fda3fe187d9ffe7` passed all seven jobs in [PR Staging run 1374](https://github.com/uniblab/Icod.DCurses/actions/runs/37970187901). Documentation closure is complete; merge, post-merge Release validation, tagging, and publication remain maintainer actions.
+**Status:** Completed and published. Version 2.3.0 merged through PR #35, passed the seven-job post-merge validation, was tagged, and was published on 2026-10-09. Version 2.3.1 corrects documentation and release-state records without runtime or public API changes. See [T2310 release closure](docs/T2310-2.3.0-Stable-Release-Closure.md).
 **Planning snapshot:** 2026-10-04
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
@@ -87,7 +87,7 @@ Controlled failures return explicit status and completed-update counts without s
 | **T2307** | Adversarial, capacity, allocation and workload measurement | Bounds fail before output; 1/4/16/64/121/256-tile package workloads recorded; no map-sized storage or hidden image cache; later Terminal work is evidence-gated |
 | **T2308** | Public-only Ultima-style sample and package-only consumer | Raster and explicit text fallback share one model; movement, overlays, viewport, resize/recreate and clean exit pass automated/manual acceptance |
 | **T2309** | Public API, package, dependency, XML and documentation freeze | Stable 105-type / 839-line contract and `Icod.Terminal 1.28.0` package boundary qualified at implementation/package head `8c528a5e` in seven-job PR Staging run 1374 |
-| **T2310** | RC, scoped live-terminal evidence and stable-source qualification | Stable source/package head green across the PR matrix; ATLAS/FRAME/TEXT evidence and limitations recorded for the tested environments; merge, post-merge validation, tag and publication remain maintainer actions |
+| **T2310** | RC, scoped live-terminal evidence, stable-source qualification, and publication | Closed: PR #35 merged; exact-head and post-merge validation passed; `v2.3.0`, GitHub Release, and NuGet package were published |
 
 Every tranche records an exact commit and evidence document. Green CI is necessary but not sufficient: semantic, package and manual gates still apply.
 
@@ -153,14 +153,11 @@ No hidden fallback ladder, source-image replay, automatic retry, raster batching
 
 ## 9. Release policy
 
-T2309 is the API/package regret deadline. After it, only fixes required by acceptance evidence enter the release. T2310 records the exact stable source/package qualification. Merge, the post-merge Release workflow, tag, GitHub Release and NuGet publication remain separate maintainer actions.
+T2309 was the API/package regret deadline. T2310 records the exact stable source/package qualification and completed publication. Later 2.3.x work is maintenance only and must preserve the frozen public contract unless a separately approved release plan says otherwise.
 
-## 10. Immediate next step
+## 10. Release closure
 
-Merge the reviewed stable candidate after its documentation-only PR matrix is green.
-Then require the merge commit to pass the `main` Release workflow before creating and
-pushing `v2.3.0`. GitHub Release and NuGet publication remain explicit maintainer
-actions. No further feature development or protocol workaround enters this release.
+The 2.3.0 release is complete. The exact merge, validation, tag, release, and package-asset evidence is preserved in [T2310](docs/T2310-2.3.0-Stable-Release-Closure.md). Version 2.3.1 is a documentation/release-state maintenance correction only; no further feature development or protocol workaround enters this completed roadmap.
 
 ## Historical complete-frame fallback extension (2026-10-03)
 
@@ -339,13 +336,13 @@ requiring further Kitty diagnosis or persistent-ATLAS live acceptance before RC.
 It does not turn fallback FRAME observations into ATLAS acceptance. Retain the
 current public surface and dependency; defer additional atlas/backend work.
 
-The [release readiness record](docs/2.3-Release-Readiness.md) distinguishes automated
-contract evidence, live rendering observations, deferred acceptance and outstanding
-version/dependency and RC/stable decisions. Correct the stale alpha.4 release guard
-to match the alpha.5 project reference. No renderer behavior changes are included.
+The [release record](docs/2.3-Release-Readiness.md) distinguishes automated contract
+evidence, live rendering observations, accepted limitations, and the completed stable
+publication. Historical alpha dependency corrections remain evidence only. No renderer
+behavior changes are included in the 2.3.1 documentation correction.
 
 
-## Stable 2.3.0 release preparation (2026-10-09)
+## Stable 2.3.0 publication closure (2026-10-09)
 
 Published stable `Icod.Terminal 1.28.0` is the sole direct production
 dependency for the stable DCurses candidate. Dependency policy remains
@@ -365,8 +362,4 @@ the recorded environments. This is not a claim of universally atomic or
 flicker-free host presentation. Historical Kitty 0.32.2 acknowledgement
 evidence remains preserved rather than generalized to current Kitty releases.
 
-Release closure is procedural: implementation head `a6c580c` passed every Staging
-runtime and package job in run 1373. The documentation-only closure head must pass
-the same PR checks; the reviewed PR must be merged separately; the merge commit
-must pass the `main` Release workflow; only then may `v2.3.0` be created and
-pushed. This preparation does not merge, tag, or publish.
+Release closure completed through PR #35. Final PR head `d63b0d3b4408f71b3190c5a6d6009fd4141bb9ab` passed all seven jobs in run 37975439045; merge commit `54350ded52034c7b80998c29ce8d15023ad65fb2` passed all seven post-merge jobs in run 37976470537. Tag `v2.3.0`, release workflow 37976956163, the GitHub Release, and NuGet publication completed. Exact asset digests are preserved in [T2310](docs/T2310-2.3.0-Stable-Release-Closure.md).

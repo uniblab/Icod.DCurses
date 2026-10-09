@@ -9,7 +9,7 @@
 
 ## Status
 
-This source tree defines the stable **`Icod.DCurses 2.3.0`** release. Check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published availability and version history.
+This source tree defines the stable **Icod.DCurses 2.3.1** maintenance release. Version 2.3.1 corrects package-facing documentation and durable release-state records after 2.3.0 publication; it contains no runtime or public API changes. Check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published availability and version history.
 
 Version 2.3 adds `CursesRasterAtlas`, a bounded cell-aligned raster presentation owner for tile-oriented applications. Applications keep durable source pixels and gameplay state; DCurses retains placeholder cells, viewport coordinates and transaction serialization; stable Icod.Terminal 1.28.0 owns exact cell-pixel geometry, live raster identities, acknowledgement and lifecycle certainty. Presentations copy the known front frame to a back frame, apply bounded RGB24/RGBA32 damage, then select the completed frame. Complete-atlas workloads are coalesced into one region update, and recoverable presentation timeouts select the sample's text fallback instead of leaving the application blocked.
 
@@ -82,13 +82,13 @@ Icod.Terminal 1.28.0
 Install the stable 2.3 package from NuGet:
 
 ```text
-dotnet add package Icod.DCurses --version 2.3.0
+dotnet add package Icod.DCurses --version 2.3.1
 ```
 
 For the previous stable release:
 
 ```text
-dotnet add package Icod.DCurses --version 2.2.0
+dotnet add package Icod.DCurses --version 2.3.0
 ```
 
 The package targets:
@@ -328,6 +328,7 @@ text; no hidden cache or backend replay occurs.
 Recommended documentation entry points:
 
 - [`docs/Public-API-Baseline-2.3.md`](docs/Public-API-Baseline-2.3.md)
+- [`docs/T2310-2.3.0-Stable-Release-Closure.md`](docs/T2310-2.3.0-Stable-Release-Closure.md)
 - [`docs/Raster-Atlas-Measurement-2.3.md`](docs/Raster-Atlas-Measurement-2.3.md)
 - [`samples/Icod.DCurses.RasterAtlas.Sample/README.md`](samples/Icod.DCurses.RasterAtlas.Sample/README.md)
 - [`Icod.DCurses-2.3.0-Development-Roadmap.md`](Icod.DCurses-2.3.0-Development-Roadmap.md)
