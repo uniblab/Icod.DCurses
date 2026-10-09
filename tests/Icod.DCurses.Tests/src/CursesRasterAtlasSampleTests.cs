@@ -61,6 +61,15 @@ public sealed class CursesRasterAtlasSampleTests {
 	}
 
 	[Fact]
+	public void PresentationTimeoutSelectsTextFallback() {
+		Assert.True(
+			RasterAtlasSampleFallback.IsRecoverablePresentationException(
+				new TimeoutException( "Synthetic terminal query deadline." )
+			)
+		);
+	}
+
+	[Fact]
 	public void StableCameraMovementProducesOnlyOldAndNewTileUpdates() {
 		RasterAtlasSampleState state = new( 10, 10 );
 		CursesRasterAtlasGeometry geometry = new( 10, 10, 2, 3 );
