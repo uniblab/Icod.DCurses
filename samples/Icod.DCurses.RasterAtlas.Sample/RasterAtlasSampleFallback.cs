@@ -20,6 +20,16 @@ internal static class RasterAtlasSampleFallback {
 		writer.WriteLine( exception );
 	}
 
+	internal static bool IsRecoverablePresentationException(
+		Exception exception
+	) {
+		ArgumentNullException.ThrowIfNull( exception );
+		return exception is TimeoutException
+			or InvalidOperationException
+			or IOException
+			or OperationCanceledException;
+	}
+
 	internal static bool IsRecoverableSetupException(
 		Exception exception
 	) {
