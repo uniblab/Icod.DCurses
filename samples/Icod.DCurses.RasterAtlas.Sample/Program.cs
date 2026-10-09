@@ -85,7 +85,7 @@ while ( running ) {
 						rasterSetupStage = "creating the persistent raster atlas";
 						TerminalControlResult<CursesRasterAtlas> creation =
 							await session.CreateRasterAtlasAsync(
-								state.CreateInitialImage( geometry ),
+								state.CreateAtlasImage( geometry ),
 								mapRows,
 								mapColumns
 							);

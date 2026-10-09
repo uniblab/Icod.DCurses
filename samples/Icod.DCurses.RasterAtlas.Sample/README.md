@@ -1,8 +1,9 @@
 # Icod.DCurses.RasterAtlas.Sample
 
-This public-API sample is an original small top-down exploration scene. It is not an
-Ultima IV implementation and contains no Ultima art, maps, rules or data. Its purpose
-is to exercise the presentation demands shared by cell-aligned tile games: a moving
+This public-API sample is a small top-down exploration scene. It is not an Ultima IV
+implementation and contains no Ultima maps, rules or game data. Its ATLAS path uses
+five maintainer-supplied 16x16 EGA-style reference tiles. Its purpose is to exercise
+the presentation demands shared by cell-aligned tile games: a moving
 player, a scrolling camera, sparse tile replacement, retained text/status overlays,
 resize recreation and a text fallback driven by the same model.
 
@@ -101,7 +102,7 @@ must not leave player trails at the left margin. TEXT remains valid when graphic
 cannot be verified; alpha.4 corrects parsing during Kitty detection while preserving the evidence requirements.
 
 In Windows Terminal and Contour, run both the default command and `-- --raster`.
-Check the mode indicator and original pixel art, no text-map flashes between frames,
+Check the mode indicator and supplied pixel art, no text-map flashes between frames,
 movement without left-margin trails, water collision, camera
 scrolling, help open/close, repeated shrinking/growing, no repeated status rows or old
 images, and clean Q/Escape exit. Then run `-- --text`. Preserve unknown-capability

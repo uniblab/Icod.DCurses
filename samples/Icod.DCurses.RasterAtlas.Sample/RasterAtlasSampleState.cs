@@ -127,6 +127,31 @@ internal sealed class RasterAtlasSampleState {
 		return updates;
 	}
 
+	internal TerminalRasterImage CreateAtlasImage(
+		CursesRasterAtlasGeometry geometry
+	) {
+		ValidateGeometry( geometry );
+		byte[] pixels = new byte[ checked( geometry.PixelWidth * geometry.PixelHeight * 3 ) ];
+		for ( int row = 0; row < ViewportRows; row++ ) {
+			for ( int column = 0; column < ViewportColumns; column++ ) {
+				RasterAtlasTileSet.Default.CopyTo(
+					TileKindAt( OriginRow + row, OriginColumn + column ),
+					geometry.TilePixelWidth,
+					geometry.TilePixelHeight,
+					pixels,
+					geometry.PixelWidth,
+					row,
+					column
+				);
+			}
+		}
+		return TerminalRasterImage.CreateRgb24(
+			geometry.PixelWidth,
+			geometry.PixelHeight,
+			pixels
+		);
+	}
+
 	internal TerminalRasterImage CreateInitialImage(
 		CursesRasterAtlasGeometry geometry
 	) {
@@ -190,24 +215,30 @@ internal sealed class RasterAtlasSampleState {
 	) {
 		int row = worldRow - OriginRow;
 		int column = worldColumn - OriginColumn;
-		GetColor( worldRow, worldColumn, out byte red, out byte green, out byte blue );
-		byte[] pixels = new byte[ checked(
-			geometry.TilePixelWidth * geometry.TilePixelHeight * 3
-		) ];
-		for ( int index = 0; index < pixels.Length; index += 3 ) {
-			pixels[ index ] = red;
-			pixels[ index + 1 ] = green;
-			pixels[ index + 2 ] = blue;
-		}
 		return new CursesRasterAtlasTileUpdate(
 			row,
 			column,
-			TerminalRasterImage.CreateRgb24(
+			RasterAtlasTileSet.Default.CreateImage(
+				TileKindAt( worldRow, worldColumn ),
 				geometry.TilePixelWidth,
-				geometry.TilePixelHeight,
-				pixels
+				geometry.TilePixelHeight
 			)
 		);
+	}
+
+	private RasterAtlasTileKind TileKindAt(
+		int row,
+		int column
+	) {
+		if ( row == PlayerRow && column == PlayerColumn ) {
+			return RasterAtlasTileKind.Player;
+		}
+		return TerrainAt( row, column ) switch {
+			RasterAtlasTerrain.Meadow => RasterAtlasTileKind.Grass,
+			RasterAtlasTerrain.Forest => RasterAtlasTileKind.Forest,
+			RasterAtlasTerrain.Water => RasterAtlasTileKind.Water,
+			_ => RasterAtlasTileKind.Road
+		};
 	}
 
 	private void GetColor(
