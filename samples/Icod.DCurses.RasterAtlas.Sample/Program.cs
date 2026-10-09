@@ -258,9 +258,7 @@ while ( running ) {
 				DrawTextMap( map, state );
 			}
 		} catch ( Exception exception ) when (
-			exception is IOException
-				or InvalidOperationException
-				or OperationCanceledException
+			RasterAtlasSampleFallback.IsRecoverablePresentationException( exception )
 		) {
 			message = $"Raster state uncertain ({exception.GetType().Name}); using text.";
 			try {
