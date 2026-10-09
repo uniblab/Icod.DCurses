@@ -11,7 +11,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active development target:** `2.3.0` — first-class `CursesRasterAtlas` coordination\
-**Status:** Stable 2.3.0 release candidate prepared. T2301–T2309 are implemented; the current ATLAS, FRAME, and TEXT paths have maintainer acceptance in their recorded environments. Exact-head PR validation, merge, post-merge Release validation, tagging, and publication remain pending. See [release readiness](docs/2.3-Release-Readiness.md).
+**Status:** Stable 2.3.0 release candidate prepared. T2301–T2309 are implemented; the current ATLAS, FRAME, and TEXT paths have maintainer acceptance in their recorded environments. Stable implementation head `a6c580c` passed all seven PR Staging jobs in [run 1373](https://github.com/uniblab/Icod.DCurses/actions/runs/37969532926). The documentation-only release-closure head, merge, post-merge Release validation, tagging, and publication remain pending. See [release readiness](docs/2.3-Release-Readiness.md).
 
 **Planning snapshot:** 2026-10-04
 
@@ -63,7 +63,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `2.0.0` | Terminal-only integration and removal of direct TermInfo API/dependency coupling | Published |
 | `2.1.0` | Core presentation and text foundations for editor and roguelike applications | Merged, tagged and released |
 | `2.2.0` | Interaction and application conveniences for editor and roguelike applications | Published |
-| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Stable release candidate; exact-head PR and post-merge qualification pending |
+| `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Stable implementation/package head green; documentation closure and post-merge qualification pending |
 | `2.4+` | Higher-level packages, including a possible `Icod.DCurses.Widgets`, and later sprite/physical-placement work | Deferred; scope depends on application evidence |
 
 The post-1.0 progression is intentionally cumulative:
@@ -353,7 +353,7 @@ The full scope, non-goals, tranche gates and release policy are defined in [Icod
 | T2306 | Refresh serialization, lifecycle and failure recovery | Accepted |
 | T2307 | Adversarial, capacity, allocation and workload measurements | Accepted |
 | T2308 | Public-only tile sample, supplied artwork, fallback, and package consumer | Accepted |
-| T2309 | API, package, dependency, XML and documentation freeze | Stable candidate prepared; exact-head CI pending |
+| T2309 | API, package, dependency, XML and documentation freeze | Accepted on implementation head `a6c580c`; 7/7 PR Staging jobs green |
 | T2310 | Live acceptance and stable-source qualification | Live acceptance recorded; merge/main/tag pending |
 
 No production implementation begins until T2300 is reviewed and T2301 freezes the public contract.
@@ -396,7 +396,7 @@ For 2.3, the published 2.2 API artifacts remain immutable historical evidence. T
 
 ## Immediate next step
 
-Qualify the stable `2.3.0` release-preparation head in PR Staging. After review, merge separately, require the post-merge Release workflow to pass, and only then create and push `v2.3.0`.
+Qualify the documentation-only release-closure head in PR Staging. After review, merge separately, require the post-merge Release workflow to pass, and only then create and push `v2.3.0`.
 
 The direct production dependency remains `Icod.DCurses -> Icod.Terminal`; any newly discovered live-terminal gap remains work for the owning Terminal dependency.
 

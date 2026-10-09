@@ -9,7 +9,7 @@
 **Direct runtime dependency:** stable `Icod.Terminal 1.28.0`; no direct `Icod.TermInfo` reference
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** Stable 2.3.0 release candidate prepared. T2301–T2309 are implemented and the documented ATLAS/FRAME/TEXT live checks are accepted in their tested environments. Exact-head PR validation, merge, post-merge Release validation, tagging, and publication remain pending.
+**Status:** Stable 2.3.0 release candidate prepared. T2301–T2309 are implemented and the documented ATLAS/FRAME/TEXT live checks are accepted in their tested environments. Stable implementation head `a6c580c` passed all seven jobs in [PR Staging run 1373](https://github.com/uniblab/Icod.DCurses/actions/runs/37969532926). Documentation closure, merge, post-merge Release validation, tagging, and publication remain pending.
 **Planning snapshot:** 2026-10-04
 
 **Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
@@ -355,7 +355,8 @@ the recorded environments. This is not a claim of universally atomic or
 flicker-free host presentation. Historical Kitty 0.32.2 acknowledgement
 evidence remains preserved rather than generalized to current Kitty releases.
 
-Release closure is procedural: the exact PR head must pass every Staging runtime
-and package job; the reviewed PR must be merged separately; the merge commit
+Release closure is procedural: implementation head `a6c580c` passed every Staging
+runtime and package job in run 1373. The documentation-only closure head must pass
+the same PR checks; the reviewed PR must be merged separately; the merge commit
 must pass the `main` Release workflow; only then may `v2.3.0` be created and
 pushed. This preparation does not merge, tag, or publish.
