@@ -80,9 +80,12 @@ public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 				]
 			).AsTask();
 			await transport.WaitForWriteCountAsync( presentationStart + 1 );
-			Assert.Equal(
-				"\u001b_Ga=c,i=77,r=1,c=2,w=2,h=2,X=0,Y=0,x=0,y=0,C=1\u001b\\",
-				transport.GetAsciiWrite( presentationStart )
+			string expectedComposition =
+				"\u001b_Ga=c,i=77,r=1,c=2,w=2,h=2,X=0,Y=0,x=0,y=0,C=1\u001b\\";
+			string actualComposition = transport.GetAsciiWrite( presentationStart );
+			Assert.True(
+				string.Equals( expectedComposition, actualComposition, StringComparison.Ordinal ),
+				$"Expected composition bytes: {Convert.ToHexString( Encoding.ASCII.GetBytes( expectedComposition ) )}; actual: {Convert.ToHexString( Encoding.ASCII.GetBytes( actualComposition ) )}."
 			);
 			transport.PublishOk();
 
