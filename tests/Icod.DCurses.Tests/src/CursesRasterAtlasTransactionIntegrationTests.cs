@@ -100,16 +100,21 @@ public sealed partial class CursesRasterAtlasTransactionIntegrationTests {
 			transport.PublishOk();
 
 			await transport.WaitForWriteCountAsync( presentationStart + 3 );
-			Assert.Equal(
-				"\u001b_Ga=f,f=24,s=1,v=1,t=d,i=77,r=2,x=1,y=1,X=1,m=0;BAUG\u001b\\",
-				transport.GetAsciiWrite( presentationStart + 2 )
+			string expectedSecondUpdate =
+				"\u001b_Ga=f,f=24,s=1,v=1,t=d,i=77,r=2,x=1,y=1,X=1,m=0;BAUG\u001b\\";
+			string actualSecondUpdate = transport.GetAsciiWrite( presentationStart + 2 );
+			Assert.True(
+				string.Equals( expectedSecondUpdate, actualSecondUpdate, StringComparison.Ordinal ),
+				$"Expected second-update bytes: {Convert.ToHexString( Encoding.ASCII.GetBytes( expectedSecondUpdate ) )}; actual: {Convert.ToHexString( Encoding.ASCII.GetBytes( actualSecondUpdate ) )}."
 			);
 			transport.PublishOk();
 
 			await transport.WaitForWriteCountAsync( presentationStart + 4 );
-			Assert.Equal(
-				"\u001b_Ga=a,i=77,c=2\u001b\\",
-				transport.GetAsciiWrite( presentationStart + 3 )
+			string expectedSelection = "\u001b_Ga=a,i=77,c=2\u001b\\";
+			string actualSelection = transport.GetAsciiWrite( presentationStart + 3 );
+			Assert.True(
+				string.Equals( expectedSelection, actualSelection, StringComparison.Ordinal ),
+				$"Expected selection bytes: {Convert.ToHexString( Encoding.ASCII.GetBytes( expectedSelection ) )}; actual: {Convert.ToHexString( Encoding.ASCII.GetBytes( actualSelection ) )}."
 			);
 			transport.PublishOk();
 
