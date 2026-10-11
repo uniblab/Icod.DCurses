@@ -113,15 +113,10 @@ public sealed partial class CursesSession : IAsyncDisposable {
 	) {
 		cancellationToken.ThrowIfCancellationRequested();
 
-		CursesSessionOptions resolvedOptions = options ?? new CursesSessionOptions();
-		resolvedOptions.Validate();
+		CursesSessionOptions resolvedOptions = ( options ?? new CursesSessionOptions() ).Snapshot();
 
 		TerminalSession terminalSession = await TerminalSession.OpenAsync(
-			new TerminalSessionOptions {
-				InputMode = ToTerminalInputMode( resolvedOptions.InputMode ),
-				EchoInput = resolvedOptions.EchoInput,
-				RequireInteractiveOutput = true
-			},
+			CreateOwnedTerminalOptions( resolvedOptions ),
 			cancellationToken
 		).ConfigureAwait( false );
 
@@ -158,11 +153,16 @@ public sealed partial class CursesSession : IAsyncDisposable {
 		ArgumentNullException.ThrowIfNull( terminalSession );
 		cancellationToken.ThrowIfCancellationRequested();
 
-		CursesSessionOptions resolvedOptions = options ?? new CursesSessionOptions {
-			InputMode = FromTerminalInputMode( terminalSession.Options.InputMode ),
-			EchoInput = terminalSession.Options.EchoInput
-		};
-		resolvedOptions.Validate();
+		CursesSessionOptions resolvedOptions = (
+			options ?? new CursesSessionOptions {
+				ClipboardOptions = new CursesClipboardOptions {
+					MaximumReadBytes = terminalSession.Options.ClipboardOptions.MaximumReadBytes,
+					MaximumWriteBytes = terminalSession.Options.ClipboardOptions.MaximumWriteBytes
+				},
+				InputMode = FromTerminalInputMode( terminalSession.Options.InputMode ),
+				EchoInput = terminalSession.Options.EchoInput
+			}
+		).Snapshot();
 
 		if ( !terminalSession.IsInteractive ) {
 			throw new InvalidOperationException(
@@ -172,9 +172,13 @@ public sealed partial class CursesSession : IAsyncDisposable {
 		if (
 			ToTerminalInputMode( resolvedOptions.InputMode ) != terminalSession.Options.InputMode
 			|| resolvedOptions.EchoInput != terminalSession.Options.EchoInput
+			|| resolvedOptions.ClipboardOptions.MaximumReadBytes
+				!= terminalSession.Options.ClipboardOptions.MaximumReadBytes
+			|| resolvedOptions.ClipboardOptions.MaximumWriteBytes
+				!= terminalSession.Options.ClipboardOptions.MaximumWriteBytes
 		) {
 			throw new InvalidOperationException(
-				"Curses input-mode and echo options must match the supplied TerminalSession."
+				"Curses input-mode, echo, and clipboard options must match the supplied TerminalSession."
 			);
 		}
 
@@ -197,6 +201,22 @@ public sealed partial class CursesSession : IAsyncDisposable {
 			}
 			throw;
 		}
+	}
+
+	internal static TerminalSessionOptions CreateOwnedTerminalOptions(
+		CursesSessionOptions options
+	) {
+		ArgumentNullException.ThrowIfNull( options );
+		options.Validate();
+		return new TerminalSessionOptions {
+			ClipboardOptions = new TerminalClipboardOptions {
+				MaximumReadBytes = options.ClipboardOptions.MaximumReadBytes,
+				MaximumWriteBytes = options.ClipboardOptions.MaximumWriteBytes
+			},
+			InputMode = ToTerminalInputMode( options.InputMode ),
+			EchoInput = options.EchoInput,
+			RequireInteractiveOutput = true
+		};
 	}
 
 	/// <summary>Queries the current live terminal dimensions.</summary>

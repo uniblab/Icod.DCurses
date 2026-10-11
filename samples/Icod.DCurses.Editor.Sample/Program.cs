@@ -1,11 +1,34 @@
+/*
+	Icod.DCurses.Editor.Sample
+	Interactive editor-foundation acceptance sample for Icod.DCurses.
+	Copyright (C) 2026  Timothy J. Bruce <uniblab@hotmail.com>
+*/
+
+/*
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 using Icod.DCurses;
 using Icod.DCurses.Editor.Sample;
 
 await using CursesSession session = await CursesSession.OpenAsync(
 	EditorSampleInteraction.CreateSessionOptions()
 );
+await using CursesCursorStyleLease? caretStyle = await TryAcquireCaretStyleAsync( session );
 CursesScreen screen = session.Screen;
 using EditorSampleInteraction interaction = new( screen );
+EditorSampleClipboard clipboard = new();
 CursesWindow document = screen.CreateWindow( 0, 0, 1, 1 );
 CursesWindow status = screen.CreateWindow( 0, 0, 1, 1 );
 CursesWindow prompt = screen.CreateWindow( 0, 0, 1, 1 );
@@ -23,31 +46,7 @@ while ( running ) {
 		prompt.SetBounds( regions.Prompt );
 		interaction.SetBounds( regions.Document, regions.Prompt );
 		state.Resize( document.Rows, document.Columns );
-		document.Clear();
-		(int first, int count) = state.VisibleRecords();
-		for ( int index = 0; index < count; index++ ) {
-			int row = first + index;
-			CursesTextLayout layout = state.LayoutRecord( row );
-			CursesRectangle[] selection = state.SelectionRectangles( row, layout );
-			if ( selection.Length > 0 && state.SelectionAnchor is int anchor ) {
-				layout = CursesTextLayout.Create( layout.Text, layout.Options,
-					[ new CursesTextSpan( new CursesTextPosition( Math.Min( anchor, state.Offset ) ),
-						Math.Abs( anchor - state.Offset ),
-						CursesStyle.Default.WithAttributes( CursesTextAttributes.Reverse ) ) ] );
-			} else if ( row == state.Row ) {
-				int next = layout.GetNextPosition( new CursesTextPosition( state.Offset ) ).Offset;
-				if ( next > state.Offset ) {
-					// Styling the complete source element keeps wide-glyph continuation cells intact.
-					layout = CursesTextLayout.Create( layout.Text, layout.Options,
-						[ new CursesTextSpan( new CursesTextPosition( state.Offset ),
-							next - state.Offset,
-							CursesStyle.Default.WithAttributes( CursesTextAttributes.Reverse ) ) ] );
-				}
-			}
-			int visualRow = row * EditorSampleState.RecordVisualRows - state.Viewport.OriginRow;
-			document.PresentTextLayout( layout, 0, layout.Lines.Count, visualRow,
-				state.Wrap ? 0 : -state.Viewport.OriginColumn );
-		}
+		_ = state.ProjectVisible( document );
 		if ( state.Offset == state.GetRecord( state.Row ).Length
 			&& state.TryCaret( out CursesCellPosition caret )
 			&& screen.VirtualScreen.GetCell( regions.Document.Row + caret.Row,
@@ -111,6 +110,12 @@ while ( running ) {
 			case EditorSampleInteraction.InsertTabCommandName: _ = state.Insert( "\t" ); break;
 			case EditorSampleInteraction.ToggleWrapCommandName: state.ToggleWrap(); break;
 			case EditorSampleInteraction.ToggleSelectionCommandName: state.ToggleSelection(); break;
+			case EditorSampleInteraction.CopyCommandName:
+				_ = await clipboard.CopyAsync( session, state );
+				break;
+			case EditorSampleInteraction.PasteCommandName:
+				_ = await clipboard.PasteAsync( session, state );
+				break;
 			case EditorSampleInteraction.OpenPromptCommandName:
 				digits = string.Empty;
 				interaction.OpenPrompt();
@@ -136,7 +141,50 @@ while ( running ) {
 		continue;
 	}
 
-	CursesInputEvent? routedInput = sequenceResult.Fallback?.Input;
+	CursesInteractionResult? routed = sequenceResult.Fallback;
+	CursesInputEvent? routedInput = routed?.Input;
+	if ( routedInput?.Kind == CursesInputEventKind.Mouse
+		&& routed is not null
+		&& routed.PointerGesture is CursesPointerGesture gesture
+		&& gesture.Button == CursesMouseButton.Primary
+		&& gesture.Target is CursesPointerTarget target ) {
+		if ( interaction.IsDocumentTarget( routed ) ) {
+			if ( gesture.Kind == CursesPointerGestureKind.Press ) {
+				state.SetCaretFromPointer(
+					target.LocalRow,
+					target.LocalColumn,
+					extendSelection: false
+				);
+			} else if ( gesture.Kind is CursesPointerGestureKind.DragStart
+				or CursesPointerGestureKind.DragMove
+				or CursesPointerGestureKind.DragEnd ) {
+				state.SetCaretFromPointer(
+					target.LocalRow,
+					target.LocalColumn,
+					extendSelection: true
+				);
+				if ( gesture.Kind == CursesPointerGestureKind.DragEnd ) {
+					state.EndPointerSelection();
+				}
+			}
+		} else if ( interaction.IsScrollbarTarget( routed )
+			&& gesture.Kind is CursesPointerGestureKind.Press
+				or CursesPointerGestureKind.DragStart
+				or CursesPointerGestureKind.DragMove
+				or CursesPointerGestureKind.DragEnd ) {
+			state.ScrollbarTo( target.LocalRow );
+		}
+		continue;
+	}
+	if ( routedInput?.Kind == CursesInputEventKind.Paste
+		&& routedInput.Paste is CursesPasteEvent {
+			Phase: CursesPastePhase.Data,
+			Text: string pasteText
+		}
+		&& !interaction.IsPromptActive ) {
+		_ = state.Insert( pasteText );
+		continue;
+	}
 	if ( routedInput?.Kind == CursesInputEventKind.Text
 		&& routedInput.Character.HasValue ) {
 		if ( interaction.IsPromptActive ) {
@@ -153,6 +201,23 @@ while ( running ) {
 session.StandardScreen.Clear();
 await session.RefreshAsync();
 return 0;
+
+static async ValueTask<CursesCursorStyleLease?> TryAcquireCaretStyleAsync(
+	CursesSession session
+) {
+	try {
+		return await session.AcquireCursorStyleAsync(
+			CursesCursorStyle.SteadyBar,
+			TimeSpan.FromMilliseconds( 250 )
+		);
+	} catch ( Exception exception ) when ( exception is TimeoutException
+		or NotSupportedException
+		or InvalidOperationException
+		or FormatException
+		or IOException ) {
+		return null;
+	}
+}
 
 static void WriteLine( CursesWindow window, string value ) {
 	if ( window.Rows > 0 && window.Columns > 0 ) {

@@ -1,9 +1,9 @@
 # Icod.DCurses 2.4.0 Development Roadmap
 
 **Decision:** Focused Widgets and dedit foundations; approved in conversation on 2026-10-10 (America/New_York)  
-**State:** Planned, not implemented or published  
+**State:** T2400–T2409 accepted locally; `2.4.0` stable source ready for PR CI and maintainer handoff; not merged, tagged or published
 **Base:** Stable Icod.DCurses 2.3.1, AssemblyVersion 2.0.0.0  
-**Target dependency:** Direct Icod.Terminal 1.29.0 after clean published-package restore; no direct Icod.TermInfo reference  
+**Current dependency:** Direct stable Icod.Terminal 1.29.0 after clean published-package restore; no direct Icod.TermInfo production reference
 **Targets:** net8.0, net9.0, net10.0; C# 13; Windows/Linux/macOS  
 **Design authority:** [2.4 design](docs/superpowers/specs/2026-10-10-icod-dcurses-2.4-widgets-editor-foundations-design.md)  
 **Execution detail:** [2.4 implementation plan](docs/superpowers/plans/2026-10-11-icod-dcurses-2.4-widgets-editor-foundations.md)
@@ -51,16 +51,16 @@ Exercise current function-key/phase/paste/focus event data, scopes and pointer c
 
 | Tranche | Deliverable | Exit evidence |
 |---|---|---|
-| T2400 | Baseline, 1.29 restore and development identity | Clean NuGet restore, one direct Terminal 1.29 reference in production, test/project/package guards, 2.4.0-alpha.1 identity, 2.0.0.0 assembly |
-| T2401 | Clipboard contract and red witnesses | Frozen semantic enum/options/session signatures; tests initially fail for default/bounds/external-session mismatch and no implicit I/O |
-| T2402 | Clipboard integration and hardening | Owned/external sessions, byte/text operations, 64 KiB and opt-in larger budgets, cancellation/timeout/malformed/oversize/disposal proven against deterministic transport |
-| T2403 | Cursor style contract and red witnesses | Semantic style/lease signatures frozen; visibility independence, unsupported baseline and nested restoration tests initially fail |
-| T2404 | Cursor style integration and hardening | Terminal lease forwarding, LIFO cleanup, session-close races, unsupported/fallback behavior pass |
-| T2405 | Viewport baseline and measured public-only witness | Existing APIs handle visible slices, coordinate mapping and overlays; many-line/long-line/Unicode/paste workload and allocation evidence recorded |
-| T2406 | Conditional lower-layer gap closure | Only if T2405 or interaction acceptance reveals an irreducible gap: amend design/API gate, add exact red test, smallest additive mechanism and proof; otherwise record no new API required |
-| T2407 | Captured interaction and sample acceptance | Outside drag/release, focus/modal cancellation, paste as data, key phases, visible cursor/clipboard fallback/resize in a public-only sample |
-| T2408 | Adversarial, package and API regret gate | Full framework matrix, package-only consumers, baseline/fingerprint, documentation, dependency/licensing audit and performance budgets |
-| T2409 | RC/stable-source and maintainer handoff | Exact-head CI plus scoped live-terminal evidence, version 2.4.0 and package metadata aligned; owner handles merge, main validation, tag and publication |
+| T2400 | Baseline, 1.29 restore and development identity | Accepted at implementation commit `2bd668b`; clean NuGet restore, one direct Terminal 1.29 reference in production, test/project guards, 2.4.0-alpha.1 identity, 2.0.0.0 assembly; see [evidence](docs/T2400-Dependency-and-Identity.md) |
+| T2401 | Clipboard contract and red witnesses | Accepted at `e79b906`; semantic enum/options and snapshot/forwarding contract, 3/3 focused tests |
+| T2402 | Clipboard integration and hardening | Accepted at `c3e4e61`; 20/20 focused tests for owned/external sessions, byte/text operations, larger budgets and failure/lifetime semantics; see [evidence](docs/T2402-Clipboard-Integration.md) |
+| T2403 | Cursor style contract and red witnesses | Accepted at `27ab58f`; six semantic styles, narrow lease, exact session signature and Terminal mapping |
+| T2404 | Cursor style integration and hardening | Accepted at `f57eb41`; 8/8 focused contract/lifecycle tests for exact baseline/LIFO restoration, visibility independence, unavailable acquisition and close races; see [evidence](docs/T2404-Cursor-Style-Lifecycle.md) |
+| T2405 | Viewport baseline and measured public-only witness | Accepted at `9a02d92`; 5/5 focused tests and 16/16 existing editor tests pass, bounded long-line projection measured at 30,384 bytes / 4.078 ms; see [evidence](docs/T2405-Viewport-Measurement.md) |
+| T2406 | Conditional lower-layer gap closure | Closed with no new API: caller-prepared visible slices satisfy the witness and keep document indexing/caches in Widgets; see [decision](docs/T2406-API-Gap-Decision.md) |
+| T2407 | Captured interaction and sample acceptance | Accepted at `80e5354`; 7/7 focused and 42/42 editor tests pass; public-only sample covers outside drag/release, focus/modal/resize cancellation, paste as data, key phases, separate scrollbar hit-testing, visible scoped caret and explicit clipboard fallback; see [evidence](docs/T2407-Editor-Interaction-Acceptance.md) |
+| T2408 | Adversarial, package and API regret gate | Accepted at `8e1ed20`; 109-type/857-line API freeze, 1,415 tests per target, Staging/Release all-target builds, exact package dependency/contents, isolated consumers, durable README and complete license-header audit; see [evidence](docs/T2408-API-Package-Documentation-Gate.md) |
+| T2409 | RC/stable-source and maintainer handoff | Accepted locally: RC `08c558e` and stable source `357f74d`; forced restore, all-target Release build/test, exact stable package and isolated consumers pass; exact-runtime/platform/live limitations remain for PR CI/maintainer review; see [evidence](docs/T2409-2.4.0-Stable-Source-Gate.md) |
 
 T2406 is a gated branch, not a promise to invent a new viewport or gesture API. Any additive API enters before the T2408 freeze and must remain compatible with 2.3.1. No task may mark a later gate accepted solely because an earlier build was green. Each tranche records commit, tests, limitations, package identity and follow-up in `docs/T24xx-*.md`.
 
@@ -84,4 +84,4 @@ Do not add multiline document storage/undo, a tab control, interactive scrollbar
 
 ## 8. Immediate next action
 
-Review this roadmap and the linked implementation plan. After approval, implement T2400 first and verify the published Terminal 1.29 package through clean restore. Then proceed tranche by tranche under the plan's red/green/review gates.
+Submit the exact stable-source head to PR CI and maintainer review. T2400–T2409 established the dependency baseline, clipboard/cursor facades, public-only viewport and interaction witnesses, frozen API, durable documentation, RC, stable identity and package-only qualification. They do not claim exact-runtime CI on all platforms, interactive clipboard/cursor acceptance, merge, tag or publication; the maintainer owns those decisions and actions.

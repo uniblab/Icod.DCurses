@@ -4,14 +4,15 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
 **Published compatibility floor:** `1.0.0`\
 **Published releases:** [GitHub Releases](https://github.com/uniblab/Icod.DCurses/releases) and [NuGet](https://www.nuget.org/packages/Icod.DCurses/)\
-**Current stable source/package identity:** `2.3.1`\
+**Current stable source candidate:** `2.4.0`; not merged, tagged or published\
+**Latest published stable package:** `2.3.1`\
 **Current development assembly version:** `2.0.0.0`\
-**Current stable runtime dependency:** direct stable `Icod.Terminal 1.28.0` only; TermInfo remains transitive\
+**Current development runtime dependency:** direct stable `Icod.Terminal 1.29.0` only; TermInfo remains transitive\
 **Stable 2.3 direct runtime dependency:** `Icod.Terminal 1.28.0`; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Active feature track:** planned 2.4.0 Widgets/dedit foundations in PR #37; 2.3.1 remains the stable source; higher-level widgets belong in `Icod.Widgets`\
-**Status:** The 2.3 feature track is complete. Version 2.3.0 was merged, validated, tagged, and published on 2026-10-09. Version 2.3.1 corrects package-facing documentation and durable release records only. The focused 2.4.0 track is planned, not implemented or published; its first implementation gate will move the direct dependency to published `Icod.Terminal 1.29.0`. See the [2.3 release record](docs/2.3-Release-Readiness.md) and [2.4 roadmap](Icod.DCurses-2.4.0-Development-Roadmap.md).
+**Active feature track:** 2.4.0 Widgets/dedit foundations in PR #37; stable source locally qualified for maintainer handoff; higher-level widgets belong in `Icod.Widgets`\
+**Status:** The 2.4 feature/API/package, RC and stable-source gates are locally accepted. Source identity is the unmerged and unpublished `2.4.0` stable candidate on direct stable `Icod.Terminal 1.29.0`; PR CI and maintainer review remain. Version 2.3.1 remains the latest published package. See the [2.4 roadmap](Icod.DCurses-2.4.0-Development-Roadmap.md), [T2408 package/API evidence](docs/T2408-API-Package-Documentation-Gate.md), and [T2409 stable-source gate](docs/T2409-2.4.0-Stable-Source-Gate.md).
 
 **Planning snapshot:** 2026-10-11
 
@@ -19,7 +20,7 @@
 
 ## Current authorities
 
-The [2.4 development roadmap](Icod.DCurses-2.4.0-Development-Roadmap.md), [approved design](docs/superpowers/specs/2026-10-10-icod-dcurses-2.4-widgets-editor-foundations-design.md), and [implementation plan](docs/superpowers/plans/2026-10-11-icod-dcurses-2.4-widgets-editor-foundations.md) govern the new focused feature track. They propose Terminal 1.29 clipboard/cursor integration and qualified visible-editor/capture use, preserving Widgets and dedit ownership. Their proposed work is not yet released.
+The [2.4 development roadmap](Icod.DCurses-2.4.0-Development-Roadmap.md), [approved design](docs/superpowers/specs/2026-10-10-icod-dcurses-2.4-widgets-editor-foundations-design.md), and [implementation plan](docs/superpowers/plans/2026-10-11-icod-dcurses-2.4-widgets-editor-foundations.md) govern the focused feature track. Terminal 1.29 clipboard/cursor integration and visible-editor/capture use are implemented and locally qualified while preserving Widgets and dedit ownership; the stable source candidate is not yet merged or released.
 
 The completed [Icod.DCurses 2.3 roadmap](Icod.DCurses-2.3.0-Development-Roadmap.md), approved [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md), [implementation plan](docs/superpowers/plans/2026-10-03-icod-dcurses-2.3-curses-raster-atlas.md), and [publication closure](docs/T2310-2.3.0-Stable-Release-Closure.md) are the historical authority for the published 2.3 feature line. DCurses owns retained atlas coordinates, damage-oriented updates, front/back sequencing and refresh ordering; Terminal owns protocol encoding, opaque identities and the live terminal conversation; applications own source art, maps, actors, collision, visibility and scheduling.
 
@@ -67,7 +68,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `2.2.0` | Interaction and application conveniences for editor and roguelike applications | Published |
 | `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Published 2026-10-09 |
 | `2.3.1` | Package documentation and release-state correction | Stable maintenance patch; no runtime or public API changes |
-| `2.4.0` | Widgets/dedit foundations: Terminal 1.29 clipboard/cursor facades, qualified visible projection and capture | Planned in PR #37; not implemented or published |
+| `2.4.0` | Widgets/dedit foundations: Terminal 1.29 clipboard/cursor facades, qualified visible projection and capture | Stable-source candidate locally qualified; PR CI and maintainer handoff pending |
 | Later | Higher-level `Icod.Widgets` and separately evidenced sprite/physical-placement work | Separate repositories/tracks; not implicitly in 2.4 |
 
 The post-1.0 progression is intentionally cumulative:
@@ -369,7 +370,7 @@ No production implementation begins until T2300 is reviewed and T2301 freezes th
 
 Version 2.4 is a focused DCurses mechanism release above stable 2.3.1 and Terminal 1.29. It exposes session-owned, bounded clipboard read/write and reversible cursor-style control without duplicating Terminal protocols. It proves visible-slice text projection, caret/selection and captured interaction for a Widgets editor, introducing a new DCurses viewport or gesture API only after an exact failing public-consumer witness and design amendment. Document storage, undo, tabs, dialogs, files, shortcut policy and scheduling remain with Widgets and dedit.
 
-The [versioned roadmap](Icod.DCurses-2.4.0-Development-Roadmap.md) defines T2400–T2409, public API/regret gates, performance and platform evidence, dependency/version policy and release handoff. The [implementation plan](docs/superpowers/plans/2026-10-11-icod-dcurses-2.4-widgets-editor-foundations.md) maps tasks to exact source/tests. T2400 will first confirm published Terminal 1.29.0 restores cleanly, then set `2.4.0-alpha.1` Version/PackageVersion while keeping AssemblyVersion `2.0.0.0`. Until that gate runs, the current source remains 2.3.1 on Terminal 1.28.0. No plan text is a claim of implementation.
+The [versioned roadmap](Icod.DCurses-2.4.0-Development-Roadmap.md) defines T2400–T2409, public API/regret gates, performance and platform evidence, dependency/version policy and release handoff. The [implementation plan](docs/superpowers/plans/2026-10-11-icod-dcurses-2.4-widgets-editor-foundations.md) maps tasks to exact source/tests. T2400 established the alpha identity, T2401–T2408 implemented and froze the feature/package contract, and exact `2.4.0-rc.1` locally passed the release tests and package-only consumers. The `2.4.0` stable candidate with AssemblyVersion `2.0.0.0` then passed forced restore, complete Release build/test, package validation and isolated consumers. PR CI and maintainer review remain; see the [T2409 gate](docs/T2409-2.4.0-Stable-Source-Gate.md).
 
 | Tranche | Decision/qualification gate |
 |---|---|

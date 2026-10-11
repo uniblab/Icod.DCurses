@@ -2,6 +2,16 @@
 
 All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/` and the versioned roadmap files.
 
+## 2.4.0 — Clipboard, cursor style, and editor foundations
+
+- Added `CursesClipboardSelection` and independently bounded `CursesClipboardOptions`; read/write defaults are 65,536 bytes and each local limit may be configured up to 16 MiB before an owned session opens.
+- Added explicit strict-UTF-8 text writes, exact byte writes, and bounded byte reads through `CursesSession`, retaining Terminal's timeout, cancellation, malformed-data, output-failure, and host-policy distinctions.
+- Added six semantic `CursesCursorStyle` values and an async-disposable scoped lease that preserves Terminal's observed baseline, nesting and exact LIFO restoration without changing cursor visibility or guessing a reset.
+- Updated the sole direct runtime dependency to stable `Icod.Terminal 1.29.0`; no Icod.TermInfo type or direct production dependency was introduced.
+- Qualified existing layout, viewport and retained-projection APIs for bounded editor composition. A caller-prepared 40-character long-line slice projected in 4.078 ms with 30,384 allocated bytes; no document/cache API was added to DCurses.
+- Expanded the public-only editor sample with captured outside drag/release, modal/focus/resize cancellation, pointer selection, separate scrollbar hit-testing, bracketed-paste routing, `Ctrl+C`/`Ctrl+V` with application fallback, and a best-effort visible steady-bar caret.
+- Froze the additive public contract at 109 exported types, 857 canonical declared contract lines and SHA-256 `87a3ffe66174634f6db4044b914b05fd31d117b93ecf5b1a151d31d59732e65e`; `AssemblyVersion` remains `2.0.0.0` and targets remain .NET 8/9/10.
+
 ## 2.3.1 — Documentation and release-state correction
 
 - Corrected the packaged README installation command and stable source identity after the published 2.3.0 release.
