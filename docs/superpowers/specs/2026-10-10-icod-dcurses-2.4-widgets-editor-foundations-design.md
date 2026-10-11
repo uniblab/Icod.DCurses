@@ -1,7 +1,7 @@
 # Icod.DCurses 2.4.0 — Widgets and dedit foundations
 
 **Date:** 2026-10-10 (America/New_York)  
-**Status:** Proposed written design for maintainer review; not an implementation claim  
+**Status:** Approved for planning on 2026-10-11; public signatures remain subject to the tranche API gate; not an implementation claim  
 **Decision:** Focused DCurses mechanisms, with application and control policy above it  
 **Baseline:** Icod.DCurses 2.3.1; direct Icod.Terminal 1.28.0  
 **Target dependency:** published Icod.Terminal 1.29.0  
@@ -100,7 +100,7 @@ First demonstrate drag selection and scrollbar capture through the current route
 
 No editor document store, undo/redo engine, tabs, scrollbars, dialog semantics, keyboard shortcut policy, filesystem access, encoding conversion, save/close workflow, autosave, host clipboard implementation, protocol parser/encoder, whole-file cache, frame timer, terminal emulator, PTY or change to Terminal's 1.29 buffer negotiation/budget policy. Features above the DCurses boundary require their own Widgets/dedit designs and tests.
 
-## Review decisions to lock before the development roadmap
+## Decisions carried into the development roadmap
 
 1. Confirm that the proposed clipboard/cursor public facades are the narrowest usable contracts for a Widgets-only direct dependency.
 2. Confirm external TerminalSession clipboard options are either matched or explicitly rejected at DCurses open; never silently ignored.
