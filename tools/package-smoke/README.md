@@ -2,7 +2,7 @@
 
 This project is intentionally not part of `Icod.DCurses.sln` and has no project reference to the repository library.
 
-Package validation copies the smoke project and its explicitly staged source witnesses into a temporary directory, uses an isolated NuGet package cache, restores the exact current DCurses package version from the local artifact directory, and resolves the package-declared dependency graph. The stable 2.3 package declares `Icod.Terminal 1.28.0` directly; `Icod.TermInfo` remains a transitive dependency through Terminal.
+Package validation copies the smoke project and its explicitly staged source witnesses into a temporary directory, uses an isolated NuGet package cache, restores the exact current DCurses package version from the local artifact directory, and resolves the package-declared dependency graph. The 2.4 package declares `Icod.Terminal 1.29.0` directly; `Icod.TermInfo` remains a transitive dependency through Terminal.
 
 Dependency versions are not duplicated as verifier policy. The package metadata is authoritative; restore/build/run establish whether the generated package is consumable with its declared dependency graph.
 
@@ -13,6 +13,7 @@ The ordinary CI execution uses only non-interactive public APIs, so it never req
 - retained panels, geometry/layout helpers, and explicit bounds application;
 - 1.4/1.5 interaction routing, focus, scopes, gesture bindings, pointer capture, pointer target/gesture results, and pointer-shape leases;
 - the 1.6 retained-raster facade and its one intentional lower-layer image input, `TerminalRasterImage`.
+- the 2.4 bounded clipboard options/read/write surface and scoped semantic cursor-style lease.
 
 `RasterSmoke.cs` is staged beside the established `Program.cs` by both the Unix and Windows package validators. A module initializer executes its package-only checks before the ordinary smoke program. It constructs a backend-neutral `TerminalRasterImage`, validates the DCurses raster ownership vocabulary, and freezes the public signatures for resource creation, placeholder creation, placeholder-cell retrieval, window raster writes, and virtual-screen raster mutation. It contains no project reference, raw Kitty/Sixel protocol identity, or backend-selection branch.
 

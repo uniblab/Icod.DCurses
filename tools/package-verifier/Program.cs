@@ -14,6 +14,7 @@ internal static class Program {
 	private const string PackageCopyright = "Copyright (c) 2026 Timothy J. Bruce";
 	private const string RepositoryUrl = "https://github.com/uniblab/Icod.DCurses";
 	private const string TerminalPackageId = "Icod.Terminal";
+	private const string TerminalPackageVersion = "1.29.0";
 	private static readonly string[] TargetFrameworks = [
 		"net8.0",
 		"net9.0",
@@ -277,13 +278,29 @@ internal static class Program {
 				&& TerminalPackageId == dependencyIds[ 0 ],
 			"Production project must depend directly only on Icod.Terminal."
 		);
+		XElement terminalReference = project.Descendants()
+			.Single( element => "PackageReference" == element.Name.LocalName );
+		Require(
+			TerminalPackageVersion == terminalReference.Attribute( "Version" )?.Value,
+			$"Production Icod.Terminal dependency must be exactly {TerminalPackageVersion}."
+		);
 		return dependencyIds;
 	}
 
 	private static void VerifyDependencyNegativeControls() {
+		XDocument wrongProjectVersion = XDocument.Parse(
+			"<Project><ItemGroup>"
+				+ "<PackageReference Include='Icod.Terminal' Version='1.28.0' />"
+				+ "</ItemGroup></Project>"
+		);
+		RequireRejected(
+			() => ReadProjectDependencyIds( wrongProjectVersion ),
+			"An outdated direct Icod.Terminal project dependency"
+		);
+
 		XDocument extraProjectDependency = XDocument.Parse(
 			"<Project><ItemGroup>"
-				+ "<PackageReference Include='Icod.Terminal' Version='1.0.0' />"
+				+ $"<PackageReference Include='Icod.Terminal' Version='{TerminalPackageVersion}' />"
 				+ "<PackageReference Include='Icod.TermInfo' Version='1.17.0' />"
 				+ "</ItemGroup></Project>"
 		);
@@ -303,13 +320,24 @@ internal static class Program {
 						new XElement(
 							"dependency",
 							new XAttribute( "id", TerminalPackageId ),
-							new XAttribute( "version", "[1.0.0, )" )
+							new XAttribute( "version", TerminalPackageVersion )
 						)
 					)
 				)
 			)
 		);
 		VerifyDependencies( metadata, [ TerminalPackageId ] );
+		XElement[] packageDependencies = metadata.Descendants( "dependency" ).ToArray();
+		foreach ( XElement dependency in packageDependencies ) {
+			dependency.SetAttributeValue( "version", "1.28.0" );
+		}
+		RequireRejected(
+			() => VerifyDependencies( metadata, [ TerminalPackageId ] ),
+			"An outdated Icod.Terminal package dependency"
+		);
+		foreach ( XElement dependency in packageDependencies ) {
+			dependency.SetAttributeValue( "version", TerminalPackageVersion );
+		}
 		metadata.Descendants( "group" ).First().Add(
 			new XElement(
 				"dependency",
@@ -856,8 +884,9 @@ internal static class Program {
 				.Single( element => "dependency" == element.Name.LocalName );
 			string? version = terminalDependency.Attribute( "version" )?.Value;
 			Require(
-				!string.IsNullOrWhiteSpace( version ),
-				$"Package dependency for {targetFramework} must carry an Icod.Terminal version."
+				TerminalPackageVersion == version,
+				$"Package dependency for {targetFramework} must require Icod.Terminal "
+					+ $"{TerminalPackageVersion} exactly."
 			);
 		}
 	}

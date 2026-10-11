@@ -63,6 +63,7 @@ VerifyPadSurface();
 VerifyInteractionSurface();
 VerifyAdvancedInteractionSurface();
 VerifyCommandSequenceSurface();
+VerifyTwoFourSurface();
 
 if ( string.Equals(
 	Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_INTERACTIVE" ),
@@ -104,6 +105,88 @@ static void VerifyApprovedDependencySurface() {
 			"DCurses package-only Terminal profile/dimensions contract is unavailable."
 		);
 	}
+}
+
+static void VerifyTwoFourSurface() {
+	CursesClipboardOptions clipboardOptions = new() {
+		MaximumReadBytes = 131_072,
+		MaximumWriteBytes = 262_144
+	};
+	CursesSessionOptions sessionOptions = new() {
+		ClipboardOptions = clipboardOptions
+	};
+	if ( 65_536 != CursesClipboardOptions.DefaultMaximumBytes
+		|| 16_777_216 != CursesClipboardOptions.SupportedMaximumBytes
+		|| 131_072 != sessionOptions.ClipboardOptions.MaximumReadBytes
+		|| 262_144 != sessionOptions.ClipboardOptions.MaximumWriteBytes
+		|| 3 != (int)CursesClipboardSelection.Select
+		|| 5 != (int)CursesCursorStyle.SteadyBar ) {
+		throw new InvalidOperationException(
+			"DCurses 2.4 clipboard/cursor contract failed validation."
+		);
+	}
+
+	Delegate[] compileTimeSignatures = [
+		(Func<CursesSession, string, CancellationToken, ValueTask>)
+			CompileClipboardTextWriteAsync,
+		(Func<CursesSession, ReadOnlyMemory<byte>, CancellationToken, ValueTask>)
+			CompileClipboardByteWriteAsync,
+		(Func<CursesSession, CancellationToken, ValueTask<byte[]>>)
+			CompileClipboardReadAsync,
+		(Func<CursesSession, CancellationToken, ValueTask<CursesCursorStyleLease>>)
+			CompileCursorStyleAsync
+	];
+	if ( 4 != compileTimeSignatures.Length ) {
+		throw new InvalidOperationException(
+			"DCurses 2.4 package-only method signatures are unavailable."
+		);
+	}
+}
+
+static ValueTask CompileClipboardTextWriteAsync(
+	CursesSession session,
+	string value,
+	CancellationToken cancellationToken = default
+) {
+	return session.WriteClipboardAsync(
+		CursesClipboardSelection.Clipboard,
+		value,
+		cancellationToken
+	);
+}
+
+static ValueTask CompileClipboardByteWriteAsync(
+	CursesSession session,
+	ReadOnlyMemory<byte> value,
+	CancellationToken cancellationToken = default
+) {
+	return session.WriteClipboardAsync(
+		CursesClipboardSelection.Primary,
+		value,
+		cancellationToken
+	);
+}
+
+static ValueTask<byte[]> CompileClipboardReadAsync(
+	CursesSession session,
+	CancellationToken cancellationToken = default
+) {
+	return session.ReadClipboardAsync(
+		CursesClipboardSelection.Clipboard,
+		TimeSpan.FromSeconds( 1 ),
+		cancellationToken
+	);
+}
+
+static ValueTask<CursesCursorStyleLease> CompileCursorStyleAsync(
+	CursesSession session,
+	CancellationToken cancellationToken = default
+) {
+	return session.AcquireCursorStyleAsync(
+		CursesCursorStyle.SteadyBar,
+		TimeSpan.FromSeconds( 1 ),
+		cancellationToken
+	);
 }
 
 static void VerifySemanticMetadataSurface() {

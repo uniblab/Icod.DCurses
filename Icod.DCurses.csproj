@@ -34,16 +34,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>2.3.1</Version>
+		<Version>2.4.0</Version>
 		<AssemblyVersion>2.0.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>2.3.1</PackageVersion>
+		<PackageVersion>2.4.0</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
-		<Description>Managed, cross-platform curses-style terminal UI for .NET with retained text, mixed media, cell-aligned raster atlases, Unicode layout, viewports, panels, and deterministic interaction routing.</Description>
-		<PackageReleaseNotes>2.3.1 corrects package-facing documentation and repository release-state records after the published 2.3.0 CursesRasterAtlas release. It contains no runtime or public API changes, retains AssemblyVersion 2.0.0.0, and continues to depend directly only on Icod.Terminal 1.28.0.</PackageReleaseNotes>
+		<Description>Managed, cross-platform curses-style terminal UI for .NET with retained Unicode text, viewports, panels, mixed media, deterministic interaction routing, bounded clipboard access, and scoped cursor styles.</Description>
+		<PackageReleaseNotes>2.4 adds explicit bounded clipboard read/write facades, reversible semantic cursor-style leases, qualified viewport-local editor projection, and a public-only editor interaction sample. The sole direct runtime dependency is stable Icod.Terminal 1.29.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -116,6 +116,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Icod.Terminal" Version="1.28.0" />
+		<PackageReference Include="Icod.Terminal" Version="1.29.0" />
 	</ItemGroup>
 </Project>

@@ -2,7 +2,12 @@
 
 The repository contains thirteen executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
-All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project. The stable 2.3.1 maintenance source declares only stable `Icod.Terminal 1.28.0` directly; Terminal may restore TermInfo transitively. Version 2.3.1 changes documentation and release-state records only, so the 2.3 sample behavior and controls are unchanged. Published 2.2, 2.1 and 2.0 declare Terminal 1.18.0. The previous 1.6 package keeps its historical direct dependency set. To migrate external applications, see [the 2.0 migration guide](../docs/2.0-Migration-Guide.md).
+All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the
+repository `Icod.DCurses` project. The current 2.4.0 source declares only stable
+`Icod.Terminal 1.29.0` directly; Terminal may restore TermInfo transitively. See
+the [changelog](../CHANGELOG.md) for historical package dependencies and the
+[2.0 migration guide](../docs/2.0-Migration-Guide.md) when upgrading an external
+application from the 1.x public surface.
 
 ## Which sample should I run?
 
@@ -14,7 +19,7 @@ All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the rep
 | Retained text + hyperlink metadata + raster presentation, panning, panels, and interaction geometry | `Icod.DCurses.MixedMedia.Sample` |
 | Virtualized large world, sparse movement, track layout, and retained help overlay | `Icod.DCurses.Roguelike.Sample` |
 | Cell-aligned tile atlas, sparse raster updates, resize recreation, and explicit text fallback | `Icod.DCurses.RasterAtlas.Sample` |
-| Sparse synthetic document, Unicode editing, selection, wrap, and two-axis scrolling | `Icod.DCurses.Editor.Sample` |
+| Sparse synthetic document, Unicode editing, selection, two-axis scrolling, bracketed paste, pointer capture, clipboard, and scoped cursor style | `Icod.DCurses.Editor.Sample` |
 | Interaction scopes, capture, spatial focus, gestures, commands, and pointer preferences | `Icod.DCurses.Interaction.Sample` |
 | General interactive API showcase | `Icod.DCurses.Showcase` |
 | Semantic input inspection | `Icod.DCurses.Input.Showcase` |
@@ -98,12 +103,16 @@ expectations, controls, ownership boundaries and the live-acceptance limitation.
 
 `Icod.DCurses.Editor.Sample` owns a synthetic ten-million-record document. It generates untouched records on demand, stores only changed records and lays out only records intersecting the viewport. Each record has four reserved visual rows; wrapping is capped at four lines, and edits that would exceed that bound are rejected. This deliberate fixed-record policy keeps document positions stable without a document-sized pad or a general-purpose buffer. A newline is an in-record hard break; it does not split or renumber records. Selection is within the active record and is cleared when moving to another record.
 
-The sample uses public `CursesTextLayout` source positions and geometry for Unicode navigation, editing and selection, `CursesViewport` for scrolling, and retained `PresentTextLayout` for clipped presentation. Its application-owned interaction controller routes each input once through `ProcessCommandSequence`; ordinary text is inserted only from the returned fallback event, including a sequence mismatch. Effective discovery selects the shortcut summary for the document or prompt context.
+The sample uses public `CursesTextLayout` source positions and geometry for Unicode navigation, editing and selection, `CursesViewport` for scrolling, and retained `PresentTextLayout` for clipped presentation. Its application-owned interaction controller routes each input once through `ProcessCommandSequence`; ordinary text and bracketed-paste data are inserted only from the returned fallback event, including a sequence mismatch. Effective discovery selects the shortcut summary for the document or prompt context.
 
-Typing replaces the active selection, and Backspace/Delete remove it at complete text-element boundaries. `Ctrl+W` toggles wrap; `Ctrl+T` starts/stops selection without taking the terminal's usual `Ctrl+V` clipboard-paste shortcut; `Ctrl+G` or `Ctrl+K Ctrl+G` opens the 1-based record prompt. Within that explicit prompt scope, `Ctrl+K Ctrl+C` or `Escape` cancels and `Enter` accepts. Arrows navigate; `PageUp`/`PageDown` jump records; `Home`/`End` jump within the current record; typing, `Tab`, `Enter`, `Backspace` and `Delete` edit. `Escape` exits from the document context. The interaction controller registers the lowercase modern and uppercase traditional character identities for each Control shortcut. The editor requests Raw input so the host delivers `Ctrl+C` to that sequence instead of converting it into an interrupt; use `Escape` for orderly exit. Resize recomputes the document, status, prompt and interaction regions and invalidates any live prefix. Minimum size is 30 columns by 6 rows.
+Typing replaces the active selection, and Backspace/Delete remove it at complete text-element boundaries. `Ctrl+W` toggles wrap; `Ctrl+T` starts/stops keyboard selection; `Ctrl+C` and `Ctrl+V` copy and paste; `Ctrl+G` or `Ctrl+K Ctrl+G` opens the 1-based record prompt. Within that explicit prompt scope, `Ctrl+K Ctrl+C` or `Escape` cancels and `Enter` accepts. Arrows navigate; `PageUp`/`PageDown` jump records; `Home`/`End` jump within the current record; typing, `Tab`, `Enter`, `Backspace` and `Delete` edit. `Escape` exits from the document context. The interaction controller registers the lowercase modern and uppercase traditional character identities for each Control shortcut.
+
+Primary-button clicks place the caret in the document. Dragging extends the selection and remains captured when the pointer leaves the document; releasing the button, losing focus, opening the prompt, resizing, or disposing the controller ends capture. The final document column is an independently hit-tested scrollbar: clicking or dragging it maps its row onto the synthetic document without turning `Tab` into focus traversal.
+
+The editor requests Raw input so the host delivers `Ctrl+C` to the command router instead of converting it into an interrupt; use `Escape` for orderly exit. Clipboard commands explicitly use the session OSC 52 boundary. The sample keeps a private application fallback when the host clipboard is unavailable, denied, malformed, or times out; a timeout is inconclusive and is not treated as proof that the host lacks clipboard support. Host consent and policy remain terminal concerns. The visible caret remains enabled, and the sample requests a steady bar cursor through a scoped lease; unsupported or inconclusive style negotiation leaves the host style unchanged. Resize recomputes the document, status, prompt and interaction regions and invalidates any live prefix. Minimum size is 30 columns by 6 rows.
 
 ```text
-dotnet run --project samples/Icod.DCurses.Editor.Sample/Icod.DCurses.Editor.Sample.csproj --framework net10.0
+dotnet run --project samples/Icod.DCurses.Editor.Sample/Icod.DCurses.Editor.Sample.csproj -c Release -f net10.0
 ```
 
 ## Icod.DCurses.MixedMedia.Sample

@@ -5,101 +5,29 @@
 [![PR Staging build](https://github.com/uniblab/Icod.DCurses/actions/workflows/pull-request.yaml/badge.svg)](https://github.com/uniblab/Icod.DCurses/actions/workflows/pull-request.yaml)
 [![Main Release validation](https://github.com/uniblab/Icod.DCurses/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/uniblab/Icod.DCurses/actions/workflows/main.yaml)
 
-`Icod.DCurses` is a managed, cross-platform curses-style terminal UI library for .NET. It provides retained logical screens, windows, pads, panels, Unicode-aware text, semantic metadata, retained mixed-media presentation, geometry/layout, damage-aware refresh, and deterministic interaction routing without taking ownership of the application's event loop or application policy.
-
-## Status
-
-This source tree defines the stable **Icod.DCurses 2.3.1** maintenance release. Version 2.3.1 corrects package-facing documentation and durable release-state records after 2.3.0 publication; it contains no runtime or public API changes. Check [NuGet](https://www.nuget.org/packages/Icod.DCurses/) for published availability and version history.
-
-Version 2.3 adds `CursesRasterAtlas`, a bounded cell-aligned raster presentation owner for tile-oriented applications. Applications keep durable source pixels and gameplay state; DCurses retains placeholder cells, viewport coordinates and transaction serialization; stable Icod.Terminal 1.28.0 owns exact cell-pixel geometry, live raster identities, acknowledgement and lifecycle certainty. Presentations copy the known front frame to a back frame, apply bounded RGB24/RGBA32 damage, then select the completed frame. Complete-atlas workloads are coalesced into one region update, and recoverable presentation timeouts select the sample's text fallback instead of leaving the application blocked.
-
-The [raster-atlas sample](samples/Icod.DCurses.RasterAtlas.Sample/README.md) demonstrates ATLAS → FRAME → TEXT selection, supplied 16×16 terrain/player artwork, movement, collision, camera scrolling, retained help/status presentation, explicit resize recreation, and clean Q/Escape exits. Live acceptance is specific to the tested environments: protocol completion is ordered, not a promise of universally atomic or gapless physical presentation. See [release readiness and known limitations](docs/2.3-Release-Readiness.md).
-
-Version 2.2 adds immutable discovery of the effective single-key and multi-key command bindings in current routing precedence, plus bounded command sequences with explicit pending, completed, mismatch, fallback, and cancellation results. It keeps command execution, labels, localization, timeouts, and the event loop application-owned. The [editor and roguelike samples](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/samples/README.md) exercise these facilities through public APIs; the [2.2 API baseline](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/docs/Public-API-Baseline-2.2.md) records the additive contract over 2.1.
-
-Version 2.1.0 adds immutable Unicode text layout, source-position and selection geometry, retained layout projection, prepared bulk cell writes, large-content viewport coordinates, stateless track layout, and bounded opt-in refresh diagnostics. The [roguelike and editor samples](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md) demonstrate the public APIs with application-owned state. The 2.1 [API baseline](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/docs/Public-API-Baseline-2.1.md) and [stable-source qualification](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/docs/T2112-Stable-Source-Release-Gate.md) describe the source contract and Staging evidence. The `main` push workflow validates Release configuration before publication.
-
-Version `2.0.0` completes the direct dependency cutover: production DCurses depends only on `Icod.Terminal 1.18.0`, which may restore `Icod.TermInfo` transitively. Version 2.0 changes the public profile and dimensions types and the assembly identity. See the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md) and [2.0 roadmap](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/Icod.DCurses-2.0.0-Development-Roadmap.md).
-
-Version 1.6 adds retained mixed-media presentation over the published `Icod.Terminal 1.15.0` persistent-raster / Unicode-placeholder ownership model. Raster placeholder cells participate in ordinary DCurses windows, pads, viewports, panels, clipping, scrolling, composition, damage, and refresh while Terminal remains the sole owner of live raster protocol identity, acknowledgement, encoding, and lifecycle certainty.
-
-The frozen 1.6 public contract is:
-
-```text
-75 exported types
-559 canonical declared contract lines
-sha256 266e23e6f3b4d5be98c81b5d5774f1de47d488d9ede7025877e46388cae6d458
-```
-
-Version 1.6 is the final published 1.x line. It is additive over the published 1.5 contract and keeps `AssemblyVersion` at `1.0.0.0`.
-
-## Support the Project
-
-`Icod.DCurses` and its ecosystem packages (`Icod.Terminal` and `Icod.TermInfo`) are built and maintained by a solo developer. If these packages save you or your team time, please consider supporting their continued development and maintenance.
-
-[![GitHub Sponsors](https://img.shields.io/badge/GitHub-Sponsor?logo=githubsponsors)](https://github.com/sponsors/uniblab)
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support?logo=kofi)](https://ko-fi.com/TimothyBruce)
-[![PayPal](https://img.shields.io/badge/PayPal-Support?logo=paypal)](https://paypal.me/uniblab)
-
-## Architecture
-
-`Icod.DCurses` is the retained presentation and interaction layer of the Icod terminal stack:
-
-```text
-higher-level terminal applications / future widgets
-                         |
-                    Icod.DCurses
- retained text + raster presentation
- windows / pads / viewports / panels / cells / metadata
- geometry / layout / composition / clipping / damage / refresh
- interaction regions / scopes / focus / capture / gestures / commands
-                         |
-                    Icod.Terminal
- live session / input / lifecycle / semantic protocols
- physical terminal state / persistent raster ownership / serialized output
-                         |
-                    Icod.TermInfo
- immutable terminal capability data and planning
-                         |
-                  terminal / tty
-```
-
-- `Icod.TermInfo` owns immutable terminal capability data and reusable inspection/planning facilities.
-- `Icod.Terminal` owns the live terminal conversation: modes, dimensions, lifecycle, input, semantic protocols, persistent raster ownership, reversible terminal state, and serialized output.
-- `Icod.DCurses` owns retained terminal-cell presentation and deterministic interaction mechanisms.
-- Applications own their event loop, command execution, source-image durability, widget/application semantics, navigation, and high-level layout policy.
-
-The direct 2.x runtime dependency is:
-
-```text
-Icod.Terminal 1.28.0
-```
-
-`Icod.TermInfo` is not a direct dependency of DCurses 2.x; NuGet may restore it transitively through Terminal. The 2.0 major-version boundary requires a consumer rebuild from 1.6; follow the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md). The previous 1.6 package retains its historical direct dependencies on `Icod.Terminal 1.15.0` and `Icod.TermInfo 1.14.0`.
+`Icod.DCurses` is a managed, cross-platform curses-style terminal UI library for
+.NET. It provides retained screens, windows, pads and panels; Unicode-aware text
+layout; viewports and geometry; semantic metadata and mixed media; damage-aware
+refresh; and deterministic interaction routing without taking ownership of the
+application's event loop.
 
 ## Install
 
-Install the stable 2.3 package from NuGet:
-
 ```text
-dotnet add package Icod.DCurses --version 2.3.1
+dotnet add package Icod.DCurses
 ```
 
-For the previous stable release:
+The package targets .NET 8, .NET 9 and .NET 10 and uses C# 13. NuGet restores
+the compatible `Icod.Terminal` dependency; applications do not need a direct
+`Icod.TermInfo` reference for DCurses.
+
+To run the editor-foundation sample from a repository checkout:
 
 ```text
-dotnet add package Icod.DCurses --version 2.3.0
+dotnet run --project samples/Icod.DCurses.Editor.Sample/Icod.DCurses.Editor.Sample.csproj -c Release -f net10.0
 ```
 
-The package targets:
-
-```text
-net8.0
-net9.0
-net10.0
-```
-
-## Quick Start
+## Quick start
 
 ```csharp
 using Icod.DCurses;
@@ -119,34 +47,79 @@ screen.Write(
 );
 
 await session.RefreshAsync();
-CursesEvent terminalEvent = await session.ReadEventAsync();
+CursesEvent inputEvent = await session.ReadEventAsync();
 ```
 
-## 2.2 Interaction Convenience Example
+The application decides how to interpret `inputEvent`, when to refresh again,
+and when to exit. DCurses does not start a callback dispatcher or a second input
+reader.
 
-Applications can register semantic command sequences, inspect the currently effective bindings for help text, and route one normalized input event at a time. A pending prefix has no hidden timer; the application decides when to call `CancelPendingCommandSequence()`.
+## Clipboard and cursor style
+
+Icod.DCurses 2.4 adds explicit, bounded clipboard operations and reversible
+semantic cursor-style leases over the canonical terminal session:
 
 ```csharp
-CursesKeyGesture g = CursesKeyGesture.ForCharacter( new Rune( 'g' ) );
-CursesCommand goTop = new( "document.go-top" );
-router.BindGlobalGestureSequence( [ g, g ], goTop );
+CursesSessionOptions options = new() {
+	HideCursor = false,
+	ClipboardOptions = new CursesClipboardOptions {
+		MaximumReadBytes = 65_536,
+		MaximumWriteBytes = 65_536
+	}
+};
 
-IReadOnlyList<CursesCommandSequenceBinding> helpBindings =
-	router.GetEffectiveGestureSequenceBindings();
+await using CursesSession session = await CursesSession.OpenAsync( options );
+await using CursesCursorStyleLease caret =
+	await session.AcquireCursorStyleAsync(
+		CursesCursorStyle.SteadyBar,
+		TimeSpan.FromMilliseconds( 250 )
+	);
 
-CursesCommandSequenceResult result = router.ProcessCommandSequence( input );
-if ( result.Kind is CursesCommandSequenceResultKind.Completed ) {
-	ExecuteApplicationCommand( result.Command! );
-} else if ( result.Fallback is not null ) {
-	HandleOrdinaryRoutingResult( result.Fallback );
-}
+await session.WriteClipboardAsync(
+	CursesClipboardSelection.Clipboard,
+	"selected text"
+);
+
+byte[] payload = await session.ReadClipboardAsync(
+	CursesClipboardSelection.Clipboard,
+	TimeSpan.FromMilliseconds( 250 )
+);
 ```
 
-Focused-region, active-scope, and router-global precedence matches ordinary routing. Sequence length and registration counts have public limits, and focus/scope/binding lifecycle changes invalidate pending state deterministically.
+The default read and write budgets are independently 65,536 bytes and may be
+configured up to 16 MiB before opening an owned session. They are local safety
+limits, not a negotiation of remote clipboard capacity. Writes confirm that the
+complete terminal command was emitted, not that the host accepted it. A read
+timeout is inconclusive; applications should own fallback content and policy.
 
-## 2.1 Text Layout Example
+Cursor style and visibility are independent. The lease restores the exact
+observed preceding style in LIFO order. If observation is unsupported, times out
+or is cancelled, no guessed reset or style mutation is emitted.
 
-With 2.1, the session and `screen` from the quick start above can present an immutable layout. Source positions use UTF-16 offsets at legal text-element boundaries; visual positions use rows and terminal columns. DCurses computes the layout and projects the selected lines into retained cells, while the application decides what text to show and when to refresh.
+## Editor foundations
+
+The editor sample is deliberately a public-API composition witness, not a
+document engine. It demonstrates:
+
+- viewport-local Unicode layout, caret geometry, selection and retained repaint;
+- a synthetic ten-million-record source with work bounded to visible records;
+- bracketed paste as routed text data and key-release suppression;
+- primary-button caret placement and selection with captured outside drag;
+- cancellation on release, focus loss, modal activation, resize and disposal;
+- a separately hit-tested final-column scrollbar without implicit Tab traversal;
+- explicit `Ctrl+C`/`Ctrl+V` clipboard commands with an application fallback;
+- a visible caret with a best-effort scoped steady-bar style.
+
+Document storage, undo/redo, revision caches, selection semantics, autoscroll
+timing, tabs, dialogs and file I/O belong in Icod.Widgets or the application.
+The complete controls and limitations are documented in the
+[samples guide](https://github.com/uniblab/Icod.DCurses/blob/main/samples/README.md#icoddcurseseditorsample).
+
+## Text layout and retained projection
+
+Source positions are UTF-16 offsets at legal text-element boundaries; visual
+positions are rows and terminal columns. The application supplies the bounded
+text slice to lay out and decides which lines to project:
 
 ```csharp
 CursesTextLayout layout = CursesTextLayout.Create(
@@ -155,7 +128,8 @@ CursesTextLayout layout = CursesTextLayout.Create(
 		WrapMode = CursesTextWrapMode.TextElement
 	}
 );
-CursesTextPosition afterEmoji = layout.GetNextPosition( new CursesTextPosition( 6 ) );
+CursesTextPosition afterEmoji =
+	layout.GetNextPosition( new CursesTextPosition( 6 ) );
 CursesTextVisualPosition caret = layout.GetVisualPosition( afterEmoji );
 
 screen.PresentTextLayout( layout, 0, layout.Lines.Count, 0, 0 );
@@ -165,209 +139,115 @@ if ( caret.Line < screen.Rows && caret.Column < screen.Columns ) {
 await session.RefreshAsync();
 ```
 
-The application chooses the cursor position and can call `HitTest` and `GetSelectionRectangles` for editing and selection. See the [editor sample](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md#icoddcurseseditorsample) for a complete event loop and the [roguelike sample](https://github.com/uniblab/Icod.DCurses/blob/2.1.0-roadmap/samples/README.md#icoddcursesroguelikesample) for viewport geometry, track layout, and sparse updates. These APIs first appear in 2.1.0; the 2.0 package does not contain them.
+`HitTest` and `GetSelectionRectangles` use the same Unicode/cell geometry.
+Applications should not build file-sized pads or whole-file layouts; keep
+document indexing and revision-aware visible-slice caches above DCurses.
 
-## Retained Raster Presentation
+## Interaction routing
 
-Applications supply a backend-neutral `TerminalRasterImage`, create the live resource/placeholder through `CursesSession`, and retain opaque placeholder cells in ordinary DCurses surfaces:
+Applications can register semantic key gestures and sequences, inspect the
+currently effective bindings for help text, and route one normalized input event
+at a time. Pending sequences have no hidden timer:
 
 ```csharp
-using Icod.DCurses;
-using Icod.Terminal;
+CursesKeyGesture g = CursesKeyGesture.ForCharacter( new Rune( 'g' ) );
+CursesCommand goTop = new( "document.go-top" );
+router.BindGlobalGestureSequence( [ g, g ], goTop );
 
-TerminalRasterImage image = TerminalRasterImage.CreateRgb24(
-	1,
-	1,
-	[ 0x20, 0x40, 0x80 ]
-);
+IReadOnlyList<CursesCommandSequenceBinding> helpBindings =
+	router.GetEffectiveGestureSequenceBindings();
 
-TerminalControlResult<CursesRasterResource> resourceResult =
-	await session.CreateRasterResourceAsync( image );
-
-if ( resourceResult.IsAvailable ) {
-	await using CursesRasterResource resource = resourceResult.GetRequiredValue();
-	TerminalControlResult<CursesRasterPlaceholder> placeholderResult =
-		await resource.CreatePlaceholderAsync( 1, 1 );
-
-	if ( placeholderResult.IsAvailable ) {
-		await using CursesRasterPlaceholder placeholder = placeholderResult.GetRequiredValue();
-		screen.Move( 2, 4 );
-		screen.WriteRasterCell( placeholder.GetCell( 0, 0 ) );
-		await session.RefreshAsync();
-	}
+CursesCommandSequenceResult result = router.ProcessCommandSequence( inputEvent );
+if ( result.Kind is CursesCommandSequenceResultKind.Completed ) {
+	ExecuteApplicationCommand( result.Command! );
+} else if ( result.Fallback is not null ) {
+	HandleOrdinaryRoutingResult( result.Fallback );
 }
 ```
 
-The public raster ownership shape is:
+Focused-region, active-scope and router-global precedence match ordinary routing.
+The application owns command execution, labels, localization, prefix timeouts,
+Tab policy and event-loop timing.
+
+## Feature inventory
+
+- Retained logical screens, windows, pads, viewports and panels.
+- Unicode text-element measurement, wrapping, hit testing and selection geometry.
+- Styles, line drawing, semantic hyperlinks and width-two cell coherence.
+- Sparse/full damage refresh, synchronized output and physical-state invalidation.
+- Geometry, clipping, tracks, docking and prepared bulk cell writes.
+- Normalized keyboard, mouse, focus, paste and lifecycle events.
+- Interaction regions, modal scopes, focus, pointer capture and command sequences.
+- Bounded clipboard access and scoped semantic cursor styles.
+- Retained raster resources/placeholders and bounded cell-aligned raster atlases.
+- net8.0, net9.0 and net10.0 package assets with portable symbols and XML docs.
+
+## Architecture and boundaries
 
 ```text
-CursesSession
-    -> CursesRasterResource
-        -> CursesRasterPlaceholder
-            -> CursesRasterCell
+application / Icod.Widgets
+    document, controls, commands, event loop, files and policy
+        |
+Icod.DCurses
+    retained cells, layout projection, damage and interaction mechanisms
+        |
+Icod.Terminal
+    live session, semantic protocols, host I/O and reversible terminal state
+        |
+Icod.TermInfo
+    immutable capability data and planning
+        |
+terminal / tty
 ```
 
-`CursesRasterOwnershipState` reports `Current`, `Stale`, `Released`, or `Disposed`. DCurses never exposes Terminal-private raster ids, constructs Kitty/Sixel command bytes, retains a hidden source-image cache for replay, or silently switches graphics backends.
+Icod.DCurses does not provide a widget framework, text buffer, callback
+dispatcher, terminal emulator, PTY host, native clipboard, private protocol
+parser, automatic raster replay or application policy. Terminal remains the sole
+owner of protocol framing, query correlation, live identities and physical state.
 
-## 2.3 Cell-Aligned Raster Atlas
+## Compatibility and versioning
 
-After the application verifies Terminal's persistent-raster capability, it can query
-exact current cell-pixel geometry and create one two-frame atlas. The initial image
-must divide exactly into the requested 1..256 rows and columns. Each presentation
-accepts at most 4,096 unique RGB24/RGBA32 images that exactly match one tile:
+The 2.4 public surface is additive over 2.3.1 and keeps `AssemblyVersion`
+`2.0.0.0`. It has 109 exported types, 857 canonical declared contract lines and
+SHA-256 fingerprint
+`87a3ffe66174634f6db4044b914b05fd31d117b93ecf5b1a151d31d59732e65e`.
 
-```csharp
-CursesRasterAtlasGeometry geometry =
-	await session.QueryRasterAtlasGeometryAsync(
-		rows: 12,
-		columns: 20,
-		timeout: TimeSpan.FromSeconds( 2 )
-	);
+Version 2.0 changed the public profile/dimensions signatures and advanced
+`AssemblyVersion` to `2.0.0.0`; applications upgrading from 1.6 must rebuild.
+See the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md).
 
-TerminalRasterImage initialImage = BuildApplicationOwnedImage( geometry );
-TerminalControlResult<CursesRasterAtlas> creation =
-	await session.CreateRasterAtlasAsync( initialImage, geometry.Rows, geometry.Columns );
+## Documentation and samples
 
-if ( creation.IsAvailable ) {
-	await using CursesRasterAtlas atlas = creation.GetRequiredValue();
-	screen.WriteRasterAtlas(
-		0,
-		0,
-		atlas,
-		new CursesRectangle( 0, 0, atlas.Rows, atlas.Columns )
-	);
-	await session.RefreshAsync();
+- [2.4 public API baseline](https://github.com/uniblab/Icod.DCurses/blob/main/docs/Public-API-Baseline-2.4.md)
+- [2.4 development roadmap](https://github.com/uniblab/Icod.DCurses/blob/main/Icod.DCurses-2.4.0-Development-Roadmap.md)
+- [Sample guide and runnable commands](https://github.com/uniblab/Icod.DCurses/blob/main/samples/README.md)
+- [Clipboard integration evidence](https://github.com/uniblab/Icod.DCurses/blob/main/docs/T2402-Clipboard-Integration.md)
+- [Cursor-style lifecycle evidence](https://github.com/uniblab/Icod.DCurses/blob/main/docs/T2404-Cursor-Style-Lifecycle.md)
+- [Viewport measurement](https://github.com/uniblab/Icod.DCurses/blob/main/docs/T2405-Viewport-Measurement.md)
+- [Editor interaction acceptance](https://github.com/uniblab/Icod.DCurses/blob/main/docs/T2407-Editor-Interaction-Acceptance.md)
+- [Changelog](https://github.com/uniblab/Icod.DCurses/blob/main/CHANGELOG.md)
+- [NuGet package and version history](https://www.nuget.org/packages/Icod.DCurses/)
 
-	CursesRasterAtlasPresentationResult result = await atlas.PresentAsync(
-		[ new CursesRasterAtlasTileUpdate( row, column, replacementTile ) ]
-	);
-}
-```
+## Support the project
 
-Creation consumes one Terminal raster resource, one Unicode placeholder placement and
-two animation frames. Disposal releases the placeholder before the resource. A
-controlled presentation failure leaves the known front frame selected and reports how
-many tile replacements were acknowledged. An exception after output may have committed;
-it sets `RequiresRecreation`, rejects later cell/presentation use, and the application
-must dispose and recreate from its own pixels. DCurses never retains the initial image,
-automatically retries, or chooses a hidden fallback.
+Icod.DCurses and its ecosystem packages are maintained by a solo developer.
 
-Resize is also application-owned: dispose the old atlas, clear or replace its retained
-cells, query fresh geometry, create a new atlas and project its new cells. Applications
-should provide an ordinary text path when capability verification, exact geometry,
-creation or presentation is unavailable. See the [complete sample and terminal notes](samples/Icod.DCurses.RasterAtlas.Sample/README.md)
-and [measurement report](docs/Raster-Atlas-Measurement-2.3.md).
-
-For terminals with verified ordinary raster output but no persistent image identities,
-applications can explicitly present a complete viewport using
-`await session.RefreshRasterAsync(image, row, column, geometry)`. Query exact geometry
-as above, keep the final screen row outside the image, and verify Terminal's ordinary
-`RasterGraphics` capability before use. Terminal 1.28.0 chooses Kitty or Sixel
-and encodes the image in the same transaction as the text refresh. Each call clears
-and repaints uncovered text, omitting the logical fallback cells beneath the image;
-DCurses stores no source image and performs no automatic replay. The sample requests
-synchronized output to reduce intermediate redraws on hosts that honor it.
-Visible panels must not overlap this immediate image, and retained raster cells cannot
-coexist with it. The next ordinary refresh clears previous frame damage and restores
-text. The sample uses a text view while help is open and exposes `--raster` for direct
-testing. Physical placement, clearing, and resize still require live terminal acceptance.
-
-## Raster selection and fallback
-
-Terminal's ordinary raster capability policy prefers **verified Kitty**, then
-**verified Sixel**. When neither is usable, the application can choose text.
-This is capability selection, not automatic recovery from a failed Kitty write:
-Terminal sends through one selected backend and does not replay the image through
-Sixel after an error.
-
-The sample owns a separate presentation ladder:
-
-| Mode | Selection |
-|---|---|
-| ATLAS | Verified persistent identities and exact geometry; uses Kitty animation facilities |
-| FRAME | Atlas setup unavailable or recoverably fails, with verified ordinary raster and usable geometry; ordinary Kitty is preferred over Sixel |
-| TEXT | Raster capability/geometry unavailable, or recoverable frame/presentation failure; also forced with `--text` |
-
-`--raster` selects ordinary FRAME directly and bypasses persistent-atlas negotiation.
-A Kitty atlas setup failure can therefore fall back to **Kitty FRAME**. Persistent
-atlas identities are not emulated through Sixel, and `FRAME` does not identify the
-selected graphics protocol. Atlas presentation uncertainty abandons the atlas for
-text; no hidden cache or backend replay occurs.
-
-## Feature Inventory
-
-- **Logical screens and windows** — retained curses-style cell surfaces, cursor movement, editing, scrolling, styles, and explicit refresh.
-- **Unicode-aware text** — terminal text-element measurement, slicing, width-two coherence, and configurable ambiguous-width policy.
-- **Pads and viewports** — off-screen retained surfaces with independently clipped projections onto the visible screen.
-- **Semantic metadata** — retained metadata such as hyperlinks, emitted through Terminal-owned semantic operations.
-- **Retained mixed media** — lazy row-sparse raster state participating in editing, scrolling, copy/overlay, pads/viewports, panels, clipping, resize, and damage refresh.
-- **2.3 raster atlas** — exact cell-pixel geometry, bounded double-buffered tile replacement, retained rectangular projection, conservative lifecycle certainty, and caller-driven fallback/recreation.
-- **Retained panels** — deterministic z-order, movement, visibility, resizing, clipping, transparency, composition, and disposal. Blank+raster coordinates remain visually present under blank-cell transparency.
-- **Geometry and layout** — immutable rectangles/insets plus stateless split, dock, and clip helpers.
-- **Lifecycle and refresh** — physical-state invalidation after terminal uncertainty, sparse/full redraw, synchronized output, and stale raster rejection before output.
-- **Interaction routing** — bounded regions/scopes, logical and spatial focus, explicit pointer capture, clock-free gestures, semantic commands, and pointer-shape preferences.
-- **2.2 interaction conveniences** — detached effective-binding discovery and bounded, explicitly cancellable multi-key command composition without application callback or event-loop ownership.
-- **2.1 text layout** — immutable styled Unicode layout, legal source positions, caret/hit/selection geometry, and retained window projection.
-- **2.1 large-content presentation** — application-owned viewport coordinates, fixed/weighted tracks, and prepared bulk cell writes for visible slices.
-- **2.1 refresh diagnostics** — bounded opt-in snapshots of refresh outcomes and prepared work; observation is disabled by default.
-
-## Design Boundaries
-
-- No second terminal capability database or raw-input reader.
-- No private OSC/CSI/DCS/APC graphics framing for Terminal-owned facilities.
-- No public Terminal-private persistent-raster ids.
-- No hidden raster source cache/re-upload or Sixel emulation of retained raster identities.
-- No atlas batching, Indexed8 partial replacement, map-sized storage, automatic replay, or inferred raster backend.
-- No widget/control framework, callback dispatcher, retained capture/bubble event tree, automatic focus-on-click, PTY/process hosting, terminal emulation, or application framework.
-- Application policy remains above DCurses.
-
-## Samples and Documentation
-
-`Icod.DCurses.RasterAtlas.Sample` is the 2.3 tile-application acceptance sample; `--text` forces text; `--raster` bypasses the persistent atlas and exercises complete-frame Kitty/Sixel output. `Icod.DCurses.MixedMedia.Sample` demonstrates all three retained presentation axes together—ordinary text, `CursesHyperlink` semantic metadata, and raster placeholder cells—inside a pannable pad, with panel overlays, clipping, interaction geometry, serialized refresh, and graceful continuation when raster ownership is unavailable.
-
-Recommended documentation entry points:
-
-- [`docs/Public-API-Baseline-2.3.md`](docs/Public-API-Baseline-2.3.md)
-- [`docs/T2310-2.3.0-Stable-Release-Closure.md`](docs/T2310-2.3.0-Stable-Release-Closure.md)
-- [`docs/Raster-Atlas-Measurement-2.3.md`](docs/Raster-Atlas-Measurement-2.3.md)
-- [`samples/Icod.DCurses.RasterAtlas.Sample/README.md`](samples/Icod.DCurses.RasterAtlas.Sample/README.md)
-- [`Icod.DCurses-2.3.0-Development-Roadmap.md`](Icod.DCurses-2.3.0-Development-Roadmap.md)
-- [`CHANGELOG.md`](CHANGELOG.md)
-- [`docs/Public-API-Baseline-2.2.md`](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/docs/Public-API-Baseline-2.2.md)
-- [`Icod.DCurses-2.2.0-Development-Roadmap.md`](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/Icod.DCurses-2.2.0-Development-Roadmap.md)
-- [`samples/README.md`](https://github.com/uniblab/Icod.DCurses/blob/2.2.0-roadmap/samples/README.md) for runnable 2.2 editor and roguelike consumers
-- [`docs/2.0-Migration-Guide.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/2.0-Migration-Guide.md) for upgrading 1.6 applications
-- [`docs/Public-API-Fingerprint-2.0.json`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/Public-API-Fingerprint-2.0.json)
-- [`docs/Public-API-Baseline-2.0.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/Public-API-Baseline-2.0.md)
-- [`docs/1.0-Stable-Compatibility-and-Migration-Guide.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/docs/1.0-Stable-Compatibility-and-Migration-Guide.md)
-- [`Icod.DCurses-Development-Roadmap.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/Icod.DCurses-Development-Roadmap.md)
-- [`Icod.DCurses-2.0.0-Development-Roadmap.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/Icod.DCurses-2.0.0-Development-Roadmap.md)
-- [`Icod.DCurses-1.6.0-Development-Roadmap.md`](https://github.com/uniblab/Icod.DCurses/blob/v2.0.0/Icod.DCurses-1.6.0-Development-Roadmap.md)
-
-## Compatibility and Versioning
-
-Version 2.0 changes the public profile/dimensions signatures and advances `AssemblyVersion` to `2.0.0.0`; applications upgrading from 1.6 must rebuild. Stable `1.0.0` remains the historical compatibility floor for the 1.x line.
-
-The frozen 2.0 public contract is:
-
-```text
-75 exported types
-559 canonical declared contract lines
-sha256 1d33658358af26049d858e084a80d9f3b80abab974c1c4d3bfb36c2c2b477c65
-```
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub-Sponsor?logo=githubsponsors)](https://github.com/sponsors/uniblab)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support?logo=kofi)](https://ko-fi.com/TimothyBruce)
+[![PayPal](https://img.shields.io/badge/PayPal-Support?logo=paypal)](https://paypal.me/uniblab)
 
 ## Authors
 
-Inspired by original work from Bill Joy, author of the original `termcap`; Ken Arnold, for his work on `termcap` and `curses`; Mary Ann (born Mark) Horton, author of `terminfo`; Pavel Curtis, author of `pcurses`; and Zeyd Ben-Halim, Eric S. Raymond, and Thomas Dickey, whose work developed and maintained `libtinfo` and `ncurses`.
+Inspired by Bill Joy (`termcap`); Ken Arnold (`termcap` and `curses`); Mary Ann
+(born Mark) Horton (`terminfo`); Pavel Curtis (`pcurses`); and Zeyd Ben-Halim,
+Eric S. Raymond and Thomas Dickey (`libtinfo` and `ncurses`).
 
 Managed .NET implementation by Timothy J. Bruce <uniblab@hotmail.com>.
 
-## Copyright
-
-Copyright (c) 2026 Timothy J. Bruce
-
 ## License
 
-`Icod.DCurses` is licensed under the GNU Lesser General Public License, version 3 or later. Sample applications are licensed under the GNU General Public License, version 3 or later, as stated in their source headers.
-
-See `LICENSE` and the per-project/source declarations for the applicable terms.
+Icod.DCurses is licensed under the GNU Lesser General Public License, version 3
+or later. Samples and tests are licensed under the GNU General Public License,
+version 3 or later. See the
+[repository license](https://github.com/uniblab/Icod.DCurses/blob/main/LICENSE)
+and per-project/source declarations.

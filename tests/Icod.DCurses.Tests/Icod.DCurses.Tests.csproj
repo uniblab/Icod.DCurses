@@ -39,7 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Icod.Terminal" Version="1.28.0" />
+    <PackageReference Include="Icod.Terminal" Version="1.29.0" />
     <PackageReference Include="Icod.TermInfo" Version="1.17.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
@@ -70,6 +70,8 @@
              Link="EditorSampleState.cs" />
     <Compile Include="..\..\samples\Icod.DCurses.Editor.Sample\EditorSampleInteraction.cs"
              Link="EditorSampleInteraction.cs" />
+    <Compile Include="..\..\samples\Icod.DCurses.Editor.Sample\EditorSampleClipboard.cs"
+             Link="EditorSampleClipboard.cs" />
   </ItemGroup>
 
 	<ItemGroup>
@@ -114,6 +116,9 @@
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\docs\Public-API-Fingerprint-2.3.json"
           Link="Public-API-Fingerprint-2.3.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\Public-API-Fingerprint-2.4.json"
+          Link="Public-API-Fingerprint-2.4.json"
           CopyToOutputDirectory="PreserveNewest" />
     <!-- Preserve the historical development-time alias used through 1.6. -->
     <None Include="..\..\docs\Public-API-Fingerprint-1.6.json"

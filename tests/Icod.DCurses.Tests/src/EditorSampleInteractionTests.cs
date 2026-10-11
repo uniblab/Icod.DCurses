@@ -1,8 +1,29 @@
+/*
+	Icod.DCurses.Tests
+	Automated test suite for Icod.DCurses.
+	Copyright (C) 2026  Timothy J. Bruce <uniblab@hotmail.com>
+*/
+
+/*
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+namespace Icod.DCurses.Tests;
+
 using System.Text;
 using Icod.DCurses.Editor.Sample;
 using Xunit;
-
-namespace Icod.DCurses.Tests;
 
 public sealed class EditorSampleInteractionTests {
 	[Fact]
@@ -10,6 +31,7 @@ public sealed class EditorSampleInteractionTests {
 		CursesSessionOptions options = EditorSampleInteraction.CreateSessionOptions();
 
 		Assert.Equal( CursesInputMode.Raw, options.InputMode );
+		Assert.False( options.HideCursor );
 	}
 
 	[Fact]
@@ -23,7 +45,9 @@ public sealed class EditorSampleInteractionTests {
 			StringComparison.Ordinal );
 		Assert.Contains( "Ctrl+T select", interaction.GetShortcutSummary(),
 			StringComparison.Ordinal );
-		Assert.DoesNotContain( "Ctrl+V", interaction.GetShortcutSummary(),
+		Assert.Contains( "Ctrl+C copy", interaction.GetShortcutSummary(),
+			StringComparison.Ordinal );
+		Assert.Contains( "Ctrl+V paste", interaction.GetShortcutSummary(),
 			StringComparison.Ordinal );
 
 		CursesCommandSequenceResult direct = interaction.Process( Control( 'g' ) );
@@ -89,14 +113,17 @@ public sealed class EditorSampleInteractionTests {
 	}
 
 	[Fact]
-	public void ControlVIsNotClaimedByEditor() {
+	public void ControlVIsClaimedByEditorClipboardComposition() {
 		CursesScreen screen = new( 80, 24 );
 		using EditorSampleInteraction interaction = CreateInteraction( screen );
 
 		CursesCommandSequenceResult result = interaction.Process( Control( 'V' ) );
 
 		Assert.Equal( CursesCommandSequenceResultKind.Fallback, result.Kind );
-		Assert.Null( result.Fallback?.Command );
+		Assert.Equal(
+			EditorSampleInteraction.PasteCommandName,
+			result.Fallback?.Command?.Name
+		);
 	}
 
 	[Fact]

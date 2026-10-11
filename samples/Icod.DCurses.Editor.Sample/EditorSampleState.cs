@@ -1,3 +1,24 @@
+/*
+	Icod.DCurses.Editor.Sample
+	Interactive editor-foundation acceptance sample for Icod.DCurses.
+	Copyright (C) 2026  Timothy J. Bruce <uniblab@hotmail.com>
+*/
+
+/*
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 namespace Icod.DCurses.Editor.Sample;
 
 using Icod.DCurses;
@@ -65,6 +86,63 @@ internal sealed class EditorSampleState {
 			0, layout.Lines.Count );
 	}
 
+	internal EditorViewportProjectionResult ProjectVisible( CursesWindow document ) {
+		ArgumentNullException.ThrowIfNull( document );
+		document.Clear();
+		(int first, int count) = VisibleRecords();
+		int sourceCharacterCount = 0;
+		int visualLineCount = 0;
+		for ( int index = 0; index < count; index++ ) {
+			int row = first + index;
+			CursesTextLayout layout = LayoutRecord( row );
+			sourceCharacterCount = checked( sourceCharacterCount + layout.Text.Length );
+			visualLineCount = checked( visualLineCount + layout.Lines.Count );
+			CursesRectangle[] selection = SelectionRectangles( row, layout );
+			if ( selection.Length > 0 && SelectionAnchor is int anchor ) {
+				layout = CursesTextLayout.Create(
+					layout.Text,
+					layout.Options,
+					[
+						new CursesTextSpan(
+							new CursesTextPosition( Math.Min( anchor, Offset ) ),
+							Math.Abs( anchor - Offset ),
+							CursesStyle.Default.WithAttributes( CursesTextAttributes.Reverse )
+						)
+					]
+				);
+			} else if ( row == Row ) {
+				int next = layout.GetNextPosition( new CursesTextPosition( Offset ) ).Offset;
+				if ( next > Offset ) {
+					layout = CursesTextLayout.Create(
+						layout.Text,
+						layout.Options,
+						[
+							new CursesTextSpan(
+								new CursesTextPosition( Offset ),
+								next - Offset,
+								CursesStyle.Default.WithAttributes( CursesTextAttributes.Reverse )
+							)
+						]
+					);
+				}
+			}
+
+			int visualRow = row * RecordVisualRows - Viewport.OriginRow;
+			document.PresentTextLayout(
+				layout,
+				0,
+				layout.Lines.Count,
+				visualRow,
+				Wrap ? 0 : -Viewport.OriginColumn
+			);
+		}
+		return new EditorViewportProjectionResult(
+			count,
+			sourceCharacterCount,
+			visualLineCount
+		);
+	}
+
 	internal void Resize( int rows, int columns ) {
 		Viewport = Viewport.WithViewportExtent( rows, columns );
 		EnsureCaret();
@@ -77,6 +155,78 @@ internal sealed class EditorSampleState {
 	}
 
 	internal void ToggleSelection() => selectionAnchor = selectionAnchor.HasValue ? null : Offset;
+
+	internal bool TryGetSelectedText( out string value ) {
+		if ( selectionAnchor is not int anchor || anchor == Offset ) {
+			value = string.Empty;
+			return false;
+		}
+		int start = Math.Min( anchor, Offset );
+		value = GetRecord( Row ).Substring( start, Math.Abs( anchor - Offset ) );
+		return true;
+	}
+
+	internal void SetCaretFromPointer(
+		int viewportRow,
+		int viewportColumn,
+		bool extendSelection
+	) {
+		int boundedViewportRow = Math.Clamp( viewportRow, 0, Math.Max( 0, Viewport.Rows - 1 ) );
+		int contentVisualRow = Math.Clamp(
+			Viewport.OriginRow + boundedViewportRow,
+			0,
+			Viewport.ContentRows - 1
+		);
+		int targetRow = Math.Clamp(
+			contentVisualRow / RecordVisualRows,
+			0,
+			DocumentRows - 1
+		);
+		if ( extendSelection && targetRow != Row ) {
+			targetRow = Row;
+			contentVisualRow = Row * RecordVisualRows
+				+ ( viewportRow < 0 ? 0 : RecordVisualRows - 1 );
+		}
+		int previousOffset = Offset;
+		if ( targetRow != Row ) {
+			Row = targetRow;
+			Offset = 0;
+			selectionAnchor = null;
+		}
+
+		CursesTextLayout layout = LayoutRecord( Row );
+		int visualLine = Math.Clamp(
+			contentVisualRow - Row * RecordVisualRows,
+			0,
+			layout.Lines.Count - 1
+		);
+		int visualColumn = Math.Max(
+			0,
+			( Wrap ? 0 : Viewport.OriginColumn ) + viewportColumn
+		);
+		if ( extendSelection ) {
+			selectionAnchor ??= previousOffset;
+		} else {
+			selectionAnchor = null;
+		}
+		Offset = layout.HitTest( visualLine, visualColumn ).Position.Offset;
+		preferredColumn = layout.GetVisualPosition( new CursesTextPosition( Offset ) ).Column;
+		EnsureCaret();
+	}
+
+	internal void EndPointerSelection() {
+		if ( selectionAnchor == Offset ) {
+			selectionAnchor = null;
+		}
+	}
+
+	internal void ScrollbarTo( int viewportRow ) {
+		int extent = Math.Max( 1, Viewport.Rows - 1 );
+		long target = (long)Math.Clamp( viewportRow, 0, extent )
+			* ( DocumentRows - 1L )
+			/ extent;
+		GoToRow( (int)target );
+	}
 
 	internal void GoToRow( int row ) {
 		Row = Math.Clamp( row, 0, DocumentRows - 1 );
@@ -139,6 +289,12 @@ internal sealed class EditorSampleState {
 		if ( value.Length == 0 ) {
 			return false;
 		}
+		string before = GetRecord( Row );
+		int start = selectionAnchor is int anchor ? Math.Min( anchor, Offset ) : Offset;
+		int end = selectionAnchor is int selected ? Math.Max( selected, Offset ) : Offset;
+		if ( before.Length - ( end - start ) + value.Length > MaximumRecordLength ) {
+			return false;
+		}
 		ReadOnlySpan<char> remaining = value.AsSpan();
 		while ( !remaining.IsEmpty ) {
 			if ( Rune.DecodeFromUtf16( remaining, out Rune rune, out int consumed ) != OperationStatus.Done
@@ -146,12 +302,6 @@ internal sealed class EditorSampleState {
 				return false;
 			}
 			remaining = remaining[ consumed.. ];
-		}
-		string before = GetRecord( Row );
-		int start = selectionAnchor is int anchor ? Math.Min( anchor, Offset ) : Offset;
-		int end = selectionAnchor is int selected ? Math.Max( selected, Offset ) : Offset;
-		if ( before.Length - ( end - start ) + value.Length > MaximumRecordLength ) {
-			return false;
 		}
 		CursesTextLayout layout = LayoutRecord( Row );
 		_ = layout.GetVisualPosition( new CursesTextPosition( Offset ) );
@@ -213,6 +363,11 @@ internal sealed class EditorSampleState {
 			Wrap ? 0 : Math.Min( ContentColumns - 1, visual.Column ) ) );
 	}
 }
+
+internal readonly record struct EditorViewportProjectionResult(
+	int RecordCount,
+	int SourceCharacterCount,
+	int VisualLineCount );
 
 internal readonly record struct EditorRegions(
 	CursesRectangle Document, CursesRectangle Status, CursesRectangle Prompt );

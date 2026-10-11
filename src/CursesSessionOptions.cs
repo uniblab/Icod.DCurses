@@ -47,6 +47,10 @@ public enum CursesInputMode
 /// </summary>
 public sealed partial class CursesSessionOptions
 {
+	/// <summary>Gets or initializes immutable local clipboard read/write budgets.</summary>
+	/// <remarks>Defaults remain 64 KiB. Larger budgets do not establish remote support.</remarks>
+	public CursesClipboardOptions ClipboardOptions { get; init; } = new();
+
 	/// <summary>
 	/// Gets or initializes the input discipline.
 	/// </summary>
@@ -116,6 +120,8 @@ public sealed partial class CursesSessionOptions
 	/// <summary>Validates the configured session options.</summary>
 	internal void Validate()
 	{
+		ArgumentNullException.ThrowIfNull( this.ClipboardOptions );
+		this.ClipboardOptions.Validate();
 		if (!Enum.IsDefined(InputMode))
 		{
 			throw new ArgumentOutOfRangeException(
@@ -123,5 +129,20 @@ public sealed partial class CursesSessionOptions
 				InputMode,
 				"The curses input mode is not recognized.");
 		}
+	}
+
+	internal CursesSessionOptions Snapshot()
+	{
+		this.Validate();
+		return new CursesSessionOptions {
+			ClipboardOptions = this.ClipboardOptions.Snapshot(),
+			InputMode = this.InputMode,
+			EchoInput = this.EchoInput,
+			UseAlternateScreen = this.UseAlternateScreen,
+			EnableKeypad = this.EnableKeypad,
+			HideCursor = this.HideCursor,
+			UseSynchronizedOutput = this.UseSynchronizedOutput,
+			EnableRefreshDiagnostics = this.EnableRefreshDiagnostics
+		};
 	}
 }
