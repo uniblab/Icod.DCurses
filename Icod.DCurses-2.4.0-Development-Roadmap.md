@@ -1,7 +1,7 @@
 # Icod.DCurses 2.4.0 Development Roadmap
 
 **Decision:** Focused Widgets and dedit foundations; approved in conversation on 2026-10-10 (America/New_York)  
-**State:** T2400–T2409 accepted locally; `2.4.0` stable source ready for PR CI and maintainer handoff; not merged, tagged or published
+**State:** T2400–T2409 and exact-head PR qualification accepted; `2.4.0` stable source ready for maintainer handoff; not merged, tagged or published
 **Base:** Stable Icod.DCurses 2.3.1, AssemblyVersion 2.0.0.0  
 **Current dependency:** Direct stable Icod.Terminal 1.29.0 after clean published-package restore; no direct Icod.TermInfo production reference
 **Targets:** net8.0, net9.0, net10.0; C# 13; Windows/Linux/macOS  
@@ -60,7 +60,7 @@ Exercise current function-key/phase/paste/focus event data, scopes and pointer c
 | T2406 | Conditional lower-layer gap closure | Closed with no new API: caller-prepared visible slices satisfy the witness and keep document indexing/caches in Widgets; see [decision](docs/T2406-API-Gap-Decision.md) |
 | T2407 | Captured interaction and sample acceptance | Accepted at `80e5354`; 7/7 focused and 42/42 editor tests pass; public-only sample covers outside drag/release, focus/modal/resize cancellation, paste as data, key phases, separate scrollbar hit-testing, visible scoped caret and explicit clipboard fallback; see [evidence](docs/T2407-Editor-Interaction-Acceptance.md) |
 | T2408 | Adversarial, package and API regret gate | Accepted at `8e1ed20`; 109-type/857-line API freeze, 1,415 tests per target, Staging/Release all-target builds, exact package dependency/contents, isolated consumers, durable README and complete license-header audit; see [evidence](docs/T2408-API-Package-Documentation-Gate.md) |
-| T2409 | RC/stable-source and maintainer handoff | Accepted locally: RC `08c558e` and stable source `357f74d`; forced restore, all-target Release build/test, exact stable package and isolated consumers pass; exact-runtime/platform/live limitations remain for PR CI/maintainer review; see [evidence](docs/T2409-2.4.0-Stable-Source-Gate.md) |
+| T2409 | RC/stable-source and maintainer handoff | Accepted: RC `08c558e`, stable source `357f74d`, and exact-head PR workflow 38113940513; forced restore, all-target Release build/test, exact stable package, isolated consumers, package job and six OS/architecture runtime jobs pass; interactive live-terminal limitations remain; see [evidence](docs/T2409-2.4.0-Stable-Source-Gate.md) |
 
 T2406 is a gated branch, not a promise to invent a new viewport or gesture API. Any additive API enters before the T2408 freeze and must remain compatible with 2.3.1. No task may mark a later gate accepted solely because an earlier build was green. Each tranche records commit, tests, limitations, package identity and follow-up in `docs/T24xx-*.md`.
 
@@ -84,4 +84,4 @@ Do not add multiline document storage/undo, a tab control, interactive scrollbar
 
 ## 8. Immediate next action
 
-Submit the exact stable-source head to PR CI and maintainer review. T2400–T2409 established the dependency baseline, clipboard/cursor facades, public-only viewport and interaction witnesses, frozen API, durable documentation, RC, stable identity and package-only qualification. They do not claim exact-runtime CI on all platforms, interactive clipboard/cursor acceptance, merge, tag or publication; the maintainer owns those decisions and actions.
+Submit the qualified stable source to maintainer review. T2400–T2409 established the dependency baseline, clipboard/cursor facades, public-only viewport and interaction witnesses, frozen API, durable documentation, RC, stable identity, package-only qualification, and green exact-head cross-platform PR CI. They do not claim interactive clipboard/cursor acceptance, merge, tag or publication; the maintainer owns those decisions and actions.
