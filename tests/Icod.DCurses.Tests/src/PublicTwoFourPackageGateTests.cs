@@ -49,6 +49,43 @@ public sealed partial class PublicTwoFourPackageGateTests {
 	}
 
 	[Fact]
+	public void SampleGuidesDescribeTheCurrentReleaseAndEditorFoundation() {
+		string root = FindRepositoryRoot();
+		string readme = File.ReadAllText(
+			Path.Combine( root, "samples", "README.md" )
+		);
+		string rasterReadme = File.ReadAllText(
+			Path.Combine(
+				root,
+				"samples",
+				"Icod.DCurses.RasterAtlas.Sample",
+				"README.md"
+			)
+		);
+
+		Assert.Contains( "Icod.Terminal 1.29.0", readme, StringComparison.Ordinal );
+		Assert.Contains( "clipboard", readme, StringComparison.OrdinalIgnoreCase );
+		Assert.Contains( "cursor style", readme, StringComparison.OrdinalIgnoreCase );
+		Assert.Contains( "pointer capture", readme, StringComparison.OrdinalIgnoreCase );
+		Assert.Contains( "bracketed paste", readme, StringComparison.OrdinalIgnoreCase );
+		Assert.DoesNotContain( "stable 2.3.1 maintenance source", readme,
+			StringComparison.OrdinalIgnoreCase );
+		Assert.DoesNotContain( "Icod.Terminal 1.28.0", readme,
+			StringComparison.Ordinal );
+		Assert.Contains( "current 2.4.0 source consumes stable `Icod.Terminal 1.29.0`",
+			rasterReadme, StringComparison.Ordinal );
+		Assert.DoesNotContain( "stable 2.3.1 maintenance source", rasterReadme,
+			StringComparison.OrdinalIgnoreCase );
+		Assert.DoesNotContain( "sample consumes stable Terminal 1.28.0", rasterReadme,
+			StringComparison.OrdinalIgnoreCase );
+		Assert.DoesNotContain(
+			"resolved direct package is `Icod.Terminal 1.28.0`",
+			rasterReadme,
+			StringComparison.OrdinalIgnoreCase
+		);
+	}
+
+	[Fact]
 	public void PackageConsumerAndVerifierFreezeTheTwoFourBoundary() {
 		string root = FindRepositoryRoot();
 		string smoke = File.ReadAllText(

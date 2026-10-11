@@ -2,7 +2,12 @@
 
 The repository contains thirteen executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
-All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the repository `Icod.DCurses` project. The stable 2.3.1 maintenance source declares only stable `Icod.Terminal 1.28.0` directly; Terminal may restore TermInfo transitively. Version 2.3.1 changes documentation and release-state records only, so the 2.3 sample behavior and controls are unchanged. Published 2.2, 2.1 and 2.0 declare Terminal 1.18.0. The previous 1.6 package keeps its historical direct dependency set. To migrate external applications, see [the 2.0 migration guide](../docs/2.0-Migration-Guide.md).
+All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the
+repository `Icod.DCurses` project. The current 2.4.0 source declares only stable
+`Icod.Terminal 1.29.0` directly; Terminal may restore TermInfo transitively. See
+the [changelog](../CHANGELOG.md) for historical package dependencies and the
+[2.0 migration guide](../docs/2.0-Migration-Guide.md) when upgrading an external
+application from the 1.x public surface.
 
 ## Which sample should I run?
 
@@ -14,7 +19,7 @@ All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the rep
 | Retained text + hyperlink metadata + raster presentation, panning, panels, and interaction geometry | `Icod.DCurses.MixedMedia.Sample` |
 | Virtualized large world, sparse movement, track layout, and retained help overlay | `Icod.DCurses.Roguelike.Sample` |
 | Cell-aligned tile atlas, sparse raster updates, resize recreation, and explicit text fallback | `Icod.DCurses.RasterAtlas.Sample` |
-| Sparse synthetic document, Unicode editing, selection, wrap, and two-axis scrolling | `Icod.DCurses.Editor.Sample` |
+| Sparse synthetic document, Unicode editing, selection, two-axis scrolling, bracketed paste, pointer capture, clipboard, and scoped cursor style | `Icod.DCurses.Editor.Sample` |
 | Interaction scopes, capture, spatial focus, gestures, commands, and pointer preferences | `Icod.DCurses.Interaction.Sample` |
 | General interactive API showcase | `Icod.DCurses.Showcase` |
 | Semantic input inspection | `Icod.DCurses.Input.Showcase` |

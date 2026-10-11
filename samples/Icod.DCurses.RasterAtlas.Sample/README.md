@@ -9,8 +9,10 @@ resize recreation and a text fallback driven by the same model.
 
 ## Current release boundary
 
-The stable 2.3.1 maintenance source consumes published `Icod.Terminal 1.28.0` and contains no runtime or public API changes from the published 2.3.0 feature release. The
-maintainer has accepted the current sample's ATLAS, FRAME, and TEXT behavior,
+The current 2.4.0 source consumes stable `Icod.Terminal 1.29.0` through DCurses.
+Version 2.4 adds bounded clipboard and cursor-style session mechanisms without
+changing this sample's retained raster contract. The maintainer has accepted the
+sample's ATLAS, FRAME, and TEXT behavior,
 including supplied tile artwork, immediate input, movement, water collision,
 camera scrolling, help restoration, resize cleanup, and independent Q/Escape
 exit. Complete-atlas camera updates are coalesced into one region mutation;
@@ -97,7 +99,7 @@ the pixels correctly. Record that separately with the T2308/T2310 live checklist
 
 ## Live acceptance and known limits
 
-The sample consumes stable Terminal 1.28.0 through DCurses, including bounded
+The sample consumes stable Terminal 1.29.0 through DCurses, including bounded
 persistent-transfer deadlines, immediate Linux/macOS byte input, Kitty DA1
 compatibility, newline-safe cursor planning, and coalesced Sixel screen writes.
 The public mode indicator is the acceptance authority: `ATLAS`, `FRAME`, or
@@ -165,10 +167,10 @@ briefly shows an old image strip during active resize; it clears when dimensions
 settle. These observations supersede the pending help/resize/exit items above,
 but do not establish persistent ATLAS support or artifact-free live dragging.
 
-## WSL2/kitty acceptance with Terminal 1.28.0
+## Historical WSL2/kitty acceptance with Terminal 1.28.0
 
 Terminal 1.28.0 and the source-built Kitty 0.49.2 witness establish the protocol
-transaction and lifecycle path used by DCurses. The maintainer's current DCurses
+transaction and lifecycle path used by DCurses. The maintainer's recorded DCurses
 sample run accepts the default ATLAS path with the supplied 16×16 water, grass,
 forest, road, and player tiles, immediate movement, blocked water, camera
 scrolling, help restoration, resize cleanup, and clean Q/Escape exit. The
@@ -185,7 +187,8 @@ dotnet list Icod.DCurses.csproj package
 dotnet run --project samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.Sample.csproj -c Release -f net10.0
 ```
 
-Confirm the resolved direct package is `Icod.Terminal 1.28.0`. Use
+For the current 2.4.0 source, confirm the resolved direct package is
+`Icod.Terminal 1.29.0`. Use
 `-- --raster` to exercise FRAME directly and `-- --text` to force TEXT.
 Record the mode indicator along with rendering behavior; a fallback is a
 controlled result, not evidence that another mode rendered.
