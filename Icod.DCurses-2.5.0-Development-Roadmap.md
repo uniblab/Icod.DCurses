@@ -2,7 +2,7 @@
 
 **Decision:** Color-surface hardening for Icod.Widgets and dedit; approved in conversation on 2026-10-12 (America/New_York)
 
-**State:** T2500–T2506 qualified; T2507 RC exact-head CI passed, stable-source qualification in progress. Maintainer merge/tag/publication pending.
+**State:** T2500–T2506 qualified; T2507 RC and stable-source exact-head CI passed. Evidence-only PR-head validation and maintainer merge/tag/publication remain pending.
 
 **Base:** Published Icod.DCurses 2.4.0, AssemblyVersion 2.0.0.0
 
