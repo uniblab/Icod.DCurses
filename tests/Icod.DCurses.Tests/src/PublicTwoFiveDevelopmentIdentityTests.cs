@@ -83,13 +83,9 @@ public sealed class PublicTwoFiveDevelopmentIdentityTests {
 			nameof( CursesPresentationCapabilities.SupportsBackgroundColor )
 		)?.PropertyType );
 
-		Assert.Equal(
-			[ "2.5.0-alpha.1", "2.5.0-alpha.1" ],
-			[
-				GetSingleValue( production, "Version" ),
-				GetSingleValue( production, "PackageVersion" )
-			]
-		);
+		string version = GetSingleValue( production, "Version" );
+		Assert.Contains( version, new[] { "2.5.0-alpha.1", "2.5.0-rc.1", "2.5.0" } );
+		Assert.Equal( version, GetSingleValue( production, "PackageVersion" ) );
 	}
 
 	private static void AssertPublicStaticMethod(
