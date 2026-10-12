@@ -1,11 +1,16 @@
 # Icod.DCurses 2.5.0 Development Roadmap
 
-**Decision:** Color-surface hardening for Icod.Widgets and dedit; approved in conversation on 2026-10-12 (America/New_York)  
-**State:** Planning complete; implementation not started  
-**Base:** Published Icod.DCurses 2.4.0, AssemblyVersion 2.0.0.0  
-**Dependency:** Direct stable Icod.Terminal 1.29.0; no direct Icod.TermInfo production reference  
-**Targets:** net8.0, net9.0, net10.0; C# 13; Windows/Linux/macOS  
-**Design authority:** [2.5 color-surface design](docs/superpowers/specs/2026-10-12-icod-dcurses-2.5-color-surface-hardening-design.md)  
+**Decision:** Color-surface hardening for Icod.Widgets and dedit; approved in conversation on 2026-10-12 (America/New_York)
+
+**State:** Planning complete; implementation not started
+
+**Base:** Published Icod.DCurses 2.4.0, AssemblyVersion 2.0.0.0
+
+**Dependency:** Direct stable Icod.Terminal 1.29.0; no direct Icod.TermInfo production reference
+
+**Targets:** net8.0, net9.0, net10.0; C# 13; Windows/Linux/macOS
+
+**Design authority:** [2.5 color-surface design](docs/superpowers/specs/2026-10-12-icod-dcurses-2.5-color-surface-hardening-design.md)
 **Execution detail:** [2.5 implementation plan](docs/superpowers/plans/2026-10-12-icod-dcurses-2.5-color-surface-hardening.md)
 
 ## 1. Goal and release test
