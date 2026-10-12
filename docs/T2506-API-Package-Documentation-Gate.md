@@ -1,6 +1,6 @@
 # T2506 — 2.5 color-surface contract freeze
 
-**Candidate:** PR #38, `2.5.0-alpha.1`; pre-RC, not tagged or published.  
+**Candidate:** PR #38, `2.5.0-alpha.1`; pre-RC, not tagged or published.
 **Environment:** Linux x64, .NET SDK/runtime 10.0.12, with `DOTNET_ROLL_FORWARD=Major`
 for net8/net9 test execution; local Terminal dependency `1.29.0`. These are
 automated results, not a live macOS/Windows terminal visual observation.

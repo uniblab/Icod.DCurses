@@ -121,4 +121,4 @@ T2500 advances `Version` and `PackageVersion` together from `2.4.0` to `2.5.0-al
 
 ## 10. Immediate next action
 
-Execute T2507: promote the frozen candidate to RC, collect exact-head CI and available live terminal evidence, then qualify unchanged stable source for maintainer merge/tag/publication. T2506 local measurements and gate details are in [T2506 evidence](docs/T2506-API-Package-Documentation-Gate.md). Do not implement Widgets themes until the DCurses 2.5 color-surface contract is qualified and published.
+The remaining action is maintainer review, merge, post-merge validation, tag and NuGet publication of the qualified `2.5.0` source. [T2506 evidence](docs/T2506-API-Package-Documentation-Gate.md) records the color/package freeze; [T2507 evidence](docs/T2507-2.5.0-Stable-Source-Gate.md) records the RC and stable-source gates. Live terminal visual checks remain unverified. Do not implement Widgets themes until the DCurses 2.5 color-surface contract is published.

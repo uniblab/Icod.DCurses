@@ -4,15 +4,15 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
 **Published compatibility floor:** `1.0.0`\
 **Published releases:** [GitHub Releases](https://github.com/uniblab/Icod.DCurses/releases) and [NuGet](https://www.nuget.org/packages/Icod.DCurses/)\
-**Current stable source:** `2.4.0`; merged, tagged and published\
+**Current stable source candidate:** `2.5.0` on PR #38; not merged, tagged or published\
 **Latest published stable package:** `2.4.0`\
 **Current development assembly version:** `2.0.0.0`\
 **Current development runtime dependency:** direct stable `Icod.Terminal 1.29.0` only; TermInfo remains transitive\
 **Stable 2.4 direct runtime dependency:** `Icod.Terminal 1.29.0`; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Active feature track:** 2.5.0 color-surface hardening for Icod.Widgets and dedit; implementation in progress\
-**Status:** Version 2.4.0 is published. Version 2.5 development is at `2.5.0-alpha.1`; T2500–T2505 have qualified the frozen public foundation, logical retention, composition, style-only refresh, independent-axis fallback, resize, invalidation, lifecycle repaint and public-only sample/package consumption without production or API changes. Adversarial, performance, API, package and durable-documentation freeze is next. See the [2.5 roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md), [approved design](docs/superpowers/specs/2026-10-12-icod-dcurses-2.5-color-surface-hardening-design.md), [implementation plan](docs/superpowers/plans/2026-10-12-icod-dcurses-2.5-color-surface-hardening.md), and T2500–T2505 evidence in `docs/`.
+**Active feature track:** 2.5.0 color-surface hardening for Icod.Widgets and dedit; stable source qualified on PR #38\
+**Status:** Version 2.4.0 is the latest published stable package. Version 2.5.0 stable source has completed T2500–T2507, including unchanged public API, public-only color sample, package consumer, full Release gate, and successful RC/stable-source Windows/Linux/macOS x64/ARM64 PR matrices. Live terminal color visuals remain unverified; the maintainer controls merge, tag and publication. See the [2.5 roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md) and [T2507 release gate](docs/T2507-2.5.0-Stable-Source-Gate.md).
 
 **Planning snapshot:** 2026-10-12
 
@@ -71,7 +71,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Published 2026-10-09 |
 | `2.3.1` | Package documentation and release-state correction | Stable maintenance patch; no runtime or public API changes |
 | `2.4.0` | Widgets/dedit foundations: Terminal 1.29 clipboard/cursor facades, qualified visible projection and capture | Published 2026-10-12 |
-| `2.5.0` | Complete foreground/background color-surface retention, composition, damage and fallback qualification | Active implementation track; T2500–T2505 accepted |
+| `2.5.0` | Complete foreground/background color-surface retention, composition, damage and fallback qualification | Stable source qualified on PR #38; merge/tag/publication pending |
 | Later | Higher-level `Icod.Widgets` themes and separately evidenced sprite/physical-placement work | Separate repositories/tracks; not implicitly in 2.5 |
 
 The post-1.0 progression is intentionally cumulative:
@@ -434,7 +434,7 @@ For 2.5, published 2.4 API artifacts remain immutable historical evidence. The e
 
 ## Current feature direction
 
-Keep published 2.4 maintenance separate from the planned 2.5 feature track. Develop only the color-surface scope in the [2.5 roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md); theme inheritance and widget-part styles remain in `Icod.Widgets`, while dedit remains the application. The direct production boundary remains `Icod.DCurses -> Icod.Terminal`; any newly discovered live-terminal normalization or protocol gap remains work for Terminal.
+Keep published 2.4 maintenance separate from the 2.5 stable-source PR until the maintainer merges and publishes it. Theme inheritance and widget-part styles remain in `Icod.Widgets`, while dedit remains the application. The direct production boundary remains `Icod.DCurses -> Icod.Terminal`; any newly discovered live-terminal normalization or protocol gap remains work for Terminal.
 
 ## Complete-frame fallback extension (2026-10-03)
 
