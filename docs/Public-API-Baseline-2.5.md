@@ -1,6 +1,6 @@
 # Icod.DCurses 2.5 Public API Baseline
 
-**Release-line identity:** `2.5.0` (pre-RC contract freeze)  
+**Release-line identity:** `2.5.0` (stable-source candidate; not yet published)
 **AssemblyVersion:** `2.0.0.0`  
 **Direct production dependency:** `Icod.Terminal 1.29.0`
 

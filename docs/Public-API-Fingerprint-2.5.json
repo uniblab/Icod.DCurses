@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "release": "2.5.0",
-  "status": "pre-rc-contract-freeze",
+  "status": "stable-source-candidate",
   "sha256": "87a3ffe66174634f6db4044b914b05fd31d117b93ecf5b1a151d31d59732e65e",
   "exportedTypeCount": 109,
   "contractLineCount": 857,

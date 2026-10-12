@@ -2,7 +2,7 @@
 
 All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/` and the versioned roadmap files.
 
-## 2.5.0 — Color-surface qualification (in development)
+## 2.5.0 — Color-surface qualification (stable-source candidate)
 
 - Qualified existing independent foreground/background styles through logical mutation, wide-cell repair, pads, viewports, opaque and blank-transparent panels, style-only refresh, capability fallback, and resize/invalidation/lifecycle repaint.
 - Added permanent color-surface test matrices, a public-only interactive color sample, and an isolated NuGet package consumer witness. The sample reports requested palette and capabilities; actual display depends on the host terminal.

@@ -24,7 +24,7 @@ namespace Icod.DCurses.Tests;
 using System.Xml.Linq;
 using Xunit;
 
-/// <summary>Pins the current 2.5 release-candidate source identity.</summary>
+/// <summary>Pins the current 2.5 stable-source identity.</summary>
 public sealed class PublicTwoFiveReleaseIdentityTests {
 	[Fact]
 	public void CandidateIdentityIsExplicitAndSynchronized() {
@@ -38,6 +38,6 @@ public sealed class PublicTwoFiveReleaseIdentityTests {
 			.Where( element => element.Name.LocalName is "Version" or "PackageVersion" )
 			.Select( element => element.Value )
 			.ToArray();
-		Assert.Equal( [ "2.5.0-rc.1", "2.5.0-rc.1" ], versions );
+		Assert.Equal( [ "2.5.0", "2.5.0" ], versions );
 	}
 }
