@@ -1,3 +1,4 @@
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -35,6 +36,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Icod.DCurses.Editor.Sample", "samples\Icod.DCurses.Editor.Sample\Icod.DCurses.Editor.Sample.csproj", "{B7E25AA6-78A0-4658-84A9-82AB84761C5D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Icod.DCurses.RasterAtlas.Sample", "samples\Icod.DCurses.RasterAtlas.Sample\Icod.DCurses.RasterAtlas.Sample.csproj", "{D9A66B1C-7A42-4D9E-B07B-A9EE3C2E4F10}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Icod.DCurses.Color.Sample", "samples\Icod.DCurses.Color.Sample\Icod.DCurses.Color.Sample.csproj", "{2710E7DC-11B7-4016-8CF0-D7B2228B99EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -133,6 +136,12 @@ Global
 		{D9A66B1C-7A42-4D9E-B07B-A9EE3C2E4F10}.Staging|Any CPU.Build.0 = Staging|Any CPU
 		{D9A66B1C-7A42-4D9E-B07B-A9EE3C2E4F10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9A66B1C-7A42-4D9E-B07B-A9EE3C2E4F10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2710E7DC-11B7-4016-8CF0-D7B2228B99EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2710E7DC-11B7-4016-8CF0-D7B2228B99EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2710E7DC-11B7-4016-8CF0-D7B2228B99EF}.Staging|Any CPU.ActiveCfg = Staging|Any CPU
+		{2710E7DC-11B7-4016-8CF0-D7B2228B99EF}.Staging|Any CPU.Build.0 = Staging|Any CPU
+		{2710E7DC-11B7-4016-8CF0-D7B2228B99EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2710E7DC-11B7-4016-8CF0-D7B2228B99EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -152,5 +161,6 @@ Global
 		{81E10C30-7A1A-47CD-B918-90241B475E20} = {4A1B4462-96F7-4E95-95A4-059D416B73E7}
 		{B7E25AA6-78A0-4658-84A9-82AB84761C5D} = {4A1B4462-96F7-4E95-95A4-059D416B73E7}
 		{D9A66B1C-7A42-4D9E-B07B-A9EE3C2E4F10} = {4A1B4462-96F7-4E95-95A4-059D416B73E7}
+		{2710E7DC-11B7-4016-8CF0-D7B2228B99EF} = {4A1B4462-96F7-4E95-95A4-059D416B73E7}
 	EndGlobalSection
 EndGlobal

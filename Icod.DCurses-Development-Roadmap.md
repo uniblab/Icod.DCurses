@@ -12,7 +12,7 @@
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
 **Active feature track:** 2.5.0 color-surface hardening for Icod.Widgets and dedit; implementation in progress\
-**Status:** Version 2.4.0 is published. Version 2.5 development is at `2.5.0-alpha.1`; T2500–T2504 have qualified the frozen public foundation, logical retention, composition, style-only refresh, independent-axis fallback, resize, invalidation and lifecycle repaint without production or API changes. Public-only sample/package acceptance is next. See the [2.5 roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md), [approved design](docs/superpowers/specs/2026-10-12-icod-dcurses-2.5-color-surface-hardening-design.md), [implementation plan](docs/superpowers/plans/2026-10-12-icod-dcurses-2.5-color-surface-hardening.md), and T2500–T2504 evidence in `docs/`.
+**Status:** Version 2.4.0 is published. Version 2.5 development is at `2.5.0-alpha.1`; T2500–T2505 have qualified the frozen public foundation, logical retention, composition, style-only refresh, independent-axis fallback, resize, invalidation, lifecycle repaint and public-only sample/package consumption without production or API changes. Adversarial, performance, API, package and durable-documentation freeze is next. See the [2.5 roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md), [approved design](docs/superpowers/specs/2026-10-12-icod-dcurses-2.5-color-surface-hardening-design.md), [implementation plan](docs/superpowers/plans/2026-10-12-icod-dcurses-2.5-color-surface-hardening.md), and T2500–T2505 evidence in `docs/`.
 
 **Planning snapshot:** 2026-10-12
 
@@ -71,7 +71,7 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Published 2026-10-09 |
 | `2.3.1` | Package documentation and release-state correction | Stable maintenance patch; no runtime or public API changes |
 | `2.4.0` | Widgets/dedit foundations: Terminal 1.29 clipboard/cursor facades, qualified visible projection and capture | Published 2026-10-12 |
-| `2.5.0` | Complete foreground/background color-surface retention, composition, damage and fallback qualification | Active implementation track; T2500–T2504 accepted |
+| `2.5.0` | Complete foreground/background color-surface retention, composition, damage and fallback qualification | Active implementation track; T2500–T2505 accepted |
 | Later | Higher-level `Icod.Widgets` themes and separately evidenced sprite/physical-placement work | Separate repositories/tracks; not implicitly in 2.5 |
 
 The post-1.0 progression is intentionally cumulative:
