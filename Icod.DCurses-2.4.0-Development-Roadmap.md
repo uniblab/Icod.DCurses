@@ -1,7 +1,7 @@
 # Icod.DCurses 2.4.0 Development Roadmap
 
 **Decision:** Focused Widgets and dedit foundations; approved in conversation on 2026-10-10 (America/New_York)  
-**State:** T2400–T2409 and exact-head PR qualification accepted; `2.4.0` stable source ready for maintainer handoff; not merged, tagged or published
+**State:** Complete; PR #37 merged as `75a205d`, tagged `v2.4.0`, and published to NuGet on 2026-10-12
 **Base:** Stable Icod.DCurses 2.3.1, AssemblyVersion 2.0.0.0  
 **Current dependency:** Direct stable Icod.Terminal 1.29.0 after clean published-package restore; no direct Icod.TermInfo production reference
 **Targets:** net8.0, net9.0, net10.0; C# 13; Windows/Linux/macOS  
@@ -82,6 +82,6 @@ T2408 compares the public contract against the frozen 2.3 baseline, reviews outp
 
 Do not add multiline document storage/undo, a tab control, interactive scrollbars, dialog/file-picker policies, editor-specific command mappings, file codecs, safe save/close, auto-recovery, native clipboard access, new OSC protocol handling, physical sprite coordination, terminal emulator or PTY hosting. Those belong in Widgets, dedit, Terminal or a separately approved track. Do not reopen 2.3.1 maintenance or rewrite historical release evidence.
 
-## 8. Immediate next action
+## 8. Release closure
 
-Submit the qualified stable source to maintainer review. T2400–T2409 established the dependency baseline, clipboard/cursor facades, public-only viewport and interaction witnesses, frozen API, durable documentation, RC, stable identity, package-only qualification, and green exact-head cross-platform PR CI. They do not claim interactive clipboard/cursor acceptance, merge, tag or publication; the maintainer owns those decisions and actions.
+PR #37 merged to `main` as `75a205d`, tag `v2.4.0` was created, and Icod.DCurses 2.4.0 was published to NuGet on 2026-10-12. T2400–T2409 remain the qualification record for the dependency baseline, clipboard/cursor facades, public-only viewport and interaction witnesses, frozen API, durable documentation, RC, stable identity, package-only consumers, and exact-head cross-platform PR CI. Later color-surface work belongs to the separate [2.5 roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md).

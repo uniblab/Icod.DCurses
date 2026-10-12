@@ -2,6 +2,13 @@
 
 All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/` and the versioned roadmap files.
 
+## 2.5.0 — Color-surface qualification (stable-source candidate)
+
+- Qualified existing independent foreground/background styles through logical mutation, wide-cell repair, pads, viewports, opaque and blank-transparent panels, style-only refresh, capability fallback, and resize/invalidation/lifecycle repaint.
+- Added permanent color-surface test matrices, a public-only interactive color sample, and an isolated NuGet package consumer witness. The sample reports requested palette and capabilities; actual display depends on the host terminal.
+- Preserved styled blanks on opaque panels and 2.4's rule that even styled blanks remain transparent under `BlankCellsTransparent`; reverse remains an attribute, not a stored color swap.
+- Preserved the 2.4 public contract (109 exported types, 857 lines, SHA-256 `87a3ffe66174634f6db4044b914b05fd31d117b93ecf5b1a151d31d59732e65e`), `AssemblyVersion 2.0.0.0`, .NET 8/9/10, and sole direct `Icod.Terminal 1.29.0` dependency. No runtime or public API change is presently required.
+
 ## 2.4.0 — Clipboard, cursor style, and editor foundations
 
 - Added `CursesClipboardSelection` and independently bounded `CursesClipboardOptions`; read/write defaults are 65,536 bytes and each local limit may be configured up to 16 MiB before an owned session opens.

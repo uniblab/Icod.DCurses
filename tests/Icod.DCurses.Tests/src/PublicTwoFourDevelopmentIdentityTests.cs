@@ -21,13 +21,14 @@
 
 namespace Icod.DCurses.Tests;
 
+using System.Text.Json;
 using System.Xml.Linq;
 using Xunit;
 
 /// <summary>Guards the approved 2.4 stable-source identity and dependency boundary.</summary>
 public sealed class PublicTwoFourDevelopmentIdentityTests {
 	[Fact]
-	public void StableIdentityPinsStableTerminal() {
+	public void PublishedIdentityPreservesStableTerminalBoundary() {
 		XDocument production = XDocument.Load(
 			Path.Combine( FindRepositoryRoot(), "Icod.DCurses.csproj" )
 		);
@@ -40,9 +41,20 @@ public sealed class PublicTwoFourDevelopmentIdentityTests {
 			)
 		);
 
-		Assert.Equal( "2.4.0", GetSingleValue( production, "Version" ) );
-		Assert.Equal( "2.4.0", GetSingleValue( production, "PackageVersion" ) );
 		Assert.Equal( "2.0.0.0", GetSingleValue( production, "AssemblyVersion" ) );
+		using JsonDocument fingerprint = JsonDocument.Parse( File.ReadAllText( Path.Combine(
+			FindRepositoryRoot(),
+			"docs",
+			"Public-API-Fingerprint-2.4.json"
+		) ) );
+		Assert.Equal(
+			"2.4.0",
+			fingerprint.RootElement.GetProperty( "release" ).GetString()
+		);
+		Assert.Equal(
+			"stable-source",
+			fingerprint.RootElement.GetProperty( "status" ).GetString()
+		);
 
 		XElement reference = Assert.Single(
 			production.Descendants(),

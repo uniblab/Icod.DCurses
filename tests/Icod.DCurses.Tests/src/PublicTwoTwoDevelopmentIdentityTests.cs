@@ -54,15 +54,9 @@ public sealed class PublicTwoThreeDevelopmentIdentityTests {
 
 		string roadmap = File.ReadAllText( Path.Combine(
 			root.FullName,
-			"Icod.DCurses-Development-Roadmap.md"
+			"Icod.DCurses-2.3.0-Development-Roadmap.md"
 		) );
-		Assert.Contains( "Latest published stable package:** `2.3.1`", roadmap,
-			StringComparison.Ordinal );
-		Assert.Contains( "Current stable source candidate:** `2.4.0`", roadmap,
-			StringComparison.Ordinal );
-		Assert.Contains( "Active feature track:** 2.4.0", roadmap,
-			StringComparison.Ordinal );
-		Assert.DoesNotContain( "Latest tagged stable release:** `2.2.0`", roadmap,
+		Assert.Contains( "# Icod.DCurses 2.3.0 Development Roadmap", roadmap,
 			StringComparison.Ordinal );
 		Assert.DoesNotContain( "merge/main/tag pending", roadmap,
 			StringComparison.OrdinalIgnoreCase );

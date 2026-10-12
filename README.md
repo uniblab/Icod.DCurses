@@ -27,6 +27,14 @@ To run the editor-foundation sample from a repository checkout:
 dotnet run --project samples/Icod.DCurses.Editor.Sample/Icod.DCurses.Editor.Sample.csproj -c Release -f net10.0
 ```
 
+To inspect foreground/background behavior on your own terminal, run the
+[public-only color sample](https://github.com/uniblab/Icod.DCurses/blob/main/samples/Icod.DCurses.Color.Sample/README.md)
+from a repository checkout:
+
+```text
+dotnet run --project samples/Icod.DCurses.Color.Sample/Icod.DCurses.Color.Sample.csproj -c Release -f net10.0
+```
+
 ## Quick start
 
 ```csharp
@@ -53,6 +61,41 @@ CursesEvent inputEvent = await session.ReadEventAsync();
 The application decides how to interpret `inputEvent`, when to refresh again,
 and when to exit. DCurses does not start a callback dispatcher or a second input
 reader.
+
+## Color surfaces and fallback
+
+Each `CursesCell` carries a complete `CursesStyle`: independently requested
+foreground and background `CursesColor` values plus text attributes. A color
+may be terminal-default, indexed, or direct RGB. Logical windows, pads,
+viewports, and panels retain the requested style; refresh resolves it against
+the current terminal's capabilities. Inspect `session.PresentationCapabilities`
+and choose an application palette that remains legible when a color cannot be
+represented:
+
+```csharp
+CursesPresentationCapabilities capabilities = session.PresentationCapabilities;
+CursesColor ink = capabilities.SupportsDefaultColorRestoration
+	&& capabilities.SupportsForegroundColor
+	&& capabilities.IndexedColorCount >= 8
+	? CursesColor.Indexed( 7 )
+	: CursesColor.Default;
+CursesColor paper = capabilities.SupportsDefaultColorRestoration
+	&& capabilities.SupportsBackgroundColor
+	&& capabilities.IndexedColorCount >= 8
+	? CursesColor.Indexed( 4 )
+	: CursesColor.Default;
+screen.Write( "Colored text", new CursesStyle( ink, paper ) );
+```
+
+This snippet continues the quick-start session and window above. An unsupported
+axis degrades to terminal-default without changing a supported axis; there is
+no automatic nearest-color quantization. The terminal's actual appearance can
+still depend on its palette and user settings. For a colored surface, set
+`CursesPanelTransparency.Opaque`: blank cells with a styled background then
+cover lower panels. `BlankCellsTransparent` deliberately treats even styled
+blanks as transparent. `CursesTextAttributes.Reverse` is a semantic attribute,
+not an interchange of the stored foreground and background colors; display
+support is terminal-dependent.
 
 ## Clipboard and cursor style
 
@@ -207,7 +250,8 @@ owner of protocol framing, query correlation, live identities and physical state
 
 ## Compatibility and versioning
 
-The 2.4 public surface is additive over 2.3.1 and keeps `AssemblyVersion`
+The 2.5 color-surface qualification retains the 2.4 public surface, which is
+additive over 2.3.1, and keeps `AssemblyVersion`
 `2.0.0.0`. It has 109 exported types, 857 canonical declared contract lines and
 SHA-256 fingerprint
 `87a3ffe66174634f6db4044b914b05fd31d117b93ecf5b1a151d31d59732e65e`.
@@ -218,8 +262,8 @@ See the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.
 
 ## Documentation and samples
 
-- [2.4 public API baseline](https://github.com/uniblab/Icod.DCurses/blob/main/docs/Public-API-Baseline-2.4.md)
-- [2.4 development roadmap](https://github.com/uniblab/Icod.DCurses/blob/main/Icod.DCurses-2.4.0-Development-Roadmap.md)
+- [2.5 public API baseline](https://github.com/uniblab/Icod.DCurses/blob/main/docs/Public-API-Baseline-2.5.md)
+- [2.5 development roadmap](https://github.com/uniblab/Icod.DCurses/blob/main/Icod.DCurses-2.5.0-Development-Roadmap.md)
 - [Sample guide and runnable commands](https://github.com/uniblab/Icod.DCurses/blob/main/samples/README.md)
 - [Clipboard integration evidence](https://github.com/uniblab/Icod.DCurses/blob/main/docs/T2402-Clipboard-Integration.md)
 - [Cursor-style lifecycle evidence](https://github.com/uniblab/Icod.DCurses/blob/main/docs/T2404-Cursor-Style-Lifecycle.md)

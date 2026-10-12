@@ -64,6 +64,7 @@ VerifyInteractionSurface();
 VerifyAdvancedInteractionSurface();
 VerifyCommandSequenceSurface();
 VerifyTwoFourSurface();
+VerifyTwoFiveColorSurface();
 
 if ( string.Equals(
 	Environment.GetEnvironmentVariable( "ICOD_DCURSES_SMOKE_INTERACTIVE" ),
@@ -139,6 +140,79 @@ static void VerifyTwoFourSurface() {
 	if ( 4 != compileTimeSignatures.Length ) {
 		throw new InvalidOperationException(
 			"DCurses 2.4 package-only method signatures are unavailable."
+		);
+	}
+}
+
+static void VerifyTwoFiveColorSurface() {
+	CursesStyle lowerStyle = new(
+		CursesColor.Indexed( 24 ),
+		CursesColor.Rgb( 15, 30, 45 ),
+		CursesTextAttributes.Bold
+	);
+	CursesStyle upperStyle = new(
+		CursesColor.Rgb( 220, 90, 30 ),
+		CursesColor.Indexed( 53 ),
+		CursesTextAttributes.Underline | CursesTextAttributes.Italic
+	);
+	CursesCell blank = CursesCell.Blank( upperStyle );
+	CursesCell continuation = CursesCell.Continuation( upperStyle );
+	if ( !blank.IsBlank
+		|| blank.Style != upperStyle
+		|| !continuation.IsContinuation
+		|| continuation.Style != upperStyle
+		|| CursesColorKind.Rgb != upperStyle.Foreground.Kind
+		|| CursesColorKind.Indexed != upperStyle.Background.Kind ) {
+		throw new InvalidOperationException(
+			"DCurses 2.5 complete-style cell surface failed validation."
+		);
+	}
+
+	CursesScreen logical = new( 4, 1 );
+	logical.StandardWindow.FillRectangle(
+		0,
+		0,
+		1,
+		4,
+		new CursesCell( "L", lowerStyle )
+	);
+	CursesPad pad = new( 2, 1 );
+	pad.ContentWindow.FillRectangle( 0, 0, 1, 2, blank );
+	CursesPadViewport viewport = pad.CreateViewport(
+		logical.StandardWindow, 0, 0, 1, 2, 0, 1
+	);
+	viewport.Present();
+	if ( !logical.VirtualScreen[ 0, 1 ].IsBlank
+		|| upperStyle != logical.VirtualScreen[ 0, 1 ].Style
+		|| !logical.VirtualScreen[ 0, 2 ].IsBlank
+		|| upperStyle != logical.VirtualScreen[ 0, 2 ].Style ) {
+		throw new InvalidOperationException(
+			"DCurses 2.5 public pad color projection failed validation."
+		);
+	}
+
+	using CursesPanel panel = logical.CreatePanel( 0, 1, 1, 2 );
+	panel.Transparency = CursesPanelTransparency.Opaque;
+	panel.ContentWindow.BackgroundCell = blank;
+	panel.ContentWindow.Clear();
+	panel.ContentWindow.Write( "\u754C", upperStyle );
+
+	if ( "\u754C" != panel.ContentWindow.GetCell( 0, 0 ).Content
+		|| upperStyle != panel.ContentWindow.GetCell( 0, 0 ).Style
+		|| !panel.ContentWindow.GetCell( 0, 1 ).IsContinuation
+		|| upperStyle != panel.ContentWindow.GetCell( 0, 1 ).Style ) {
+		throw new InvalidOperationException(
+			"DCurses 2.5 public opaque panel cell surface failed validation."
+		);
+	}
+
+	panel.Hide();
+	if ( upperStyle != logical.VirtualScreen[ 0, 1 ].Style
+		|| upperStyle != logical.VirtualScreen[ 0, 2 ].Style
+		|| lowerStyle != logical.VirtualScreen[ 0, 0 ].Style
+		|| lowerStyle != logical.VirtualScreen[ 0, 3 ].Style ) {
+		throw new InvalidOperationException(
+			"DCurses 2.5 public lower color surface was not retained."
 		);
 	}
 }
