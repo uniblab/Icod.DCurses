@@ -42,8 +42,8 @@
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
-		<Description>Managed, cross-platform curses-style terminal UI for .NET with retained Unicode text, viewports, panels, mixed media, deterministic interaction routing, bounded clipboard access, and scoped cursor styles.</Description>
-		<PackageReleaseNotes>2.4 adds explicit bounded clipboard read/write facades, reversible semantic cursor-style leases, qualified viewport-local editor projection, and a public-only editor interaction sample. The sole direct runtime dependency is stable Icod.Terminal 1.29.0.</PackageReleaseNotes>
+		<Description>Managed, cross-platform curses-style terminal UI for .NET with retained Unicode text, independently styled foreground/background color surfaces, viewports, panels, mixed media, deterministic interaction routing, bounded clipboard access, and scoped cursor styles.</Description>
+		<PackageReleaseNotes>2.5 qualifies existing foreground/background color retention, opaque-panel styled blanks, damage-aware rendition refresh, capability fallback, and lifecycle repaint across .NET 8/9/10; adds a public-only color sample and package consumer. No public API changes. Existing bounded clipboard and cursor-style APIs remain. The sole direct runtime dependency is stable Icod.Terminal 1.29.0.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -54,7 +54,7 @@
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<Deterministic>true</Deterministic>
-		<PackageTags>cli;command-line;console;console-ui;cross-platform;csharp;curses;dcurses;dotnet;full-screen;icod;interface;linux;macos;ncurses;pcurses;pdcurses;posix;screen;termcap;terminal;terminal-info;terminal-ui;terminfo;text;text-ui;tui;ui;user-interface;windows</PackageTags>
+		<PackageTags>cli;command-line;console;console-ui;cross-platform;csharp;curses;dcurses;dotnet;full-screen;icod;interface;linux;macos;ncurses;pcurses;pdcurses;posix;screen;termcap;terminal;terminal-info;terminal-ui;terminfo;text;text-ui;tui;ui;user-interface;windows;color;foreground;background</PackageTags>
 		<RepositoryUrl>https://github.com/uniblab/Icod.DCurses</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>

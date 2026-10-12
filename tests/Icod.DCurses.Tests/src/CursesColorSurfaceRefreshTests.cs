@@ -21,14 +21,22 @@
 
 namespace Icod.DCurses.Tests;
 
+using System.Diagnostics;
 using System.Text;
 using Icod.DCurses.Internal;
 using Icod.Terminal;
 using Icod.TermInfo;
 using Xunit;
+using Xunit.Abstractions;
 
 /// <summary>Qualifies style-only damage, physical refresh, mapping, and transition ordering.</summary>
 public sealed class CursesColorSurfaceRefreshTests {
+	private readonly ITestOutputHelper testOutput;
+
+	public CursesColorSurfaceRefreshTests( ITestOutputHelper testOutput ) {
+		this.testOutput = testOutput;
+	}
+
 	private static readonly CursesStyle InitialStyle = new(
 		CursesColor.Indexed( 1 ),
 		CursesColor.Indexed( 2 ),
@@ -153,6 +161,113 @@ public sealed class CursesColorSurfaceRefreshTests {
 	}
 
 	[Fact]
+	public async Task BoundedColorRefreshWorkloadsRemainSparse() {
+		const int iterations = 32;
+		RecordingOutput output = new();
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync( CreateTerminal(), output );
+		CursesScreen screen = new( 12, 4 );
+		screen.VirtualScreen[ 0, 0 ] = new CursesCell( "A", InitialStyle );
+		screen.VirtualScreen[ 0, 1 ] = new CursesCell(
+			"B", new CursesStyle( CursesColor.Indexed( 3 ), CursesColor.Indexed( 4 ) )
+		);
+		await context.Engine.RefreshAsync( screen, 0, 0 );
+		output.Clear();
+
+		Stopwatch watch = Stopwatch.StartNew();
+		long before = GC.GetAllocatedBytesForCurrentThread();
+		for ( int i = 0; i < iterations; i++ ) {
+			await context.Engine.RefreshAsync( screen, 0, 0 );
+		}
+		long cleanAllocated = GC.GetAllocatedBytesForCurrentThread() - before;
+		watch.Stop();
+		Assert.Equal( string.Empty, output.Text );
+		Assert.Equal( 0, output.WriteCount );
+		testOutput.WriteLine( $"clean: iterations={iterations} elapsedMs={watch.Elapsed.TotalMilliseconds:F3} allocatedBytes={cleanAllocated} writes=0 outputBytes=0" );
+
+		foreach ( (string name, Func<int, CursesStyle> next) in new[] {
+			("foreground", (Func<int, CursesStyle>)( i => InitialStyle.WithForeground( CursesColor.Indexed( 1 + ( i % 2 ) ) ) )),
+			("background", (Func<int, CursesStyle>)( i => InitialStyle.WithBackground( CursesColor.Indexed( 2 + ( i % 2 ) ) ) ))
+		} ) {
+			int emitted = 0;
+			int writes = 0;
+			watch.Restart();
+			before = GC.GetAllocatedBytesForCurrentThread();
+			for ( int i = 0; i < iterations; i++ ) {
+				output.Clear();
+				screen.VirtualScreen[ 0, 0 ] = new CursesCell( "A", next( i + 1 ) );
+				await context.Engine.RefreshAsync( screen, 0, 0 );
+				Assert.Contains( "A", output.Text );
+				emitted += Encoding.UTF8.GetByteCount( output.Text );
+				writes += output.WriteCount;
+			}
+			long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+			watch.Stop();
+			Assert.InRange( emitted, iterations, iterations * 128 );
+			testOutput.WriteLine( $"{name}: iterations={iterations} elapsedMs={watch.Elapsed.TotalMilliseconds:F3} allocatedBytes={allocated} writes={writes} outputBytes={emitted}" );
+		}
+
+		RecordingTerminalOutput panelOutput = new();
+		TerminalSession panelTerminal = await TerminalScreenTestSession.OpenAsync(
+			CreateTerminal(), panelOutput
+		);
+		await using CursesSession panelSession = await CursesSession.OpenAsync(
+			panelTerminal,
+			new CursesSessionOptions {
+				UseAlternateScreen = false,
+				EnableKeypad = false,
+				HideCursor = false
+			}
+		);
+		using CursesPanel measuredPanel = panelSession.Screen.CreatePanel( 1, 1, 1, 2 );
+		measuredPanel.ContentWindow.FillRectangle(
+			0, 0, 1, 2, CursesCell.Blank( InitialStyle )
+		);
+		await panelSession.RefreshAsync();
+		panelOutput.Clear();
+		int panelBytes = 0;
+		watch.Restart();
+		before = GC.GetAllocatedBytesForCurrentThread();
+		for ( int i = 0; i < iterations; i++ ) {
+			panelOutput.Clear();
+			measuredPanel.MoveTo( 1, 1 + ( i % 2 ) );
+			await panelSession.RefreshAsync();
+			panelBytes += Encoding.UTF8.GetByteCount( panelOutput.Text );
+		}
+		long panelAllocated = GC.GetAllocatedBytesForCurrentThread() - before;
+		watch.Stop();
+		Assert.InRange( panelBytes, iterations, iterations * 256 );
+		testOutput.WriteLine( $"panel move: iterations={iterations} elapsedMs={watch.Elapsed.TotalMilliseconds:F3} allocatedBytes={panelAllocated} outputBytes={panelBytes}" );
+	}
+
+	[Fact]
+	public async Task TinyScreenRapidPaletteAndRepeatedInvalidationRemainCoherent() {
+		RecordingOutput output = new();
+		await using CursesRefreshEngineTestContext context =
+			await CursesRefreshEngineTestContext.OpenAsync( CreateTerminal(), output );
+		CursesScreen screen = new( 2, 1 );
+		for ( int i = 0; i < 32; i++ ) {
+			CursesStyle style = new(
+				CursesColor.Indexed( 1 + ( i % 2 ) ),
+				CursesColor.Indexed( 3 + ( i % 2 ) )
+			);
+			screen.StandardWindow.Move( 0, 0 );
+			screen.StandardWindow.Write( "界", style );
+			if ( i % 4 == 0 ) {
+				screen.Resize( 1, 1, preserveContents: true );
+				context.Engine.Invalidate();
+				screen.Resize( 2, 1, preserveContents: true );
+			}
+			output.Clear();
+			await context.Engine.RefreshAsync( screen, 0, 0 );
+			CursesCellFootprint.Validate( screen.VirtualScreen );
+			Assert.Equal( style, screen.VirtualScreen[ 0, 0 ].Style );
+			Assert.Contains( "<fg:", output.Text );
+			Assert.Contains( "<bg:", output.Text );
+		}
+	}
+
+	[Fact]
 	public async Task InvalidatedMulticolorFrameReemitsCompleteStyles() {
 		RecordingOutput output = new();
 		await using CursesRefreshEngineTestContext context =
@@ -266,8 +381,11 @@ public sealed class CursesColorSurfaceRefreshTests {
 
 		internal string Text => text.ToString();
 
+		internal int WriteCount { get; private set; }
+
 		internal void Clear() {
 			text.Clear();
+			WriteCount = 0;
 		}
 
 		public ValueTask WriteTextAsync(
@@ -277,6 +395,7 @@ public sealed class CursesColorSurfaceRefreshTests {
 			ArgumentNullException.ThrowIfNull( value );
 			cancellationToken.ThrowIfCancellationRequested();
 			text.Append( value );
+			WriteCount++;
 			return ValueTask.CompletedTask;
 		}
 
@@ -291,6 +410,7 @@ public sealed class CursesColorSurfaceRefreshTests {
 			}
 			cancellationToken.ThrowIfCancellationRequested();
 			text.Append( value );
+			WriteCount++;
 			return ValueTask.CompletedTask;
 		}
 

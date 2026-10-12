@@ -2,7 +2,7 @@
 
 **Decision:** Color-surface hardening for Icod.Widgets and dedit; approved in conversation on 2026-10-12 (America/New_York)
 
-**State:** T2500–T2505 accepted; T2506 adversarial/package/documentation freeze next
+**State:** T2500–T2506 implemented and locally qualified; T2507 RC/stable-source gate next
 
 **Base:** Published Icod.DCurses 2.4.0, AssemblyVersion 2.0.0.0
 
@@ -121,4 +121,4 @@ T2500 advances `Version` and `PackageVersion` together from `2.4.0` to `2.5.0-al
 
 ## 10. Immediate next action
 
-Execute T2506: measure representative multicolor refreshes, run the adversarial matrix, freeze the public API, make package documentation durable, and qualify the complete package/consumer gate. Do not implement Widgets themes until the DCurses 2.5 color-surface contract is qualified and published.
+Execute T2507: promote the frozen candidate to RC, collect exact-head CI and available live terminal evidence, then qualify unchanged stable source for maintainer merge/tag/publication. T2506 local measurements and gate details are in [T2506 evidence](docs/T2506-API-Package-Documentation-Gate.md). Do not implement Widgets themes until the DCurses 2.5 color-surface contract is qualified and published.
