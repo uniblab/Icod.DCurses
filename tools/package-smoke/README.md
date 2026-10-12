@@ -14,6 +14,7 @@ The ordinary CI execution uses only non-interactive public APIs, so it never req
 - 1.4/1.5 interaction routing, focus, scopes, gesture bindings, pointer capture, pointer target/gesture results, and pointer-shape leases;
 - the 1.6 retained-raster facade and its one intentional lower-layer image input, `TerminalRasterImage`.
 - the 2.4 bounded clipboard options/read/write surface and scoped semantic cursor-style lease.
+- the 2.5 independent foreground/background style values, styled blanks and continuations, public pad projection, and opaque retained panel cells.
 
 `RasterSmoke.cs` is staged beside the established `Program.cs` by both the Unix and Windows package validators. A module initializer executes its package-only checks before the ordinary smoke program. It constructs a backend-neutral `TerminalRasterImage`, validates the DCurses raster ownership vocabulary, and freezes the public signatures for resource creation, placeholder creation, placeholder-cell retrieval, window raster writes, and virtual-screen raster mutation. It contains no project reference, raw Kitty/Sixel protocol identity, or backend-selection branch.
 
