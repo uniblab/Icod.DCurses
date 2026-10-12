@@ -1,8 +1,10 @@
 # Icod.DCurses 2.5.0 — Color-Surface Hardening
 
-**Date:** 2026-10-12 (America/New_York)  
-**Status:** Approved feature direction; planning contract, not an implementation or release claim  
-**Baseline:** Published Icod.DCurses 2.4.0 on published Icod.Terminal 1.29.0  
+**Date:** 2026-10-12 (America/New_York)
+
+**Status:** Approved feature direction; planning contract, not an implementation or release claim
+
+**Baseline:** Published Icod.DCurses 2.4.0 on published Icod.Terminal 1.29.0
 **Consumers:** Icod.Widgets theming and the dedit application
 
 ## Intent and success
