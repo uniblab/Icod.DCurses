@@ -1,9 +1,9 @@
 # Icod.DCurses Samples
 
-The repository contains thirteen executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
+The repository contains fourteen executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
 All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the
-repository `Icod.DCurses` project. The current 2.4.0 source declares only stable
+repository `Icod.DCurses` project. The current 2.5 development source declares only stable
 `Icod.Terminal 1.29.0` directly; Terminal may restore TermInfo transitively. See
 the [changelog](../CHANGELOG.md) for historical package dependencies and the
 [2.0 migration guide](../docs/2.0-Migration-Guide.md) when upgrading an external
@@ -16,6 +16,7 @@ application from the 1.x public surface.
 | Minimal session lifecycle and retained drawing | `Icod.DCurses.Sample` |
 | Retained panels, z-order, transparency, and disposal | `Icod.DCurses.Panel.Sample` |
 | Explicit geometry/layout and resize recomputation | `Icod.DCurses.Layout.Sample` |
+| Capability-aware foreground/background color surfaces and opaque colored panels | `Icod.DCurses.Color.Sample` |
 | Retained text + hyperlink metadata + raster presentation, panning, panels, and interaction geometry | `Icod.DCurses.MixedMedia.Sample` |
 | Virtualized large world, sparse movement, track layout, and retained help overlay | `Icod.DCurses.Roguelike.Sample` |
 | Cell-aligned tile atlas, sparse raster updates, resize recreation, and explicit text fallback | `Icod.DCurses.RasterAtlas.Sample` |
@@ -67,6 +68,16 @@ dotnet run --project samples/Icod.DCurses.Layout.Sample/Icod.DCurses.Layout.Samp
 ```
 
 Resize the terminal while the sample is running to see the two windows and retained panel recompute from the new screen bounds. Press `Q` or `Escape` to exit.
+
+## Icod.DCurses.Color.Sample
+
+`Icod.DCurses.Color.Sample` is the focused 2.5 color-surface acceptance sample. It uses only public DCurses APIs to select a conservative terminal-default, indexed, or direct-RGB request palette from `CursesPresentationCapabilities`. The retained screen contains simultaneous foreground/background pairs, foreground-only and background-only requests, reverse as an attribute, an opaque panel with styled blank padding, and a width-two grapheme. It never identifies the terminal, calls Terminal or TermInfo directly, or emits escape sequences.
+
+```text
+dotnet run --project samples/Icod.DCurses.Color.Sample/Icod.DCurses.Color.Sample.csproj -c Release -f net10.0
+```
+
+Press `Q` or `Escape` to exit. Resize explicitly synchronizes dimensions, invalidates physical certainty, and repaints the application-owned layout. The requested palette class and reported capabilities are shown on screen; this is not a claim that every terminal renders a requested color identically. Constrained or monochrome profiles remain usable with terminal-default colors and labels. The panel is intentionally opaque because its blank padding owns a visible background. See the [sample-specific README](Icod.DCurses.Color.Sample/README.md) for the manual observation template.
 
 ## Icod.DCurses.Roguelike.Sample
 
