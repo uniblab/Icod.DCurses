@@ -62,6 +62,24 @@ The application decides how to interpret `inputEvent`, when to refresh again,
 and when to exit. DCurses does not start a callback dispatcher or a second input
 reader.
 
+## Input modes and application shortcuts
+
+`CursesSessionOptions.InputMode` defaults to `CursesInputMode.CBreak`, which
+keeps host signal processing enabled. Select `CursesInputMode.Raw` when the
+application must receive `Ctrl+C`, `Ctrl+Z`, or similar control chords itself:
+
+```csharp
+CursesSessionOptions options = new() {
+	InputMode = CursesInputMode.Raw
+};
+await using CursesSession session = await CursesSession.OpenAsync( options );
+```
+
+In raw mode, `Ctrl+C` and `Ctrl+Z` are delivered as `CursesKey.Character`
+events with `CursesKeyModifiers.Control`; the application decides whether they
+mean copy, undo, exit, or another command. Use `CBreak` when the host should
+retain its normal interrupt and suspend handling.
+
 ## Color surfaces and fallback
 
 Each `CursesCell` carries a complete `CursesStyle`: independently requested

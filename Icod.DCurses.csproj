@@ -34,16 +34,16 @@
 		<AssemblyName>Icod.DCurses</AssemblyName>
 		<RootNamespace>Icod.DCurses</RootNamespace>
 		<Configurations>Debug;Staging;Release</Configurations>
-		<Version>2.5.0</Version>
+		<Version>2.5.1</Version>
 		<AssemblyVersion>2.0.0.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageVersion>2.5.0</PackageVersion>
+		<PackageVersion>2.5.1</PackageVersion>
 		<PackageId>Icod.DCurses</PackageId>
 		<Title>Icod.DCurses</Title>
 		<Authors>Timothy J. Bruce</Authors>
 		<Description>Managed, cross-platform curses-style terminal UI for .NET with retained Unicode text, independently styled foreground/background color surfaces, viewports, panels, mixed media, deterministic interaction routing, bounded clipboard access, and scoped cursor styles.</Description>
-		<PackageReleaseNotes>2.5 qualifies existing foreground/background color retention, opaque-panel styled blanks, damage-aware rendition refresh, capability fallback, and lifecycle repaint across .NET 8/9/10; adds a public-only color sample and package consumer. No public API changes. Existing bounded clipboard and cursor-style APIs remain. The sole direct runtime dependency is stable Icod.Terminal 1.29.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>2.5.1 updates the sole direct runtime dependency to Icod.Terminal 1.29.1 so raw-mode applications reliably receive Ctrl+C and Ctrl+Z as Control-modified character events and legacy Alt+character input remains available through the DCurses event stream. No public API or AssemblyVersion change.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/uniblab/Icod.DCurses</PackageProjectUrl>
@@ -116,6 +116,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Icod.Terminal" Version="1.29.0" />
+		<PackageReference Include="Icod.Terminal" Version="1.29.1" />
 	</ItemGroup>
 </Project>

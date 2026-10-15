@@ -25,10 +25,10 @@ using System.Reflection;
 using System.Xml.Linq;
 using Xunit;
 
-/// <summary>Guards the 2.5 preview identity and frozen color foundation.</summary>
+/// <summary>Guards the 2.5 maintenance identity and frozen color foundation.</summary>
 public sealed class PublicTwoFiveDevelopmentIdentityTests {
 	[Fact]
-	public void PreviewIdentityPreservesColorFoundationAndTerminalBoundary() {
+	public void MaintenanceIdentityPreservesColorFoundationAndTerminalBoundary() {
 		XDocument production = XDocument.Load(
 			Path.Combine( FindRepositoryRoot(), "Icod.DCurses.csproj" )
 		);
@@ -40,7 +40,7 @@ public sealed class PublicTwoFiveDevelopmentIdentityTests {
 			static current => "PackageReference" == current.Name.LocalName
 		);
 		Assert.Equal( "Icod.Terminal", reference.Attribute( "Include" )?.Value );
-		Assert.Equal( "1.29.0", reference.Attribute( "Version" )?.Value );
+		Assert.Equal( "1.29.1", reference.Attribute( "Version" )?.Value );
 		Assert.DoesNotContain(
 			production.Descendants(),
 			static current => "PackageReference" == current.Name.LocalName
@@ -84,7 +84,7 @@ public sealed class PublicTwoFiveDevelopmentIdentityTests {
 		)?.PropertyType );
 
 		string version = GetSingleValue( production, "Version" );
-		Assert.Contains( version, new[] { "2.5.0-alpha.1", "2.5.0-rc.1", "2.5.0" } );
+		Assert.Equal( "2.5.1", version );
 		Assert.Equal( version, GetSingleValue( production, "PackageVersion" ) );
 	}
 

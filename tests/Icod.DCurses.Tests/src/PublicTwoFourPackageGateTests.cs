@@ -25,7 +25,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Xunit;
 
-/// <summary>Guards the durable 2.4 package documentation and consumer witnesses.</summary>
+/// <summary>Guards durable package documentation and consumer witnesses.</summary>
 public sealed partial class PublicTwoFourPackageGateTests {
 	[Fact]
 	public void PackageReadmeIsDurableAndUsesResolvableLinks() {
@@ -63,7 +63,7 @@ public sealed partial class PublicTwoFourPackageGateTests {
 			)
 		);
 
-		Assert.Contains( "Icod.Terminal 1.29.0", readme, StringComparison.Ordinal );
+		Assert.Contains( "Icod.Terminal 1.29.1", readme, StringComparison.Ordinal );
 		Assert.Contains( "clipboard", readme, StringComparison.OrdinalIgnoreCase );
 		Assert.Contains( "cursor style", readme, StringComparison.OrdinalIgnoreCase );
 		Assert.Contains( "pointer capture", readme, StringComparison.OrdinalIgnoreCase );
@@ -72,7 +72,7 @@ public sealed partial class PublicTwoFourPackageGateTests {
 			StringComparison.OrdinalIgnoreCase );
 		Assert.DoesNotContain( "Icod.Terminal 1.28.0", readme,
 			StringComparison.Ordinal );
-		Assert.Contains( "current 2.4.0 source consumes stable `Icod.Terminal 1.29.0`",
+		Assert.Contains( "current 2.5.1 source consumes stable `Icod.Terminal 1.29.1`",
 			rasterReadme, StringComparison.Ordinal );
 		Assert.DoesNotContain( "stable 2.3.1 maintenance source", rasterReadme,
 			StringComparison.OrdinalIgnoreCase );
@@ -86,7 +86,7 @@ public sealed partial class PublicTwoFourPackageGateTests {
 	}
 
 	[Fact]
-	public void PackageConsumerAndVerifierFreezeTheTwoFourBoundary() {
+	public void PackageConsumerAndVerifierPreserveTheCurrentBoundary() {
 		string root = FindRepositoryRoot();
 		string smoke = File.ReadAllText(
 			Path.Combine( root, "tools", "package-smoke", "Program.cs" )
@@ -100,11 +100,11 @@ public sealed partial class PublicTwoFourPackageGateTests {
 		Assert.Contains( "WriteClipboardAsync", smoke, StringComparison.Ordinal );
 		Assert.Contains( "ReadClipboardAsync", smoke, StringComparison.Ordinal );
 		Assert.Contains( "AcquireCursorStyleAsync", smoke, StringComparison.Ordinal );
-		Assert.Contains( "TerminalPackageVersion = \"1.29.0\"", verifier,
+		Assert.Contains( "TerminalPackageVersion = \"1.29.1\"", verifier,
 			StringComparison.Ordinal );
-		Assert.Contains( "clipboard", GetSingleValue( project, "PackageReleaseNotes" ),
+		Assert.Contains( "Ctrl+C", GetSingleValue( project, "PackageReleaseNotes" ),
 			StringComparison.OrdinalIgnoreCase );
-		Assert.Contains( "cursor", GetSingleValue( project, "PackageReleaseNotes" ),
+		Assert.Contains( "Ctrl+Z", GetSingleValue( project, "PackageReleaseNotes" ),
 			StringComparison.OrdinalIgnoreCase );
 	}
 

@@ -14,7 +14,7 @@ internal static class Program {
 	private const string PackageCopyright = "Copyright (c) 2026 Timothy J. Bruce";
 	private const string RepositoryUrl = "https://github.com/uniblab/Icod.DCurses";
 	private const string TerminalPackageId = "Icod.Terminal";
-	private const string TerminalPackageVersion = "1.29.0";
+	private const string TerminalPackageVersion = "1.29.1";
 	private static readonly string[] TargetFrameworks = [
 		"net8.0",
 		"net9.0",

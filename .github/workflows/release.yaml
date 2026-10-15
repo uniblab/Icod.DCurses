@@ -23,7 +23,6 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       prerelease: ${{ steps.version.outputs.prerelease }}
-      terminal_version: ${{ steps.version.outputs.terminal_version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -70,7 +69,6 @@ jobs:
 
           "version=$tagVersion" >> $env:GITHUB_OUTPUT
           "prerelease=$($tagVersion.Contains('-').ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
-          "terminal_version=$terminalVersion" >> $env:GITHUB_OUTPUT
 
   runtime:
     needs: metadata
@@ -180,6 +178,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: ${{ env.PACKAGE_ARTIFACT }}
@@ -202,19 +201,12 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           $version = '${{ needs.metadata.outputs.version }}'
-          $terminalVersion = '${{ needs.metadata.outputs.terminal_version }}'
           $assets = @(Get-ChildItem -LiteralPath 'artifacts/release-assets' -File | Sort-Object Name | ForEach-Object { $_.FullName })
-          $notes = @'
-          ## Installation
-
-          ```text
-          dotnet add package Icod.DCurses --version {0}
-          ```
-
-          `Icod.DCurses` targets `net8.0`, `net9.0`, and `net10.0`. Its runtime package dependencies are
-          `Icod.Terminal {1}` directly; `Icod.TermInfo` is resolved transitively through Terminal.
-          '@ -f $version, $terminalVersion
-          $arguments = @('release', 'create', $env:GITHUB_REF_NAME, '--verify-tag', '--title', "Icod.DCurses $version", '--generate-notes', '--notes', $notes)
+          $notesPath = "docs/releases/$version.md"
+          if (-not (Test-Path -LiteralPath $notesPath -PathType Leaf)) {
+              throw "Curated release notes not found at '$notesPath'."
+          }
+          $arguments = @('release', 'create', $env:GITHUB_REF_NAME, '--verify-tag', '--title', "Icod.DCurses $version", '--notes-file', $notesPath)
           if ('true' -eq '${{ needs.metadata.outputs.prerelease }}') {
               $arguments += '--prerelease'
               $arguments += '--latest=false'

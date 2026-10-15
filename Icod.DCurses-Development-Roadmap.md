@@ -4,17 +4,17 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
 **Published compatibility floor:** `1.0.0`\
 **Published releases:** [GitHub Releases](https://github.com/uniblab/Icod.DCurses/releases) and [NuGet](https://www.nuget.org/packages/Icod.DCurses/)\
-**Current stable source candidate:** `2.5.0` on PR #38; not merged, tagged or published\
-**Latest published stable package:** `2.4.0`\
+**Current stable source candidate:** `2.5.1` maintenance candidate on the active pull request\
+**Latest published stable package:** `2.5.0`\
 **Current development assembly version:** `2.0.0.0`\
-**Current development runtime dependency:** direct stable `Icod.Terminal 1.29.0` only; TermInfo remains transitive\
+**Current development runtime dependency:** direct stable `Icod.Terminal 1.29.1` only; TermInfo remains transitive\
 **Stable 2.4 direct runtime dependency:** `Icod.Terminal 1.29.0`; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Active feature track:** 2.5.0 color-surface hardening for Icod.Widgets and dedit; stable source qualified on PR #38\
-**Status:** Version 2.4.0 is the latest published stable package. Version 2.5.0 stable source has completed T2500–T2507, including unchanged public API, public-only color sample, package consumer, full Release gate, and successful RC/stable-source Windows/Linux/macOS x64/ARM64 PR matrices. Live terminal color visuals remain unverified; the maintainer controls merge, tag and publication. See the [2.5 roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md) and [T2507 release gate](docs/T2507-2.5.0-Stable-Source-Gate.md).
+**Active feature track:** 2.5.1 maintenance update for Terminal 1.29.1 shortcut-input compatibility\
+**Status:** Version 2.5.0 is published. Version 2.5.1 updates the sole direct Terminal dependency, qualifies raw `Ctrl+C`/`Ctrl+Z` delivery through DCurses, and preserves the 2.5 public API and assembly identity. The maintainer controls merge, tag and publication. See the [2.5 roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md), [T2507 release gate](docs/T2507-2.5.0-Stable-Source-Gate.md), and [2.5.1 curated release notes](docs/releases/2.5.1.md).
 
-**Planning snapshot:** 2026-10-12
+**Planning snapshot:** 2026-10-15
 
 ---
 
@@ -71,7 +71,8 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `2.3.0` | First-class `CursesRasterAtlas` coordination for cell-aligned tile presentation | Published 2026-10-09 |
 | `2.3.1` | Package documentation and release-state correction | Stable maintenance patch; no runtime or public API changes |
 | `2.4.0` | Widgets/dedit foundations: Terminal 1.29 clipboard/cursor facades, qualified visible projection and capture | Published 2026-10-12 |
-| `2.5.0` | Complete foreground/background color-surface retention, composition, damage and fallback qualification | Stable source qualified on PR #38; merge/tag/publication pending |
+| `2.5.0` | Complete foreground/background color-surface retention, composition, damage and fallback qualification | Published 2026-10-14 |
+| `2.5.1` | Terminal 1.29.1 raw shortcut-input compatibility | Maintenance candidate; merge/tag/publication pending |
 | Later | Higher-level `Icod.Widgets` themes and separately evidenced sprite/physical-placement work | Separate repositories/tracks; not implicitly in 2.5 |
 
 The post-1.0 progression is intentionally cumulative:
