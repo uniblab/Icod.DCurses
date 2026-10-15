@@ -3,8 +3,8 @@
 The repository contains fourteen executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
 All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the
-repository `Icod.DCurses` project. Icod.DCurses 2.5.0 declares only stable
-`Icod.Terminal 1.29.0` directly; Terminal may restore TermInfo transitively. See
+repository `Icod.DCurses` project. Icod.DCurses 2.5.1 declares only stable
+`Icod.Terminal 1.29.1` directly; Terminal may restore TermInfo transitively. See
 the [changelog](../CHANGELOG.md) for historical package dependencies and the
 [2.0 migration guide](../docs/2.0-Migration-Guide.md) when upgrading an external
 application from the 1.x public surface.
@@ -117,6 +117,12 @@ expectations, controls, ownership boundaries and the live-acceptance limitation.
 The sample uses public `CursesTextLayout` source positions and geometry for Unicode navigation, editing and selection, `CursesViewport` for scrolling, and retained `PresentTextLayout` for clipped presentation. Its application-owned interaction controller routes each input once through `ProcessCommandSequence`; ordinary text and bracketed-paste data are inserted only from the returned fallback event, including a sequence mismatch. Effective discovery selects the shortcut summary for the document or prompt context.
 
 Typing replaces the active selection, and Backspace/Delete remove it at complete text-element boundaries. `Ctrl+W` toggles wrap; `Ctrl+T` starts/stops keyboard selection; `Ctrl+C` and `Ctrl+V` copy and paste; `Ctrl+G` or `Ctrl+K Ctrl+G` opens the 1-based record prompt. Within that explicit prompt scope, `Ctrl+K Ctrl+C` or `Escape` cancels and `Enter` accepts. Arrows navigate; `PageUp`/`PageDown` jump records; `Home`/`End` jump within the current record; typing, `Tab`, `Enter`, `Backspace` and `Delete` edit. `Escape` exits from the document context. The interaction controller registers the lowercase modern and uppercase traditional character identities for each Control shortcut.
+
+The editor sample explicitly opens `CursesInputMode.Raw`, so control bytes such
+as `Ctrl+C` and `Ctrl+Z` reach the application as Control-modified character
+events. The sample binds `Ctrl+C`; a full editor can bind `Ctrl+Z` to undo. Use
+the default `CBreak` mode instead when the host should retain interrupt and
+suspend processing.
 
 Primary-button clicks place the caret in the document. Dragging extends the selection and remains captured when the pointer leaves the document; releasing the button, losing focus, opening the prompt, resizing, or disposing the controller ends capture. The final document column is an independently hit-tested scrollbar: clicking or dragging it maps its row onto the synthetic document without turning `Tab` into focus traversal.
 

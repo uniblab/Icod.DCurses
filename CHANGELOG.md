@@ -2,6 +2,13 @@
 
 All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/` and the versioned roadmap files.
 
+## 2.5.1 — Raw shortcut input compatibility
+
+- Updated the sole direct runtime dependency to stable `Icod.Terminal 1.29.1`.
+- Qualified raw-mode `Ctrl+C` and `Ctrl+Z` delivery through the DCurses event stream as `CursesKey.Character` events carrying the `Control` modifier, allowing applications to bind copy and undo without those bytes being consumed by host signal processing.
+- Inherited Terminal's corrected legacy Alt-prefix handling, including `Alt+F`, through the existing DCurses input adapter.
+- Preserved the 2.5.0 public contract, `AssemblyVersion 2.0.0.0`, C# 13, .NET 8/9/10 targets, retained presentation behavior, and package dependency shape. Applications that want host signal behavior should continue using the default `CBreak` mode; applications that own `Ctrl+C`/`Ctrl+Z` shortcuts must select `Raw`.
+
 ## 2.5.0 — Color-surface qualification (stable-source candidate)
 
 - Qualified existing independent foreground/background styles through logical mutation, wide-cell repair, pads, viewports, opaque and blank-transparent panels, style-only refresh, capability fallback, and resize/invalidation/lifecycle repaint.

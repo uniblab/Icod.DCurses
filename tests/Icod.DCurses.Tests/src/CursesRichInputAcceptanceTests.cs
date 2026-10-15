@@ -31,6 +31,38 @@ namespace Icod.DCurses.Tests;
 /// </summary>
 public sealed class CursesRichInputAcceptanceTests {
 	[Fact]
+	public async Task RawControlShortcutsAndLegacyAltFReachTheCursesEventStream() {
+		TerminalSession terminalSession = await OpenTerminalSessionAsync(
+			new RecordingOutput(),
+			new ScriptedInput( [ 0x03, 0x1A, 0x1B, (byte)'f' ] ),
+			CreateRichInputTerminal(),
+			TerminalInputMode.Raw
+		);
+		await using CursesSession session = await CursesSession.OpenAsync(
+			terminalSession,
+			NoPresentationOptions( CursesInputMode.Raw )
+		);
+
+		CursesInputEvent copy = await ReadInputAsync( session );
+		Assert.Equal( CursesInputEventKind.Key, copy.Kind );
+		Assert.Equal( CursesKey.Character, copy.Key );
+		Assert.Equal( new Rune( 'C' ), copy.Character );
+		Assert.Equal( CursesKeyModifiers.Control, copy.Modifiers );
+
+		CursesInputEvent undo = await ReadInputAsync( session );
+		Assert.Equal( CursesInputEventKind.Key, undo.Kind );
+		Assert.Equal( CursesKey.Character, undo.Key );
+		Assert.Equal( new Rune( 'Z' ), undo.Character );
+		Assert.Equal( CursesKeyModifiers.Control, undo.Modifiers );
+
+		CursesInputEvent fileMenu = await ReadInputAsync( session );
+		Assert.Equal( CursesInputEventKind.Key, fileMenu.Kind );
+		Assert.Equal( CursesKey.Character, fileMenu.Key );
+		Assert.Equal( new Rune( 'f' ), fileMenu.Character );
+		Assert.Equal( CursesKeyModifiers.Alt, fileMenu.Modifiers );
+	}
+
+	[Fact]
 	public async Task RichInputFamiliesAndModifiedKeysUseSingleCursesEventStream() {
 		string inputText =
 			"\u001b[I"
@@ -145,8 +177,11 @@ public sealed class CursesRichInputAcceptanceTests {
 		return ( await session.ReadEventAsync( timeout.Token ) ).Input!;
 	}
 
-	private static CursesSessionOptions NoPresentationOptions() {
+	private static CursesSessionOptions NoPresentationOptions(
+		CursesInputMode inputMode = CursesInputMode.CBreak
+	) {
 		return new CursesSessionOptions {
+			InputMode = inputMode,
 			UseAlternateScreen = false,
 			EnableKeypad = false,
 			HideCursor = false
@@ -179,7 +214,8 @@ public sealed class CursesRichInputAcceptanceTests {
 	private static ValueTask<TerminalSession> OpenTerminalSessionAsync(
 		RecordingOutput output,
 		ITerminalInput input,
-		TerminalDescription terminal
+		TerminalDescription terminal,
+		TerminalInputMode inputMode = TerminalInputMode.CBreak
 	) {
 		ArgumentNullException.ThrowIfNull( output );
 		ArgumentNullException.ThrowIfNull( input );
@@ -192,6 +228,7 @@ public sealed class CursesRichInputAcceptanceTests {
 			input,
 			output,
 			new TerminalSessionOptions {
+				InputMode = inputMode,
 				TerminalOverride = terminal,
 				ConfigureOutput = false,
 				ObserveLifecycleEvents = false

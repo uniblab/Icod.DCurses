@@ -56,6 +56,7 @@ function Invoke-Pack {
 function Invoke-Validate {
     Write-Host ''
     Write-Host "=== Validate ($Configuration) ==="
+    & (Join-Path $repositoryRoot 'packaging/Assert-ReleaseNotes.ps1') -Configuration $Configuration
     if ($isWindowsHost) {
         & cmd /c (Join-Path $repositoryRoot '.github/scripts/verify-release-package.cmd') $artifactDirectory $Configuration
     } else {

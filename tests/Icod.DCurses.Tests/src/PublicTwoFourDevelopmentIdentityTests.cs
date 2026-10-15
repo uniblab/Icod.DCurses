@@ -25,10 +25,10 @@ using System.Text.Json;
 using System.Xml.Linq;
 using Xunit;
 
-/// <summary>Guards the approved 2.4 stable-source identity and dependency boundary.</summary>
+/// <summary>Guards the published 2.4 fingerprint and current dependency boundary.</summary>
 public sealed class PublicTwoFourDevelopmentIdentityTests {
 	[Fact]
-	public void PublishedIdentityPreservesStableTerminalBoundary() {
+	public void PublishedFingerprintAndCurrentSourcePreserveTerminalBoundary() {
 		XDocument production = XDocument.Load(
 			Path.Combine( FindRepositoryRoot(), "Icod.DCurses.csproj" )
 		);
@@ -61,7 +61,7 @@ public sealed class PublicTwoFourDevelopmentIdentityTests {
 			static current => "PackageReference" == current.Name.LocalName
 		);
 		Assert.Equal( "Icod.Terminal", reference.Attribute( "Include" )?.Value );
-		Assert.Equal( "1.29.0", reference.Attribute( "Version" )?.Value );
+		Assert.Equal( "1.29.1", reference.Attribute( "Version" )?.Value );
 		Assert.DoesNotContain(
 			production.Descendants(),
 			static current => "PackageReference" == current.Name.LocalName
@@ -73,7 +73,7 @@ public sealed class PublicTwoFourDevelopmentIdentityTests {
 			static current => "PackageReference" == current.Name.LocalName
 				&& "Icod.Terminal" == current.Attribute( "Include" )?.Value
 		);
-		Assert.Equal( "1.29.0", testTerminal.Attribute( "Version" )?.Value );
+		Assert.Equal( "1.29.1", testTerminal.Attribute( "Version" )?.Value );
 	}
 
 	private static string GetSingleValue(

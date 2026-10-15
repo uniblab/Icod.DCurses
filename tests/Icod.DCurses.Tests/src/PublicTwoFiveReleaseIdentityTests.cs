@@ -38,6 +38,35 @@ public sealed class PublicTwoFiveReleaseIdentityTests {
 			.Where( element => element.Name.LocalName is "Version" or "PackageVersion" )
 			.Select( element => element.Value )
 			.ToArray();
-		Assert.Equal( [ "2.5.0", "2.5.0" ], versions );
+		Assert.Equal( [ "2.5.1", "2.5.1" ], versions );
+	}
+
+	[Fact]
+	public void CandidateHasCuratedReleaseNotesAndPublicationUsesThem() {
+		DirectoryInfo? root = new( AppContext.BaseDirectory );
+		while ( root is not null && !File.Exists( Path.Combine( root.FullName, "Icod.DCurses.csproj" ) ) ) {
+			root = root.Parent;
+		}
+		Assert.NotNull( root );
+
+		string notes = File.ReadAllText( Path.Combine(
+			root.FullName,
+			"docs",
+			"releases",
+			"2.5.1.md"
+		) );
+		Assert.Contains( "Ctrl+C", notes, StringComparison.Ordinal );
+		Assert.Contains( "Ctrl+Z", notes, StringComparison.Ordinal );
+		Assert.Contains( "Alt+F", notes, StringComparison.Ordinal );
+		Assert.Contains( "Icod.Terminal 1.29.1", notes, StringComparison.Ordinal );
+
+		string workflow = File.ReadAllText( Path.Combine(
+			root.FullName,
+			".github",
+			"workflows",
+			"release.yaml"
+		) );
+		Assert.Contains( "--notes-file", workflow, StringComparison.Ordinal );
+		Assert.Contains( "docs/releases/$version.md", workflow, StringComparison.Ordinal );
 	}
 }
