@@ -144,7 +144,7 @@ longer a runtime dependency of DCurses.
 
 The exact current dependency, ownership, package, and approved public-type
 boundary is recorded in
-[`docs/Dependency-Baseline-0.1.1.md`](docs/Dependency-Baseline-0.1.1.md).
+[`docs/Dependency-Baseline-0.1.1.md`](../Dependency-Baseline-0.1.1.md).
 The earlier Terminal 0.3 and T13 documents remain historical checkpoints for the
 0.1.0 release sequence rather than current dependency guidance.
 
@@ -223,7 +223,7 @@ Icod.DCurses/
     icon.png
     build.cmd
     build.sh
-    Icod.DCurses-Development-Roadmap.md
+    docs/Icod.DCurses-Development-Roadmap.md
 ```
 
 Additional sample projects, test fixtures, tools, compatibility tests, and package-verification projects MAY be introduced by later tranches when justified.
@@ -579,7 +579,7 @@ interactive shape directly with synthetic slab-cache snapshots. It covers timer
 refresh, immediate Space refresh, resize repaint without an extra sample, all ten
 documented slabtop sort-key letters, retained-screen refresh behavior, and
 lifecycle restoration. The checkpoint is recorded in
-[`docs/T12B-Slabtop-Acceptance.md`](docs/T12B-Slabtop-Acceptance.md).
+[`docs/T12B-Slabtop-Acceptance.md`](../T12B-Slabtop-Acceptance.md).
 
 ### `watch` acceptance
 
@@ -601,7 +601,7 @@ Parsing arbitrary ANSI produced by the watched child is application policy and i
 shape directly with semantic synthetic child-output snapshots. It proves the
 DCurses mechanisms without moving process execution or ANSI interpretation into
 the library. The checkpoint is recorded in
-[`docs/T12A-Watch-Acceptance.md`](docs/T12A-Watch-Acceptance.md).
+[`docs/T12A-Watch-Acceptance.md`](../T12A-Watch-Acceptance.md).
 
 ### `top` acceptance
 
@@ -626,7 +626,7 @@ loop, vertical and horizontal navigation, Tab/Shift+Tab focus traversal, a
 logical help view, an in-screen delay prompt, rich semantic styling, resize
 relayout, lifecycle repaint, and prompt-driven physical cursor policy. The
 checkpoint is recorded in
-[`docs/T12C-Top-Acceptance.md`](docs/T12C-Top-Acceptance.md).
+[`docs/T12C-Top-Acceptance.md`](../T12C-Top-Acceptance.md).
 
 The `Icod.DCurses` repository does not need to contain the complete ProcPs applications. Tests, focused harnesses, and/or temporary migration branches MAY be used to prove the contract.
 
@@ -642,7 +642,7 @@ Before T12 closes, DCurses SHALL also prove the Icod.Terminal T19 integration ga
 
 Alpha-15 automated acceptance is complete. Alpha-16 extends the existing input showcase into a live rich-input acceptance consumer before ProcPs application acceptance continues.
 
-The checkpoint is recorded in [`docs/Icod-Terminal-T19-Rich-Input-Acceptance.md`](docs/Icod-Terminal-T19-Rich-Input-Acceptance.md).
+The checkpoint is recorded in [`docs/Icod-Terminal-T19-Rich-Input-Acceptance.md`](../Icod-Terminal-T19-Rich-Input-Acceptance.md).
 
 **Gate T12:** no generic full-screen terminal infrastructure remains necessary inside `Icod.ProcPs.Shared` for these three applications.
 
@@ -668,13 +668,13 @@ version is assigned. The repository gains a structural package verifier, an
 isolated package-only consumer, package verification on Windows/Linux/macOS,
 validation-only `main` pushes, and a tag-controlled release workflow. The
 checkpoint is recorded in
-[`docs/T13A-Package-and-Release-Foundation.md`](docs/T13A-Package-and-Release-Foundation.md).
+[`docs/T13A-Package-and-Release-Foundation.md`](../T13A-Package-and-Release-Foundation.md).
 
 **Alpha-21 / T13B checkpoint:** perform the final 0.1 public-API/documentation
 regret pass, publish the API baseline, close sample/documentation gaps, and make
 only contract-preserving corrections discovered by that audit. The checkpoint
 is recorded in
-[`docs/T13B-Public-API-and-Consumer-Contract.md`](docs/T13B-Public-API-and-Consumer-Contract.md).
+[`docs/T13B-Public-API-and-Consumer-Contract.md`](../T13B-Public-API-and-Consumer-Contract.md).
 
 The T13B dependency audit originally found a prerelease Terminal dependency.
 Alpha-22 subsequently validated the Terminal 0.3 downstream boundary. Stable
@@ -689,7 +689,7 @@ matching `main` validation SHALL pass, and publication SHALL occur only through
 the matching `v0.1.0` tag.
 
 The checkpoint is recorded in
-[`docs/T13C-0.1.0-Stable-Release-Closure.md`](docs/T13C-0.1.0-Stable-Release-Closure.md).
+[`docs/T13C-0.1.0-Stable-Release-Closure.md`](../T13C-0.1.0-Stable-Release-Closure.md).
 
 **0.1.0 completion gate:** a fresh consumer can install the package and build a small interactive application without repository-local project references.
 

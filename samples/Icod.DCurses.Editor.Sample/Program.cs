@@ -25,6 +25,34 @@ using Icod.DCurses.Editor.Sample;
 await using CursesSession session = await CursesSession.OpenAsync(
 	EditorSampleInteraction.CreateSessionOptions()
 );
+await using CursesInputProtocolLease? keyboardProtocol =
+	await TryAcquireInputProtocolAsync(
+		session,
+		new CursesInputProtocolOptions {
+			KeyboardReportingMode = CursesKeyboardReportingMode.EventTypes
+		}
+	);
+await using CursesInputProtocolLease? pasteProtocol =
+	await TryAcquireInputProtocolAsync(
+		session,
+		new CursesInputProtocolOptions {
+			BracketedPaste = true
+		}
+	);
+await using CursesInputProtocolLease? focusProtocol =
+	await TryAcquireInputProtocolAsync(
+		session,
+		new CursesInputProtocolOptions {
+			FocusReporting = true
+		}
+	);
+await using CursesInputProtocolLease? mouseProtocol =
+	await TryAcquireInputProtocolAsync(
+		session,
+		new CursesInputProtocolOptions {
+			MouseTrackingMode = CursesMouseTrackingMode.ButtonMotion
+		}
+	);
 await using CursesCursorStyleLease? caretStyle = await TryAcquireCaretStyleAsync( session );
 CursesScreen screen = session.Screen;
 using EditorSampleInteraction interaction = new( screen );
@@ -201,6 +229,16 @@ while ( running ) {
 session.StandardScreen.Clear();
 await session.RefreshAsync();
 return 0;
+
+static async ValueTask<CursesInputProtocolLease?> TryAcquireInputProtocolAsync(
+	CursesSession session,
+	CursesInputProtocolOptions options
+) {
+	var result = await session.AcquireInputProtocolsAsync( options );
+	return result.IsAvailable
+		? result.GetRequiredValue()
+		: null;
+}
 
 static async ValueTask<CursesCursorStyleLease?> TryAcquireCaretStyleAsync(
 	CursesSession session

@@ -1,6 +1,15 @@
 # Changelog
 
-All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/` and the versioned roadmap files.
+All notable `Icod.DCurses` release-line changes are summarized here. Detailed tranche evidence, API fingerprints, roadmaps, and release qualification records remain under `docs/`.
+
+## 2.5.2 — Windows console interop compatibility
+
+- Updated the sole direct runtime dependency to stable `Icod.Terminal 1.29.2`.
+- Inherited reversible UTF-8 console-output ownership for system-backed Windows sessions, preserving one-cell box-drawing geometry instead of allowing OEM-code-page expansion to corrupt retained borders and layout.
+- Inherited explicit Windows mouse-input ownership for Raw and CBreak sessions while Quick Edit is suppressed, with exact prior input-mode and output-code-page restoration when the session releases the console.
+- Preserved DCurses' existing session, rendering, input-adaptation, mouse-protocol, public API, `AssemblyVersion 2.0.0.0`, C# 13, and .NET 8/9/10 contracts; no DCurses runtime implementation change was required.
+- Corrected the editor and interaction samples to request the rich-input protocols they demonstrate, including button-motion reporting for captured pointer drags.
+- Moved all 23 development roadmaps from the repository root into `docs/` and rebased their internal links and repository path references.
 
 ## 2.5.1 — Raw shortcut input compatibility
 

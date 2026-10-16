@@ -8,7 +8,7 @@
 
 **Tech Stack:** C# 13, xUnit, .NET 8/9/10, Icod.Terminal 1.18.0, GitHub Actions six-platform matrix. No Python.
 
-**Spec:** `Icod.DCurses-2.0.0-Development-Roadmap.md`, T2006 and sections 6-8; `docs/T2005-Transactional-Refresh-Hardening-Gate.md`.
+**Spec:** `docs/Icod.DCurses-2.0.0-Development-Roadmap.md`, T2006 and sections 6-8; `docs/T2005-Transactional-Refresh-Hardening-Gate.md`.
 
 ## Global Constraints
 
@@ -52,7 +52,7 @@
 
 ### Task 3: Gate and roadmap closure
 
-**Files:** Create `docs/T2006-Lifecycle-and-Recovery-Gate.md`; update `Icod.DCurses-2.0.0-Development-Roadmap.md` and PR body only after acceptance.
+**Files:** Create `docs/T2006-Lifecycle-and-Recovery-Gate.md`; update `docs/Icod.DCurses-2.0.0-Development-Roadmap.md` and PR body only after acceptance.
 
 **Interfaces:** Consume exact-head workflow results. Produce a reviewable T2006 acceptance decision and handoff to T2007.
 

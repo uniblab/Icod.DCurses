@@ -4,37 +4,37 @@
 **Repository:** `https://github.com/uniblab/Icod.DCurses`\
 **Published compatibility floor:** `1.0.0`\
 **Published releases:** [GitHub Releases](https://github.com/uniblab/Icod.DCurses/releases) and [NuGet](https://www.nuget.org/packages/Icod.DCurses/)\
-**Current stable source candidate:** `2.5.1` maintenance candidate on the active pull request\
-**Latest published stable package:** `2.5.0`\
+**Current stable source candidate:** `2.5.2` maintenance candidate on the active pull request\
+**Latest published stable package:** `2.5.1`\
 **Current development assembly version:** `2.0.0.0`\
-**Current development runtime dependency:** direct stable `Icod.Terminal 1.29.1` only; TermInfo remains transitive\
+**Current development runtime dependency:** direct stable `Icod.Terminal 1.29.2` only; TermInfo remains transitive\
 **Stable 2.4 direct runtime dependency:** `Icod.Terminal 1.29.0`; no direct `Icod.TermInfo` reference\
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`\
 **Configurations:** `Debug`; `Staging`; `Release`\
-**Active feature track:** 2.5.1 maintenance update for Terminal 1.29.1 shortcut-input compatibility\
-**Status:** Version 2.5.0 is published. Version 2.5.1 updates the sole direct Terminal dependency, qualifies raw `Ctrl+C`/`Ctrl+Z` delivery through DCurses, and preserves the 2.5 public API and assembly identity. The maintainer controls merge, tag and publication. See the [2.5 roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md), [T2507 release gate](docs/T2507-2.5.0-Stable-Source-Gate.md), and [2.5.1 curated release notes](docs/releases/2.5.1.md).
+**Active feature track:** 2.5.2 maintenance update for Terminal 1.29.2 Windows console interoperability\
+**Status:** Version 2.5.1 is published. Version 2.5.2 updates the sole direct Terminal dependency so Windows sessions inherit reversible UTF-8 output and reliable mouse ownership without changing the DCurses runtime or public API. The maintainer controls merge, tag and publication. See the [2.5 roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md), [2.5.1 curated release notes](releases/2.5.1.md), and [2.5.2 curated release notes](releases/2.5.2.md).
 
-**Planning snapshot:** 2026-10-15
+**Planning snapshot:** 2026-10-16
 
 ---
 
 ## Current authorities
 
-The [2.5 development roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md), [approved color-surface design](docs/superpowers/specs/2026-10-12-icod-dcurses-2.5-color-surface-hardening-design.md), and [implementation plan](docs/superpowers/plans/2026-10-12-icod-dcurses-2.5-color-surface-hardening.md) govern the active feature track. It preserves the existing cell/style model and Terminal-owned color normalization while qualifying exact foreground/background behavior through every DCurses retained operation needed by Widgets.
+The [2.5 development roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md), [approved color-surface design](superpowers/specs/2026-10-12-icod-dcurses-2.5-color-surface-hardening-design.md), and [implementation plan](superpowers/plans/2026-10-12-icod-dcurses-2.5-color-surface-hardening.md) govern the active feature track. It preserves the existing cell/style model and Terminal-owned color normalization while qualifying exact foreground/background behavior through every DCurses retained operation needed by Widgets.
 
-The completed [2.4 development roadmap](Icod.DCurses-2.4.0-Development-Roadmap.md), [approved design](docs/superpowers/specs/2026-10-10-icod-dcurses-2.4-widgets-editor-foundations-design.md), [implementation plan](docs/superpowers/plans/2026-10-11-icod-dcurses-2.4-widgets-editor-foundations.md), and [v2.4.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v2.4.0) are the historical authority for the published Widgets/dedit foundation. Terminal 1.29 clipboard/cursor integration and visible-editor/capture use remain implemented while higher-level policy stays in Widgets and dedit.
+The completed [2.4 development roadmap](Icod.DCurses-2.4.0-Development-Roadmap.md), [approved design](superpowers/specs/2026-10-10-icod-dcurses-2.4-widgets-editor-foundations-design.md), [implementation plan](superpowers/plans/2026-10-11-icod-dcurses-2.4-widgets-editor-foundations.md), and [v2.4.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v2.4.0) are the historical authority for the published Widgets/dedit foundation. Terminal 1.29 clipboard/cursor integration and visible-editor/capture use remain implemented while higher-level policy stays in Widgets and dedit.
 
-The completed [Icod.DCurses 2.3 roadmap](Icod.DCurses-2.3.0-Development-Roadmap.md), approved [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md), [implementation plan](docs/superpowers/plans/2026-10-03-icod-dcurses-2.3-curses-raster-atlas.md), and [publication closure](docs/T2310-2.3.0-Stable-Release-Closure.md) are the historical authority for the published 2.3 feature line. DCurses owns retained atlas coordinates, damage-oriented updates, front/back sequencing and refresh ordering; Terminal owns protocol encoding, opaque identities and the live terminal conversation; applications own source art, maps, actors, collision, visibility and scheduling.
+The completed [Icod.DCurses 2.3 roadmap](Icod.DCurses-2.3.0-Development-Roadmap.md), approved [`CursesRasterAtlas` design](superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md), [implementation plan](superpowers/plans/2026-10-03-icod-dcurses-2.3-curses-raster-atlas.md), and [publication closure](T2310-2.3.0-Stable-Release-Closure.md) are the historical authority for the published 2.3 feature line. DCurses owns retained atlas coordinates, damage-oriented updates, front/back sequencing and refresh ordering; Terminal owns protocol encoding, opaque identities and the live terminal conversation; applications own source art, maps, actors, collision, visibility and scheduling.
 
-The published 2.2 architecture and release evidence remain recorded in [the 2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md), its [interaction design](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md), and [the v2.2.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v2.2.0). T2204 prompt state and T2205 timing helpers remain deferred; the 2.3 graphics work does not reopen them.
+The published 2.2 architecture and release evidence remain recorded in [the 2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md), its [interaction design](superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md), and [the v2.2.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v2.2.0). T2204 prompt state and T2205 timing helpers remain deferred; the 2.3 graphics work does not reopen them.
 
-The published 2.0 contract and migration history remain governed by [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md), [docs/T2011-Stable-Source-Release-Gate.md](docs/T2011-Stable-Source-Release-Gate.md), [docs/Public-API-Fingerprint-2.0.json](docs/Public-API-Fingerprint-2.0.json), [docs/Public-API-Baseline-2.0.md](docs/Public-API-Baseline-2.0.md), and the [2.0 migration guide](docs/2.0-Migration-Guide.md).
+The published 2.0 contract and migration history remain governed by [Icod.DCurses-2.0.0-Development-Roadmap.md](Icod.DCurses-2.0.0-Development-Roadmap.md), [docs/T2011-Stable-Source-Release-Gate.md](T2011-Stable-Source-Release-Gate.md), [docs/Public-API-Fingerprint-2.0.json](Public-API-Fingerprint-2.0.json), [docs/Public-API-Baseline-2.0.md](Public-API-Baseline-2.0.md), and the [2.0 migration guide](2.0-Migration-Guide.md).
 
 The published [Terminal 1.24.1 contract](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.24.1) supplies the existing semantic/session baseline plus bounded pixel-geometry queries, exact derivation support, raster planning snapshots, intrinsic resource geometry, acknowledged frame composition and region replacement, frame selection, and focused operation evidence required by `CursesRasterAtlas`. Its persistent-raster verification distinguishes generic Kitty Graphics support from the nonzero terminal-assigned identity required by atlas creation, so malformed or zero identities become controlled capability evidence rather than escaping as parser failures. Any later integration gap must be fixed and released in the owning dependency before the affected DCurses gate advances; it must not be bypassed with TermInfo calls or raw terminal strings.
 
 The published [DCurses 1.6.0 release](https://github.com/uniblab/Icod.DCurses/releases/tag/v1.6.0) is the behavioral migration baseline. Its implementation and release closure are governed by:
 
-- `Icod.DCurses-1.6.0-Development-Roadmap.md`;
+- `docs/Icod.DCurses-1.6.0-Development-Roadmap.md`;
 - `docs/superpowers/specs/2026-09-15-icod-dcurses-1.6-retained-mixed-media-presentation-design.md`;
 - `docs/superpowers/plans/2026-09-15-icod-dcurses-1.6-retained-mixed-media-presentation.md`;
 - T1601-T1611 tranche evidence;
@@ -44,7 +44,7 @@ The published [DCurses 1.6.0 release](https://github.com/uniblab/Icod.DCurses/re
 
 The published 1.5 contract remains frozen by:
 
-- `Icod.DCurses-1.5.0-Development-Roadmap.md`;
+- `docs/Icod.DCurses-1.5.0-Development-Roadmap.md`;
 - `docs/T159-RC-and-Stable-1.5.0-Closure.md`;
 - `docs/Public-API-Fingerprint-1.5.json`;
 - tag/release `v1.5.0`.
@@ -72,7 +72,8 @@ Historical 1.0-1.6 roadmaps, tranche records, public-API baselines/fingerprints,
 | `2.3.1` | Package documentation and release-state correction | Stable maintenance patch; no runtime or public API changes |
 | `2.4.0` | Widgets/dedit foundations: Terminal 1.29 clipboard/cursor facades, qualified visible projection and capture | Published 2026-10-12 |
 | `2.5.0` | Complete foreground/background color-surface retention, composition, damage and fallback qualification | Published 2026-10-14 |
-| `2.5.1` | Terminal 1.29.1 raw shortcut-input compatibility | Maintenance candidate; merge/tag/publication pending |
+| `2.5.1` | Terminal 1.29.1 raw shortcut-input compatibility | Published 2026-10-15 |
+| `2.5.2` | Terminal 1.29.2 Windows UTF-8 output and mouse-input compatibility | Maintenance candidate; merge/tag/publication pending |
 | Later | Higher-level `Icod.Widgets` themes and separately evidenced sprite/physical-placement work | Separate repositories/tracks; not implicitly in 2.5 |
 
 The post-1.0 progression is intentionally cumulative:
@@ -152,7 +153,7 @@ The governing rule is:
 
 Version 1.6 is not a generic raster scene graph and does not make DCurses a graphics protocol library.
 
-The detailed architecture, lifecycle, testing, tranche sequencing, and non-goals are defined in `Icod.DCurses-1.6.0-Development-Roadmap.md`.
+The detailed architecture, lifecycle, testing, tranche sequencing, and non-goals are defined in `docs/Icod.DCurses-1.6.0-Development-Roadmap.md`.
 
 ---
 
@@ -317,7 +318,7 @@ T2101–T2112 are complete. PR [#33](https://github.com/uniblab/Icod.DCurses/pul
 
 The agreed release order was 2.1 core text and presentation, **then Option 3: interaction and application conveniences**, then a possible higher-level package. Version 2.2 builds on the published 1.4/1.5 interaction router and the 2.1 editor and roguelike witnesses. It targets repeated interaction mechanisms such as contextual or multi-key command composition, discoverable bindings and bounded prompt input, with pointer timing or frame timing admitted only when a concrete application case and ownership boundary justify them.
 
-The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candidate capabilities, evidence gates, tests and release sequence. T2201 froze the first discovery API, T2202 accepted its implementation, and T2203 accepted bounded command sequences. DCurses continues to expose mechanism without owning command execution or an application event loop. T2202 advanced `Version` and `PackageVersion` together to `2.2.0-alpha.1`; T2203 retained that identity. The [T2208 RC gate](docs/T2208-RC-Qualification.md) accepted `2.2.0-rc.1`, the [stable-source gate](docs/T2208-Stable-Source-Release-Gate.md) accepted the unchanged `2.2.0` candidate, and that source is now published as `v2.2.0`.
+The [2.2 roadmap](Icod.DCurses-2.2.0-Development-Roadmap.md) defines the candidate capabilities, evidence gates, tests and release sequence. T2201 froze the first discovery API, T2202 accepted its implementation, and T2203 accepted bounded command sequences. DCurses continues to expose mechanism without owning command execution or an application event loop. T2202 advanced `Version` and `PackageVersion` together to `2.2.0-alpha.1`; T2203 retained that identity. The [T2208 RC gate](T2208-RC-Qualification.md) accepted `2.2.0-rc.1`, the [stable-source gate](T2208-Stable-Source-Release-Gate.md) accepted the unchanged `2.2.0` candidate, and that source is now published as `v2.2.0`.
 
 ### 2.2 tranche sequence
 
@@ -375,7 +376,7 @@ No production implementation begins until T2300 is reviewed and T2301 freezes th
 
 Version 2.4 is a focused DCurses mechanism release above stable 2.3.1 and Terminal 1.29. It exposes session-owned, bounded clipboard read/write and reversible cursor-style control without duplicating Terminal protocols. It proves visible-slice text projection, caret/selection and captured interaction for a Widgets editor, introducing a new DCurses viewport or gesture API only after an exact failing public-consumer witness and design amendment. Document storage, undo, tabs, dialogs, files, shortcut policy and scheduling remain with Widgets and dedit.
 
-The [versioned roadmap](Icod.DCurses-2.4.0-Development-Roadmap.md) defines T2400–T2409, public API/regret gates, performance and platform evidence, dependency/version policy and release handoff. The [implementation plan](docs/superpowers/plans/2026-10-11-icod-dcurses-2.4-widgets-editor-foundations.md) maps tasks to exact source/tests. T2400 established the alpha identity, T2401–T2408 implemented and froze the feature/package contract, and exact `2.4.0-rc.1` locally passed the release tests and package-only consumers. The `2.4.0` stable candidate with AssemblyVersion `2.0.0.0` then passed forced restore, complete Release build/test, package validation and isolated consumers. Exact-head [PR workflow 38113940513](https://github.com/uniblab/Icod.DCurses/actions/runs/38113940513) passed its package job and all six Linux/Windows/macOS x64/ARM64 runtime jobs. PR #37 subsequently merged and v2.4.0 was published; the roadmap and [T2409 gate](docs/T2409-2.4.0-Stable-Source-Gate.md) remain historical qualification evidence.
+The [versioned roadmap](Icod.DCurses-2.4.0-Development-Roadmap.md) defines T2400–T2409, public API/regret gates, performance and platform evidence, dependency/version policy and release handoff. The [implementation plan](superpowers/plans/2026-10-11-icod-dcurses-2.4-widgets-editor-foundations.md) maps tasks to exact source/tests. T2400 established the alpha identity, T2401–T2408 implemented and froze the feature/package contract, and exact `2.4.0-rc.1` locally passed the release tests and package-only consumers. The `2.4.0` stable candidate with AssemblyVersion `2.0.0.0` then passed forced restore, complete Release build/test, package validation and isolated consumers. Exact-head [PR workflow 38113940513](https://github.com/uniblab/Icod.DCurses/actions/runs/38113940513) passed its package job and all six Linux/Windows/macOS x64/ARM64 runtime jobs. PR #37 subsequently merged and v2.4.0 was published; the roadmap and [T2409 gate](T2409-2.4.0-Stable-Source-Gate.md) remain historical qualification evidence.
 
 | Tranche | Decision/qualification gate |
 |---|---|
@@ -389,7 +390,7 @@ The [versioned roadmap](Icod.DCurses-2.4.0-Development-Roadmap.md) defines T2400
 
 Version 2.5 qualifies DCurses as the complete retained color surface beneath Icod.Widgets. The existing model already gives every cell a `CursesStyle` with independent foreground, background and attributes; this track proves that model through writes, fills, background synthesis, editing, copying, text layout, pads, viewports, panels, damage, physical refresh, resize, invalidation and capability degradation. It corrects only demonstrated defects and adds no replacement palette abstraction.
 
-The [versioned roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md), [design](docs/superpowers/specs/2026-10-12-icod-dcurses-2.5-color-surface-hardening-design.md), and [implementation plan](docs/superpowers/plans/2026-10-12-icod-dcurses-2.5-color-surface-hardening.md) define T2500–T2507. Opaque panels are the contract for visually meaningful colored blank surfaces. Published `BlankCellsTransparent` behavior remains compatible and style-insensitive. Terminal continues to own normalization and encoding; unsupported colors degrade predictably to terminal defaults rather than being silently quantized.
+The [versioned roadmap](Icod.DCurses-2.5.0-Development-Roadmap.md), [design](superpowers/specs/2026-10-12-icod-dcurses-2.5-color-surface-hardening-design.md), and [implementation plan](superpowers/plans/2026-10-12-icod-dcurses-2.5-color-surface-hardening.md) define T2500–T2507. Opaque panels are the contract for visually meaningful colored blank surfaces. Published `BlankCellsTransparent` behavior remains compatible and style-insensitive. Terminal continues to own normalization and encoding; unsupported colors degrade predictably to terminal defaults rather than being silently quantized.
 
 | Tranche | Decision/qualification gate |
 |---|---|

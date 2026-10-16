@@ -8,7 +8,7 @@
 
 **Tech Stack:** C# 13, .NET 8/9/10, xUnit, NuGet, PowerShell 5.1-compatible packaging automation, GitHub Actions. No Python.
 
-**Spec:** `Icod.DCurses-2.0.0-Development-Roadmap.md` T2002 and `docs/2.0-API-Break-Manifest.md`.
+**Spec:** `docs/Icod.DCurses-2.0.0-Development-Roadmap.md` T2002 and `docs/2.0-API-Break-Manifest.md`.
 
 ## Global Constraints
 
@@ -341,8 +341,8 @@ git commit -m "docs: freeze DCurses 2.0 development API"
 
 **Files:**
 - Create: `docs/T2002-Public-Terminal-Cutover-Gate.md`
-- Modify: `Icod.DCurses-2.0.0-Development-Roadmap.md`
-- Modify: `Icod.DCurses-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.0.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`
 - Modify: `docs/superpowers/plans/2026-09-18-icod-dcurses-t2002-public-cutover.md`
 
 **Interfaces:**
@@ -394,7 +394,7 @@ Create `docs/T2002-Public-Terminal-Cutover-Gate.md` with exact commit/workflow/j
 ```sh
 git add docs/T2002-Public-Terminal-Cutover-Gate.md \
   docs/superpowers/plans/2026-09-18-icod-dcurses-t2002-public-cutover.md \
-  Icod.DCurses-2.0.0-Development-Roadmap.md Icod.DCurses-Development-Roadmap.md
+  docs/Icod.DCurses-2.0.0-Development-Roadmap.md docs/Icod.DCurses-Development-Roadmap.md
 git commit -m "docs: record DCurses T2002 public cutover gate"
 ```
 

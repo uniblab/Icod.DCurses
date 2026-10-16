@@ -8,7 +8,7 @@
 
 **Tech Stack:** C# 13; net8.0/net9.0/net10.0; Icod.Terminal 1.29.0; xUnit; PowerShell 5.1/cmd/sh; existing package-verifier and CI workflows.
 
-**Spec:** [2.4 design](../specs/2026-10-10-icod-dcurses-2.4-widgets-editor-foundations-design.md). See also [versioned development roadmap](../../../Icod.DCurses-2.4.0-Development-Roadmap.md).
+**Spec:** [2.4 design](../specs/2026-10-10-icod-dcurses-2.4-widgets-editor-foundations-design.md). See also [versioned development roadmap](../../Icod.DCurses-2.4.0-Development-Roadmap.md).
 
 ## Global Constraints
 

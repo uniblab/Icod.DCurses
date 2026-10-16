@@ -3,7 +3,7 @@
 **Date:** 2026-09-24\
 **Status:** Proposed design for review; public APIs pending T2201\
 **Baseline:** published `v2.1.0`\
-**Release roadmap:** [2.2.0 development roadmap](../../../Icod.DCurses-2.2.0-Development-Roadmap.md)
+**Release roadmap:** [2.2.0 development roadmap](../../Icod.DCurses-2.2.0-Development-Roadmap.md)
 
 ## Intent and constraints
 

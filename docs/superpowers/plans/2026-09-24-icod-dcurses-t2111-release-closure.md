@@ -1,7 +1,7 @@
 # T2111 Adversarial, Package, Documentation and API Freeze Plan
 
 **Status:** accepted at executable head `f0b69470cace0bfe29cd3db311ac156a4a50deac`, 14/14 jobs in workflow 36044565032.\
-**Authority:** `Icod.DCurses-2.1.0-Development-Roadmap.md`, T2111.\
+**Authority:** `docs/Icod.DCurses-2.1.0-Development-Roadmap.md`, T2111.\
 **Branch:** `2.1.0-roadmap` in open PR #33. Do not merge, tag or publish.
 
 ## Scope

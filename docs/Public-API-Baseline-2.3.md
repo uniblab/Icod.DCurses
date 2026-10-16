@@ -58,7 +58,7 @@ type enters the DCurses public or direct dependency boundary.
 
 The [measurement report](Raster-Atlas-Measurement-2.3.md),
 [sample README](../samples/Icod.DCurses.RasterAtlas.Sample/README.md) and
-[development roadmap](../Icod.DCurses-2.3.0-Development-Roadmap.md) define the
+[development roadmap](Icod.DCurses-2.3.0-Development-Roadmap.md) define the
 acceptance evidence and non-goals.
 
 ## Complete-frame extension

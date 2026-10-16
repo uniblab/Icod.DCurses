@@ -290,9 +290,9 @@ public void CursesPanel.SetBounds( CursesRectangle bounds );
 
 **Files:**
 - Modify: `README.md`
-- Modify: `Icod.DCurses-Development-Roadmap.md`
-- Modify: `Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md`
-- Modify: `Icod.DCurses-1.3.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-1.1.0-to-1.4.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-1.3.0-Development-Roadmap.md`
 - Modify: `tools/package-smoke/*` as needed
 - Create: `docs/Public-API-Fingerprint-1.3.json`
 - Create: `docs/Public-API-Baseline-1.3.md`

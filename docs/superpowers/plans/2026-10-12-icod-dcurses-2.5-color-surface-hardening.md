@@ -8,7 +8,7 @@
 
 **Tech Stack:** C# 13; net8.0/net9.0/net10.0; Icod.Terminal 1.29.0; xUnit; existing cmd/sh/PowerShell 5.1 build and package-verification tooling.
 
-**Spec:** [2.5 color-surface design](../specs/2026-10-12-icod-dcurses-2.5-color-surface-hardening-design.md). See also the [versioned development roadmap](../../../Icod.DCurses-2.5.0-Development-Roadmap.md).
+**Spec:** [2.5 color-surface design](../specs/2026-10-12-icod-dcurses-2.5-color-surface-hardening-design.md). See also the [versioned development roadmap](../../Icod.DCurses-2.5.0-Development-Roadmap.md).
 
 ## Global Constraints
 

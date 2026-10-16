@@ -346,7 +346,7 @@ and public `CursesSession.ReadEventAsync(...)`.
 mapping path.
 
 The completed checkpoint is recorded in
-[`docs/T205-Terminal-1.0-Input-Compatibility-Acceptance.md`](docs/T205-Terminal-1.0-Input-Compatibility-Acceptance.md).
+[`docs/T205-Terminal-1.0-Input-Compatibility-Acceptance.md`](T205-Terminal-1.0-Input-Compatibility-Acceptance.md).
 
 ---
 
@@ -377,7 +377,7 @@ demonstrate richer semantics on terminals supporting negotiated keyboard
 reporting.
 
 The completed checkpoint is recorded in
-[`docs/T206-Rich-Input-Showcase-and-Consumer-Acceptance.md`](docs/T206-Rich-Input-Showcase-and-Consumer-Acceptance.md).
+[`docs/T206-Rich-Input-Showcase-and-Consumer-Acceptance.md`](T206-Rich-Input-Showcase-and-Consumer-Acceptance.md).
 
 ---
 
@@ -401,7 +401,7 @@ Before stable `0.2.0`:
 documented, package-consumable, and cross-platform green.
 
 The completed checkpoint is recorded in
-[`docs/T207-Public-API-Documentation-and-Package-Gate.md`](docs/T207-Public-API-Documentation-and-Package-Gate.md).
+[`docs/T207-Public-API-Documentation-and-Package-Gate.md`](T207-Public-API-Documentation-and-Package-Gate.md).
 The `0.2.0-rc.1` Staging and package validation gate passed before T208 assigned
 the stable source version.
 

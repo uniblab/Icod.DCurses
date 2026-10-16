@@ -12,7 +12,7 @@
 **Status:** T2208 accepted; planned 2.2 development complete; maintainer review and merge pending\
 **Planning snapshot:** 2026-09-25
 
-**Design proposal:** [2.2 interaction and application conveniences](docs/superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The published [2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md), [interaction sample](samples/Icod.DCurses.Interaction.Sample/Program.cs), [editor](samples/Icod.DCurses.Editor.Sample/Program.cs) and [roguelike](samples/Icod.DCurses.Roguelike.Sample/Program.cs) are the baseline evidence.
+**Design proposal:** [2.2 interaction and application conveniences](superpowers/specs/2026-09-24-icod-dcurses-2.2-interaction-conveniences-design.md). The published [2.1 roadmap](Icod.DCurses-2.1.0-Development-Roadmap.md), [interaction sample](../samples/Icod.DCurses.Interaction.Sample/Program.cs), [editor](../samples/Icod.DCurses.Editor.Sample/Program.cs) and [roguelike](../samples/Icod.DCurses.Roguelike.Sample/Program.cs) are the baseline evidence.
 
 ---
 
@@ -22,7 +22,7 @@ The agreed order is core presentation and text (2.1), **interaction and applicat
 
 The editor should be able to present a bounded prompt and discover currently relevant commands without duplicating infrastructure. The roguelike should be able to express context-sensitive input and an overlay without a parallel command router. Both remain executable, public-API-only examples; they own their document/world state, application commands, game rules, rendering loop and event loop.
 
-The [T2201 baseline and API questions](docs/T2201-Interaction-Baseline-and-API-Questions.md) and [2.2 interaction API design](docs/2.2-Interaction-API-Design.md) place effective-binding discovery before command sequences: discovery first proves precedence without changing `Route`. The candidate features below define what to evaluate, not a commitment to ship every candidate. Each optional tranche either passes its stated gate or closes with evidence explaining why it is deferred. The release must ship useful interaction work even if optional timing facilities are excluded.
+The [T2201 baseline and API questions](T2201-Interaction-Baseline-and-API-Questions.md) and [2.2 interaction API design](2.2-Interaction-API-Design.md) place effective-binding discovery before command sequences: discovery first proves precedence without changing `Route`. The candidate features below define what to evaluate, not a commitment to ship every candidate. Each optional tranche either passes its stated gate or closes with evidence explaining why it is deferred. The release must ship useful interaction work even if optional timing facilities are excluded.
 
 ## 2. Architecture and compatibility requirements
 
@@ -78,13 +78,13 @@ Both samples continue to call `screen.Clear()` and refresh during orderly exit. 
 | Tranche | Deliverable | Gate |
 |---|---|---|
 | **T2201** | Freeze baseline, inspect repeated input paths, compare API approaches, decide optional candidates and write public API/implementation plan | Discovery foundation accepted: tests-only head `d853248` observed expected missing-API RED in workflow 36074699970; sequence contract remains a separate T2203 amendment |
-| **T2202** | Move `Version`/`PackageVersion` to `2.2.0-alpha.1`; implement effective-binding discovery | Accepted at exact head `1d6097d`; [workflow 36076001958](https://github.com/uniblab/Icod.DCurses/actions/runs/36076001958) green 7/7; see [T2202 gate](docs/T2202-Effective-Binding-Discovery-Gate.md) |
-| **T2203** | Implement bounded multi-key composition | Accepted at exact head `2cdb89f`; [workflow 36084559207](https://github.com/uniblab/Icod.DCurses/actions/runs/36084559207) green 7/7; see [T2203 gate](docs/T2203-Bounded-Command-Sequences-Gate.md) |
+| **T2202** | Move `Version`/`PackageVersion` to `2.2.0-alpha.1`; implement effective-binding discovery | Accepted at exact head `1d6097d`; [workflow 36076001958](https://github.com/uniblab/Icod.DCurses/actions/runs/36076001958) green 7/7; see [T2202 gate](T2202-Effective-Binding-Discovery-Gate.md) |
+| **T2203** | Implement bounded multi-key composition | Accepted at exact head `2cdb89f`; [workflow 36084559207](https://github.com/uniblab/Icod.DCurses/actions/runs/36084559207) green 7/7; see [T2203 gate](T2203-Bounded-Command-Sequences-Gate.md) |
 | **T2204** | Implement small prompt state only if justified | Deferred: only the editor's narrow numeric prompt is evidenced |
 | **T2205** | Implement caller-fed timed pointer or pure frame calculations only if justified | Deferred: no current application-shaped timing witness |
-| **T2206** | Integrate selected mechanisms into public-only editor/roguelike samples and package-only consumers | Accepted at executable head `ff6e446`; [workflow 36096617375](https://github.com/uniblab/Icod.DCurses/actions/runs/36096617375) green 7/7; [both live samples confirmed](docs/T2206-Application-Interaction-Acceptance-Gate.md) |
-| **T2207** | Adversarial, allocation, dependency, public API, XML and documentation gate | Accepted at exact executable head `e5c5917`; [workflow 36098389089](https://github.com/uniblab/Icod.DCurses/actions/runs/36098389089) green 7/7; see [T2207 gate](docs/T2207-Adversarial-Package-Documentation-and-API-Gate.md) |
-| **T2208** | RC followed by stable-source qualification | RC accepted at `74f10d0`; stable source accepted at exact executable head `42d08b7`; [workflow 36100907303](https://github.com/uniblab/Icod.DCurses/actions/runs/36100907303) green 7/7; see [RC](docs/T2208-RC-Qualification.md) and [stable-source](docs/T2208-Stable-Source-Release-Gate.md) gates |
+| **T2206** | Integrate selected mechanisms into public-only editor/roguelike samples and package-only consumers | Accepted at executable head `ff6e446`; [workflow 36096617375](https://github.com/uniblab/Icod.DCurses/actions/runs/36096617375) green 7/7; [both live samples confirmed](T2206-Application-Interaction-Acceptance-Gate.md) |
+| **T2207** | Adversarial, allocation, dependency, public API, XML and documentation gate | Accepted at exact executable head `e5c5917`; [workflow 36098389089](https://github.com/uniblab/Icod.DCurses/actions/runs/36098389089) green 7/7; see [T2207 gate](T2207-Adversarial-Package-Documentation-and-API-Gate.md) |
+| **T2208** | RC followed by stable-source qualification | RC accepted at `74f10d0`; stable source accepted at exact executable head `42d08b7`; [workflow 36100907303](https://github.com/uniblab/Icod.DCurses/actions/runs/36100907303) green 7/7; see [RC](T2208-RC-Qualification.md) and [stable-source](T2208-Stable-Source-Release-Gate.md) gates |
 
 Do not advance a tranche solely because CI is green: its stated semantic and package gates must also hold. Work on this PR may advance tranche by tranche. Record an accepted or deferred result and exact commit for every gate in this roadmap or a linked gate document.
 

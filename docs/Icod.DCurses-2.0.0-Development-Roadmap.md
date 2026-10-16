@@ -41,7 +41,7 @@ The planning review used:
 | Terminal published prerequisite | [`v1.18.0`](https://github.com/uniblab/Icod.Terminal/releases/tag/v1.18.0), published 2026-09-18 |
 | Terminal boundary design | [1.17 screen-output design](https://github.com/uniblab/Icod.Terminal/blob/v1.17.0/docs/superpowers/specs/2026-09-17-1.17.0-terminal-screen-output-design.md) |
 | Terminal API authority | [1.18 public baseline](https://github.com/uniblab/Icod.Terminal/blob/v1.18.0/docs/Public-API-Baseline-1.18.md) |
-| DCurses public baseline | [1.6 API baseline](docs/Public-API-Baseline-1.6.md) and [fingerprint](docs/Public-API-Fingerprint-1.6.json) |
+| DCurses public baseline | [1.6 API baseline](Public-API-Baseline-1.6.md) and [fingerprint](Public-API-Fingerprint-1.6.json) |
 | Active release policy | [main roadmap](Icod.DCurses-Development-Roadmap.md) |
 
 The 1.6 fingerprint is 75 exported types, 559 canonical declared contract lines, SHA-256 `266e23e6f3b4d5be98c81b5d5774f1de47d488d9ede7025877e46388cae6d458`. It remains historical evidence, not a fingerprint to overwrite with 2.0 signatures.

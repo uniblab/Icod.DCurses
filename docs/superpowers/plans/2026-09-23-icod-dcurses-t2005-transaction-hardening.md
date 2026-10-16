@@ -8,7 +8,7 @@
 
 **Tech Stack:** C# 13; .NET `net8.0`, `net9.0`, and `net10.0`; `Icod.Terminal 1.18.0`; xUnit; PowerShell 5.1-compatible packaging; cmd/sh. No Python.
 
-**Spec:** `Icod.DCurses-2.0.0-Development-Roadmap.md`, especially sections 6-8 and T2005; `docs/superpowers/specs/2026-09-18-icod-dcurses-t2003-vertical-cutover-design.md`, especially T2005 acceptance.
+**Spec:** `docs/Icod.DCurses-2.0.0-Development-Roadmap.md`, especially sections 6-8 and T2005; `docs/superpowers/specs/2026-09-18-icod-dcurses-t2003-vertical-cutover-design.md`, especially T2005 acceptance.
 
 **Execution status:** The first source-boundary slice is complete on PR head `5465b1bba685eafb078e4a7123835525b5c9f426`, qualified by workflow `35806253187`. Tasks 2-8 remain pending. No T2005 acceptance claim exists until the final exact-head matrix and gate document pass.
 
@@ -332,8 +332,8 @@ git commit -m "test: qualify refresh transaction capacity"
 
 **Files:**
 - Create: `docs/T2005-Transactional-Refresh-Hardening-Gate.md`
-- Modify: `Icod.DCurses-Development-Roadmap.md`
-- Modify: `Icod.DCurses-2.0.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.0.0-Development-Roadmap.md`
 - Modify: PR #32 body after exact-head qualification
 
 - [ ] **Step 1: Run static and protected-file checks**

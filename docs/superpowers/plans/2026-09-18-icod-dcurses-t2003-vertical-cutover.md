@@ -79,8 +79,8 @@ T2003 source-boundary tests must prove that the migrated refresh/session files n
 
 **Files:**
 - Create: `tests/Icod.DCurses.Tests/src/T2003VerticalCutoverContractTests.cs`
-- Modify: `Icod.DCurses-2.0.0-Development-Roadmap.md`
-- Modify: `Icod.DCurses-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.0.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`
 - Modify: `docs/superpowers/plans/2026-09-18-icod-dcurses-t2003-vertical-cutover.md`
 
 **Interfaces:**
@@ -168,8 +168,8 @@ Commit:
 
 ```sh
 git add tests/Icod.DCurses.Tests/src/T2003VerticalCutoverContractTests.cs \
-  Icod.DCurses-2.0.0-Development-Roadmap.md \
-  Icod.DCurses-Development-Roadmap.md \
+  docs/Icod.DCurses-2.0.0-Development-Roadmap.md \
+  docs/Icod.DCurses-Development-Roadmap.md \
   docs/superpowers/plans/2026-09-18-icod-dcurses-t2003-vertical-cutover.md
 git commit -m "test: freeze DCurses T2003 vertical cutover"
 ```
@@ -852,8 +852,8 @@ git commit -m "test: qualify DCurses T2003 application workloads"
 
 **Files:**
 - Create: `docs/T2003-Semantic-Presentation-Vertical-Cutover-Gate.md`
-- Modify: `Icod.DCurses-2.0.0-Development-Roadmap.md`
-- Modify: `Icod.DCurses-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.0.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`
 - Modify: `docs/superpowers/plans/2026-09-18-icod-dcurses-t2003-vertical-cutover.md`
 - Verify unchanged: `README.md`
 - Verify unchanged: `docs/Public-API-Fingerprint-2.0.json`
@@ -933,8 +933,8 @@ Update both roadmaps to show T2003 accepted and T2004 next. If any criterion fai
 ```sh
 git add docs/T2003-Semantic-Presentation-Vertical-Cutover-Gate.md \
   docs/superpowers/plans/2026-09-18-icod-dcurses-t2003-vertical-cutover.md \
-  Icod.DCurses-2.0.0-Development-Roadmap.md \
-  Icod.DCurses-Development-Roadmap.md
+  docs/Icod.DCurses-2.0.0-Development-Roadmap.md \
+  docs/Icod.DCurses-Development-Roadmap.md
 git commit -m "docs: record DCurses T2003 vertical cutover gate"
 ```
 

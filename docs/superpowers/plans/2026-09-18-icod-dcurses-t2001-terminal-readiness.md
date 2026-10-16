@@ -8,7 +8,7 @@
 
 **Tech Stack:** C# 13, .NET 8/9/10, xUnit, PowerShell 5.1-compatible repository automation, GitHub Actions. No Python.
 
-**Spec:** `Icod.DCurses-2.0.0-Development-Roadmap.md`, especially sections 4-8 and tranche T2001.
+**Spec:** `docs/Icod.DCurses-2.0.0-Development-Roadmap.md`, especially sections 4-8 and tranche T2001.
 
 ## Global Constraints
 
@@ -238,8 +238,8 @@ git commit -m "docs: capture DCurses 1.6 migration baseline"
 
 **Files:**
 - Create or complete: `docs/T2001-Terminal-Boundary-and-Readiness-Gate.md`
-- Modify: `Icod.DCurses-2.0.0-Development-Roadmap.md`
-- Modify: `Icod.DCurses-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.0.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`
 
 **Interfaces:**
 - Consumes: Tasks 1-4 exact-head evidence.
@@ -269,7 +269,7 @@ Expected: no placeholders and no whitespace errors.
 - [x] **Step 4: Commit the gate**
 
 ```sh
-git add docs Icod.DCurses-2.0.0-Development-Roadmap.md Icod.DCurses-Development-Roadmap.md
+git add docs docs/Icod.DCurses-2.0.0-Development-Roadmap.md docs/Icod.DCurses-Development-Roadmap.md
 git commit -m "docs: record DCurses T2001 readiness gate"
 ```
 

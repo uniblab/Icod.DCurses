@@ -703,8 +703,8 @@ git commit -m "test: qualify T2004 editing workloads"
 
 **Files:**
 - Create: `docs/T2004-Cost-Aware-Editing-Cutover-Gate.md`
-- Modify: `Icod.DCurses-2.0.0-Development-Roadmap.md`
-- Modify: `Icod.DCurses-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.0.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`
 - Modify: `docs/superpowers/plans/2026-09-22-icod-dcurses-t2004-cost-aware-editing.md`
 - Verify unchanged: `README.md`
 - Verify unchanged: `docs/Public-API-Fingerprint-2.0.json`
@@ -782,8 +782,8 @@ Update both roadmaps to T2004 accepted and T2005 next only after every criterion
 ```sh
 git add docs/T2004-Cost-Aware-Editing-Cutover-Gate.md \
   docs/superpowers/plans/2026-09-22-icod-dcurses-t2004-cost-aware-editing.md \
-  Icod.DCurses-2.0.0-Development-Roadmap.md \
-  Icod.DCurses-Development-Roadmap.md
+  docs/Icod.DCurses-2.0.0-Development-Roadmap.md \
+  docs/Icod.DCurses-Development-Roadmap.md
 git commit -m "docs: record DCurses T2004 editing cutover gate"
 ```
 

@@ -199,4 +199,4 @@ Next work remains:
 4. T208 — stable `0.2.0` release closure.
 
 The detailed release plan remains authoritative in
-`Icod.DCurses-0.2.0-Development-Roadmap.md`.
+`docs/Icod.DCurses-0.2.0-Development-Roadmap.md`.

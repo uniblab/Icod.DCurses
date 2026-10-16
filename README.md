@@ -80,6 +80,12 @@ events with `CursesKeyModifiers.Control`; the application decides whether they
 mean copy, undo, exit, or another command. Use `CBreak` when the host should
 retain its normal interrupt and suspend handling.
 
+Input discipline does not itself enable optional terminal reports. Applications
+request keyboard event types, bracketed paste, focus, or mouse reporting through
+an `AcquireInputProtocolsAsync` lease. `ButtonEvents` covers press, release, and
+wheel activity; request `ButtonMotion` when pointer dragging must be reported.
+Disposing the lease restores the preceding reporting state.
+
 ## Color surfaces and fallback
 
 Each `CursesCell` carries a complete `CursesStyle`: independently requested
@@ -281,7 +287,7 @@ See the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.
 ## Documentation and samples
 
 - [2.5 public API baseline](https://github.com/uniblab/Icod.DCurses/blob/main/docs/Public-API-Baseline-2.5.md)
-- [2.5 development roadmap](https://github.com/uniblab/Icod.DCurses/blob/main/Icod.DCurses-2.5.0-Development-Roadmap.md)
+- [2.5 development roadmap](https://github.com/uniblab/Icod.DCurses/blob/main/docs/Icod.DCurses-2.5.0-Development-Roadmap.md)
 - [Sample guide and runnable commands](https://github.com/uniblab/Icod.DCurses/blob/main/samples/README.md)
 - [Clipboard integration evidence](https://github.com/uniblab/Icod.DCurses/blob/main/docs/T2402-Clipboard-Integration.md)
 - [Cursor-style lifecycle evidence](https://github.com/uniblab/Icod.DCurses/blob/main/docs/T2404-Cursor-Style-Lifecycle.md)

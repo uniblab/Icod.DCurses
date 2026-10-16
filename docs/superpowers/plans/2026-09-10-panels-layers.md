@@ -8,7 +8,7 @@
 
 **Tech Stack:** C# 13; .NET 8/9/10; xUnit; existing Icod.DCurses virtual-screen/damage/metadata infrastructure; Icod.Terminal 1.8.1 and Icod.TermInfo 1.10.0 as project-declared dependencies.
 
-**Spec:** `Icod.DCurses-1.2.0-Development-Roadmap.md`
+**Spec:** `docs/Icod.DCurses-1.2.0-Development-Roadmap.md`
 
 ## Global Constraints
 

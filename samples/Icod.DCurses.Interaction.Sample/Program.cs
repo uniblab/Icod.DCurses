@@ -74,7 +74,7 @@ await TryAcquireInputProtocolAsync(
 await TryAcquireInputProtocolAsync(
 	session,
 	new CursesInputProtocolOptions {
-		MouseTrackingMode = CursesMouseTrackingMode.ButtonEvents
+		MouseTrackingMode = CursesMouseTrackingMode.ButtonMotion
 	},
 	protocolLeases
 );

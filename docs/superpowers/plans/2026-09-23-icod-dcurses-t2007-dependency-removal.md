@@ -8,7 +8,7 @@
 
 **Tech Stack:** C# 13, xUnit, `System.Reflection.Metadata`, .NET 8/9/10, PowerShell 5.1-compatible release workflow. No Python.
 
-**Spec:** `Icod.DCurses-2.0.0-Development-Roadmap.md` T2007, `docs/2.0-TermInfo-Coupling-Inventory.md`, `docs/T2006-Lifecycle-and-Recovery-Gate.md`.
+**Spec:** `docs/Icod.DCurses-2.0.0-Development-Roadmap.md` T2007, `docs/2.0-TermInfo-Coupling-Inventory.md`, `docs/T2006-Lifecycle-and-Recovery-Gate.md`.
 
 ## Global Constraints
 
@@ -50,7 +50,7 @@
 
 ### Task 3: Exact-head negative controls and gate
 
-**Files:** Create `docs/T2007-TermInfo-Dependency-Removal-Gate.md`; update `Icod.DCurses-2.0.0-Development-Roadmap.md` and PR body after acceptance.
+**Files:** Create `docs/T2007-TermInfo-Dependency-Removal-Gate.md`; update `docs/Icod.DCurses-2.0.0-Development-Roadmap.md` and PR body after acceptance.
 
 **Interfaces:** Consume focused negative-control results, packed artifact metadata, package-only smoke, and six runtime jobs; produce T2007 acceptance evidence.
 

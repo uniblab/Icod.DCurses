@@ -54,6 +54,7 @@ public sealed class PublicTwoThreeDevelopmentIdentityTests {
 
 		string roadmap = File.ReadAllText( Path.Combine(
 			root.FullName,
+			"docs",
 			"Icod.DCurses-2.3.0-Development-Roadmap.md"
 		) );
 		Assert.Contains( "# Icod.DCurses 2.3.0 Development Roadmap", roadmap,

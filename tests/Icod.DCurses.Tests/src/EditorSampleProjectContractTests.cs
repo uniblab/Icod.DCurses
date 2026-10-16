@@ -55,5 +55,16 @@ public sealed class EditorSampleProjectContractTests {
 			Assert.DoesNotContain( "Icod.Terminal", source, StringComparison.Ordinal );
 			Assert.DoesNotContain( "Icod.TermInfo", source, StringComparison.Ordinal );
 		}
+
+		string program = File.ReadAllText( Path.Combine( folder, "Program.cs" ) );
+		Assert.Contains( "AcquireInputProtocolsAsync", program, StringComparison.Ordinal );
+		Assert.Contains( "CursesKeyboardReportingMode.EventTypes", program,
+			StringComparison.Ordinal );
+		Assert.Contains( "BracketedPaste = true", program, StringComparison.Ordinal );
+		Assert.Contains( "FocusReporting = true", program, StringComparison.Ordinal );
+		Assert.Contains( "CursesMouseTrackingMode.ButtonMotion", program,
+			StringComparison.Ordinal );
+		Assert.Contains( "await using CursesInputProtocolLease?", program,
+			StringComparison.Ordinal );
 	}
 }

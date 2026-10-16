@@ -685,7 +685,7 @@ A future `Icod.DCurses.Widgets` package remains a strong candidate once the reta
 
 The 1.6 branch should ultimately contain:
 
-- `Icod.DCurses-1.6.0-Development-Roadmap.md` — this release roadmap;
+- `docs/Icod.DCurses-1.6.0-Development-Roadmap.md` — this release roadmap;
 - `docs/superpowers/specs/2026-09-15-icod-dcurses-1.6-retained-mixed-media-presentation-design.md` — approved architecture/design authority;
 - an implementation plan under `docs/superpowers/plans/` after the design is reviewed;
 - T1601-T1611 tranche records;

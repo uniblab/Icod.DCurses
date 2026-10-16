@@ -35,7 +35,7 @@
 - Create: `tests/Icod.DCurses.Tests/src/CursesTextSourceContractTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesTextSourceUnicodeTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/PublicTwoOneDevelopmentIdentityTests.cs`
-- Modify: `Icod.DCurses-2.1.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.1.0-Development-Roadmap.md`
 
 **Exact public increment:** `CursesTextPosition(int offset)` with `Offset`; `CursesTextSpan(CursesTextPosition start, int length, CursesStyle style, CursesCellMetadata? metadata = null)` with `Start`, `Length`, checked `End`, `Style`, and `Metadata`.
 
@@ -112,7 +112,7 @@ Expected: all tests pass on net8.0/net9.0/net10.0; Staging has no warning/error;
 
 ```sh
 git add Icod.DCurses.csproj src tests/Icod.DCurses.Tests/src \
-  Icod.DCurses-2.1.0-Development-Roadmap.md
+  docs/Icod.DCurses-2.1.0-Development-Roadmap.md
 git commit -m "feat: add DCurses 2.1 text source contracts"
 ```
 
@@ -129,7 +129,7 @@ git commit -m "feat: add DCurses 2.1 text source contracts"
 - Create: `tests/Icod.DCurses.Tests/src/CursesTextLayoutUnicodeTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesTextLayoutCapacityTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesTextLayoutPerformanceTests.cs`
-- Modify: `Icod.DCurses-2.1.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.1.0-Development-Roadmap.md`
 
 **Exact public increment:** `CursesTextWrapMode`, `CursesTextAlignment`, `CursesTextOverflow`; `CursesTextLayoutOptions`; `CursesTextLayout.Create(string, CursesTextLayoutOptions, IReadOnlyList<CursesTextSpan>? = null)` and its result properties; immutable `CursesTextVisualLine` and `CursesTextFragment` properties exactly as declared in the design.
 
@@ -181,7 +181,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug
 dotnet build Icod.DCurses.sln -c Staging --no-restore -p:ContinuousIntegrationBuild=true
 git diff --check
-git add src tests/Icod.DCurses.Tests/src Icod.DCurses-2.1.0-Development-Roadmap.md
+git add src tests/Icod.DCurses.Tests/src docs/Icod.DCurses-2.1.0-Development-Roadmap.md
 git commit -m "feat: add immutable rich text layout"
 ```
 
@@ -197,7 +197,7 @@ git commit -m "feat: add immutable rich text layout"
 - Create: `tests/Icod.DCurses.Tests/src/CursesTextGeometryTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesTextGeometryUnicodeTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesTextGeometryPerformanceTests.cs`
-- Modify: `Icod.DCurses-2.1.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.1.0-Development-Roadmap.md`
 
 **Exact public increment:** `CursesTextAffinity`; `CursesTextVisualPosition`; `CursesTextHitTestResult`; `CursesTextSelection`; and the eight `CursesTextLayout` geometry methods from design section 5.1.
 
@@ -253,7 +253,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug
 dotnet build Icod.DCurses.sln -c Staging --no-restore -p:ContinuousIntegrationBuild=true
 git diff --check
-git add src tests/Icod.DCurses.Tests/src Icod.DCurses-2.1.0-Development-Roadmap.md
+git add src tests/Icod.DCurses.Tests/src docs/Icod.DCurses-2.1.0-Development-Roadmap.md
 git commit -m "feat: add text mapping and selection geometry"
 ```
 
@@ -272,7 +272,7 @@ git commit -m "feat: add text mapping and selection geometry"
 - Create: `tests/Icod.DCurses.Tests/src/CursesTextPresentationTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesBulkCellWriteTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesBulkCellWritePerformanceTests.cs`
-- Modify: `Icod.DCurses-2.1.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.1.0-Development-Roadmap.md`
 
 **Exact public increment:** `PresentTextLayout(CursesTextLayout, int, int, int, int)` and the row/rectangular `WriteCells` overloads from design section 6.1. No style-only, metadata-cell, raster-cell, or unified retained-value overload is authorized.
 
@@ -336,7 +336,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug
 dotnet build Icod.DCurses.sln -c Staging --no-restore -p:ContinuousIntegrationBuild=true
 git diff --check
-git add src tests/Icod.DCurses.Tests/src Icod.DCurses-2.1.0-Development-Roadmap.md
+git add src tests/Icod.DCurses.Tests/src docs/Icod.DCurses-2.1.0-Development-Roadmap.md
 git commit -m "feat: add retained text and bulk cell presentation"
 ```
 
@@ -350,7 +350,7 @@ git commit -m "feat: add retained text and bulk cell presentation"
 - Create: `tests/Icod.DCurses.Tests/src/CursesViewportTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesViewportBoundaryTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesViewportPerformanceTests.cs`
-- Modify: `Icod.DCurses-2.1.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.1.0-Development-Roadmap.md`
 
 **Exact public increment:** `CursesCellPosition`; immutable `CursesViewport` constructor/properties plus its 13 methods from design section 7.1.
 
@@ -389,7 +389,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug
 dotnet build Icod.DCurses.sln -c Staging --no-restore -p:ContinuousIntegrationBuild=true
 git diff --check
-git add src tests/Icod.DCurses.Tests/src Icod.DCurses-2.1.0-Development-Roadmap.md
+git add src tests/Icod.DCurses.Tests/src docs/Icod.DCurses-2.1.0-Development-Roadmap.md
 git commit -m "feat: add large-content viewport geometry"
 ```
 
@@ -404,7 +404,7 @@ git commit -m "feat: add large-content viewport geometry"
 - Create: `tests/Icod.DCurses.Tests/src/CursesTrackLayoutTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesTrackLayoutApplicationTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesTrackLayoutPerformanceTests.cs`
-- Modify: `Icod.DCurses-2.1.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.1.0-Development-Roadmap.md`
 
 **Exact public increment:** `CursesTrackKind`, `CursesTrackDistribution`, `CursesTrack.Fixed`, `CursesTrack.Weighted`, their four properties, and `CursesLayout.ArrangeRows`/`ArrangeColumns` from design section 8.1.
 
@@ -447,7 +447,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug
 dotnet build Icod.DCurses.sln -c Staging --no-restore -p:ContinuousIntegrationBuild=true
 git diff --check
-git add src tests/Icod.DCurses.Tests/src Icod.DCurses-2.1.0-Development-Roadmap.md
+git add src tests/Icod.DCurses.Tests/src docs/Icod.DCurses-2.1.0-Development-Roadmap.md
 git commit -m "feat: add stateless track layout"
 ```
 
@@ -466,7 +466,7 @@ git commit -m "feat: add stateless track layout"
 - Create: `tests/Icod.DCurses.Tests/src/CursesRefreshDiagnosticsInvalidationTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesRefreshDiagnosticsPerformanceTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CorePresentationTextPerformanceQualificationTests.cs`
-- Modify: `Icod.DCurses-2.1.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.1.0-Development-Roadmap.md`
 
 **Exact public increment:** `CursesRefreshOutcome`; flagged `CursesRefreshOperationKinds`; immutable `CursesRefreshDiagnosticsSnapshot`; `CursesSessionOptions.EnableRefreshDiagnostics`; `CursesSession.LatestRefreshDiagnostics` from design section 9.1.
 
@@ -526,7 +526,7 @@ git diff --check
 Expected: all supported TFMs and configurations pass; package validation passes; production search has no direct TermInfo/capability match; version remains `2.1.0-alpha.1`, assembly `2.0.0.0`, and Terminal `1.18.0`.
 
 ```sh
-git add src tests/Icod.DCurses.Tests/src Icod.DCurses-2.1.0-Development-Roadmap.md
+git add src tests/Icod.DCurses.Tests/src docs/Icod.DCurses-2.1.0-Development-Roadmap.md
 git commit -m "feat: add bounded refresh diagnostics"
 git push origin 2.1.0-roadmap
 ```

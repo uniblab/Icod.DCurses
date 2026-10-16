@@ -4,7 +4,7 @@
 **Status:** Approved; exact public contract frozen at T2301
 **Decision:** Option 1, first-class `CursesRasterAtlas`  
 **Baseline:** published `Icod.DCurses 2.2.0` and `Icod.Terminal 1.24.0`  
-**Release roadmap:** [2.3.0 development roadmap](../../../Icod.DCurses-2.3.0-Development-Roadmap.md)
+**Release roadmap:** [2.3.0 development roadmap](../../Icod.DCurses-2.3.0-Development-Roadmap.md)
 
 ## Intent
 

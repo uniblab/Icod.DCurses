@@ -3,8 +3,8 @@
 The repository contains fourteen executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
 All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the
-repository `Icod.DCurses` project. Icod.DCurses 2.5.1 declares only stable
-`Icod.Terminal 1.29.1` directly; Terminal may restore TermInfo transitively. See
+repository `Icod.DCurses` project. Icod.DCurses 2.5.2 declares only stable
+`Icod.Terminal 1.29.2` directly; Terminal may restore TermInfo transitively. See
 the [changelog](../CHANGELOG.md) for historical package dependencies and the
 [2.0 migration guide](../docs/2.0-Migration-Guide.md) when upgrading an external
 application from the 1.x public surface.
@@ -38,6 +38,26 @@ The samples follow the production ownership model:
 - terminal-mutating presentation, protocol, refresh, cursor, alert, suspend, raster ownership, and disposal activity remains serialized by DCurses/Terminal;
 - Terminal remains responsible for authoritative terminal restoration and live raster identity/lifecycle;
 - canceling one public input wait does not discard Terminal decoder state.
+
+## Windows console interoperability check
+
+Icod.DCurses 2.5.2 inherits Terminal 1.29.2's reversible UTF-8 output and
+Windows mouse-input ownership. These public samples provide a focused manual
+check from a Windows console session:
+
+```text
+dotnet run --project samples/Icod.DCurses.Color.Sample/Icod.DCurses.Color.Sample.csproj -c Release -f net10.0
+dotnet run --project samples/Icod.DCurses.Editor.Sample/Icod.DCurses.Editor.Sample.csproj -c Release -f net10.0
+dotnet run --project samples/Icod.DCurses.Input.Showcase/Icod.DCurses.Input.Showcase.csproj -c Release -f net10.0
+```
+
+In the color sample, confirm that the border remains cell-aligned before and
+after resize. In the editor, click to place the caret, drag to extend selection,
+and click or drag the final-column scrollbar. The input showcase should report
+mouse press/release events and coordinates. Exit each sample normally and
+confirm the shell's prior input behavior is restored. Applications still opt in
+to terminal mouse reports with an input-protocol lease; Windows console
+ownership beneath that request does not enable reporting automatically.
 
 Run the commands below from the repository root. The examples select `net10.0` explicitly because each project targets multiple frameworks; substitute `net8.0` or `net9.0` as needed.
 
@@ -124,6 +144,11 @@ events. The sample binds `Ctrl+C`; a full editor can bind `Ctrl+Z` to undo. Use
 the default `CBreak` mode instead when the host should retain interrupt and
 suspend processing.
 
+The sample independently acquires keyboard event-type, bracketed-paste, focus,
+and button-motion reporting leases. Button motion is required for its captured
+selection and scrollbar drags; disposing the leases restores the preceding
+terminal reporting state before the session closes.
+
 Primary-button clicks place the caret in the document. Dragging extends the selection and remains captured when the pointer leaves the document; releasing the button, losing focus, opening the prompt, resizing, or disposing the controller ends capture. The final document column is an independently hit-tested scrollbar: clicking or dragging it maps its row onto the synthetic document without turning `Tab` into focus traversal.
 
 The editor requests Raw input so the host delivers `Ctrl+C` to the command router instead of converting it into an interrupt; use `Escape` for orderly exit. Clipboard commands explicitly use the session OSC 52 boundary. The sample keeps a private application fallback when the host clipboard is unavailable, denied, malformed, or times out; a timeout is inconclusive and is not treated as proof that the host lacks clipboard support. Host consent and policy remain terminal concerns. The visible caret remains enabled, and the sample requests a steady bar cursor through a scoped lease; unsupported or inconclusive style negotiation leaves the host style unchanged. Resize recomputes the document, status, prompt and interaction regions and invalidates any live prefix. Minimum size is 30 columns by 6 rows.
@@ -162,6 +187,9 @@ dotnet run --project samples/Icod.DCurses.MixedMedia.Sample/Icod.DCurses.MixedMe
 ## Icod.DCurses.Interaction.Sample
 
 `Icod.DCurses.Interaction.Sample` is the 1.5 advanced-interaction acceptance sample. It composes only public DCurses APIs inside one application-owned event loop: ordinary root interaction regions, a modal popup scope, a nested scope, sequential and spatial focus, scoped/global command identities, explicit pointer capture, clock-free pointer gesture snapshots, pointer-shape preferences, retained panel movement, and resize handling. It does not use direct `Icod.Terminal` or `Icod.TermInfo` APIs, internal DCurses APIs, callback-driven command execution, a widget framework, automatic layout ownership, or a second input reader.
+
+The sample requests button-motion reporting explicitly so a held primary button
+continues producing the motion events needed for `DragStart` and `DragMove`.
 
 Controls:
 
