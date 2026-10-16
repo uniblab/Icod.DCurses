@@ -40,7 +40,7 @@ public sealed class PublicTwoFiveDevelopmentIdentityTests {
 			static current => "PackageReference" == current.Name.LocalName
 		);
 		Assert.Equal( "Icod.Terminal", reference.Attribute( "Include" )?.Value );
-		Assert.Equal( "1.29.1", reference.Attribute( "Version" )?.Value );
+		Assert.Equal( "1.29.2", reference.Attribute( "Version" )?.Value );
 		Assert.DoesNotContain(
 			production.Descendants(),
 			static current => "PackageReference" == current.Name.LocalName
@@ -84,7 +84,7 @@ public sealed class PublicTwoFiveDevelopmentIdentityTests {
 		)?.PropertyType );
 
 		string version = GetSingleValue( production, "Version" );
-		Assert.Equal( "2.5.1", version );
+		Assert.Equal( "2.5.2", version );
 		Assert.Equal( version, GetSingleValue( production, "PackageVersion" ) );
 	}
 

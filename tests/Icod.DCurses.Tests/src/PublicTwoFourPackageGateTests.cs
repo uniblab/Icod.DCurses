@@ -63,7 +63,7 @@ public sealed partial class PublicTwoFourPackageGateTests {
 			)
 		);
 
-		Assert.Contains( "Icod.Terminal 1.29.1", readme, StringComparison.Ordinal );
+		Assert.Contains( "Icod.Terminal 1.29.2", readme, StringComparison.Ordinal );
 		Assert.Contains( "clipboard", readme, StringComparison.OrdinalIgnoreCase );
 		Assert.Contains( "cursor style", readme, StringComparison.OrdinalIgnoreCase );
 		Assert.Contains( "pointer capture", readme, StringComparison.OrdinalIgnoreCase );
@@ -72,7 +72,7 @@ public sealed partial class PublicTwoFourPackageGateTests {
 			StringComparison.OrdinalIgnoreCase );
 		Assert.DoesNotContain( "Icod.Terminal 1.28.0", readme,
 			StringComparison.Ordinal );
-		Assert.Contains( "current 2.5.1 source consumes stable `Icod.Terminal 1.29.1`",
+		Assert.Contains( "current 2.5.2 source consumes stable `Icod.Terminal 1.29.2`",
 			rasterReadme, StringComparison.Ordinal );
 		Assert.DoesNotContain( "stable 2.3.1 maintenance source", rasterReadme,
 			StringComparison.OrdinalIgnoreCase );
@@ -100,11 +100,11 @@ public sealed partial class PublicTwoFourPackageGateTests {
 		Assert.Contains( "WriteClipboardAsync", smoke, StringComparison.Ordinal );
 		Assert.Contains( "ReadClipboardAsync", smoke, StringComparison.Ordinal );
 		Assert.Contains( "AcquireCursorStyleAsync", smoke, StringComparison.Ordinal );
-		Assert.Contains( "TerminalPackageVersion = \"1.29.1\"", verifier,
+		Assert.Contains( "TerminalPackageVersion = \"1.29.2\"", verifier,
 			StringComparison.Ordinal );
-		Assert.Contains( "Ctrl+C", GetSingleValue( project, "PackageReleaseNotes" ),
+		Assert.Contains( "UTF-8", GetSingleValue( project, "PackageReleaseNotes" ),
 			StringComparison.OrdinalIgnoreCase );
-		Assert.Contains( "Ctrl+Z", GetSingleValue( project, "PackageReleaseNotes" ),
+		Assert.Contains( "mouse", GetSingleValue( project, "PackageReleaseNotes" ),
 			StringComparison.OrdinalIgnoreCase );
 	}
 

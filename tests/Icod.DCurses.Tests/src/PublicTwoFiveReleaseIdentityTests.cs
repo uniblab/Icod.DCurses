@@ -38,7 +38,7 @@ public sealed class PublicTwoFiveReleaseIdentityTests {
 			.Where( element => element.Name.LocalName is "Version" or "PackageVersion" )
 			.Select( element => element.Value )
 			.ToArray();
-		Assert.Equal( [ "2.5.1", "2.5.1" ], versions );
+		Assert.Equal( [ "2.5.2", "2.5.2" ], versions );
 	}
 
 	[Fact]
@@ -53,12 +53,14 @@ public sealed class PublicTwoFiveReleaseIdentityTests {
 			root.FullName,
 			"docs",
 			"releases",
-			"2.5.1.md"
+			"2.5.2.md"
 		) );
-		Assert.Contains( "Ctrl+C", notes, StringComparison.Ordinal );
-		Assert.Contains( "Ctrl+Z", notes, StringComparison.Ordinal );
-		Assert.Contains( "Alt+F", notes, StringComparison.Ordinal );
-		Assert.Contains( "Icod.Terminal 1.29.1", notes, StringComparison.Ordinal );
+		Assert.Contains( "UTF-8", notes, StringComparison.Ordinal );
+		Assert.Contains( "box-drawing", notes, StringComparison.OrdinalIgnoreCase );
+		Assert.Contains( "mouse", notes, StringComparison.OrdinalIgnoreCase );
+		Assert.Contains( "Quick Edit", notes, StringComparison.Ordinal );
+		Assert.Contains( "restor", notes, StringComparison.OrdinalIgnoreCase );
+		Assert.Contains( "Icod.Terminal 1.29.2", notes, StringComparison.Ordinal );
 
 		string workflow = File.ReadAllText( Path.Combine(
 			root.FullName,

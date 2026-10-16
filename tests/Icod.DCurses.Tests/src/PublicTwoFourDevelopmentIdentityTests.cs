@@ -61,7 +61,7 @@ public sealed class PublicTwoFourDevelopmentIdentityTests {
 			static current => "PackageReference" == current.Name.LocalName
 		);
 		Assert.Equal( "Icod.Terminal", reference.Attribute( "Include" )?.Value );
-		Assert.Equal( "1.29.1", reference.Attribute( "Version" )?.Value );
+		Assert.Equal( "1.29.2", reference.Attribute( "Version" )?.Value );
 		Assert.DoesNotContain(
 			production.Descendants(),
 			static current => "PackageReference" == current.Name.LocalName
@@ -73,7 +73,7 @@ public sealed class PublicTwoFourDevelopmentIdentityTests {
 			static current => "PackageReference" == current.Name.LocalName
 				&& "Icod.Terminal" == current.Attribute( "Include" )?.Value
 		);
-		Assert.Equal( "1.29.1", testTerminal.Attribute( "Version" )?.Value );
+		Assert.Equal( "1.29.2", testTerminal.Attribute( "Version" )?.Value );
 	}
 
 	private static string GetSingleValue(
