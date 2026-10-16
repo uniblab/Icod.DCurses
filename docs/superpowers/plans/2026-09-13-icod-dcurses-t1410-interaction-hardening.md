@@ -8,7 +8,7 @@
 
 **Tech Stack:** C# 13; xUnit; .NET `net8.0;net9.0;net10.0`; `GC.GetAllocatedBytesForCurrentThread`; `Stopwatch`; existing internal test access to normalized `CursesInputEvent` factories.
 
-**Spec:** `Icod.DCurses-1.4.0-Development-Roadmap.md` T1410, with measurement precedent from `docs/T1309-Layout-Application-Performance-and-Allocation-Acceptance.md`.
+**Spec:** `docs/Icod.DCurses-1.4.0-Development-Roadmap.md` T1410, with measurement precedent from `docs/T1309-Layout-Application-Performance-and-Allocation-Acceptance.md`.
 
 ## Global Constraints
 

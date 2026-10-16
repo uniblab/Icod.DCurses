@@ -1,7 +1,7 @@
 # T2112 RC and Stable-Source Closure Plan
 
 **Status:** RC qualified in workflow 36046581162; stable-source executable head `5864231632f45410410d27c956f596c88147ca73` qualified in workflow 36047805573; final evidence-only PR head pending.\
-**Authority:** `Icod.DCurses-2.1.0-Development-Roadmap.md`, T2112.\
+**Authority:** `docs/Icod.DCurses-2.1.0-Development-Roadmap.md`, T2112.\
 **Branch:** `2.1.0-roadmap` in open PR #33. Do not merge, tag, create a release or publish to NuGet.
 
 ## Goal

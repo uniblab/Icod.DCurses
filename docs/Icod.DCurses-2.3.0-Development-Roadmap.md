@@ -9,11 +9,11 @@
 **Direct runtime dependency:** stable `Icod.Terminal 1.28.0`; no direct `Icod.TermInfo` reference
 **Target frameworks:** `net8.0`; `net9.0`; `net10.0`  
 **Configurations:** `Debug`; `Staging`; `Release`  
-**Status:** Completed and published. Version 2.3.0 merged through PR #35, passed the seven-job post-merge validation, was tagged, and was published on 2026-10-09. Version 2.3.1 corrects documentation and release-state records without runtime or public API changes. See [T2310 release closure](docs/T2310-2.3.0-Stable-Release-Closure.md).
+**Status:** Completed and published. Version 2.3.0 merged through PR #35, passed the seven-job post-merge validation, was tagged, and was published on 2026-10-09. Version 2.3.1 corrects documentation and release-state records without runtime or public API changes. See [T2310 release closure](T2310-2.3.0-Stable-Release-Closure.md).
 **Planning snapshot:** 2026-10-04
 
-**Design authority:** [`CursesRasterAtlas` design](docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)  
-**Implementation plan:** [2.3 atlas implementation plan](docs/superpowers/plans/2026-10-03-icod-dcurses-2.3-curses-raster-atlas.md)
+**Design authority:** [`CursesRasterAtlas` design](superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md)\
+**Implementation plan:** [2.3 atlas implementation plan](superpowers/plans/2026-10-03-icod-dcurses-2.3-curses-raster-atlas.md)
 
 ---
 
@@ -157,7 +157,7 @@ T2309 was the API/package regret deadline. T2310 records the exact stable source
 
 ## 10. Release closure
 
-The 2.3.0 release is complete. The exact merge, validation, tag, release, and package-asset evidence is preserved in [T2310](docs/T2310-2.3.0-Stable-Release-Closure.md). Version 2.3.1 is a documentation/release-state maintenance correction only; no further feature development or protocol workaround enters this completed roadmap.
+The 2.3.0 release is complete. The exact merge, validation, tag, release, and package-asset evidence is preserved in [T2310](T2310-2.3.0-Stable-Release-Closure.md). Version 2.3.1 is a documentation/release-state maintenance correction only; no further feature development or protocol workaround enters this completed roadmap.
 
 ## Historical complete-frame fallback extension (2026-10-03)
 
@@ -263,7 +263,7 @@ At this checkpoint DCurses consumed published 1.25.0-alpha.3 in production, test
 and the release dependency guard. DCurses remains 2.3.0-alpha.1; its public API
 and assembly identity are unchanged. This dependency update requires its own
 CI qualification, recorded in PR #35. Follow the sample
-[WSL2/kitty checklist](samples/Icod.DCurses.RasterAtlas.Sample/README.md#wsl2kitty-acceptance-with-terminal-1280)
+[WSL2/kitty checklist](../samples/Icod.DCurses.RasterAtlas.Sample/README.md#wsl2kitty-acceptance-with-terminal-1280)
 after pulling. Earlier Kitty graphics parser errors are not independently claimed
 fixed, and persistent ATLAS acceptance remains open. No native I/O or protocol
 workaround is added to DCurses.
@@ -305,7 +305,7 @@ No timeout or protocol workaround is added to DCurses.
 
 ### Confirmed Kitty upload ACK defect; deliberately unresolved (2026-10-04)
 
-The independent [two-pixel Bash reproducer](tools/kitty-frame-ack.sh) received
+The independent [two-pixel Bash reproducer](../tools/kitty-frame-ack.sh) received
 root and single-chunk `OK` replies in Kitty 0.32.2, no reply for the documented
 `a=f,m=0` final continuation, and `Gi=1,r=4;OK` when the final continuation
 repeated `i=1`. Frame 4 proves the silent upload created frame 3. Source inspection
@@ -316,7 +316,7 @@ not a rejected frame or an Icod response-matcher failure.
 Alpha.5's live default run still times out on the first appended atlas frame and
 falls back to FRAME. Forced TEXT works; forced/default fallback FRAME has correct
 input and display but command-driven flicker. The size-aware deadline bounds the
-wait; it does not cure the missing ACK. The [complete bug report](tools/kitty-frame-ack-bug-report.md)
+wait; it does not cure the missing ACK. The [complete bug report](../tools/kitty-frame-ack-bug-report.md)
 records the captured output, source evidence, untested clean-config/new-version
 cases, and submission status. Filing with `kovidgoyal/kitty` was attempted but
 returned HTTP 403, `Resource not accessible by integration`; there is no upstream
@@ -336,7 +336,7 @@ requiring further Kitty diagnosis or persistent-ATLAS live acceptance before RC.
 It does not turn fallback FRAME observations into ATLAS acceptance. Retain the
 current public surface and dependency; defer additional atlas/backend work.
 
-The [release record](docs/2.3-Release-Readiness.md) distinguishes automated contract
+The [release record](2.3-Release-Readiness.md) distinguishes automated contract
 evidence, live rendering observations, accepted limitations, and the completed stable
 publication. Historical alpha dependency corrections remain evidence only. No renderer
 behavior changes are included in the 2.3.1 documentation correction.
@@ -362,4 +362,4 @@ the recorded environments. This is not a claim of universally atomic or
 flicker-free host presentation. Historical Kitty 0.32.2 acknowledgement
 evidence remains preserved rather than generalized to current Kitty releases.
 
-Release closure completed through PR #35. Final PR head `d63b0d3b4408f71b3190c5a6d6009fd4141bb9ab` passed all seven jobs in run 37975439045; merge commit `54350ded52034c7b80998c29ce8d15023ad65fb2` passed all seven post-merge jobs in run 37976470537. Tag `v2.3.0`, release workflow 37976956163, the GitHub Release, and NuGet publication completed. Exact asset digests are preserved in [T2310](docs/T2310-2.3.0-Stable-Release-Closure.md).
+Release closure completed through PR #35. Final PR head `d63b0d3b4408f71b3190c5a6d6009fd4141bb9ab` passed all seven jobs in run 37975439045; merge commit `54350ded52034c7b80998c29ce8d15023ad65fb2` passed all seven post-merge jobs in run 37976470537. Tag `v2.3.0`, release workflow 37976956163, the GitHub Release, and NuGet publication completed. Exact asset digests are preserved in [T2310](T2310-2.3.0-Stable-Release-Closure.md).

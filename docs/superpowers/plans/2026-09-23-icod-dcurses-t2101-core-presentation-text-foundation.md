@@ -8,7 +8,7 @@
 
 **Tech Stack:** C# 13, .NET 8/9/10, xUnit 2.9.2, Icod.Terminal 1.18.0, PowerShell 5.1-compatible repository automation, GitHub Actions. No Python.
 
-**Spec:** `Icod.DCurses-2.1.0-Development-Roadmap.md`, especially sections 2-14 and tranche T2101.
+**Spec:** `docs/Icod.DCurses-2.1.0-Development-Roadmap.md`, especially sections 2-14 and tranche T2101.
 
 ## Global Constraints
 
@@ -500,8 +500,8 @@ git commit -m "docs: plan DCurses 2.1 presentation implementation"
 
 **Files:**
 - Modify: `docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md`
-- Modify: `Icod.DCurses-2.1.0-Development-Roadmap.md`
-- Modify: `Icod.DCurses-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.1.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`
 
 **Interfaces:**
 - Consumes: Tasks 1-5 exact-head evidence.
@@ -557,8 +557,8 @@ git status --short
 Expected: no placeholders, no whitespace errors, and only the intended gate/roadmap files pending.
 
 ```sh
-git add docs Icod.DCurses-2.1.0-Development-Roadmap.md \
-  Icod.DCurses-Development-Roadmap.md
+git add docs docs/Icod.DCurses-2.1.0-Development-Roadmap.md \
+  docs/Icod.DCurses-Development-Roadmap.md
 git commit -m "docs: accept DCurses 2.1 presentation foundation"
 git push origin 2.1.0-roadmap
 ```

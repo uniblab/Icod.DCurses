@@ -5,8 +5,8 @@
 **Base:** Stable Icod.DCurses 2.3.1, AssemblyVersion 2.0.0.0  
 **Current dependency:** Direct stable Icod.Terminal 1.29.0 after clean published-package restore; no direct Icod.TermInfo production reference
 **Targets:** net8.0, net9.0, net10.0; C# 13; Windows/Linux/macOS  
-**Design authority:** [2.4 design](docs/superpowers/specs/2026-10-10-icod-dcurses-2.4-widgets-editor-foundations-design.md)  
-**Execution detail:** [2.4 implementation plan](docs/superpowers/plans/2026-10-11-icod-dcurses-2.4-widgets-editor-foundations.md)
+**Design authority:** [2.4 design](superpowers/specs/2026-10-10-icod-dcurses-2.4-widgets-editor-foundations-design.md)\
+**Execution detail:** [2.4 implementation plan](superpowers/plans/2026-10-11-icod-dcurses-2.4-widgets-editor-foundations.md)
 
 ## 1. Goal and acceptance witnesses
 
@@ -51,16 +51,16 @@ Exercise current function-key/phase/paste/focus event data, scopes and pointer c
 
 | Tranche | Deliverable | Exit evidence |
 |---|---|---|
-| T2400 | Baseline, 1.29 restore and development identity | Accepted at implementation commit `2bd668b`; clean NuGet restore, one direct Terminal 1.29 reference in production, test/project guards, 2.4.0-alpha.1 identity, 2.0.0.0 assembly; see [evidence](docs/T2400-Dependency-and-Identity.md) |
+| T2400 | Baseline, 1.29 restore and development identity | Accepted at implementation commit `2bd668b`; clean NuGet restore, one direct Terminal 1.29 reference in production, test/project guards, 2.4.0-alpha.1 identity, 2.0.0.0 assembly; see [evidence](T2400-Dependency-and-Identity.md) |
 | T2401 | Clipboard contract and red witnesses | Accepted at `e79b906`; semantic enum/options and snapshot/forwarding contract, 3/3 focused tests |
-| T2402 | Clipboard integration and hardening | Accepted at `c3e4e61`; 20/20 focused tests for owned/external sessions, byte/text operations, larger budgets and failure/lifetime semantics; see [evidence](docs/T2402-Clipboard-Integration.md) |
+| T2402 | Clipboard integration and hardening | Accepted at `c3e4e61`; 20/20 focused tests for owned/external sessions, byte/text operations, larger budgets and failure/lifetime semantics; see [evidence](T2402-Clipboard-Integration.md) |
 | T2403 | Cursor style contract and red witnesses | Accepted at `27ab58f`; six semantic styles, narrow lease, exact session signature and Terminal mapping |
-| T2404 | Cursor style integration and hardening | Accepted at `f57eb41`; 8/8 focused contract/lifecycle tests for exact baseline/LIFO restoration, visibility independence, unavailable acquisition and close races; see [evidence](docs/T2404-Cursor-Style-Lifecycle.md) |
-| T2405 | Viewport baseline and measured public-only witness | Accepted at `9a02d92`; 5/5 focused tests and 16/16 existing editor tests pass, bounded long-line projection measured at 30,384 bytes / 4.078 ms; see [evidence](docs/T2405-Viewport-Measurement.md) |
-| T2406 | Conditional lower-layer gap closure | Closed with no new API: caller-prepared visible slices satisfy the witness and keep document indexing/caches in Widgets; see [decision](docs/T2406-API-Gap-Decision.md) |
-| T2407 | Captured interaction and sample acceptance | Accepted at `80e5354`; 7/7 focused and 42/42 editor tests pass; public-only sample covers outside drag/release, focus/modal/resize cancellation, paste as data, key phases, separate scrollbar hit-testing, visible scoped caret and explicit clipboard fallback; see [evidence](docs/T2407-Editor-Interaction-Acceptance.md) |
-| T2408 | Adversarial, package and API regret gate | Accepted at `8e1ed20`; 109-type/857-line API freeze, 1,415 tests per target, Staging/Release all-target builds, exact package dependency/contents, isolated consumers, durable README and complete license-header audit; see [evidence](docs/T2408-API-Package-Documentation-Gate.md) |
-| T2409 | RC/stable-source and maintainer handoff | Accepted: RC `08c558e`, stable source `357f74d`, and exact-head PR workflow 38113940513; forced restore, all-target Release build/test, exact stable package, isolated consumers, package job and six OS/architecture runtime jobs pass; interactive live-terminal limitations remain; see [evidence](docs/T2409-2.4.0-Stable-Source-Gate.md) |
+| T2404 | Cursor style integration and hardening | Accepted at `f57eb41`; 8/8 focused contract/lifecycle tests for exact baseline/LIFO restoration, visibility independence, unavailable acquisition and close races; see [evidence](T2404-Cursor-Style-Lifecycle.md) |
+| T2405 | Viewport baseline and measured public-only witness | Accepted at `9a02d92`; 5/5 focused tests and 16/16 existing editor tests pass, bounded long-line projection measured at 30,384 bytes / 4.078 ms; see [evidence](T2405-Viewport-Measurement.md) |
+| T2406 | Conditional lower-layer gap closure | Closed with no new API: caller-prepared visible slices satisfy the witness and keep document indexing/caches in Widgets; see [decision](T2406-API-Gap-Decision.md) |
+| T2407 | Captured interaction and sample acceptance | Accepted at `80e5354`; 7/7 focused and 42/42 editor tests pass; public-only sample covers outside drag/release, focus/modal/resize cancellation, paste as data, key phases, separate scrollbar hit-testing, visible scoped caret and explicit clipboard fallback; see [evidence](T2407-Editor-Interaction-Acceptance.md) |
+| T2408 | Adversarial, package and API regret gate | Accepted at `8e1ed20`; 109-type/857-line API freeze, 1,415 tests per target, Staging/Release all-target builds, exact package dependency/contents, isolated consumers, durable README and complete license-header audit; see [evidence](T2408-API-Package-Documentation-Gate.md) |
+| T2409 | RC/stable-source and maintainer handoff | Accepted: RC `08c558e`, stable source `357f74d`, and exact-head PR workflow 38113940513; forced restore, all-target Release build/test, exact stable package, isolated consumers, package job and six OS/architecture runtime jobs pass; interactive live-terminal limitations remain; see [evidence](T2409-2.4.0-Stable-Source-Gate.md) |
 
 T2406 is a gated branch, not a promise to invent a new viewport or gesture API. Any additive API enters before the T2408 freeze and must remain compatible with 2.3.1. No task may mark a later gate accepted solely because an earlier build was green. Each tranche records commit, tests, limitations, package identity and follow-up in `docs/T24xx-*.md`.
 

@@ -76,7 +76,7 @@ The implemented surface provides:
 
 The detailed authorities are:
 
-- `Icod.DCurses-1.4.0-Development-Roadmap.md`
+- `docs/Icod.DCurses-1.4.0-Development-Roadmap.md`
 - `docs/superpowers/specs/2026-09-12-icod-dcurses-1.4-interaction-routing-design.md`
 - `docs/Public-API-Fingerprint-1.4.json`
 - `docs/T1409-Interaction-Acceptance-Sample.md`

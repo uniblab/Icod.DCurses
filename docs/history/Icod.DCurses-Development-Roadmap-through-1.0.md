@@ -223,7 +223,7 @@ Icod.DCurses/
     icon.png
     build.cmd
     build.sh
-    Icod.DCurses-Development-Roadmap.md
+    docs/Icod.DCurses-Development-Roadmap.md
 ```
 
 Additional sample projects, test fixtures, tools, compatibility tests, and package-verification projects MAY be introduced by later tranches when justified.

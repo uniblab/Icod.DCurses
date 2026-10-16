@@ -62,8 +62,8 @@ tests/Icod.DCurses.Tests/src/CursesInteraction15PerformanceTests.cs
 ### Task 1 / T150: Freeze 1.5 candidate contract and harden the old allocation measurement
 
 **Files:**
-- Modify: `Icod.DCurses-Development-Roadmap.md`
-- Create: `Icod.DCurses-1.5.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`
+- Create: `docs/Icod.DCurses-1.5.0-Development-Roadmap.md`
 - Create: `docs/Public-API-Fingerprint-1.5.json`
 - Modify: `tests/Icod.DCurses.Tests/src/CursesPanelApplicationAcceptanceTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesInteraction15ContractTests.cs`
@@ -388,8 +388,8 @@ public bool UnbindGesture(
 **Files:**
 - Modify: `Icod.DCurses.csproj`
 - Modify: `README.md`
-- Modify: `Icod.DCurses-Development-Roadmap.md`
-- Modify: `Icod.DCurses-1.5.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-1.5.0-Development-Roadmap.md`
 - Create: `docs/T159-RC-and-Stable-1.5.0-Closure.md`
 
 - [ ] Promote accepted implementation to `1.5.0-rc.1` and update release notes without behavior changes.

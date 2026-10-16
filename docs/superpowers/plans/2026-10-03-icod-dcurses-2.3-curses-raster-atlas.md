@@ -9,7 +9,7 @@
 **Tech stack:** C# 13, .NET 8/9/10, xUnit 2.9.2, Icod.Terminal 1.24.1, PowerShell 5.1-compatible repository automation, GitHub Actions. No Python.
 
 **Design authority:** `docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md`  
-**Release authority:** `Icod.DCurses-2.3.0-Development-Roadmap.md`
+**Release authority:** `docs/Icod.DCurses-2.3.0-Development-Roadmap.md`
 
 ## Global rules
 
@@ -33,7 +33,7 @@
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasValidationTests.cs`
 - Create: `docs/T2301-CursesRasterAtlas-API-Gate.md`
 - Modify: `docs/superpowers/specs/2026-10-03-icod-dcurses-2.3-curses-raster-atlas-design.md`
-- Modify: `Icod.DCurses-2.3.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.3.0-Development-Roadmap.md`
 
 1. Add compile-time witnesses for `CursesRasterAtlasGeometry`, `CursesRasterAtlasTileUpdate`, `CursesRasterAtlasPresentationStatus`, `CursesRasterAtlasPresentationResult`, `CursesRasterAtlas`, the two `CursesSession` methods and `CursesWindow.WriteRasterAtlas`.
 2. Add reflection assertions for exact enum values, const value 4096, property mutability, method defaults and absence of public Terminal resource/frame/placeholder identities.
@@ -56,7 +56,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 - Create: `src/Integration/CursesSession.RasterAtlasGeometry.Terminal.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasGeometryTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasGeometryIntegrationTests.cs`
-- Modify: `Icod.DCurses-2.3.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.3.0-Development-Roadmap.md`
 
 1. Keep the T2301 geometry tests RED; add direct-query and fallback scripted-terminal tests.
 2. Implement the immutable geometry value with positive values and checked `PixelWidth`/`PixelHeight`.
@@ -85,7 +85,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasCreationTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasCreationFailureTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasOwnershipTests.cs`
-- Modify: `Icod.DCurses-2.3.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.3.0-Development-Roadmap.md`
 
 1. Add RED tests for exact divisibility, immutable properties, `GetCell`, planning-capacity early result, creation call order, second frame, conservative ownership and idempotent disposal.
 2. Expose intrinsic pixel width/height internally through `CursesRasterResource`; do not expose its Terminal resource publicly.
@@ -110,7 +110,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasPadViewportTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasPanelCompositionTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasDamageTests.cs`
-- Modify: `Icod.DCurses-2.3.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.3.0-Development-Roadmap.md`
 
 1. Write RED tests for a rectangular atlas slice projected at a destination without cursor movement.
 2. Validate atlas/session ownership, complete source bounds and complete logical destination bounds before changing the retained raster plane.
@@ -132,7 +132,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasPresentationTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasPresentationOrderingTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasPresentationValidationTests.cs`
-- Modify: `Icod.DCurses-2.3.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.3.0-Development-Roadmap.md`
 
 1. Add a scripted-terminal RED for exact order: full front-to-back replacement composition, sorted tile updates, frame selection, internal swap.
 2. Implement immutable update/result contracts and copy a caller list into bounded internal entries.
@@ -155,7 +155,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasRefreshSynchronizationTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasLifecycleTests.cs`
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasAmbiguousFailureTests.cs`
-- Modify: `Icod.DCurses-2.3.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.3.0-Development-Roadmap.md`
 
 1. Add concurrency RED tests proving refresh, atlas present and lifecycle transitions never interleave Terminal output inside an atlas transaction.
 2. At each compose/update/select step, distinguish controlled failure from an exception after possible commitment.
@@ -176,7 +176,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 - Create: `tests/Icod.DCurses.Tests/src/CursesRasterAtlasPackageConsumerTests.cs`
 - Create: `docs/Raster-Atlas-Measurement-2.3.md`
 - Create: `docs/T2307-Raster-Atlas-Hardening-Gate.md`
-- Modify: `Icod.DCurses-2.3.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.3.0-Development-Roadmap.md`
 
 1. Exercise every dimension/update boundary, large caller collections, duplicate-heavy input, invalid images, checked pixel origins and cleanup under failure.
 2. Measure allocations after warmup using the repository's established minimum-of-eight convention. Require work proportional to the submitted visible update list, never the application map/world.
@@ -197,7 +197,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 - Modify: `Icod.DCurses.sln`
 - Modify: repository workflow/package-consumer scripts as required
 - Create: `docs/T2308-Raster-Atlas-Application-Acceptance-Gate.md`
-- Modify: `Icod.DCurses-2.3.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.3.0-Development-Roadmap.md`
 
 1. Build an original, small top-down map model with no copyrighted art/data and deterministic movement/camera tests.
 2. Generate or embed minimal immutable RGB24/RGBA32 tile pixels in the sample; keep decoding and durable asset ownership in sample/application code.
@@ -218,7 +218,7 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 - Create: `docs/Public-API-Fingerprint-2.3.json`
 - Create: `docs/T2309-Adversarial-Package-Documentation-and-API-Gate.md`
 - Modify: package/API/dependency tests and scripts
-- Modify: `Icod.DCurses-2.3.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.3.0-Development-Roadmap.md`
 
 1. Update README feature, ownership, minimum dependency, usage, fallback, resize and recreation guidance. Link the sample and measurement report.
 2. Generate the normalized .NET 8/9/10 API baseline/fingerprint and prove the 2.3 delta is additive over published 2.2.
@@ -233,8 +233,8 @@ dotnet test tests/Icod.DCurses.Tests/Icod.DCurses.Tests.csproj -c Debug -f net10
 
 **Files:**
 - Modify: `Icod.DCurses.csproj`
-- Modify: `Icod.DCurses-Development-Roadmap.md`
-- Modify: `Icod.DCurses-2.3.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.3.0-Development-Roadmap.md`
 - Create: `docs/T2310-RC-Qualification.md`
 - Create: `docs/T2310-Stable-Source-Release-Gate.md`
 

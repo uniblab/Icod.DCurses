@@ -67,8 +67,8 @@
 - `docs/Public-API-Baseline-2.2.md`
 - `docs/T2203-Bounded-Command-Sequences-Gate.md`
 - `docs/2.2-Interaction-API-Design.md`
-- `Icod.DCurses-2.2.0-Development-Roadmap.md`
-- `Icod.DCurses-Development-Roadmap.md`
+- `docs/Icod.DCurses-2.2.0-Development-Roadmap.md`
+- `docs/Icod.DCurses-Development-Roadmap.md`
 
 ---
 
@@ -650,8 +650,8 @@ Require all context tests plus existing focus, scope, panel, resize and disposal
 - Modify: `Icod.DCurses.csproj`
 - Create: `docs/T2203-Bounded-Command-Sequences-Gate.md`
 - Modify: `docs/2.2-Interaction-API-Design.md`
-- Modify: `Icod.DCurses-2.2.0-Development-Roadmap.md`
-- Modify: `Icod.DCurses-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-2.2.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`
 
 **Interfaces:**
 - Consumes: all owner registrations, union first-gesture precedence and semantic gesture ordering from Tasks 2–4.
@@ -734,7 +734,7 @@ git diff --check
 git diff --exit-code origin/main -- docs/Public-API-Fingerprint-2.1.json
 rg -n "2.2.0-alpha.1|2.0.0.0|Icod.Terminal.*1.18.0" Icod.DCurses.csproj tests/Icod.DCurses.Tests/src
 rg -n "Icod.TermInfo" src Icod.DCurses.csproj
-git add src tests docs Icod.DCurses.csproj Icod.DCurses-2.2.0-Development-Roadmap.md Icod.DCurses-Development-Roadmap.md
+git add src tests docs Icod.DCurses.csproj docs/Icod.DCurses-2.2.0-Development-Roadmap.md docs/Icod.DCurses-Development-Roadmap.md
 git commit -m "feat: complete bounded command sequence discovery"
 ```
 
@@ -763,7 +763,7 @@ Write `docs/T2203-Bounded-Command-Sequences-Gate.md` with RED heads, GREEN exact
 
 ```sh
 git diff --check
-git add docs Icod.DCurses-2.2.0-Development-Roadmap.md Icod.DCurses-Development-Roadmap.md
+git add docs docs/Icod.DCurses-2.2.0-Development-Roadmap.md docs/Icod.DCurses-Development-Roadmap.md
 git commit -m "docs: accept T2203 command sequence gate"
 ```
 

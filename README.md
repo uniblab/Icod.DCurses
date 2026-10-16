@@ -281,7 +281,7 @@ See the [2.0 migration guide](https://github.com/uniblab/Icod.DCurses/blob/v2.0.
 ## Documentation and samples
 
 - [2.5 public API baseline](https://github.com/uniblab/Icod.DCurses/blob/main/docs/Public-API-Baseline-2.5.md)
-- [2.5 development roadmap](https://github.com/uniblab/Icod.DCurses/blob/main/Icod.DCurses-2.5.0-Development-Roadmap.md)
+- [2.5 development roadmap](https://github.com/uniblab/Icod.DCurses/blob/main/docs/Icod.DCurses-2.5.0-Development-Roadmap.md)
 - [Sample guide and runnable commands](https://github.com/uniblab/Icod.DCurses/blob/main/samples/README.md)
 - [Clipboard integration evidence](https://github.com/uniblab/Icod.DCurses/blob/main/docs/T2402-Clipboard-Integration.md)
 - [Cursor-style lifecycle evidence](https://github.com/uniblab/Icod.DCurses/blob/main/docs/T2404-Cursor-Style-Lifecycle.md)

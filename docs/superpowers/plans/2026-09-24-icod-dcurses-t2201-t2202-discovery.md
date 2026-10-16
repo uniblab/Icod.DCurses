@@ -33,7 +33,7 @@
 **Files:**
 - Create: `docs/T2201-Interaction-Baseline-and-API-Questions.md`
 - Create: `docs/2.2-Interaction-API-Design.md`
-- Modify: `Icod.DCurses-Development-Roadmap.md`, `Icod.DCurses-2.2.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`, `docs/Icod.DCurses-2.2.0-Development-Roadmap.md`
 
 **Interfaces:** Consumes the immutable `docs/Public-API-Fingerprint-2.1.json` and published `Route`. Produces the exact `GetEffectiveGestureBindings` and `CursesCommandBinding` contract consumed by Tasks 2–3.
 
@@ -91,7 +91,7 @@ public void RegionWinsAndSnapshotIsDetached() {
 **Files:**
 - Modify: `tests/Icod.DCurses.Tests/src/CursesInteractionDiscoveryTests.cs`
 - Modify: `docs/Public-API-Fingerprint-2.2.json`, `tests/Icod.DCurses.Tests/src/PublicApiFingerprintTests.cs`
-- Modify: `docs/2.2-Interaction-API-Design.md`, `Icod.DCurses-2.2.0-Development-Roadmap.md`
+- Modify: `docs/2.2-Interaction-API-Design.md`, `docs/Icod.DCurses-2.2.0-Development-Roadmap.md`
 - Create: `docs/Public-API-Baseline-2.2.md`
 - Create: `docs/T2202-Effective-Binding-Discovery-Gate.md`
 

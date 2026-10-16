@@ -11,7 +11,7 @@
 **Status:** T2112 RC and stable-source executable head qualified; final evidence-only PR head pending\
 **Planning snapshot:** 2026-09-23
 
-**T2101 artifacts:** [2.0 baseline](docs/T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](docs/2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](docs/superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](docs/T2101-Core-Presentation-and-Text-Foundation-Gate.md)
+**T2101 artifacts:** [2.0 baseline](T2101-2.0-Core-Presentation-Baseline.md); [accepted API design](2.1-Core-Presentation-and-Text-API-Design.md); [T2102-T2108 implementation plan](superpowers/plans/2026-09-23-icod-dcurses-2.1-core-presentation-text.md); [foundation gate](T2101-Core-Presentation-and-Text-Foundation-Gate.md)
 
 ---
 
@@ -280,7 +280,7 @@ Hard limits must fail predictably before integer overflow, excessive allocation 
 
 The 2.0 public API fingerprint and baseline remain immutable historical evidence. T2101 captures a new 2.1 development baseline; T2111 freezes the final additive delta.
 
-T2101 freezes the public names and semantics in the [2.1 core presentation and text API design](docs/2.1-Core-Presentation-and-Text-API-Design.md). The accepted type families are:
+T2101 freezes the public names and semantics in the [2.1 core presentation and text API design](2.1-Core-Presentation-and-Text-API-Design.md). The accepted type families are:
 
 - immutable rich-text spans and layout options;
 - immutable visual-line/fragment and mapping results;
@@ -362,7 +362,7 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Acceptance:** equivalence with scalar retained writes, lower measured overhead in accepted workloads, and no physical output outside normal refresh.
 
-**Acceptance:** selected-line projection, clipping, metadata/raster replacement, wide-cell repair, failure atomicity, coherent bulk row/block input, exact damage, destination/stride/source arithmetic rejection, and the 80x24/nine-cell scalar equivalence and allocation gate are covered by permanent tests. Exact executable head `b26b5a12333319f60a6cfbf9f0954629e892088c` passed all 14 package/runtime jobs in workflow 35947857085 on .NET 8, 9, and 10. The [T2105 gate](docs/T2105-Retained-Presentation-and-Bulk-Cells-Gate.md) records the red and green evidence.
+**Acceptance:** selected-line projection, clipping, metadata/raster replacement, wide-cell repair, failure atomicity, coherent bulk row/block input, exact damage, destination/stride/source arithmetic rejection, and the 80x24/nine-cell scalar equivalence and allocation gate are covered by permanent tests. Exact executable head `b26b5a12333319f60a6cfbf9f0954629e892088c` passed all 14 package/runtime jobs in workflow 35947857085 on .NET 8, 9, and 10. The [T2105 gate](T2105-Retained-Presentation-and-Bulk-Cells-Gate.md) records the red and green evidence.
 
 ### T2106 — viewport and large-content virtualization foundation
 
@@ -372,7 +372,7 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Acceptance:** numeric-boundary tests and large-content allocation gates green; no retained content-provider callback or hidden full-content cache.
 
-**Acceptance:** immutable clamped viewport geometry, widened pan/page arithmetic, smallest ensure-visible movement, overscan and two-way translation, empty/zero-extent boundaries, and visible-slice materialization for a ten-million-row document and 2,048x2,048 world are covered by permanent tests. Exact executable head `5d8063bd6e3f0ef08e842de21d33fdbce469dd54` passed all 14 package/runtime jobs in workflow 35950838881. The [T2106 gate](docs/T2106-Viewport-Geometry-Gate.md) records red and green evidence.
+**Acceptance:** immutable clamped viewport geometry, widened pan/page arithmetic, smallest ensure-visible movement, overscan and two-way translation, empty/zero-extent boundaries, and visible-slice materialization for a ten-million-row document and 2,048x2,048 world are covered by permanent tests. Exact executable head `5d8063bd6e3f0ef08e842de21d33fdbce469dd54` passed all 14 package/runtime jobs in workflow 35950838881. The [T2106 gate](T2106-Viewport-Geometry-Gate.md) records red and green evidence.
 
 ### T2107 — track layout primitives
 
@@ -382,7 +382,7 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Acceptance:** pure geometry tests, allocation gate and application-layout scenarios green.
 
-**Acceptance:** fixed and weighted tracks, minimum reservation, capped proportional redistribution, low-index remainder, six surplus distributions, bounded input validation, numeric extremes, editor/roguelike resize shapes, row/column symmetry, and allocation costs proportional to track count are covered by permanent tests. Exact executable head `8c53b3e30a3780884c26ca609f6a1a255c56cf6d` passed all 14 package/runtime jobs in workflow 35954736073. The [T2107 gate](docs/T2107-Stateless-Track-Layout-Gate.md) records the red and green evidence.
+**Acceptance:** fixed and weighted tracks, minimum reservation, capped proportional redistribution, low-index remainder, six surplus distributions, bounded input validation, numeric extremes, editor/roguelike resize shapes, row/column symmetry, and allocation costs proportional to track count are covered by permanent tests. Exact executable head `8c53b3e30a3780884c26ca609f6a1a255c56cf6d` passed all 14 package/runtime jobs in workflow 35954736073. The [T2107 gate](T2107-Stateless-Track-Layout-Gate.md) records the red and green evidence.
 
 ### T2108 — bounded refresh diagnostics and performance qualification
 
@@ -392,13 +392,13 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 **Acceptance:** disabled-path allocation parity, bounded enabled state, truthful failure/cancellation results and workload benchmarks green.
 
-**Acceptance:** the opt-in public snapshot contract, bounded accumulation, truthful success/cancellation/failure publication, physical invalidation and repaint, scalar-only public boundary, warmed disabled/enabled allocation comparison, and visible-world full-frame versus nine-cell update qualification are covered by permanent tests. Exact executable head `878fcdd8630f97556ee2791509d805ed4a35ece7` passed all 14 package/runtime jobs in workflow 36035524413. The [T2108 gate](docs/T2108-Bounded-Refresh-Diagnostics-Gate.md) records the failure and correction evidence. PR #33 remains open for T2109–T2112.
+**Acceptance:** the opt-in public snapshot contract, bounded accumulation, truthful success/cancellation/failure publication, physical invalidation and repaint, scalar-only public boundary, warmed disabled/enabled allocation comparison, and visible-world full-frame versus nine-cell update qualification are covered by permanent tests. Exact executable head `878fcdd8630f97556ee2791509d805ed4a35ece7` passed all 14 package/runtime jobs in workflow 36035524413. The [T2108 gate](T2108-Bounded-Refresh-Diagnostics-Gate.md) records the failure and correction evidence. PR #33 remains open for T2109–T2112.
 
 ### T2109 — roguelike application acceptance
 
-**Implementation plan:** [T2109 roguelike application](docs/superpowers/plans/2026-09-24-icod-dcurses-t2109-roguelike-application.md).
+**Implementation plan:** [T2109 roguelike application](superpowers/plans/2026-09-24-icod-dcurses-t2109-roguelike-application.md).
 
-**Acceptance:** the public-only executable, deterministic coordinate-generated large world, bounded visible frame and message state, clamped movement, track regions and resize geometry, two-cell local updates, retained help overlay, documented controls and headless tests passed all 14 package/runtime jobs at executable head `0297270695ce1ffc6b8bb42a99fbb18d2ac3a219` in workflow 36040652864. The [T2109 gate](docs/T2109-Roguelike-Application-Gate.md) records red and green evidence and the manual terminal-run limitation. PR #33 remains open.
+**Acceptance:** the public-only executable, deterministic coordinate-generated large world, bounded visible frame and message state, clamped movement, track regions and resize geometry, two-cell local updates, retained help overlay, documented controls and headless tests passed all 14 package/runtime jobs at executable head `0297270695ce1ffc6b8bb42a99fbb18d2ac3a219` in workflow 36040652864. The [T2109 gate](T2109-Roguelike-Application-Gate.md) records red and green evidence and the manual terminal-run limitation. PR #33 remains open.
 
 - Add `Icod.DCurses.Roguelike.Sample` using public APIs only.
 - Demonstrate a virtualized scrolling map, local updates, track layout, status/messages, resize and an overlay.
@@ -408,9 +408,9 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 ### T2110 — editor application acceptance
 
-**Implementation plan:** [T2110 editor application](docs/superpowers/plans/2026-09-24-icod-dcurses-t2110-editor-application.md).
+**Implementation plan:** [T2110 editor application](superpowers/plans/2026-09-24-icod-dcurses-t2110-editor-application.md).
 
-**Acceptance:** the public-only fixed-record editor sample, sparse ten-million-record document, Unicode editing and geometry, wrap/no-wrap, selection, two-axis viewport, resize and status/prompt regions passed all 14 package/runtime jobs at executable head `035f78603740fbc22a41fbf1325f5c1f58938bc9` in workflow 36043351407. The [T2110 gate](docs/T2110-Editor-Application-Gate.md) records exact-head evidence and manual terminal-run limits. PR #33 remains open.
+**Acceptance:** the public-only fixed-record editor sample, sparse ten-million-record document, Unicode editing and geometry, wrap/no-wrap, selection, two-axis viewport, resize and status/prompt regions passed all 14 package/runtime jobs at executable head `035f78603740fbc22a41fbf1325f5c1f58938bc9` in workflow 36043351407. The [T2110 gate](T2110-Editor-Application-Gate.md) records exact-head evidence and manual terminal-run limits. PR #33 remains open.
 
 - Add `Icod.DCurses.Editor.Sample` using public APIs only.
 - Demonstrate Unicode caret movement, insertion/deletion, selection, wrap/no-wrap, horizontal/vertical scrolling, status and prompt regions.
@@ -420,9 +420,9 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 ### T2111 — adversarial, package, documentation and API freeze
 
-**Implementation plan:** [T2111 release closure](docs/superpowers/plans/2026-09-24-icod-dcurses-t2111-release-closure.md).
+**Implementation plan:** [T2111 release closure](superpowers/plans/2026-09-24-icod-dcurses-t2111-release-closure.md).
 
-**Acceptance:** adversarial boundary inventory, selection-edit atomicity, development API baseline, root/sample/changelog/package documentation and direct dependency/consumer validation passed all 14 runtime/package jobs at executable head `f0b69470cace0bfe29cd3db311ac156a4a50deac` in workflow 36044565032. The [T2111 gate](docs/T2111-Adversarial-Package-Documentation-and-API-Gate.md) records 1,222 tests per TFM in a representative runtime job and package artifact digests. PR #33 remains open.
+**Acceptance:** adversarial boundary inventory, selection-edit atomicity, development API baseline, root/sample/changelog/package documentation and direct dependency/consumer validation passed all 14 runtime/package jobs at executable head `f0b69470cace0bfe29cd3db311ac156a4a50deac` in workflow 36044565032. The [T2111 gate](T2111-Adversarial-Package-Documentation-and-API-Gate.md) records 1,222 tests per TFM in a representative runtime job and package artifact digests. PR #33 remains open.
 
 - Run capacity, overflow, allocation, cancellation, failure and resize qualification.
 - Update root/package README, sample index, changelog, XML documentation and package consumer.
@@ -433,11 +433,11 @@ Adversarial tests cover malformed inputs, capacity boundaries, allocation pressu
 
 ### T2112 — RC and stable-source closure
 
-**Implementation plan:** [T2112 RC and stable-source closure](docs/superpowers/plans/2026-09-24-icod-dcurses-t2112-rc-stable-source.md).
+**Implementation plan:** [T2112 RC and stable-source closure](superpowers/plans/2026-09-24-icod-dcurses-t2112-rc-stable-source.md).
 
-**RC qualification:** `2.1.0-rc.1` passed all seven Staging PR jobs at exact validation head `451005f98fe957d5754017943e8d4ce66af47cf0` in workflow 36046581162. The [T2112 RC gate](docs/T2112-RC-Qualification.md) records the package hashes, source provenance, fresh consumers and 1,223 passing tests per TFM in a representative runtime job.
+**RC qualification:** `2.1.0-rc.1` passed all seven Staging PR jobs at exact validation head `451005f98fe957d5754017943e8d4ce66af47cf0` in workflow 36046581162. The [T2112 RC gate](T2112-RC-Qualification.md) records the package hashes, source provenance, fresh consumers and 1,223 passing tests per TFM in a representative runtime job.
 
-**Stable-source qualification:** unpublished `2.1.0` passed all seven Staging PR jobs at executable head `5864231632f45410410d27c956f596c88147ca73` in workflow 36047805573. The [T2112 stable-source gate](docs/T2112-Stable-Source-Release-Gate.md) records exact package provenance, hashes and representative runtime tests. The final evidence-only PR head needs its own Staging matrix; Release validation belongs to a later push to `main`.
+**Stable-source qualification:** unpublished `2.1.0` passed all seven Staging PR jobs at executable head `5864231632f45410410d27c956f596c88147ca73` in workflow 36047805573. The [T2112 stable-source gate](T2112-Stable-Source-Release-Gate.md) records exact package provenance, hashes and representative runtime tests. The final evidence-only PR head needs its own Staging matrix; Release validation belongs to a later push to `main`.
 
 - Promote the unchanged accepted source through RC and stable-source identities.
 - Run the PR Staging OS/architecture matrix; the `main` push workflow runs Release only after merge.

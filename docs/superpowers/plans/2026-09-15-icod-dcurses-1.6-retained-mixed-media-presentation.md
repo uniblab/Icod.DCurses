@@ -33,8 +33,8 @@
 
 **Files:**
 - Create: `docs/T1601-1.6.0-Architecture-Representation-Public-API-and-Dependency-Regret-Gate.md`
-- Modify: `Icod.DCurses-1.6.0-Development-Roadmap.md`
-- Modify: `Icod.DCurses-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-1.6.0-Development-Roadmap.md`
+- Modify: `docs/Icod.DCurses-Development-Roadmap.md`
 
 **Interfaces:**
 - Freezes public types `CursesRasterResource`, `CursesRasterPlaceholder`, `CursesRasterCell`, `CursesRasterOwnershipStatus`, `CursesRasterOwnershipLossReason`, and `CursesRasterOwnershipState`.
