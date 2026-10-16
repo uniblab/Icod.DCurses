@@ -64,7 +64,7 @@ public sealed class EditorSampleProjectContractTests {
 		Assert.Contains( "FocusReporting = true", program, StringComparison.Ordinal );
 		Assert.Contains( "CursesMouseTrackingMode.ButtonMotion", program,
 			StringComparison.Ordinal );
-		Assert.Contains( "protocolLeases[ index ].DisposeAsync", program,
+		Assert.Contains( "await using CursesInputProtocolLease?", program,
 			StringComparison.Ordinal );
 	}
 }

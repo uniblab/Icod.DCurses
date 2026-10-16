@@ -80,6 +80,12 @@ events with `CursesKeyModifiers.Control`; the application decides whether they
 mean copy, undo, exit, or another command. Use `CBreak` when the host should
 retain its normal interrupt and suspend handling.
 
+Input discipline does not itself enable optional terminal reports. Applications
+request keyboard event types, bracketed paste, focus, or mouse reporting through
+an `AcquireInputProtocolsAsync` lease. `ButtonEvents` covers press, release, and
+wheel activity; request `ButtonMotion` when pointer dragging must be reported.
+Disposing the lease restores the preceding reporting state.
+
 ## Color surfaces and fallback
 
 Each `CursesCell` carries a complete `CursesStyle`: independently requested
