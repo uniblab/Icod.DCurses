@@ -35,26 +35,6 @@ public sealed class EditorSampleInteractionTests {
 	}
 
 	[Fact]
-	public void EditorSessionRequestsProtocolsNeededByDocumentedInput() {
-		IReadOnlyList<CursesInputProtocolOptions> options =
-			EditorSampleInteraction.CreateInputProtocolOptions();
-
-		Assert.Collection(
-			options,
-			current => Assert.Equal(
-				CursesKeyboardReportingMode.EventTypes,
-				current.KeyboardReportingMode
-			),
-			current => Assert.True( current.BracketedPaste ),
-			current => Assert.True( current.FocusReporting ),
-			current => Assert.Equal(
-				CursesMouseTrackingMode.ButtonMotion,
-				current.MouseTrackingMode
-			)
-		);
-	}
-
-	[Fact]
 	public void DocumentContextRoutesDirectAndSequencePromptCommands() {
 		CursesScreen screen = new( 80, 24 );
 		using EditorSampleInteraction interaction = CreateInteraction( screen );

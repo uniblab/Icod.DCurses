@@ -57,8 +57,13 @@ public sealed class EditorSampleProjectContractTests {
 		}
 
 		string program = File.ReadAllText( Path.Combine( folder, "Program.cs" ) );
-		Assert.Contains( "CreateInputProtocolOptions", program, StringComparison.Ordinal );
 		Assert.Contains( "AcquireInputProtocolsAsync", program, StringComparison.Ordinal );
+		Assert.Contains( "CursesKeyboardReportingMode.EventTypes", program,
+			StringComparison.Ordinal );
+		Assert.Contains( "BracketedPaste = true", program, StringComparison.Ordinal );
+		Assert.Contains( "FocusReporting = true", program, StringComparison.Ordinal );
+		Assert.Contains( "CursesMouseTrackingMode.ButtonMotion", program,
+			StringComparison.Ordinal );
 		Assert.Contains( "protocolLeases[ index ].DisposeAsync", program,
 			StringComparison.Ordinal );
 	}
