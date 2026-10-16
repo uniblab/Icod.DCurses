@@ -9,7 +9,7 @@ resize recreation and a text fallback driven by the same model.
 
 ## Current release boundary
 
-The current 2.5.1 source consumes stable `Icod.Terminal 1.29.1` through DCurses.
+The current 2.5.2 source consumes stable `Icod.Terminal 1.29.2` through DCurses.
 Version 2.4 adds bounded clipboard and cursor-style session mechanisms without
 changing this sample's retained raster contract. The maintainer has accepted the
 sample's ATLAS, FRAME, and TEXT behavior,
@@ -99,7 +99,7 @@ the pixels correctly. Record that separately with the T2308/T2310 live checklist
 
 ## Live acceptance and known limits
 
-The sample consumes stable Terminal 1.29.1 through DCurses, including bounded
+The sample consumes stable Terminal 1.29.2 through DCurses, including bounded
 persistent-transfer deadlines, immediate Linux/macOS byte input, Kitty DA1
 compatibility, newline-safe cursor planning, and coalesced Sixel screen writes.
 The public mode indicator is the acceptance authority: `ATLAS`, `FRAME`, or
@@ -187,8 +187,8 @@ dotnet list Icod.DCurses.csproj package
 dotnet run --project samples/Icod.DCurses.RasterAtlas.Sample/Icod.DCurses.RasterAtlas.Sample.csproj -c Release -f net10.0
 ```
 
-For the current 2.5.1 source, confirm the resolved direct package is
-`Icod.Terminal 1.29.1`. Use
+For the current 2.5.2 source, confirm the resolved direct package is
+`Icod.Terminal 1.29.2`. Use
 `-- --raster` to exercise FRAME directly and `-- --text` to force TEXT.
 Record the mode indicator along with rendering behavior; a fallback is a
 controlled result, not evidence that another mode rendered.

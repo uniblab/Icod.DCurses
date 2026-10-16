@@ -3,8 +3,8 @@
 The repository contains fourteen executable samples. They are intentionally separate so the minimal session lifecycle stays easy to copy without mixing it with the interactive and acceptance-focused showcases.
 
 All sample projects target `net8.0`, `net9.0`, and `net10.0` and consume the
-repository `Icod.DCurses` project. Icod.DCurses 2.5.1 declares only stable
-`Icod.Terminal 1.29.1` directly; Terminal may restore TermInfo transitively. See
+repository `Icod.DCurses` project. Icod.DCurses 2.5.2 declares only stable
+`Icod.Terminal 1.29.2` directly; Terminal may restore TermInfo transitively. See
 the [changelog](../CHANGELOG.md) for historical package dependencies and the
 [2.0 migration guide](../docs/2.0-Migration-Guide.md) when upgrading an external
 application from the 1.x public surface.
