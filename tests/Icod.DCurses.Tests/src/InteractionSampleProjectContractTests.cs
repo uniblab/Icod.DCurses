@@ -102,7 +102,7 @@ public sealed class InteractionSampleProjectContractTests {
 			"AcquireInputProtocolsAsync",
 			"CursesKeyboardReportingMode.EventTypes",
 			"FocusReporting = true",
-			"CursesMouseTrackingMode.ButtonEvents",
+			"CursesMouseTrackingMode.ButtonMotion",
 			"router.Route",
 			"MoveFocus",
 			"AcquirePointerShapeAsync",

@@ -55,5 +55,11 @@ public sealed class EditorSampleProjectContractTests {
 			Assert.DoesNotContain( "Icod.Terminal", source, StringComparison.Ordinal );
 			Assert.DoesNotContain( "Icod.TermInfo", source, StringComparison.Ordinal );
 		}
+
+		string program = File.ReadAllText( Path.Combine( folder, "Program.cs" ) );
+		Assert.Contains( "CreateInputProtocolOptions", program, StringComparison.Ordinal );
+		Assert.Contains( "AcquireInputProtocolsAsync", program, StringComparison.Ordinal );
+		Assert.Contains( "protocolLeases[ index ].DisposeAsync", program,
+			StringComparison.Ordinal );
 	}
 }
